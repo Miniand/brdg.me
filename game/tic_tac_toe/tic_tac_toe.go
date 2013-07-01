@@ -13,7 +13,8 @@ type Game struct {
 	Board           [3][3]int // 0 = empty cell, 1 = first player, 2 = second player
 }
 
-// Create a new game for specified players
+// Create a new game for specified players.  We return a pointer to make sure it
+// confirms to interfaces.
 func NewGame(players []string) (error, Game) {
 	if len(players) != 2 {
 		return errors.New("Must be 2 players"), Game{}
@@ -27,7 +28,7 @@ func NewGame(players []string) (error, Game) {
 }
 
 // Make an action for the specified player
-func (g *Game) PlayerAction(player string, action string, args []string) error {
+func (g Game) PlayerAction(player string, action string, args []string) error {
 	if g.CurrentlyMoving[0] != player {
 		return errors.New("Not your turn")
 	}
@@ -40,20 +41,20 @@ func (g *Game) PlayerAction(player string, action string, args []string) error {
 	return nil
 }
 
-func (g *Game) NextPlayer() {
+func (g Game) NextPlayer() {
 	// @todo Flip g.CurrentlyMoving[0] to the other player
 }
 
 // Marks the specified cell for the current player and changes the currently
 // moving player to the next one.  It shouldn't let you mark a cell that's
 // already marked.
-func (g *Game) MarkCellForPlayer(player string, x, y int) error {
+func (g Game) MarkCellForPlayer(player string, x, y int) error {
 	// @todo implement
 	return errors.New("Not implemented yet")
 }
 
 // Render an ascii representation of the game for a player
-func (g *Game) RenderForPlayer(player string) (error, string) {
+func (g Game) RenderForPlayer(player string) (error, string) {
 	output := "This is an example\n"
 	output += "of some constructed output"
 	// @todo implement.
@@ -62,14 +63,14 @@ func (g *Game) RenderForPlayer(player string) (error, string) {
 
 // Check if there is a winner, if there is a line of 3 all 1s or 2s.  First
 // argument is false if there isn't a winner yet
-func (g *Game) CheckWinner() (bool, string) {
+func (g Game) CheckWinner() (bool, string) {
 	// @todo implement
 	return false, ""
 }
 
 // Check if the game is finished, i.e. if there is a winner or if there is no
 // empty cells
-func (g *Game) IsFinished() bool {
+func (g Game) IsFinished() bool {
 	won, _ := g.CheckWinner()
 	if won {
 		return true
