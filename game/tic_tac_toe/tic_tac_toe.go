@@ -14,7 +14,7 @@ type Game struct {
 }
 
 // Create a new game for specified players
-func New(players []string) (error, Game) {
+func NewGame(players []string) (error, Game) {
 	if len(players) != 2 {
 		return errors.New("Must be 2 players"), Game{}
 	}

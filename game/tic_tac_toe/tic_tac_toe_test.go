@@ -6,7 +6,7 @@ import (
 
 func TestNew(t *testing.T) {
 	players := []string{"Mick", "Steve"}
-	err, _ := New(players)
+	err, _ := NewGame(players)
 	if err != nil {
 		t.Error(err)
 	}
@@ -14,7 +14,7 @@ func TestNew(t *testing.T) {
 
 func TestNewErrorsWithIncorrectPlayers(t *testing.T) {
 	players := []string{"Mick"}
-	err, _ := New(players)
+	err, _ := NewGame(players)
 	if err == nil {
 		t.Fail()
 	}
@@ -22,7 +22,7 @@ func TestNewErrorsWithIncorrectPlayers(t *testing.T) {
 
 func TestRenderForPlayer(t *testing.T) {
 	players := []string{"Mick", "Steve"}
-	err, game := New(players)
+	err, game := NewGame(players)
 	if err != nil {
 		t.Error(err)
 	}
@@ -31,7 +31,7 @@ func TestRenderForPlayer(t *testing.T) {
 
 func TestPlayerAction(t *testing.T) {
 	players := []string{"Mick", "Steve"}
-	err, game := New(players)
+	err, game := NewGame(players)
 	if err != nil {
 		t.Error(err)
 	}
@@ -52,7 +52,7 @@ func TestPlayerAction(t *testing.T) {
 
 func TestNextPlayer(t *testing.T) {
 	players := []string{"Mick", "Steve"}
-	err, game := New(players)
+	err, game := NewGame(players)
 	if err != nil {
 		t.Error(err)
 	}
@@ -70,7 +70,7 @@ func TestNextPlayer(t *testing.T) {
 
 func TestMarkCellForPlayer(t *testing.T) {
 	players := []string{"Mick", "Steve"}
-	err, game := New(players)
+	err, game := NewGame(players)
 	if err != nil {
 		t.Error(err)
 	}
@@ -99,7 +99,7 @@ func TestMarkCellForPlayer(t *testing.T) {
 
 func TestCheckWinner(t *testing.T) {
 	players := []string{"Mick", "Steve"}
-	err, game := New(players)
+	err, game := NewGame(players)
 	if err != nil {
 		t.Error(err)
 	}
@@ -131,7 +131,7 @@ func TestCheckWinner(t *testing.T) {
 
 func TestIsFinished(t *testing.T) {
 	players := []string{"Mick", "Steve"}
-	err, game := New(players)
+	err, game := NewGame(players)
 	if err != nil {
 		t.Error(err)
 	}
