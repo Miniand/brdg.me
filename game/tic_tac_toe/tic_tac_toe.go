@@ -3,6 +3,7 @@ package tic_tac_toe
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/rand"
 	"regexp"
 )
@@ -42,26 +43,26 @@ func (g *Game) PlayerAction(player string, action string, args []string) error {
 		return errors.New("Your action must be a letter between a - i")
 	}
 	switch action {
-	case a:
-		MarkCellForPlayer(player, 0, 0)
-	case b:
-		MarkCellForPlayer(player, 1, 0)
-	case c:
-		MarkCellForPlayer(player, 2, 0)
-	case d:
-		MarkCellForPlayer(player, 0, 1)
-	case e:
-		MarkCellForPlayer(player, 1, 1)
-	case f:
-		MarkCellForPlayer(player, 2, 1)
-	case g:
-		MarkCellForPlayer(player, 0, 2)
-	case h:
-		MarkCellForPlayer(player, 1, 2)
-	case i:
-		MarkCellForPlayer(player, 2, 2)
+	case "a":
+		g.MarkCellForPlayer(player, 0, 0)
+	case "b":
+		g.MarkCellForPlayer(player, 1, 0)
+	case "c":
+		g.MarkCellForPlayer(player, 2, 0)
+	case "d":
+		g.MarkCellForPlayer(player, 0, 1)
+	case "e":
+		g.MarkCellForPlayer(player, 1, 1)
+	case "f":
+		g.MarkCellForPlayer(player, 2, 1)
+	case "g":
+		g.MarkCellForPlayer(player, 0, 2)
+	case "h":
+		g.MarkCellForPlayer(player, 1, 2)
+	case "i":
+		g.MarkCellForPlayer(player, 2, 2)
 	default:
-		fmt.Println(j, "how did this get here...")
+		fmt.Println(action, "how did this get here...")
 	}
 	// @todo Convert a-i to cell coordinates (both 0-2) and call
 	// MarkCellForPlayer
