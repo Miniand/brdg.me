@@ -119,20 +119,8 @@ func saveGame(g game.Playable) error {
 	if err != nil {
 		return err
 	}
-	fi, err := os.OpenFile(FILE, os.O_WRONLY, 0666)
-	if err != nil && os.IsNotExist(err) {
-		fi, err = os.Create(FILE)
-	}
-	if err != nil {
-		return err
-	}
-	writer := bufio.NewWriter(fi)
-	_, err = writer.WriteString(g.Identifier() + "\n" + string(data))
-	if err != nil {
-		return err
-	}
-	writer.Flush()
-	return fi.Close()
+	return ioutil.WriteFile(FILE, []byte(g.Identifier()+"\n"+string(data)),
+		0666)
 }
 
 func loadGame() (error, game.Playable) {
