@@ -17,21 +17,15 @@ type Game struct {
 
 // Create a new game for specified players.  We return a pointer to make sure it
 // confirms to interfaces.
-func NewGame(players []string) (error, *Game) {
+func (g *Game) Start(players []string) error {
 	if len(players) != 2 {
-		return errors.New("Must be 2 players"), &Game{}
+		return errors.New("Must be 2 players")
 	}
 	startPlayer := players[rand.Int()%2]
-	return nil, &Game{
-		Players:         players,
-		StartPlayer:     startPlayer,
-		CurrentlyMoving: []string{startPlayer},
-	}
-}
-
-// Returns a raw game to get access to basic things like name.
-func RawGame() *Game {
-	return &Game{}
+	g.Players = players
+	g.StartPlayer = startPlayer
+	g.CurrentlyMoving = []string{startPlayer}
+	return nil
 }
 
 // Make an action for the specified player

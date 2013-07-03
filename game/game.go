@@ -11,20 +11,34 @@ type Playable interface {
 	Encode() ([]byte, error)
 	Decode([]byte) error
 	RenderForPlayer(string) (error, string)
+	Start([]string) error
+}
+
+// The actual list of games, for a game to be active in the app it needs to be
+// in here
+func gameList() []Playable {
+	return []Playable{
+		&tic_tac_toe.Game{},
+	}
 }
 
 // Return constructors for each game type
 func Collection() map[string]func([]string) (error, Playable) {
-	return map[string]func([]string) (error, Playable){
-		tic_tac_toe.RawGame().Identifier(): func(players []string) (error, Playable) {
-			return tic_tac_toe.NewGame(players)
-		},
+	collection := map[string]func([]string) (error, Playable){}
+	for name, raw := range RawCollection() {
+		collection[name] = func(players []string) (error, Playable) {
+			err := raw.Init(players)
+			return err, raw
+		}
 	}
+	return collection
 }
 
 // Returns a collection of the raw games used for loading
 func RawCollection() map[string]Playable {
-	return map[string]Playable{
-		tic_tac_toe.RawGame().Identifier(): tic_tac_toe.RawGame(),
+	collection := map[string]Playable{}
+	for _, g := range gameList() {
+		collection[g.Identifier()] = g
 	}
+	return collection
 }
