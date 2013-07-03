@@ -17,34 +17,44 @@ func Actions() map[string](func([]string) error) {
 	return map[string](func([]string) error){
 		"new":  NewAction,
 		"play": PlayAction,
+		"view": ViewAction,
+		"dump": DumpAction,
 	}
 }
 
 func main() {
 	flag.Parse()
 	if flag.NArg() == 0 {
-		fmt.Fprintln(os.Stderr, "Put an action")
-		fmt.Fprintln(os.Stderr)
+		fmt.Println("Available actions are:")
+		for aName, _ := range Actions() {
+			fmt.Println(aName)
+		}
 		os.Exit(1)
 	}
 	actionName := flag.Args()[0]
 	action := Actions()[actionName]
 	if action == nil {
-		fmt.Fprintf(os.Stderr, "Invalid action: %s", actionName)
-		fmt.Fprintln(os.Stderr)
+		fmt.Printf("Invalid action: %s", actionName)
+		fmt.Println()
 		os.Exit(2)
 	}
 	err := action(flag.Args()[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
-		fmt.Fprintln(os.Stderr)
+		fmt.Printf(err.Error())
+		fmt.Println()
 		os.Exit(3)
 	}
 }
 
 func NewAction(args []string) error {
 	if len(args) < 2 {
-		return errors.New("You must specify a game name (use list to list games) and at least one player")
+		lines := []string{
+			"You must specify a game name and at least one player.  Available games are:",
+		}
+		for _, rawG := range game.RawCollection() {
+			lines = append(lines, rawG.Identifier()+" ("+rawG.Name()+")")
+		}
+		return errors.New(strings.Join(lines, "\n"))
 	}
 	gameName := args[0]
 	players := args[1:]
@@ -80,6 +90,30 @@ func PlayAction(args []string) error {
 	return nil
 }
 
+func ViewAction(args []string) error {
+	if len(args) < 1 {
+		return errors.New("You must specify a player to view for.")
+	}
+	err, g := loadGame()
+	if err != nil {
+		return err
+	}
+	err, output := g.RenderForPlayer(args[0])
+	if err == nil {
+		fmt.Println(output)
+	}
+	return err
+}
+
+func DumpAction(args []string) error {
+	err, g := loadGame()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", g)
+	return nil
+}
+
 func saveGame(g game.Playable) error {
 	data, err := g.Encode()
 	if err != nil {
@@ -97,6 +131,7 @@ func saveGame(g game.Playable) error {
 	if err != nil {
 		return err
 	}
+	writer.Flush()
 	return fi.Close()
 }
 

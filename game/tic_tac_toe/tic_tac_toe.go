@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"time"
 )
 
 type Game struct {
@@ -21,7 +22,8 @@ func (g *Game) Start(players []string) error {
 	if len(players) != 2 {
 		return errors.New("Must be 2 players")
 	}
-	startPlayer := players[rand.Int()%2]
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	startPlayer := players[r.Int()%2]
 	g.Players = players
 	g.StartPlayer = startPlayer
 	g.CurrentlyMoving = []string{startPlayer}

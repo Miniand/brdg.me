@@ -27,7 +27,7 @@ func Collection() map[string]func([]string) (error, Playable) {
 	collection := map[string]func([]string) (error, Playable){}
 	for name, raw := range RawCollection() {
 		collection[name] = func(players []string) (error, Playable) {
-			err := raw.Init(players)
+			err := raw.Start(players)
 			return err, raw
 		}
 	}
