@@ -82,9 +82,9 @@ func PlayAction(args []string) error {
 		return err
 	}
 	err, output := g.RenderForPlayer(args[0])
-	if err != nil {
-		return err
-	}
+	//if err != nil {
+	//	return err
+	//}
 	saveGame(g)
 	fmt.Println(output)
 	return nil

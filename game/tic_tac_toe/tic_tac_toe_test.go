@@ -40,7 +40,7 @@ func TestPlayerAction(t *testing.T) {
 		t.Error(err)
 	}
 	// First lets see that a valid action works
-	err = game.PlayerAction(game.CurrentlyMoving[0], "a", []string{})
+	err = game.PlayerAction(game.CurrentlyMoving, "a", []string{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -48,7 +48,7 @@ func TestPlayerAction(t *testing.T) {
 		t.Error("The action didn't actually do anything")
 	}
 	// Now lets make an invalid action
-	err = game.PlayerAction(game.CurrentlyMoving[0], "moog", []string{})
+	err = game.PlayerAction(game.CurrentlyMoving, "moog", []string{})
 	if err == nil {
 		t.Error("It didn't actually error")
 	}
@@ -62,13 +62,13 @@ func TestNextPlayer(t *testing.T) {
 		t.Error(err)
 	}
 	// Force the CurrentlyMoving[0] to what we want for testing sake
-	game.CurrentlyMoving[0] = "Mick"
+	game.CurrentlyMoving = "Mick"
 	game.NextPlayer()
-	if game.CurrentlyMoving[0] != "Steve" {
+	if game.CurrentlyMoving != "Steve" {
 		t.Error("Player didn't change to Steve")
 	}
 	game.NextPlayer()
-	if game.CurrentlyMoving[0] != "Mick" {
+	if game.CurrentlyMoving != "Mick" {
 		t.Error("Player didn't change back to Mick")
 	}
 }

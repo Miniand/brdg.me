@@ -11,7 +11,7 @@ import (
 
 type Game struct {
 	Players         []string
-	CurrentlyMoving []string
+	CurrentlyMoving string
 	StartPlayer     string
 	Board           [3][3]int // 0 = empty cell, 1 = first player, 2 = second player
 }
@@ -26,13 +26,13 @@ func (g *Game) Start(players []string) error {
 	startPlayer := players[r.Int()%2]
 	g.Players = players
 	g.StartPlayer = startPlayer
-	g.CurrentlyMoving = []string{startPlayer}
+	g.CurrentlyMoving = startPlayer
 	return nil
 }
 
 // Make an action for the specified player
 func (g *Game) PlayerAction(player string, action string, args []string) error {
-	if g.CurrentlyMoving[0] != player {
+	if g.CurrentlyMoving != player {
 		return errors.New("Not your turn")
 	}
 	if !regexp.MustCompile("^[abcdefghi]$").MatchString(action) {
@@ -68,6 +68,12 @@ func (g *Game) PlayerAction(player string, action string, args []string) error {
 
 func (g *Game) NextPlayer() {
 	// @todo Flip g.CurrentlyMoving[0] to the other player
+	if g.CurrentlyMoving == g.Players[0] {
+		g.CurrentlyMoving = g.Players[1]
+	} else {
+		g.CurrentlyMoving = g.Players[0]
+	}
+
 }
 
 // Marks the specified cell for the current player and changes the currently
@@ -75,7 +81,18 @@ func (g *Game) NextPlayer() {
 // already marked.
 func (g *Game) MarkCellForPlayer(player string, x, y int) error {
 	// @todo implement
-	return errors.New("Not implemented yet")
+	//return errors.New("Not implemented yet")
+	fmt.Println(player)
+	fmt.Println(x)
+	fmt.Println(y)
+	if g.CurrentlyMoving == player {
+		g.Board[x][y] = 1
+	} else {
+		g.Board[x][y] = 2
+	}
+
+	fmt.Println("should have done something by now...")
+	return nil
 }
 
 // Render an ascii representation of the game for a player
@@ -83,7 +100,8 @@ func (g *Game) RenderForPlayer(player string) (error, string) {
 	output := "This is an example\n"
 	output += "of some constructed output"
 	// @todo implement.
-	return errors.New("Not implemented yet"), output
+	//return errors.New("Not implemented yet"), output
+	return nil, "ham"
 }
 
 // Check if there is a winner, if there is a line of 3 all 1s or 2s.  First
