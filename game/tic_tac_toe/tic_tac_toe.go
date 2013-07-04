@@ -85,15 +85,15 @@ func (g *Game) MarkCellForPlayer(player string, x, y int) error {
 	fmt.Println(player)
 	fmt.Println(x)
 	fmt.Println(y)
-	if g.Board[x][y] != 0 {
+	if g.Board[y][x] != 0 {
 		return errors.New("cell not empty, bro")
 
 	} else {
 
 		if g.CurrentlyMoving == player {
-			g.Board[x][y] = 1
+			g.Board[y][x] = 1
 		} else {
-			g.Board[x][y] = 2
+			g.Board[y][x] = 2
 		}
 	}
 
@@ -103,11 +103,11 @@ func (g *Game) MarkCellForPlayer(player string, x, y int) error {
 
 // Render an ascii representation of the game for a player
 func (g *Game) RenderForPlayer(player string) (error, string) {
-	output := "This is an example\n"
-	output += "of some constructed output"
+	output := fmt.Sprintf("%#v", g)
 	// @todo implement.
 	//return errors.New("Not implemented yet"), output
-	return nil, "ham"
+	return nil, output
+
 }
 
 // Check if there is a winner, if there is a line of 3 all 1s or 2s.  First
