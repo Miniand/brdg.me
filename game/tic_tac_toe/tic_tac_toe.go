@@ -110,23 +110,33 @@ func (g *Game) RenderForPlayer(player string) (error, string) {
 
 }
 
-// Check if there is a winner, if there is a line of 3 all 1s or 2s.  First
-// argument is false if there isn't a winner yet
-func (g *Game) CheckWinner() (bool, string) {
-	// @todo implement
-	return false, ""
+// Gets a full list of players.
+func (g *Game) PlayerList() []string {
+	return g.Players
+}
+
+// Check if there is a winner, if there is a line of 3 all 1s or 2s
+func (g *Game) Winner() string {
+	// @todo Implement
+	return ""
+}
+
+// Wrapper of Winner to match game interface (some games can have more than 1 winner)
+func (g *Game) Winners() []string {
+	return []string{g.Winner()}
 }
 
 // Check if the game is finished, i.e. if there is a winner or if there is no
 // empty cells
 func (g *Game) IsFinished() bool {
-	won, _ := g.CheckWinner()
-	if won {
-		return true
-	}
 	// @todo check if there are any empty cells and return false if there are
 	// any, otherwise return true
 	return false
+}
+
+// Returns all the users whose turn it is.
+func (g *Game) WhoseTurn() []string {
+	return []string{g.CurrentlyMoving}
 }
 
 // We use human name for output.

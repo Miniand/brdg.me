@@ -12,6 +12,10 @@ type Playable interface {
 	Decode([]byte) error
 	RenderForPlayer(string) (error, string)
 	Start([]string) error
+	PlayerList() []string
+	IsFinished() bool
+	Winners() []string
+	WhoseTurn() []string
 }
 
 // The actual list of games, for a game to be active in the app it needs to be

@@ -114,24 +114,21 @@ func TestCheckWinner(t *testing.T) {
 	game.Board[0] = [3]int{1, 1, 2}
 	game.Board[1] = [3]int{1, 2, 1}
 	game.Board[2] = [3]int{1, 1, 2}
-	won, winner := game.CheckWinner()
-	if !won || winner != "Mick" {
+	if !game.IsFinished() || game.Winner() != "Mick" {
 		t.Error("Winner isn't Mick")
 	}
 	// This should be a winner for Steve
 	game.Board[0] = [3]int{2, 1, 2}
 	game.Board[1] = [3]int{1, 2, 1}
 	game.Board[2] = [3]int{1, 1, 2}
-	won, winner = game.CheckWinner()
-	if !won || winner != "Steve" {
+	if !game.IsFinished() || game.Winner() != "Steve" {
 		t.Error("Winner isn't Steve")
 	}
 	// This should be a winner for nobody
 	game.Board[0] = [3]int{1, 1, 2}
 	game.Board[1] = [3]int{2, 2, 1}
 	game.Board[2] = [3]int{1, 1, 2}
-	won, winner = game.CheckWinner()
-	if won {
+	if game.IsFinished() {
 		t.Error("There's a winner when there shouldn't be")
 	}
 }
