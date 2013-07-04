@@ -4,7 +4,7 @@ group {"puppet":
 
 file { "/etc/init/boredga.me-web.conf":
 	ensure => present,
-	content => "env BOREDGAME_WEB_SERVER_ADDRESS=\"localhost:80\"
+	content => "env BOREDGAME_WEB_SERVER_ADDRESS=\":80\"
 start on (local-filesystems and net-device-up IFACE=eth0)
 stop on shutdown
 exec /usr/bin/boredga.me-web 2>&1 >> /var/log/boredga.me-web",

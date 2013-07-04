@@ -33,9 +33,9 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 func main() {
 	addr := os.Getenv("BOREDGAME_EMAIL_SERVER_ADDRESS")
 	if addr == "" {
-		addr = "localhost:9999"
+		addr = ":9999"
 	}
-	log.Print("Running incoming email server on http://" + addr)
+	log.Print("Running incoming email server on " + addr)
 	err := http.ListenAndServe(addr, &InboundEmailHandler{})
 	if err != nil {
 		panic(err.Error())
