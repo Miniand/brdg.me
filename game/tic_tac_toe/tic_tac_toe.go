@@ -85,10 +85,16 @@ func (g *Game) MarkCellForPlayer(player string, x, y int) error {
 	fmt.Println(player)
 	fmt.Println(x)
 	fmt.Println(y)
-	if g.CurrentlyMoving == player {
-		g.Board[x][y] = 1
+	if g.Board[x][y] != 0 {
+		return errors.New("cell not empty, bro")
+
 	} else {
-		g.Board[x][y] = 2
+
+		if g.CurrentlyMoving == player {
+			g.Board[x][y] = 1
+		} else {
+			g.Board[x][y] = 2
+		}
 	}
 
 	fmt.Println("should have done something by now...")
