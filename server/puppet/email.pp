@@ -104,5 +104,5 @@ mailman   unix  -       n       n       -       -       pipe
   flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
   \${nexthop} \${user}
 boredgame_filter unix - n       n       -       -       pipe
-  flags=Xhq user=www-data argv=/usr/bin/curl -X POST --data-binary @- http://localhost/inbound",
+  flags=Xhq user=www-data argv=/usr/bin/curl -X POST --data-binary @- http://localhost:81",
 }
