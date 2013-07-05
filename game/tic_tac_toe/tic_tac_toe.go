@@ -82,22 +82,16 @@ func (g *Game) NextPlayer() {
 func (g *Game) MarkCellForPlayer(player string, x, y int) error {
 	// @todo implement
 	//return errors.New("Not implemented yet")
-	fmt.Println(player)
-	fmt.Println(x)
-	fmt.Println(y)
 	if g.Board[y][x] != 0 {
 		return errors.New("cell not empty, bro")
 
 	} else {
-
-		if g.CurrentlyMoving == player {
+		if g.CurrentlyMoving == g.StartPlayer {
 			g.Board[y][x] = 1
 		} else {
 			g.Board[y][x] = 2
 		}
 	}
-
-	fmt.Println("should have done something by now...")
 	return nil
 }
 
@@ -114,7 +108,18 @@ func (g *Game) RenderForPlayer(player string) (error, string) {
 // argument is false if there isn't a winner yet
 func (g *Game) CheckWinner() (bool, string) {
 	// @todo implement
-	return false, ""
+
+	for i := 0; i < 3; i++ {
+		if g.Board[i][0] == g.Board[i][1] && g.Board[i][0] == g.Board[i][2] {
+			return true, g.Players[g.Board[i][0]]
+
+		} else if g.Board[0][i] == g.Board[1][i] && g.Board[0][i] == g.Board[2][i] {
+			return true, g.Players[g.Board[0][i]]
+		} else {
+			return false, "null"
+		}
+	}
+	return false, "null"
 }
 
 // Check if the game is finished, i.e. if there is a winner or if there is no
@@ -124,9 +129,17 @@ func (g *Game) IsFinished() bool {
 	if won {
 		return true
 	}
+	for x := 0; x < 3; x++ {
+		for y := 0; y < 3; y++ {
+			if g.Board[x][y] == 0 {
+				return false
+			}
+		}
+	}
+
 	// @todo check if there are any empty cells and return false if there are
 	// any, otherwise return true
-	return false
+	return true
 }
 
 // We use human name for output.
