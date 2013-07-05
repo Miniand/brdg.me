@@ -80,11 +80,8 @@ func (g *Game) NextPlayer() {
 // moving player to the next one.  It shouldn't let you mark a cell that's
 // already marked.
 func (g *Game) MarkCellForPlayer(player string, x, y int) error {
-	// @todo implement
-	//return errors.New("Not implemented yet")
 	if g.Board[y][x] != 0 {
 		return errors.New("cell not empty, bro")
-
 	} else {
 		if g.CurrentlyMoving == g.StartPlayer {
 			g.Board[y][x] = 1
@@ -104,24 +101,6 @@ func (g *Game) RenderForPlayer(player string) (error, string) {
 
 }
 
-<<<<<<< HEAD
-// Check if there is a winner, if there is a line of 3 all 1s or 2s.  First
-// argument is false if there isn't a winner yet
-func (g *Game) CheckWinner() (bool, string) {
-	// @todo implement
-
-	for i := 0; i < 3; i++ {
-		if g.Board[i][0] == g.Board[i][1] && g.Board[i][0] == g.Board[i][2] {
-			return true, g.Players[g.Board[i][0]]
-
-		} else if g.Board[0][i] == g.Board[1][i] && g.Board[0][i] == g.Board[2][i] {
-			return true, g.Players[g.Board[0][i]]
-		} else {
-			return false, "null"
-		}
-	}
-	return false, "null"
-=======
 // Gets a full list of players.
 func (g *Game) PlayerList() []string {
 	return g.Players
@@ -129,24 +108,28 @@ func (g *Game) PlayerList() []string {
 
 // Check if there is a winner, if there is a line of 3 all 1s or 2s
 func (g *Game) Winner() string {
-	// @todo Implement
+	for i := 0; i < 3; i++ {
+		if g.Board[i][0] == g.Board[i][1] && g.Board[i][0] == g.Board[i][2] {
+			return g.Players[g.Board[i][0]]
+		} else if g.Board[0][i] == g.Board[1][i] && g.Board[0][i] == g.Board[2][i] {
+			return g.Players[g.Board[i][0]]
+		}
+	}
 	return ""
 }
 
 // Wrapper of Winner to match game interface (some games can have more than 1 winner)
 func (g *Game) Winners() []string {
-	return []string{g.Winner()}
->>>>>>> origin
+	winner := g.Winner()
+	if winner != "" {
+		return []string{winner}
+	}
+	return []string{}
 }
 
 // Check if the game is finished, i.e. if there is a winner or if there is no
 // empty cells
 func (g *Game) IsFinished() bool {
-<<<<<<< HEAD
-	won, _ := g.CheckWinner()
-	if won {
-		return true
-	}
 	for x := 0; x < 3; x++ {
 		for y := 0; y < 3; y++ {
 			if g.Board[x][y] == 0 {
@@ -154,11 +137,6 @@ func (g *Game) IsFinished() bool {
 			}
 		}
 	}
-
-=======
->>>>>>> origin
-	// @todo check if there are any empty cells and return false if there are
-	// any, otherwise return true
 	return true
 }
 
