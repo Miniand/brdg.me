@@ -66,6 +66,15 @@ func NewAction(args []string) error {
 	if err != nil {
 		return err
 	}
+	for _, p := range g.WhoseTurn() {
+		err, output := g.RenderForPlayer(p)
+		if err != nil {
+			return err
+		}
+		fmt.Println("--- OUTPUT FOR " + p + " ---")
+		fmt.Println(output)
+	}
+	fmt.Println("Current turn: " + strings.Join(g.WhoseTurn(), ", "))
 	return saveGame(g)
 }
 
@@ -82,11 +91,25 @@ func PlayAction(args []string) error {
 		return err
 	}
 	err, output := g.RenderForPlayer(args[0])
-	//if err != nil {
-	//	return err
-	//}
+	if err != nil {
+		return err
+	}
 	saveGame(g)
+	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
 	fmt.Println(output)
+	for _, p := range g.WhoseTurn() {
+		err, output = g.RenderForPlayer(p)
+		if err != nil {
+			return err
+		}
+		fmt.Println("--- OUTPUT FOR " + p + " ---")
+		fmt.Println(output)
+	}
+	if g.IsFinished() {
+		fmt.Println("Game finished!  Winners: " + strings.Join(g.Winners(), ", "))
+	} else {
+		fmt.Println("Current turn: " + strings.Join(g.WhoseTurn(), ", "))
+	}
 	return nil
 }
 
