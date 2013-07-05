@@ -162,3 +162,20 @@ func TestIsFinished(t *testing.T) {
 		t.Error("Game should be finished because Mick won")
 	}
 }
+
+func TestAllowUpperCase(t *testing.T) {
+	players := []string{"Mick", "Steve"}
+	game := &Game{}
+	err := game.Start(players)
+	if err != nil {
+		t.Error(err)
+	}
+	// Test to see if uppercase plays work
+	err = game.PlayerAction(game.CurrentlyMoving, "A", []string{})
+	if err != nil {
+		t.Error(err)
+	}
+	if game.Board[0][0] == 0 {
+		t.Error("Using uppercase didn't mark the cell")
+	}
+}
