@@ -104,7 +104,7 @@ func (g *Game) RenderForPlayer(player string) (error, string) {
 			} else {
 				output += " "
 			}
-			if x != 2 {
+			if y != 2 {
 				output += "|"
 			}
 
