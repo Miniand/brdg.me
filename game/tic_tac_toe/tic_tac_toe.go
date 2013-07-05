@@ -94,7 +94,23 @@ func (g *Game) MarkCellForPlayer(player string, x, y int) error {
 
 // Render an ascii representation of the game for a player
 func (g *Game) RenderForPlayer(player string) (error, string) {
-	output := fmt.Sprintf("%#v", g)
+	output := ""
+	for x := 0; x < 3; x++ {
+		for y := 0; y < 3; y++ {
+			if g.Board[x][y] == 1 {
+				output += "x"
+			} else if g.Board[x][y] == 2 {
+				output += "o"
+			} else {
+				output += " "
+			}
+			if x != 2 {
+				output += "|"
+			}
+
+		}
+		output += "\n"
+	}
 	// @todo implement.
 	//return errors.New("Not implemented yet"), output
 	return nil, output
@@ -130,6 +146,9 @@ func (g *Game) Winners() []string {
 // Check if the game is finished, i.e. if there is a winner or if there is no
 // empty cells
 func (g *Game) IsFinished() bool {
+	if g.Winner() != "" {
+		return true
+	}
 	for x := 0; x < 3; x++ {
 		for y := 0; y < 3; y++ {
 			if g.Board[x][y] == 0 {
