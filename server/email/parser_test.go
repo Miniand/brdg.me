@@ -6,9 +6,10 @@ import (
 
 func TestParseFrom(t *testing.T) {
 	tests := map[string]string{
-		"beefsack@gmail.com":                     "beefsack@gmail.com",
-		"beefsack@gmail.com <Michael Alexander>": "beefsack@gmail.com",
-		"    beefsack@gmail.com blah":            "beefsack@gmail.com",
+		"beefsack@gmail.com":                       "beefsack@gmail.com",
+		"beefsack@gmail.com <Michael Alexander>":   "beefsack@gmail.com",
+		" Michael Alexander <beefsack@gmail.com> ": "beefsack@gmail.com",
+		"    beefsack@gmail.com blah":              "beefsack@gmail.com",
 	}
 	for source, target := range tests {
 		from := ParseFrom(source)

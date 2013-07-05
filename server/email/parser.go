@@ -1,6 +1,7 @@
 package main
 
 import (
+	"labix.org/v2/mgo/bson"
 	"regexp"
 	"strings"
 )
@@ -42,4 +43,27 @@ func ParseBody(body string) [][]string {
 		}
 	}
 	return parsedCommands
+}
+
+// Run commands on the game, email relevant people and handle action issues
+func HandleCommands(player, gameId string, commands [][]string) error {
+	if gameId == "" {
+		// Either starting a new game or just print help
+	} else {
+		gm, err := LoadGame(bson.ObjectIdHex(gameId))
+		if err != nil {
+			return err
+		}
+		g, err := gm.ToGame()
+		if err != nil {
+			return err
+		}
+		for _, command := range commands {
+			err = g.PlayerAction(player, command[0], command[1:])
+			if err != nil {
+				// Stop here and email
+			}
+		}
+	}
+	return nil
 }

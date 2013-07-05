@@ -2,7 +2,6 @@ package main
 
 import (
 	"io/ioutil"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"net/mail"
@@ -26,23 +25,14 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 		return
 	}
 	// Body is an actual email
-	log.Print(msg.Header.Get("From"))
-	log.Print(msg.Header.Get("Subject"))
-	log.Print(string(body))
-	subject := msg.Header.Get("Subject")
-	if bson.IsObjectIdHex(subject) {
-		// Load a game and play it
-		gm, err := LoadGame(bson.ObjectIdHex(subject))
-		if err != nil {
-			log.Print("Could not load game: " + err.Error())
-			http.Error(w, "Could not load game: "+err.Error(), 500)
-		}
-
-		_, err = gm.ToGame()
-		if err != nil {
-			log.Print("Could not read game: " + err.Error())
-			http.Error(w, "Could not read game: "+err.Error(), 500)
-		}
+	player := ParseFrom(msg.Header.Get("From"))
+	gameId := ParseSubject(msg.Header.Get("Subject"))
+	commands := ParseBody(string(body))
+	err = HandleCommands(player, gameId, commands)
+	if err != nil {
+		log.Print("Error handling commands: " + err.Error())
+		http.Error(w, "Error handling commands: "+err.Error(), 500)
+		return
 	}
 }
 
