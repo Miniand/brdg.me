@@ -33,7 +33,7 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 	commands := ParseBody(string(body))
 	log.Println("Commands:")
 	for _, c := range commands {
-		log.Println("Commands:", strings.Join(commands, " "))
+		log.Println("Commands:", strings.Join(c, " "))
 	}
 	err = HandleCommands(player, gameId, commands)
 	if err != nil {
