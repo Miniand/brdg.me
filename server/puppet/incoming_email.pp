@@ -7,7 +7,7 @@ file { "/etc/init/boredga.me-email.conf":
 	content => "env BOREDGAME_EMAIL_SERVER_ADDRESS=\":81\"
 start on (local-filesystems and net-device-up IFACE=eth0)
 stop on shutdown
-exec /usr/bin/boredga.me-email 2>&1 >> /var/log/boredga.me-email",
+exec /usr/bin/boredga.me-email >> /var/log/boredga.me-email 2>&1",
 }
 
 file { "/etc/init.d/boredga.me-email":
