@@ -15,26 +15,26 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 	r *http.Request) {
 	msg, err := mail.ReadMessage(r.Body)
 	if err != nil {
-		log.Print("Could not parse email: " + err.Error())
+		log.Println("Could not parse email: " + err.Error())
 		http.Error(w, "Could not parse email: "+err.Error(), 500)
 		return
 	}
 	body, err := ioutil.ReadAll(msg.Body)
 	if err != nil {
-		log.Print("Could not read body: " + err.Error())
+		log.Println("Could not read body: " + err.Error())
 		http.Error(w, "Could not read body: "+err.Error(), 500)
 		return
 	}
 	// Body is an actual email
 	player := ParseFrom(msg.Header.Get("From"))
-	log.Print("Player:", player)
+	log.Println("Player:", player)
 	gameId := ParseSubject(msg.Header.Get("Subject"))
-	log.Print("Game ID:", gameId)
+	log.Println("Game ID:", gameId)
 	commands := ParseBody(string(body))
-	log.Print("Commands:", strings.Join(commands, ", "))
+	log.Println("Commands:", strings.Join(commands, ", "))
 	err = HandleCommands(player, gameId, commands)
 	if err != nil {
-		log.Print("Error handling commands: " + err.Error())
+		log.Println("Error handling commands: " + err.Error())
 		http.Error(w, "Error handling commands: "+err.Error(), 500)
 		return
 	}
@@ -45,7 +45,7 @@ func main() {
 	if addr == "" {
 		addr = ":9999"
 	}
-	log.Print("Running incoming email server on " + addr)
+	log.Println("Running incoming email server on " + addr)
 	err := http.ListenAndServe(addr, &InboundEmailHandler{})
 	if err != nil {
 		panic(err.Error())
