@@ -4,13 +4,21 @@ group {"puppet":
 
 user {"play":
 	ensure => present,
+	home => "/home/play",
+	managehome => true,
 }
 
-file {"/etc/aliases":
+file {"/home/play":
+	ensure => directory,
+	owner => "play",
+	require => User["play"],
+}
+
+file {"/home/play/.forward":
 	ensure => present,
-	content => "# See man 5 aliases for format
-postmaster:    root
-play:          /dev/null"
+	content => "\"|/usr/bin/curl -X POST --data-binary @- http://localhost:81\"",
+	owner => "play",
+	require => File["/home/play"],
 }
 
 file {"/etc/hostname":
@@ -66,7 +74,6 @@ file {"/etc/postfix/master.cf":
 	ensure => present,
 	require => Package["postfix"],
 	content => "smtp      inet  n       -       -       -       -       smtpd
-  -o content_filter=boredgame_filter:
 pickup    unix  n       -       -       60      1       pickup
 cleanup   unix  n       -       -       -       0       cleanup
 qmgr      unix  n       -       n       300     1       qmgr
@@ -102,7 +109,5 @@ scalemail-backend unix  -       n       n       -       2       pipe
   flags=R user=scalemail argv=/usr/lib/scalemail/bin/scalemail-store \${nexthop} \${user} \${extension}
 mailman   unix  -       n       n       -       -       pipe
   flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
-  \${nexthop} \${user}
-boredgame_filter unix - n       n       -       -       pipe
-  flags=Xhq user=www-data argv=/usr/bin/curl -X POST --data-binary @- http://localhost:81",
+  \${nexthop} \${user}"
 }
