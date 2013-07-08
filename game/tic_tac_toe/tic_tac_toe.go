@@ -125,9 +125,9 @@ func (g *Game) PlayerList() []string {
 // Check if there is a winner, if there is a line of 3 all 1s or 2s
 func (g *Game) Winner() string {
 	for i := 0; i < 3; i++ {
-		if g.Board[i][0] == g.Board[i][1] && g.Board[i][0] == g.Board[i][2] {
+		if g.Board[i][0] == g.Board[i][1] && g.Board[i][0] == g.Board[i][2] && g.Board[i][0] != 0{
 			return g.Players[g.Board[i][0]]
-		} else if g.Board[0][i] == g.Board[1][i] && g.Board[0][i] == g.Board[2][i] {
+		} else if g.Board[0][i] == g.Board[1][i] && g.Board[0][i] == g.Board[2][i] && g.Board[0][i] != 0{
 			return g.Players[g.Board[i][0]]
 		}
 	}
