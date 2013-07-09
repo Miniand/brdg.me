@@ -40,30 +40,42 @@ func (g *Game) PlayerAction(player string, action string, args []string) error {
 	if !regexp.MustCompile("^[abcdefghi]$").MatchString(action) {
 		return errors.New("Your action must be a letter between a - i")
 	}
+	var x, y int
 	switch action {
 	case "a":
-		g.MarkCellForPlayer(player, 0, 0)
+		x = 0
+		y = 0
 	case "b":
-		g.MarkCellForPlayer(player, 1, 0)
+		x = 1
+		y = 0
 	case "c":
-		g.MarkCellForPlayer(player, 2, 0)
+		x = 2
+		y = 0
 	case "d":
-		g.MarkCellForPlayer(player, 0, 1)
+		x = 0
+		y = 1
 	case "e":
-		g.MarkCellForPlayer(player, 1, 1)
+		x = 1
+		y = 1
 	case "f":
-		g.MarkCellForPlayer(player, 2, 1)
+		x = 2
+		y = 1
 	case "g":
-		g.MarkCellForPlayer(player, 0, 2)
+		x = 0
+		y = 2
 	case "h":
-		g.MarkCellForPlayer(player, 1, 2)
+		x = 1
+		y = 2
 	case "i":
-		g.MarkCellForPlayer(player, 2, 2)
+		x = 2
+		y = 2
 	default:
 		fmt.Println(action, "how did this get here...")
 	}
-	// @todo Convert a-i to cell coordinates (both 0-2) and call
-	// MarkCellForPlayer
+	err := g.MarkCellForPlayer(player, x, y)
+	if err != nil {
+		return err
+	}
 	g.NextPlayer()
 	return nil
 }
