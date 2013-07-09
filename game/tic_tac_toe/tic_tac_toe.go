@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -32,6 +33,7 @@ func (g *Game) Start(players []string) error {
 
 // Make an action for the specified player
 func (g *Game) PlayerAction(player string, action string, args []string) error {
+	action = strings.ToLower(action)
 	if g.CurrentlyMoving != player {
 		return errors.New("Not your turn")
 	}
