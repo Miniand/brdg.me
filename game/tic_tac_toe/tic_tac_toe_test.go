@@ -77,6 +77,8 @@ func TestMarkCellForPlayer(t *testing.T) {
 	players := []string{"Mick", "Steve"}
 	game := &Game{}
 	err := game.Start(players)
+	game.StartPlayer = "Mick"
+	game.CurrentlyMoving = "Mick"
 	if err != nil {
 		t.Error(err)
 	}
@@ -93,7 +95,7 @@ func TestMarkCellForPlayer(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if game.Board[1][2] != 2 {
+	if game.Board[2][1] != 2 {
 		t.Error("Didn't mark cell for Steve")
 	}
 	// Now lets try to remark a cell that's already marked and expect an error
@@ -107,6 +109,8 @@ func TestCheckWinner(t *testing.T) {
 	players := []string{"Mick", "Steve"}
 	game := &Game{}
 	err := game.Start(players)
+	game.StartPlayer = "Mick"
+	game.CurrentlyMoving = "Mick"
 	if err != nil {
 		t.Error(err)
 	}
@@ -128,8 +132,8 @@ func TestCheckWinner(t *testing.T) {
 	game.Board[0] = [3]int{1, 1, 2}
 	game.Board[1] = [3]int{2, 2, 1}
 	game.Board[2] = [3]int{1, 1, 2}
-	if game.IsFinished() {
-		t.Error("There's a winner when there shouldn't be")
+	if !game.IsFinished() || len(game.Winners()) != 0 {
+		t.Error("The game wasn't a draw as expected")
 	}
 }
 
@@ -137,6 +141,8 @@ func TestIsFinished(t *testing.T) {
 	players := []string{"Mick", "Steve"}
 	game := &Game{}
 	err := game.Start(players)
+	game.StartPlayer = "Mick"
+	game.CurrentlyMoving = "Mick"
 	if err != nil {
 		t.Error(err)
 	}
@@ -154,7 +160,7 @@ func TestIsFinished(t *testing.T) {
 	if !game.IsFinished() {
 		t.Error("Game should be finished because all cells are full")
 	}
-	// This should finished because all cells are full
+	// This should finished because Mick got a diagonal
 	game.Board[0] = [3]int{0, 0, 1}
 	game.Board[1] = [3]int{0, 1, 0}
 	game.Board[2] = [3]int{1, 0, 0}
