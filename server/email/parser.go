@@ -51,6 +51,45 @@ func ParseBody(body string) [][]string {
 func HandleCommands(player, gameId string, commands [][]string) error {
 	if gameId == "" {
 		// Either starting a new game or just print help
+		if len(commands) > 0 && len(commands[0]) > 2 &&
+			strings.ToLower(commands[0][0]) == "new" {
+			gType := game.Collection()[commands[0][1]]
+			if gType != nil {
+				// We found the game, lets try to start it
+				g, err := gType(commands[0][2:])
+				if err != nil {
+					// The game couldn't start
+					err := SendMail([]string{player}, "Couldn't start game: "+
+						err.Error())
+					if err != nil {
+						return err
+					}
+				} else {
+					// We started the game, lets kick it off
+					gm, err := SaveGame(g)
+					if err != nil {
+						return err
+					}
+					err = CommunicateGameTo(gm.Id, g, g.PlayerList(),
+						"You have been invited to play a game by email!")
+					if err != nil {
+						return err
+					}
+				}
+			} else {
+				err := SendMail([]string{player}, "Invalid command.\n\n"+
+					GeneralHelpText())
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			// Print help
+			err := SendMail([]string{player}, GeneralHelpText())
+			if err != nil {
+				return err
+			}
+		}
 	} else {
 		gm, err := LoadGame(bson.ObjectIdHex(gameId))
 		if err != nil {
@@ -75,14 +114,14 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 		if err != nil {
 			header = err.Error()
 		}
-		commErr := CommunicateGameTo(g, []string{player}, header)
+		commErr := CommunicateGameTo(gm.Id, g, []string{player}, header)
 		if commErr != nil {
 			commErrs = append(commErrs, commErr.Error())
 		}
 		if commandRun {
 			// Email any players who now have a turn
-			commErr = CommunicateGameTo(g, WhoseTurnNow(g, initialWhoseTurn),
-				"")
+			commErr = CommunicateGameTo(gm.Id, g,
+				WhoseTurnNow(g, initialWhoseTurn), "")
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
@@ -92,6 +131,23 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 		}
 	}
 	return nil
+}
+
+func GeneralHelpText() string {
+	gameNames := []string{}
+	for _, g := range game.RawCollection() {
+		gameNames = append(gameNames, g.Identifier()+"   ("+g.Name()+
+			")")
+	}
+	return `Welcome to boredga.me!
+
+Please start a new game by using the "new" command like below, but using the game name and player emails you want.
+
+new tic_tac_toe player1@example.com player2@example.com
+
+The available games are:
+
+` + strings.Join(gameNames, "\n")
 }
 
 func WhoseTurnNow(g game.Playable, initialWhoseTurn []string) []string {
@@ -108,7 +164,8 @@ func WhoseTurnNow(g game.Playable, initialWhoseTurn []string) []string {
 	return whoseTurnNow
 }
 
-func CommunicateGameTo(g game.Playable, to []string, header string) error {
+func CommunicateGameTo(id interface{}, g game.Playable, to []string,
+	header string) error {
 	var footer string
 	if g.IsFinished() {
 		winners := g.Winners()
@@ -129,7 +186,9 @@ func CommunicateGameTo(g game.Playable, to []string, header string) error {
 		if err != nil {
 			return err
 		}
-		err = SendMail([]string{p}, header+output+"\n\n"+footer)
+		err = SendMail([]string{p},
+			"Subject: "+g.Name()+" ("+id.(string)+")\n\n"+
+				header+output+"\n\n"+footer)
 		if err != nil {
 			return err
 		}
