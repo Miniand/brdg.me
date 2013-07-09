@@ -56,7 +56,9 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 			gType := game.Collection()[commands[0][1]]
 			if gType != nil {
 				// We found the game, lets try to start it
-				g, err := gType(commands[0][2:])
+				players := commands[0][2:]
+				players = append(players, player)
+				g, err := gType(players)
 				if err != nil {
 					// The game couldn't start
 					err := SendMail([]string{player}, "Couldn't start game: "+
@@ -71,7 +73,8 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 						return err
 					}
 					err = CommunicateGameTo(gm.Id, g, g.PlayerList(),
-						"You have been invited to play a game by email!")
+						"You have been invited by "+player+
+							" to play "+g.Name()+" by email!")
 					if err != nil {
 						return err
 					}
@@ -187,7 +190,7 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			return err
 		}
 		err = SendMail([]string{p},
-			"Subject: "+g.Name()+" ("+id.(string)+")\n\n"+
+			"Subject: "+g.Name()+" ("+id.(bson.ObjectId).Hex()+")\n\n"+
 				header+output+"\n\n"+footer)
 		if err != nil {
 			return err

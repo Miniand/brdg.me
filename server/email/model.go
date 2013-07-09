@@ -40,6 +40,7 @@ func LoadGame(id interface{}) (*GameModel, error) {
 	}
 	m := &GameModel{}
 	err = Collection(session).FindId(id).One(m)
+	m.Id = id
 	return m, err
 }
 

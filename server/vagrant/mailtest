@@ -1,0 +1,16 @@
+#!/usr/bin/expect
+
+set timeout 5
+set command [lindex $argv 0]
+spawn telnet localhost 25
+
+expect "220"
+send "HELO boredga.me\n"
+expect "250"
+send "MAIL FROM: vagrant@boredga.me\n"
+expect "250"
+send "RCPT TO: play@boredga.me\n"
+expect "250"
+send "DATA\n"
+expect "354"
+send "$command\n.\nQUIT\n"

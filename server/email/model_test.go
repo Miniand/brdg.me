@@ -32,6 +32,10 @@ func TestSavingAndLoading(t *testing.T) {
 			t.Error(err)
 			return
 		}
+		if gm.Id != loadedGm.Id {
+			t.Error("Id doesn't match")
+			return
+		}
 		pl := loadedG.PlayerList()
 		if len(pl) != 2 || pl[0] != "Mick" || pl[1] != "Steve" {
 			t.Error("Players in loaded game don't match original")
