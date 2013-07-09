@@ -107,7 +107,7 @@ func (g *Game) MarkCellForPlayer(player string, x, y int) error {
 }
 
 // Render an ascii representation of the game for a player
-func (g *Game) RenderForPlayer(player string) (error, string) {
+func (g *Game) RenderForPlayer(player string) (string, error) {
 	output := ""
 	for x := 0; x < 3; x++ {
 		for y := 0; y < 3; y++ {
@@ -127,7 +127,7 @@ func (g *Game) RenderForPlayer(player string) (error, string) {
 	}
 	// @todo implement.
 	//return errors.New("Not implemented yet"), output
-	return nil, output
+	return output, nil
 
 }
 

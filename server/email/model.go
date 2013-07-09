@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/beefsack/boredga.me/game"
 	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"os"
 )
 
@@ -94,12 +93,12 @@ func (gm *GameModel) Save() error {
 	if err != nil {
 		return err
 	}
+	info, err := Collection(session).UpsertId(gm.Id, gm)
+	if err != nil {
+		return err
+	}
 	if gm.Id == nil {
-		gm.Id = bson.NewObjectId()
+		gm.Id = info.UpsertedId
 	}
-	selector := bson.M{
-		"_id": gm.Id,
-	}
-	_, err = Collection(session).Upsert(selector, gm)
-	return err
+	return nil
 }

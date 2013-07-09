@@ -10,7 +10,7 @@ type Playable interface {
 	Identifier() string
 	Encode() ([]byte, error)
 	Decode([]byte) error
-	RenderForPlayer(string) (error, string)
+	RenderForPlayer(string) (string, error)
 	Start([]string) error
 	PlayerList() []string
 	IsFinished() bool
@@ -27,12 +27,12 @@ func gameList() []Playable {
 }
 
 // Return constructors for each game type
-func Collection() map[string]func([]string) (error, Playable) {
-	collection := map[string]func([]string) (error, Playable){}
+func Collection() map[string]func([]string) (Playable, error) {
+	collection := map[string]func([]string) (Playable, error){}
 	for name, raw := range RawCollection() {
-		collection[name] = func(players []string) (error, Playable) {
+		collection[name] = func(players []string) (Playable, error) {
 			err := raw.Start(players)
-			return err, raw
+			return raw, err
 		}
 	}
 	return collection

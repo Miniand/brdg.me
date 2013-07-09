@@ -62,7 +62,7 @@ func NewAction(args []string) error {
 	if newGame == nil {
 		return errors.New("Could not find game " + gameName)
 	}
-	err, g := newGame(players)
+	g, err := newGame(players)
 	if err != nil {
 		return err
 	}
