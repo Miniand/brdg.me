@@ -73,15 +73,37 @@ func TestNextPlayer(t *testing.T) {
 	}
 }
 
+func TestPlaySameCell(t *testing.T) {
+	players := []string{"Mick", "Steve"}
+	game := &Game{}
+	err := game.Start(players)
+	if err != nil {
+		t.Error(err)
+	}
+	game.StartPlayer = "Mick"
+	game.CurrentlyMoving = "Mick"
+	// Play on a cell
+	err = game.PlayerAction("Mick", "a", []string{})
+	if err != nil {
+		t.Error(err)
+	}
+	// Try to play again on the cell, it should return any errors from
+	// MarkCellForPlayer
+	err = game.PlayerAction("Steve", "a", []string{})
+	if err == nil {
+		t.Error("It allowed us to play on the same cell, it should return error if MarkCellForPlayer errors")
+	}
+}
+
 func TestMarkCellForPlayer(t *testing.T) {
 	players := []string{"Mick", "Steve"}
 	game := &Game{}
 	err := game.Start(players)
-	game.StartPlayer = "Mick"
-	game.CurrentlyMoving = "Mick"
 	if err != nil {
 		t.Error(err)
 	}
+	game.StartPlayer = "Mick"
+	game.CurrentlyMoving = "Mick"
 	// First lets just mark a cell and see if it worked
 	err = game.MarkCellForPlayer("Mick", 1, 1)
 	if err != nil {
