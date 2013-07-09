@@ -126,11 +126,17 @@ func (g *Game) PlayerList() []string {
 func (g *Game) Winner() string {
 	for i := 0; i < 3; i++ {
 		if g.Board[i][0] == g.Board[i][1] && g.Board[i][0] == g.Board[i][2] && g.Board[i][0] != 0 {
-			return g.Players[g.Board[i][0]]
+			return g.Players[g.Board[i][0]-1]
 		} else if g.Board[0][i] == g.Board[1][i] && g.Board[0][i] == g.Board[2][i] && g.Board[0][i] != 0 {
-			return g.Players[g.Board[i][0]]
+			return g.Players[g.Board[i][0]-1]
 		}
 	}
+	if g.Board[0][0] == g.Board[1][1] && g.Board[0][0] == g.Board[2][2] && g.Board[0][0] != 0 {
+		return g.Players[g.Board[0][0]-1]
+	} else if g.Board[0][2] == g.Board[1][1] && g.Board[0][2] == g.Board[2][0] && g.Board[0][2] != 0 {
+		return g.Players[g.Board[0][2]-1]
+	}
+
 	return ""
 }
 
