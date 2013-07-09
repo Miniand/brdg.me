@@ -6,6 +6,8 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/mail"
+	"net/smtp"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -92,4 +94,20 @@ func GetPlainEmailBodyReader(r io.Reader, contentType string) (string, string,
 		}
 	}
 	return body, foundContentType, nil
+}
+
+func SendMailAuth() smtp.Auth {
+	return smtp.PlainAuth("", "user", "pass", "boredga.me")
+}
+
+func SendMail(to []string, msg string) error {
+	smtpAddr := os.Getenv("BOREDGAME_EMAIL_SERVER_SMTP_ADDR")
+	if smtpAddr == "" {
+		smtpAddr = "localhost"
+	}
+	from := os.Getenv("BOREDGAME_EMAIL_SERVER_SMTP_FROM")
+	if from == "" {
+		from = "play@boredga.me"
+	}
+	return smtp.SendMail(smtpAddr, SendMailAuth(), from, to, []byte(msg))
 }
