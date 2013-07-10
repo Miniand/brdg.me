@@ -6,7 +6,6 @@ import (
 	"github.com/beefsack/boredga.me/game"
 	"github.com/beefsack/boredga.me/render"
 	"labix.org/v2/mgo/bson"
-	"log"
 	"mime/multipart"
 	"net/textproto"
 	"regexp"
@@ -239,10 +238,6 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 				"MIME-Version: 1.0\n"+
 				"Content-Type: multipart/alternative; boundary="+data.Boundary()+"\n"+
 				buf.String())
-		log.Println("Subject: " + g.Name() + " (" + id.(bson.ObjectId).Hex() + ")\n" +
-			"MIME-Version: 1.0\n" +
-			"Content-Type: multipart/alternative; boundary=" + data.Boundary() + "\n" +
-			buf.String())
 		if err != nil {
 			return err
 		}
