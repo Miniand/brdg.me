@@ -19,6 +19,8 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 		return
 	}
 	body, err := ioutil.ReadAll(msg.Body)
+	// Log for personal debugging
+	log.Println(body, string(body))
 	if err != nil {
 		log.Println("Could not read body: " + err.Error())
 		http.Error(w, "Could not read body: "+err.Error(), 500)
