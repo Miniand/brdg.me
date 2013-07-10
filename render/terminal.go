@@ -12,11 +12,11 @@ type TerminalMarkupper struct {
 	Bold        bool
 }
 
-func (t *TerminalMarkupper) StartColour(colour string) string {
+func (t *TerminalMarkupper) StartColour(colour string) interface{} {
 	t.ColourStack = append(t.ColourStack, colour)
 	return t.Current()
 }
-func (t *TerminalMarkupper) EndColour() string {
+func (t *TerminalMarkupper) EndColour() interface{} {
 	if len(t.ColourStack) == 0 {
 		panic("There are no colours set")
 	}
@@ -26,11 +26,11 @@ func (t *TerminalMarkupper) EndColour() string {
 	}
 	return t.ColourStack[len(t.ColourStack)-1]
 }
-func (t *TerminalMarkupper) StartBold() string {
+func (t *TerminalMarkupper) StartBold() interface{} {
 	t.Bold = true
 	return t.Current()
 }
-func (t *TerminalMarkupper) EndBold() string {
+func (t *TerminalMarkupper) EndBold() interface{} {
 	t.Bold = false
 	return t.Current()
 }
@@ -47,7 +47,7 @@ func (t *TerminalMarkupper) Current() string {
 
 func RenderTerminal(tmpl string, g game.Playable) (string, error) {
 	t := template.Must(template.New("tmpl").
-		Funcs(TemplateFuncs(&TerminalMarkupper{})).Parse(tmpl))
+		Funcs(AttachTemplateFuncs(template.FuncMap{}, &TerminalMarkupper{})).Parse(tmpl))
 	buf := &bytes.Buffer{}
 	err := t.Execute(buf, g)
 	if err != nil {

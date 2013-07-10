@@ -1,14 +1,10 @@
 package render
 
-import (
-	"text/template"
-)
-
 type Markupper interface {
-	StartColour(string) string
-	EndColour() string
-	StartBold() string
-	EndBold() string
+	StartColour(string) interface{}
+	EndColour() interface{}
+	StartBold() interface{}
+	EndBold() interface{}
 }
 
 // @see http://en.wikipedia.org/wiki/ANSI_escape_code#Colours
@@ -25,29 +21,28 @@ func ValidColours() []string {
 	}
 }
 
-func TemplateFuncs(m Markupper) template.FuncMap {
-	return template.FuncMap{
-		"c": func(colour string) string {
-			found := false
-			for _, validColour := range ValidColours() {
-				if validColour == colour {
-					found = true
-					break
-				}
+func AttachTemplateFuncs(to map[string]interface{}, m Markupper) map[string]interface{} {
+	to["c"] = func(colour string) interface{} {
+		found := false
+		for _, validColour := range ValidColours() {
+			if validColour == colour {
+				found = true
+				break
 			}
-			if !found {
-				panic(colour + " is not a valid colour")
-			}
-			return m.StartColour(colour)
-		},
-		"_c": func() string {
-			return m.EndColour()
-		},
-		"b": func() string {
-			return m.StartBold()
-		},
-		"_b": func() string {
-			return m.EndBold()
-		},
+		}
+		if !found {
+			panic(colour + " is not a valid colour")
+		}
+		return m.StartColour(colour)
 	}
+	to["_c"] = func() interface{} {
+		return m.EndColour()
+	}
+	to["b"] = func() interface{} {
+		return m.StartBold()
+	}
+	to["_b"] = func() interface{} {
+		return m.EndBold()
+	}
+	return to
 }
