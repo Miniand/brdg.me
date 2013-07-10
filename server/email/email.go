@@ -50,6 +50,14 @@ func GetPlainEmailBody(r io.Reader) (*mail.Message, string, error) {
 func GetPlainEmailBodyReader(r io.Reader, contentType string) (string, string,
 	error) {
 	var body, foundContentType string
+	if contentType == "" {
+		// No content type, assume plain
+		rawBody, err := ioutil.ReadAll(r)
+		if err != nil {
+			return "", "", err
+		}
+		return string(rawBody), "text/plain", nil
+	}
 	mediatype, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
 		return "", "", err

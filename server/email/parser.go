@@ -1,9 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"github.com/beefsack/boredga.me/game"
+	"github.com/beefsack/boredga.me/render"
 	"labix.org/v2/mgo/bson"
+	"log"
+	"mime/multipart"
+	"net/textproto"
 	"regexp"
 	"strings"
 )
@@ -189,13 +194,55 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		if header != "" {
 			header += "\n\n"
 		}
-		output, err := g.RenderForPlayer(p)
+		rawOutput, err := g.RenderForPlayer(p)
+		if err != nil {
+			return err
+		}
+		raw := header + rawOutput + "\n\n" + footer
+		terminalOutput, err := render.RenderTerminal(raw, g)
+		if err != nil {
+			return err
+		}
+		htmlOutput, err := render.RenderHtml(raw, g)
+		if err != nil {
+			return err
+		}
+		// Make a multipart message
+		buf := &bytes.Buffer{}
+		data := multipart.NewWriter(buf)
+		htmlW, err := data.CreatePart(textproto.MIMEHeader{
+			"Content-Type": []string{"text/html"},
+		})
+		if err != nil {
+			return err
+		}
+		_, err = htmlW.Write([]byte("<pre>" + htmlOutput))
+		if err != nil {
+			return err
+		}
+		plainW, err := data.CreatePart(textproto.MIMEHeader{
+			"Content-Type": []string{"text/plain"},
+		})
+		if err != nil {
+			return err
+		}
+		_, err = plainW.Write([]byte(terminalOutput))
+		if err != nil {
+			return err
+		}
+		err = data.Close()
 		if err != nil {
 			return err
 		}
 		err = SendMail([]string{p},
-			"Subject: "+g.Name()+" ("+id.(bson.ObjectId).Hex()+")\n\n"+
-				header+output+"\n\n"+footer)
+			"Subject: "+g.Name()+" ("+id.(bson.ObjectId).Hex()+")\n"+
+				"MIME-Version: 1.0\n"+
+				"Content-Type: multipart/alternative; boundary="+data.Boundary()+"\n"+
+				buf.String())
+		log.Println("Subject: " + g.Name() + " (" + id.(bson.ObjectId).Hex() + ")\n" +
+			"MIME-Version: 1.0\n" +
+			"Content-Type: multipart/alternative; boundary=" + data.Boundary() + "\n" +
+			buf.String())
 		if err != nil {
 			return err
 		}
