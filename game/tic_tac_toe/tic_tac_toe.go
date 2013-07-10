@@ -112,14 +112,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	for x := 0; x < 3; x++ {
 		for y := 0; y < 3; y++ {
 			if g.Board[x][y] == 1 {
-				output += "x"
+				output += "{{b}}x{{_b}}"
 			} else if g.Board[x][y] == 2 {
-				output += "o"
+				output += "{{b}}o{{_b}}"
 			} else {
-				output += " "
+				output += `{{c "blue"}}` + string([]byte{byte(97 + x*3 + y)}) +
+					`{{_c}}`
 			}
 			if y != 2 {
-				output += "|"
+				output += `{{c "gray"}}|{{_c}}`
 			}
 
 		}

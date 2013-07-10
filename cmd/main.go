@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/beefsack/boredga.me/game"
+	"github.com/beefsack/boredga.me/render"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -46,6 +47,14 @@ func main() {
 	}
 }
 
+func RenderForPlayer(g game.Playable, p string) (string, error) {
+	rawOutput, err := g.RenderForPlayer(p)
+	if err != nil {
+		return "", err
+	}
+	return render.RenderTerminal(rawOutput, g)
+}
+
 func NewAction(args []string) error {
 	if len(args) < 2 {
 		lines := []string{
@@ -67,7 +76,7 @@ func NewAction(args []string) error {
 		return err
 	}
 	for _, p := range g.WhoseTurn() {
-		err, output := g.RenderForPlayer(p)
+		output, err := RenderForPlayer(g, p)
 		if err != nil {
 			return err
 		}
@@ -82,7 +91,7 @@ func PlayAction(args []string) error {
 	if len(args) < 2 {
 		return errors.New("You must specify the player name first, followed by the plays to make")
 	}
-	err, g := loadGame()
+	g, err := loadGame()
 	if err != nil {
 		return err
 	}
@@ -90,7 +99,7 @@ func PlayAction(args []string) error {
 	if err != nil {
 		return err
 	}
-	err, output := g.RenderForPlayer(args[0])
+	output, err := RenderForPlayer(g, args[0])
 	if err != nil {
 		return err
 	}
@@ -98,7 +107,7 @@ func PlayAction(args []string) error {
 	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
 	fmt.Println(output)
 	for _, p := range g.WhoseTurn() {
-		err, output = g.RenderForPlayer(p)
+		output, err = RenderForPlayer(g, p)
 		if err != nil {
 			return err
 		}
@@ -117,11 +126,11 @@ func ViewAction(args []string) error {
 	if len(args) < 1 {
 		return errors.New("You must specify a player to view for.")
 	}
-	err, g := loadGame()
+	g, err := loadGame()
 	if err != nil {
 		return err
 	}
-	err, output := g.RenderForPlayer(args[0])
+	output, err := RenderForPlayer(g, args[0])
 	if err == nil {
 		fmt.Println(output)
 	}
@@ -129,7 +138,7 @@ func ViewAction(args []string) error {
 }
 
 func DumpAction(args []string) error {
-	err, g := loadGame()
+	g, err := loadGame()
 	if err != nil {
 		return err
 	}
@@ -146,26 +155,25 @@ func saveGame(g game.Playable) error {
 		0666)
 }
 
-func loadGame() (error, game.Playable) {
+func loadGame() (game.Playable, error) {
 	fi, err := os.Open(FILE)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	reader := bufio.NewReader(fi)
 	line, err := reader.ReadString('\n')
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	gameType := strings.Trim(line, " \n")
 	g := game.RawCollection()[gameType]
 	if g == nil {
-		return errors.New("Could not match " + gameType + " to game type"),
-			nil
+		return nil, errors.New("Could not match " + gameType + " to game type")
 	}
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	err = g.Decode(data)
-	return err, g
+	return g, err
 }
