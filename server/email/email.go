@@ -37,14 +37,14 @@ func StripHtmlTags(in string) string {
 	return regexp.MustCompile(TagMatchRegexString()).ReplaceAllString(in, "")
 }
 
-func GetPlainEmailBody(r io.Reader) (string, error) {
+func GetPlainEmailBody(r io.Reader) (*mail.Message, string, error) {
 	m, err := mail.ReadMessage(r)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	body, _, err := GetPlainEmailBodyReader(m.Body,
 		m.Header.Get("Content-Type"))
-	return body, err
+	return m, body, err
 }
 
 func GetPlainEmailBodyReader(r io.Reader, contentType string) (string, string,

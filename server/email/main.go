@@ -1,10 +1,8 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"net/http"
-	"net/mail"
 	"os"
 )
 
@@ -12,24 +10,16 @@ type InboundEmailHandler struct{}
 
 func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 	r *http.Request) {
-	msg, err := mail.ReadMessage(r.Body)
+	msg, body, err := GetPlainEmailBody(r.Body)
 	if err != nil {
 		log.Println("Could not parse email: " + err.Error())
 		http.Error(w, "Could not parse email: "+err.Error(), 500)
 		return
 	}
-	body, err := ioutil.ReadAll(msg.Body)
-	// Log for personal debugging
-	log.Println(body, string(body))
-	if err != nil {
-		log.Println("Could not read body: " + err.Error())
-		http.Error(w, "Could not read body: "+err.Error(), 500)
-		return
-	}
 	// Body is an actual email
 	player := ParseFrom(msg.Header.Get("From"))
 	gameId := ParseSubject(msg.Header.Get("Subject"))
-	commands := ParseBody(string(body))
+	commands := ParseBody(body)
 	err = HandleCommands(player, gameId, commands)
 	if err != nil {
 		log.Println("Error handling commands: " + err.Error())
