@@ -234,9 +234,9 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			return err
 		}
 		err = SendMail([]string{p},
-			"Subject: "+g.Name()+" ("+id.(bson.ObjectId).Hex()+")\n"+
-				"MIME-Version: 1.0\n"+
-				"Content-Type: multipart/alternative; boundary="+data.Boundary()+"\n"+
+			"Subject: "+g.Name()+" ("+id.(bson.ObjectId).Hex()+")\r\n"+
+				"MIME-Version: 1.0\r\n"+
+				"Content-Type: multipart/alternative; boundary="+data.Boundary()+"\r\n"+
 				buf.String())
 		if err != nil {
 			return err
