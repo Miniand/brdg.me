@@ -209,16 +209,6 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		// Make a multipart message
 		buf := &bytes.Buffer{}
 		data := multipart.NewWriter(buf)
-		htmlW, err := data.CreatePart(textproto.MIMEHeader{
-			"Content-Type": []string{"text/html"},
-		})
-		if err != nil {
-			return err
-		}
-		_, err = htmlW.Write([]byte("<pre>" + htmlOutput))
-		if err != nil {
-			return err
-		}
 		plainW, err := data.CreatePart(textproto.MIMEHeader{
 			"Content-Type": []string{"text/plain"},
 		})
@@ -226,6 +216,16 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			return err
 		}
 		_, err = plainW.Write([]byte(terminalOutput))
+		if err != nil {
+			return err
+		}
+		htmlW, err := data.CreatePart(textproto.MIMEHeader{
+			"Content-Type": []string{"text/html"},
+		})
+		if err != nil {
+			return err
+		}
+		_, err = htmlW.Write([]byte("<pre>" + htmlOutput))
 		if err != nil {
 			return err
 		}
