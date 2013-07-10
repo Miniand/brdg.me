@@ -122,6 +122,10 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 			commErrs = append(commErrs, commErr.Error())
 		}
 		if commandRun {
+			_, err := UpdateGame(bson.ObjectIdHex(gameId), g)
+			if err != nil {
+				return err
+			}
 			// Email any players who now have a turn
 			commErr = CommunicateGameTo(gm.Id, g,
 				WhoseTurnNow(g, initialWhoseTurn), "")
