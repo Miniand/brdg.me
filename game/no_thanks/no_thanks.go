@@ -1,8 +1,11 @@
 package no_thanks
 
 import (
+	"encoding/json"
 	"errors"
 	"math/rand"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -10,12 +13,20 @@ type Game struct {
 	Players         []string
 	PlayerHands     map[string][]int
 	PlayerChips     map[string]int
+	CentreChips     int
 	RemainingCards  []int
 	CurrentlyMoving string
 }
 
 func (g *Game) PlayerAction(player, action string, params []string) error {
-	return nil
+	var err error
+	switch strings.ToLower(action) {
+	case "take":
+		err = g.Take(player)
+	case "pass":
+		err = g.Pass(player)
+	}
+	return err
 }
 
 func (g *Game) Name() string {
@@ -27,11 +38,11 @@ func (g *Game) Identifier() string {
 }
 
 func (g *Game) Encode() ([]byte, error) {
-	return []byte{}, nil
+	return json.Marshal(g)
 }
 
-func (g *Game) Decode([]byte) error {
-	return nil
+func (g *Game) Decode(data []byte) error {
+	return json.Unmarshal(data, g)
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
@@ -46,6 +57,7 @@ func (g *Game) Start(players []string) error {
 	g.Players = players
 	g.InitCards()
 	g.InitPlayerChips()
+	g.InitPlayerHands()
 	g.CurrentlyMoving = g.Players[r.Int()%len(g.Players)]
 	return nil
 }
@@ -55,15 +67,29 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return len(g.RemainingCards) == 0
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	winners := []string{}
+	winningScore := 0
+	for _, p := range g.Players {
+		pScore := g.FinalPlayerScore(p)
+		if len(winners) == 0 || winningScore > pScore {
+			winners = []string{p}
+			winningScore = pScore
+		} else if pScore == winningScore {
+			winners = append(winners, p)
+		}
+	}
+	return winners
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+	return []string{g.CurrentlyMoving}
 }
 
 func (g *Game) AllCards() []int {
@@ -94,4 +120,115 @@ func (g *Game) InitPlayerChips() {
 	for _, p := range g.Players {
 		g.PlayerChips[p] = 11
 	}
+}
+
+func (g *Game) InitPlayerHands() {
+	g.PlayerHands = map[string][]int{}
+	for _, p := range g.Players {
+		g.PlayerHands[p] = []int{}
+	}
+}
+
+func (g *Game) AssertTurn(player string) error {
+	if g.IsFinished() {
+		return errors.New("The game has already finished")
+	}
+	if g.CurrentlyMoving != player {
+		return errors.New("It's not your turn")
+	}
+	return nil
+}
+
+func (g *Game) Pass(player string) error {
+	err := g.AssertTurn(player)
+	if err != nil {
+		return err
+	}
+	if g.PlayerChips[player] <= 0 {
+		return errors.New("You have no chips left, you must take the card")
+	}
+	g.PlayerChips[player]--
+	g.CentreChips++
+	return g.NextPlayer()
+}
+
+func (g *Game) Take(player string) error {
+	err := g.AssertTurn(player)
+	if err != nil {
+		return err
+	}
+	g.PlayerHands[player] = append(g.PlayerHands[player], g.PopTopCard())
+	g.PlayerChips[player] += g.CentreChips
+	g.CentreChips = 0
+	return g.NextPlayer()
+}
+
+func (g *Game) PeekTopCard() int {
+	if len(g.RemainingCards) == 0 {
+		return 0
+	}
+	return g.RemainingCards[len(g.RemainingCards)-1]
+}
+
+func (g *Game) PopTopCard() int {
+	top := g.PeekTopCard()
+	g.RemainingCards = g.RemainingCards[:len(g.RemainingCards)-1]
+	return top
+}
+
+func (g *Game) NextPlayer() error {
+	// Find the index of the current player
+	playerIndex := 0
+	playerFound := false
+	for i, p := range g.Players {
+		if p == g.CurrentlyMoving {
+			playerIndex = i
+			playerFound = true
+			break
+		}
+	}
+	if !playerFound {
+		return errors.New(
+			"Could not find the current player in the player list")
+	}
+	g.CurrentlyMoving = g.Players[(playerIndex+1)%len(g.Players)]
+	return nil
+}
+
+func (g *Game) PlayerHandSorted(player string) []int {
+	sort.Ints(g.PlayerHands[player])
+	return g.PlayerHands[player]
+}
+
+func (g *Game) PlayerHandGrouped(player string) [][]int {
+	groups := [][]int{}
+	curGroup := []int{}
+	lastCard := -1
+	for _, c := range g.PlayerHandSorted(player) {
+		if c == lastCard+1 {
+			curGroup = append(curGroup, c)
+		} else {
+			if len(curGroup) > 0 {
+				groups = append(groups, curGroup)
+			}
+			curGroup = []int{c}
+		}
+		lastCard = c
+	}
+	if len(curGroup) > 0 {
+		groups = append(groups, curGroup)
+	}
+	return groups
+}
+
+func (g *Game) PlayerHandScore(player string) int {
+	score := 0
+	for _, g := range g.PlayerHandGrouped(player) {
+		score += g[0]
+	}
+	return score
+}
+
+func (g *Game) FinalPlayerScore(player string) int {
+	return g.PlayerHandScore(player) - g.PlayerChips[player]
 }
