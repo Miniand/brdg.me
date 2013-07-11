@@ -9,9 +9,7 @@ import (
 	"mime/multipart"
 	"net/textproto"
 	"regexp"
-	"strconv"
 	"strings"
-	"time"
 )
 
 // Search for an email address
@@ -236,23 +234,20 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			return err
 		}
 		// Handle Message-ID and In-Reply-To for email threading
-		threadingHeaders := bytes.NewBufferString("")
+		threadingHeaders := ""
 		messageId := id.(bson.ObjectId).Hex() + "@boredga.me"
 		if initial {
 			// We create the base Message-ID
-			threadingHeaders.WriteString("Message-Id: " + messageId + "\r\n")
+			threadingHeaders = "Message-Id: <" + messageId + ">\r\n"
 		} else {
 			// We create a unique Message-ID and set the In-Reply-To to original
-			threadingHeaders.WriteString("Message-Id: " +
-				id.(bson.ObjectId).Hex() + "." +
-				strconv.Itoa(time.Now().Nanosecond()) + "@boredga.me" + "\r\n")
-			threadingHeaders.WriteString("In-Reply-To: " + messageId + "\r\n")
+			threadingHeaders = "In-Reply-To: <" + messageId + ">\r\n"
 		}
 		err = SendMail([]string{p},
 			"Subject: "+g.Name()+" ("+id.(bson.ObjectId).Hex()+")\r\n"+
 				"MIME-Version: 1.0\r\n"+
 				"Content-Type: multipart/alternative; boundary="+data.Boundary()+"\r\n"+
-				threadingHeaders.String()+
+				threadingHeaders+
 				buf.String())
 		if err != nil {
 			return err
