@@ -1,10 +1,12 @@
 package no_thanks
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"math/rand"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -46,7 +48,78 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	return "", nil
+	buf := bytes.NewBufferString("")
+	if !g.IsFinished() {
+		if player == g.CurrentlyMoving {
+			buf.WriteString(
+				"It's your turn, you can {{b}}take{{_b}} or {{b}}pass{{_b}} the card.\n\n")
+		}
+		buf.WriteString(
+			`{{b}}Current card:  {{c "blue"}}{{.PeekTopCard}}{{_c}}{{_b}} (`)
+		buf.WriteString(strconv.Itoa(len(g.RemainingCards - 1)))
+		buf.WriteString(" remaining)\n")
+		buf.WriteString(
+			`{{b}}Current chips: {{c "green"}}{{.CentreChips}}{{_c}}{{_b}}`)
+		buf.WriteString("\n\n")
+		buf.WriteString(`{{b}}Your hand:{{_b}}  `)
+		if len(g.PlayerHands[player]) > 0 {
+			buf.WriteString(`{{c "blue"}}`)
+			buf.WriteString(g.RenderCardsForPlayer(player, g.PeekTopCard()))
+			buf.WriteString("{{_c}}")
+		} else {
+			buf.WriteString(`{{c "gray"}}no cards{{_c}}`)
+		}
+		buf.WriteString("\n")
+		buf.WriteString(`{{b}}Your chips:{{_b}} {{c "green"}}`)
+		buf.WriteString(strconv.Itoa(g.PlayerChips[player]))
+		buf.WriteString("{{_c}}\n\n")
+	}
+	longestPlayerName := 0
+	for _, p := range g.Players {
+		if len(p) > longestPlayerName {
+			longestPlayerName = len(p)
+		}
+	}
+	buf.WriteString("{{b}}Scores{{_b}}\n\n")
+	for _, p := range g.Players {
+		buf.WriteString(`{{b}}`)
+		buf.WriteString(p)
+		buf.WriteString(":{{_b}}")
+		buf.WriteString(strings.Repeat(" ", longestPlayerName-len(p)+1))
+		if len(g.PlayerHands[p]) > 0 {
+			buf.WriteString(`{{c "blue"}}`)
+			buf.WriteString(g.RenderCardsForPlayer(p, g.PeekTopCard()))
+			buf.WriteString("{{_c}}")
+		} else {
+			buf.WriteString(`{{c "gray"}}no cards{{_c}}`)
+		}
+		if g.IsFinished() {
+			buf.WriteString(`     ({{c "green"}}`)
+			buf.WriteString(strconv.Itoa(g.PlayerChips[p]))
+			buf.WriteString(`{{_c}} chips, {{c "magenta"}}`)
+			buf.WriteString(strconv.Itoa(g.FinalPlayerScore(p)))
+			buf.WriteString("{{_c}} points)")
+		}
+		buf.WriteString("\n")
+	}
+	return buf.String(), nil
+}
+
+func (g *Game) RenderCardsForPlayer(player string, relevant int) string {
+	renderGroups := []string{}
+	for _, group := range g.PlayerHandGrouped(player) {
+		renderGroup := []string{}
+		for _, c := range group {
+			if c-relevant == 1 || c-relevant == -1 {
+				renderGroup = append(renderGroup,
+					"{{b}}"+strconv.Itoa(c)+"{{_b}}")
+			} else {
+				renderGroup = append(renderGroup, strconv.Itoa(c))
+			}
+		}
+		renderGroups = append(renderGroups, strings.Join(renderGroup, " "))
+	}
+	return strings.Join(renderGroups, "   ")
 }
 
 func (g *Game) Start(players []string) error {

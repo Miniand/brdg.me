@@ -368,3 +368,20 @@ func TestPlayerActions(t *testing.T) {
 		return
 	}
 }
+
+func TestRenderCardsForPlayer(t *testing.T) {
+	g := &Game{}
+	err := g.Start([]string{"Mick", "Steve"})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	g.PlayerHands["Mick"] = []int{5, 8, 3, 10, 9, 15, 6, 16}
+	g.PlayerChips["Mick"] = 10
+	expectedOutput := "3   5 {{b}}6{{_b}}   {{b}}8{{_b}} 9 10   15 16"
+	output := g.RenderCardsForPlayer("Mick", 7)
+	if output != expectedOutput {
+		t.Error("Expected output", expectedOutput, "but got", output)
+		return
+	}
+}
