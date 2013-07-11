@@ -1,6 +1,7 @@
 package game
 
 import (
+	"github.com/beefsack/boredga.me/game/lost_cities"
 	"github.com/beefsack/boredga.me/game/no_thanks"
 	"github.com/beefsack/boredga.me/game/tic_tac_toe"
 )
@@ -25,6 +26,7 @@ func gameList() []Playable {
 	return []Playable{
 		&no_thanks.Game{},
 		&tic_tac_toe.Game{},
+		&lost_cities.Game{},
 	}
 }
 
