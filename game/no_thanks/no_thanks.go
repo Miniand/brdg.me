@@ -123,8 +123,8 @@ func (g *Game) RenderCardsForPlayer(player string, relevant int) string {
 }
 
 func (g *Game) Start(players []string) error {
-	if len(players) < 2 || len(players) > 5 {
-		return errors.New("No Thanks requires between 2 and 5 players")
+	if len(players) < 3 || len(players) > 5 {
+		return errors.New("No Thanks requires between 3 and 5 players")
 	}
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	g.Players = players
