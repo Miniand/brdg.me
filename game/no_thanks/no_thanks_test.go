@@ -7,7 +7,7 @@ import (
 
 func TestStart(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -16,7 +16,8 @@ func TestStart(t *testing.T) {
 		t.Error("Players aren't Mick and Steve, got", g.Players)
 		return
 	}
-	if g.CurrentlyMoving != "Mick" && g.CurrentlyMoving != "Steve" {
+	if g.CurrentlyMoving != "Mick" && g.CurrentlyMoving != "Steve" &&
+		g.CurrentlyMoving != "Barabbas" {
 		t.Error("Currently moving not set to Mick or Steve, got",
 			g.CurrentlyMoving)
 		return
@@ -69,7 +70,7 @@ func TestInitPlayerChips(t *testing.T) {
 
 func TestEncodeDecode(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -93,7 +94,7 @@ func TestEncodeDecode(t *testing.T) {
 
 func TestAssertTurn(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -116,7 +117,7 @@ func TestAssertTurn(t *testing.T) {
 
 func TestIsFinished(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -134,7 +135,7 @@ func TestIsFinished(t *testing.T) {
 
 func TestPass(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -168,7 +169,7 @@ func TestPass(t *testing.T) {
 
 func TestTake(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -209,7 +210,7 @@ func TestTake(t *testing.T) {
 
 func TestPlayerHandSorted(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -223,7 +224,7 @@ func TestPlayerHandSorted(t *testing.T) {
 
 func TestPlayerHandGrouped(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -270,7 +271,7 @@ func TestPlayerHandGrouped(t *testing.T) {
 
 func TestPlayerHandScore(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -287,7 +288,7 @@ func TestPlayerHandScore(t *testing.T) {
 
 func TestFinalPlayerScore(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -304,7 +305,7 @@ func TestFinalPlayerScore(t *testing.T) {
 
 func TestWhoseTurn(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -338,7 +339,7 @@ func TestWinners(t *testing.T) {
 
 func TestPlayerActions(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -354,24 +355,26 @@ func TestPlayerActions(t *testing.T) {
 		t.Error("Expected Steve's chips to be 10, got", g.PlayerChips["Steve"])
 		return
 	}
-	err = g.PlayerAction("Mick", "taKE", []string{})
+	err = g.PlayerAction("Barabbas", "taKE", []string{})
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	if len(g.PlayerHands["Mick"]) != 1 || g.PlayerHands["Mick"][0] != topCard {
-		t.Error("Mick did not take the card, hand:", g.PlayerHands)
+	if len(g.PlayerHands["Barabbas"]) != 1 ||
+		g.PlayerHands["Barabbas"][0] != topCard {
+		t.Error("Barabbas did not take the card, hand:", g.PlayerHands)
 		return
 	}
-	if g.PlayerChips["Mick"] != 12 {
-		t.Error("Expected Mick's chips to be 12, got", g.PlayerChips["Mick"])
+	if g.PlayerChips["Barabbas"] != 12 {
+		t.Error("Expected Barabbas's chips to be 12, got",
+			g.PlayerChips["Barabbas"])
 		return
 	}
 }
 
 func TestRenderCardsForPlayer(t *testing.T) {
 	g := &Game{}
-	err := g.Start([]string{"Mick", "Steve"})
+	err := g.Start([]string{"Mick", "Steve", "Barabbas"})
 	if err != nil {
 		t.Error(err)
 		return

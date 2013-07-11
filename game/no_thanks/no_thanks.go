@@ -18,6 +18,7 @@ type Game struct {
 	CentreChips     int
 	RemainingCards  []int
 	CurrentlyMoving string
+	PlayerLogs      map[string][]string
 }
 
 func (g *Game) PlayerAction(player, action string, params []string) error {
@@ -49,6 +50,11 @@ func (g *Game) Decode(data []byte) error {
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf := bytes.NewBufferString("")
+	if len(g.PlayerLogs[player]) > 0 {
+		buf.WriteString("{{b}}Since your last turn{{_b}}\n")
+		buf.WriteString(strings.Join(g.PlayerLogs[player], "\n"))
+		buf.WriteString("\n")
+	}
 	if !g.IsFinished() {
 		if player == g.CurrentlyMoving {
 			buf.WriteString(
@@ -57,7 +63,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString(
 			`{{b}}Current card:  {{c "blue"}}{{.PeekTopCard}}{{_c}}{{_b}} (`)
 		buf.WriteString(strconv.Itoa(len(g.RemainingCards) - 1))
-		buf.WriteString(" remaining)\n")
+		buf.WriteString(" cards remaining)\n")
 		buf.WriteString(
 			`{{b}}Current chips: {{c "green"}}{{.CentreChips}}{{_c}}{{_b}}`)
 		buf.WriteString("\n\n")
@@ -80,7 +86,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			longestPlayerName = len(p)
 		}
 	}
-	buf.WriteString("{{b}}Players{{_b}}\n\n")
+	buf.WriteString("{{b}}Players{{_b}}\n")
 	for _, p := range g.Players {
 		buf.WriteString(`{{b}}`)
 		buf.WriteString(p)
@@ -131,6 +137,7 @@ func (g *Game) Start(players []string) error {
 	g.InitCards()
 	g.InitPlayerChips()
 	g.InitPlayerHands()
+	g.InitPlayerLogs()
 	g.CurrentlyMoving = g.Players[r.Int()%len(g.Players)]
 	return nil
 }
@@ -222,6 +229,9 @@ func (g *Game) Pass(player string) error {
 	}
 	g.PlayerChips[player]--
 	g.CentreChips++
+	g.AddPlayerLog(player + ` passed on the {{b}}{{c "blue"}}` +
+		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}}.")
+	g.PlayerLogs[player] = []string{}
 	return g.NextPlayer()
 }
 
@@ -230,9 +240,15 @@ func (g *Game) Take(player string) error {
 	if err != nil {
 		return err
 	}
+	g.AddPlayerLog(player + ` took the {{b}}{{c "blue"}}` +
+		strconv.Itoa(g.PeekTopCard()) + `{{_c}}{{_b}} and {{b}}{{c "green"}}` +
+		strconv.Itoa(g.CentreChips) + "{{_c}}{{_b}} chips.")
 	g.PlayerHands[player] = append(g.PlayerHands[player], g.PopTopCard())
+	g.AddPlayerLog(player + ` drew {{b}}{{c "blue"}}` +
+		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}} as the new card.")
 	g.PlayerChips[player] += g.CentreChips
 	g.CentreChips = 0
+	g.PlayerLogs[player] = []string{}
 	return nil
 }
 
@@ -304,4 +320,21 @@ func (g *Game) PlayerHandScore(player string) int {
 
 func (g *Game) FinalPlayerScore(player string) int {
 	return g.PlayerHandScore(player) - g.PlayerChips[player]
+}
+
+func (g *Game) InitPlayerLogs() {
+	g.PlayerLogs = map[string][]string{}
+	for _, p := range g.Players {
+		g.ClearPlayerLog(p)
+	}
+}
+
+func (g *Game) AddPlayerLog(msg string) {
+	for _, p := range g.Players {
+		g.PlayerLogs[p] = append(g.PlayerLogs[p], msg)
+	}
+}
+
+func (g *Game) ClearPlayerLog(player string) {
+	g.PlayerLogs[player] = []string{}
 }
