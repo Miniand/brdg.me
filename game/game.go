@@ -32,10 +32,13 @@ func gameList() []Playable {
 func Collection() map[string]func([]string) (Playable, error) {
 	collection := map[string]func([]string) (Playable, error){}
 	for name, raw := range RawCollection() {
-		collection[name] = func(players []string) (Playable, error) {
-			err := raw.Start(players)
-			return raw, err
-		}
+		// Wrap in a function call to preserve raw for this iteration
+		func(g Playable) {
+			collection[name] = func(players []string) (Playable, error) {
+				err := g.Start(players)
+				return g, err
+			}
+		}(raw)
 	}
 	return collection
 }
