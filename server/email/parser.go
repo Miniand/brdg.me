@@ -9,7 +9,9 @@ import (
 	"mime/multipart"
 	"net/textproto"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // Search for an email address
@@ -78,7 +80,7 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 					}
 					err = CommunicateGameTo(gm.Id, g, g.PlayerList(),
 						"You have been invited by "+player+
-							" to play "+g.Name()+" by email!")
+							" to play "+g.Name()+" by email!", true)
 					if err != nil {
 						return err
 					}
@@ -121,7 +123,7 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 		if err != nil {
 			header = err.Error()
 		}
-		commErr := CommunicateGameTo(gm.Id, g, []string{player}, header)
+		commErr := CommunicateGameTo(gm.Id, g, []string{player}, header, false)
 		if commErr != nil {
 			commErrs = append(commErrs, commErr.Error())
 		}
@@ -132,7 +134,7 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 			}
 			// Email any players who now have a turn
 			commErr = CommunicateGameTo(gm.Id, g,
-				WhoseTurnNow(g, initialWhoseTurn), "")
+				WhoseTurnNow(g, initialWhoseTurn), "", false)
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
@@ -176,7 +178,7 @@ func WhoseTurnNow(g game.Playable, initialWhoseTurn []string) []string {
 }
 
 func CommunicateGameTo(id interface{}, g game.Playable, to []string,
-	header string) error {
+	header string, initial bool) error {
 	var footer string
 	if g.IsFinished() {
 		winners := g.Winners()
@@ -233,10 +235,24 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		if err != nil {
 			return err
 		}
+		// Handle Message-ID and In-Reply-To for email threading
+		threadingHeaders := bytes.NewBufferString("")
+		messageId := id.(bson.ObjectId).Hex() + "@boredga.me"
+		if initial {
+			// We create the base Message-ID
+			threadingHeaders.WriteString("Message-Id: " + messageId + "\r\n")
+		} else {
+			// We create a unique Message-ID and set the In-Reply-To to original
+			threadingHeaders.WriteString("Message-Id: " +
+				id.(bson.ObjectId).Hex() + "." +
+				strconv.Itoa(time.Now().Nanosecond()) + "@boredga.me" + "\r\n")
+			threadingHeaders.WriteString("In-Reply-To: " + messageId + "\r\n")
+		}
 		err = SendMail([]string{p},
 			"Subject: "+g.Name()+" ("+id.(bson.ObjectId).Hex()+")\r\n"+
 				"MIME-Version: 1.0\r\n"+
 				"Content-Type: multipart/alternative; boundary="+data.Boundary()+"\r\n"+
+				threadingHeaders.String()+
 				buf.String())
 		if err != nil {
 			return err

@@ -80,7 +80,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			longestPlayerName = len(p)
 		}
 	}
-	buf.WriteString("{{b}}Scores{{_b}}\n\n")
+	buf.WriteString("{{b}}Players{{_b}}\n\n")
 	for _, p := range g.Players {
 		buf.WriteString(`{{b}}`)
 		buf.WriteString(p)
