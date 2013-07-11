@@ -225,7 +225,7 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		if err != nil {
 			return err
 		}
-		_, err = htmlW.Write([]byte("<pre>" + htmlOutput))
+		_, err = htmlW.Write([]byte(`<pre style="color:black;">` + htmlOutput))
 		if err != nil {
 			return err
 		}
