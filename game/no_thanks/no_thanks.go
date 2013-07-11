@@ -56,7 +56,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		buf.WriteString(
 			`{{b}}Current card:  {{c "blue"}}{{.PeekTopCard}}{{_c}}{{_b}} (`)
-		buf.WriteString(strconv.Itoa(len(g.RemainingCards - 1)))
+		buf.WriteString(strconv.Itoa(len(g.RemainingCards) - 1))
 		buf.WriteString(" remaining)\n")
 		buf.WriteString(
 			`{{b}}Current chips: {{c "green"}}{{.CentreChips}}{{_c}}{{_b}}`)
