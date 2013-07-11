@@ -233,7 +233,7 @@ func (g *Game) Take(player string) error {
 	g.PlayerHands[player] = append(g.PlayerHands[player], g.PopTopCard())
 	g.PlayerChips[player] += g.CentreChips
 	g.CentreChips = 0
-	return g.NextPlayer()
+	return nil
 }
 
 func (g *Game) PeekTopCard() int {

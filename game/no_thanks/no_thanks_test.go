@@ -201,8 +201,8 @@ func TestTake(t *testing.T) {
 		t.Error("Player didn't take the top card into their hand")
 		return
 	}
-	if g.CurrentlyMoving == initialPlayer {
-		t.Error("Didn't move to the next player")
+	if g.CurrentlyMoving != initialPlayer {
+		t.Error("Moved to next player when it shouldn't have")
 		return
 	}
 }
