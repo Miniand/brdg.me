@@ -53,7 +53,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if len(g.PlayerLogs[player]) > 0 {
 		buf.WriteString("{{b}}Since your last turn{{_b}}\n")
 		buf.WriteString(strings.Join(g.PlayerLogs[player], "\n"))
-		buf.WriteString("\n")
+		buf.WriteString("\n\n")
 	}
 	if !g.IsFinished() {
 		if player == g.CurrentlyMoving {
