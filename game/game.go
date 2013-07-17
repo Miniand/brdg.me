@@ -1,9 +1,9 @@
 package game
 
 import (
-	"github.com/beefsack/boredga.me/game/lost_cities"
-	"github.com/beefsack/boredga.me/game/no_thanks"
-	"github.com/beefsack/boredga.me/game/tic_tac_toe"
+	"github.com/beefsack/brdg.me/game/lost_cities"
+	"github.com/beefsack/brdg.me/game/no_thanks"
+	"github.com/beefsack/brdg.me/game/tic_tac_toe"
 )
 
 type Playable interface {

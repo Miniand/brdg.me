@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/beefsack/boredga.me/game"
+	"github.com/beefsack/brdg.me/game"
 	"labix.org/v2/mgo"
 	"os"
 )
@@ -18,7 +18,7 @@ type GameModel struct {
 }
 
 func Connect() (*mgo.Session, error) {
-	addr := os.Getenv("BOREDGAME_MONGODB_ADDRESS")
+	addr := os.Getenv("BRDGME_MONGODB_ADDRESS")
 	if addr == "" {
 		addr = "localhost"
 	}
@@ -26,9 +26,9 @@ func Connect() (*mgo.Session, error) {
 }
 
 func Collection(session *mgo.Session) *mgo.Collection {
-	db := os.Getenv("BOREDGAME_MONGODB_DATABASE")
+	db := os.Getenv("BRDGME_MONGODB_DATABASE")
 	if db == "" {
-		db = "boredgame"
+		db = "brdgme"
 	}
 	return session.DB(db).C("games")
 }

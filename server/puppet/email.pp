@@ -23,12 +23,12 @@ file {"/home/play/.forward":
 
 file {"/etc/hostname":
 	ensure => present,
-	content => "boredga.me",
+	content => "brdg.me",
 }
 
 file {"/etc/mailname":
 	ensure => present,
-	content => "boredga.me",
+	content => "brdg.me",
 }
 
 package {"postfix":
@@ -52,10 +52,10 @@ biff = no
 append_dot_mydomain = no
 readme_directory = no
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = boredga.me
+myhostname = brdg.me
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
-mydestination = boredga.me, localhost.localdomain, localhost
+mydestination = brdg.me, localhost.localdomain, localhost
 relayhost =
 mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
 mailbox_size_limit = 0

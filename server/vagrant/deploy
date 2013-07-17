@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo mv web /usr/bin/boredga.me-web
-sudo service boredga.me-web restart
-sudo mv email /usr/bin/boredga.me-email
-sudo service boredga.me-email restart
+sudo mv web /usr/bin/brdg.me-web
+sudo service brdg.me-web restart
+sudo mv email /usr/bin/brdg.me-email
+sudo service brdg.me-email restart

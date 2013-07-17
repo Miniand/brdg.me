@@ -1,7 +1,7 @@
 package render
 
 import (
-	"github.com/beefsack/boredga.me/game/tic_tac_toe"
+	"github.com/beefsack/brdg.me/game/tic_tac_toe"
 	"testing"
 )
 

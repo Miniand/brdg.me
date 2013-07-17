@@ -29,7 +29,7 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 }
 
 func main() {
-	addr := os.Getenv("BOREDGAME_EMAIL_SERVER_ADDRESS")
+	addr := os.Getenv("BRDGME_EMAIL_SERVER_ADDRESS")
 	if addr == "" {
 		addr = ":9999"
 	}

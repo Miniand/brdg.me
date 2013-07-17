@@ -2,7 +2,7 @@ package render
 
 import (
 	"bytes"
-	"github.com/beefsack/boredga.me/game"
+	"github.com/beefsack/brdg.me/game"
 	"text/template"
 )
 

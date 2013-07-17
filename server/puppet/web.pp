@@ -2,24 +2,24 @@ group {"puppet":
 	ensure => present,
 }
 
-file { "/etc/init/boredga.me-web.conf":
+file { "/etc/init/brdg.me-web.conf":
 	ensure => present,
-	content => "env BOREDGAME_WEB_SERVER_ADDRESS=\":80\"
+	content => "env BRDGME_WEB_SERVER_ADDRESS=\":80\"
 start on (local-filesystems and net-device-up IFACE=eth0)
 stop on shutdown
-exec /usr/bin/boredga.me-web 2>&1 >> /var/log/boredga.me-web",
+exec /usr/bin/brdg.me-web 2>&1 >> /var/log/brdg.me-web",
 }
 
-file { "/etc/init.d/boredga.me-web":
+file { "/etc/init.d/brdg.me-web":
 	ensure => link,
 	target => "/lib/init/upstart-job",
 }
 
-service { "boredga.me-web":
+service { "brdg.me-web":
 	ensure => running,
 	provider => "upstart",
 	require => [
-		File["/etc/init/boredga.me-web.conf"],
-		File["/etc/init.d/boredga.me-web"],
+		File["/etc/init/brdg.me-web.conf"],
+		File["/etc/init.d/brdg.me-web"],
 	],
 }

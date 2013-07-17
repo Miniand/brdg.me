@@ -5,11 +5,11 @@ set command [lindex $argv 0]
 spawn telnet localhost 25
 
 expect "220"
-send "HELO boredga.me\n"
+send "HELO brdg.me\n"
 expect "250"
-send "MAIL FROM: vagrant@boredga.me\n"
+send "MAIL FROM: vagrant@brdg.me\n"
 expect "250"
-send "RCPT TO: play@boredga.me\n"
+send "RCPT TO: play@brdg.me\n"
 expect "250"
 send "DATA\n"
 expect "354"

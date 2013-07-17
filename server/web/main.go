@@ -9,7 +9,7 @@ import (
 
 func main() {
 	http.HandleFunc("/", RootHandler)
-	addr := os.Getenv("BOREDGAME_WEB_SERVER_ADDRESS")
+	addr := os.Getenv("BRDGME_WEB_SERVER_ADDRESS")
 	if addr == "" {
 		addr = ":9998"
 	}
@@ -21,5 +21,5 @@ func main() {
 }
 
 func RootHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to boredga.me!  Send an email to play@boredga.me to start playing board games over email!")
+	fmt.Fprintf(w, "Welcome to brdg.me!  Send an email to play@brdg.me to start playing board games over email!")
 }

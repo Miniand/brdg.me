@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"errors"
-	"github.com/beefsack/boredga.me/game"
-	"github.com/beefsack/boredga.me/render"
+	"github.com/beefsack/brdg.me/game"
+	"github.com/beefsack/brdg.me/render"
 	"labix.org/v2/mgo/bson"
 	"mime/multipart"
 	"net/textproto"
@@ -150,7 +150,7 @@ func GeneralHelpText() string {
 		gameNames = append(gameNames, g.Identifier()+"   ("+g.Name()+
 			")")
 	}
-	return `Welcome to boredga.me!
+	return `Welcome to brdg.me!
 
 Please start a new game by using the "new" command like below, but using the game name and player emails you want.
 
@@ -235,7 +235,7 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		}
 		// Handle Message-ID and In-Reply-To for email threading
 		threadingHeaders := ""
-		messageId := id.(bson.ObjectId).Hex() + "@boredga.me"
+		messageId := id.(bson.ObjectId).Hex() + "@brdg.me"
 		if initial {
 			// We create the base Message-ID
 			threadingHeaders = "Message-Id: <" + messageId + ">\r\n"

@@ -105,19 +105,19 @@ func GetPlainEmailBodyReader(r io.Reader, contentType string) (string, string,
 }
 
 func FromAddr() string {
-	from := os.Getenv("BOREDGAME_EMAIL_SERVER_SMTP_FROM")
+	from := os.Getenv("BRDGME_EMAIL_SERVER_SMTP_FROM")
 	if from == "" {
-		from = "play@boredga.me"
+		from = "play@brdg.me"
 	}
 	return from
 }
 
 func SendMailAuth() smtp.Auth {
-	return smtp.PlainAuth("", FromAddr(), "password", "mail.boredga.me")
+	return smtp.PlainAuth("", FromAddr(), "password", "mail.brdg.me")
 }
 
 func SendMail(to []string, msg string) error {
-	smtpAddr := os.Getenv("BOREDGAME_EMAIL_SERVER_SMTP_ADDR")
+	smtpAddr := os.Getenv("BRDGME_EMAIL_SERVER_SMTP_ADDR")
 	if smtpAddr == "" {
 		smtpAddr = "localhost:25"
 	}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/beefsack/boredga.me/game"
+	"github.com/beefsack/brdg.me/game"
 	"os"
 	"testing"
 )
