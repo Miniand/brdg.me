@@ -67,3 +67,26 @@ func (g *Game) Winners() []string {
 func (g *Game) WhoseTurn() []string {
 	return []string{}
 }
+
+// func (g *Game) AllCards() []int {
+// 	cards := make([]int, 33)
+// 	for i := 3; i <= 35; i++ {
+// 		cards[i-3] = i
+// 	}
+// 	return cards
+// }
+
+// func (g *Game) InitCards() {
+// 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+// 	cardPool := g.AllCards()
+// 	picked := map[int]bool{}
+// 	g.RemainingCards = make([]int, 24)
+// 	for i := 0; i < 24; i++ {
+// 		c := cardPool[r.Int()%24]
+// 		for picked[c] {
+// 			c = cardPool[r.Int()%24]
+// 		}
+// 		picked[c] = true
+// 		g.RemainingCards[i] = c
+// 	}
+// }
