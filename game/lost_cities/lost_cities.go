@@ -30,21 +30,22 @@ type Game struct {
 
 // The board consists of two players hands, a discard hand, and a draw pile
 type Board struct {
-	// Player hands are an array of hands, indexed 0 for player 1 and 1 for
+	// Player hands are an array of cards, indexed 0 for player 1 and 1 for
 	// player 2
-	PlayerHands [2]Hand
+	PlayerHands [2][]Card
+	// Player expeditions are an array of suited piles, indexed 0 for player 1
+	// and 1 for player 2
+	PlayerExpeditions [2]SuitedPiles
 	// The discard piles is stored as a hand, because it uses the same structure
-	DiscardPiles Hand
+	DiscardPiles SuitedPiles
 	// The draw pile is just a flat array of cards because it doesn't need to be
 	// grouped into suits
 	DrawPile []Card
 }
 
-// A hand is cards sorted into suits.  Each player has a hand, and the centre
-// discard piles are also stored as a hand.
-type Hand struct {
-	CardsBySuit [5][]Card
-}
+// Suited piles are cards sorted into suits.  Each player has a play area which
+// are suited piles, and the centre discard piles are suited piles.
+type SuitedPiles [5][]Card
 
 // A card is a suit and a value
 type Card struct {
@@ -71,6 +72,16 @@ const (
 	SUIT_YELLOW
 )
 
+// Suit colours map to ansi colours
+// @see http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+var CardColours = map[int]string{
+	SUIT_RED:    "red",
+	SUIT_GREEN:  "green",
+	SUIT_BLUE:   "blue",
+	SUIT_WHITE:  "gray",
+	SUIT_YELLOW: "yellow",
+}
+
 func (g *Game) Start(players []string) error {
 	if len(players) != 2 {
 		return errors.New("Lost Cities requires 2 spieler")
@@ -87,6 +98,10 @@ func (g *Game) Start(players []string) error {
 
 // Shuffle cards and deal hands, set the start player, set the turn phase etc
 func (g *Game) InitRound() error {
+	// The following line is commented because it errors as cards isn't used
+	// cards := g.AllCards()
+	// @todo shuffle cards
+	// @see http://stackoverflow.com/a/12264918/155498 for Go array shuffle
 	return nil
 }
 
@@ -112,10 +127,26 @@ func (g *Game) PlayerAction(player, action string, params []string) error {
 	}
 	switch strings.ToLower(action) {
 	case "play":
-		err = g.PlayCard(playerNum, Card{})
+		if len(params) == 0 {
+			return errors.New("You must specify a card to play, such as r5")
+		}
+		card, err := g.ParseCardString(params[0])
+		if err != nil {
+			return err
+		}
+		err = g.PlayCard(playerNum, card)
 	case "discard":
-		err = g.DiscardCard(playerNum, Card{})
+		if len(params) == 0 {
+			return errors.New("You must specify a card to play, such as r5")
+		}
+		card, err := g.ParseCardString(params[0])
+		if err != nil {
+			return err
+		}
+		err = g.DiscardCard(playerNum, card)
 	case "take":
+		// @todo actually detect the suit from params[0], make sure to check
+		// @params length > 0
 		err = g.TakeCard(playerNum, SUIT_RED)
 	case "draw":
 		err = g.DrawCard(playerNum)
@@ -147,10 +178,23 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	return "", nil
 }
 
+func (g *Game) RenderCard(card Card) string {
+	// @todo Actually do output from card suit and value.  Maybe make sure
+	// @there's a trailing space if the card value isn't 10, to make sure
+	// @everything lines up nicely.
+	return `{{c "` + CardColours[card.Suit] + `"}}R5{{_c}}`
+}
+
 func (g *Game) PlayerList() []string {
 	return g.Players
 }
 
+// Check that it's the end of the round, that there are no more draw cards left
+func (g *Game) IsEndOfRound() bool {
+	return false
+}
+
+// Check that it's the end of the third round
 func (g *Game) IsFinished() bool {
 	return false
 }
@@ -159,6 +203,8 @@ func (g *Game) Winners() []string {
 	return []string{}
 }
 
+// Whose turn it is right now, if it's the end of the round this should return
+// all players that haven't marked themselves as ready
 func (g *Game) WhoseTurn() []string {
 	return []string{}
 }
@@ -200,7 +246,14 @@ func (g *Game) DiscardCard(player int, card Card) error {
 // Mark a player as ready for the next round, gives them a chance to see the
 // board and scores after the round has ended.  Check that it is actually the
 // end of the round and that it isn't the last round already, returning an error
-// if either of those fail.
+// if either of those fail.  If the player is the last person to be ready, call
+// InitRound to start a new round.
 func (g *Game) PlayerReady(player int) error {
 	return nil
+}
+
+// Calculate the current score for this round for a player.
+func (g *Game) CurrentRoundPlayerScore(player int) int {
+	// @todo You want to be looking at g.Board.PlayerExpeditions[player][SUIT_RED] etc
+	return 0
 }
