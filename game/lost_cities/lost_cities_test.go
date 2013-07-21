@@ -139,3 +139,55 @@ func TestPlayFullGame(t *testing.T) {
 	}
 	// More to come!
 }
+
+func TestRemoveCard(t *testing.T) {
+	cards := func() []Card {
+		return []Card{
+			Card{
+				Suit:  SUIT_WHITE,
+				Value: 2,
+			},
+			Card{
+				Suit:  SUIT_WHITE,
+				Value: 3,
+			},
+			Card{
+				Suit:  SUIT_WHITE,
+				Value: 4,
+			},
+		}
+	}
+	removed1 := RemoveCard(Card{
+		Suit:  SUIT_WHITE,
+		Value: 2,
+	}, cards())
+	if len(removed1) != 2 || removed1[0].Value != 3 || removed1[1].Value != 4 {
+		t.Log(removed1)
+		t.Fatal("Did not remove 2")
+	}
+	removed2 := RemoveCard(Card{
+		Suit:  SUIT_WHITE,
+		Value: 3,
+	}, cards())
+	if len(removed2) != 2 || removed2[0].Value != 2 || removed2[1].Value != 4 {
+		t.Log(removed2)
+		t.Fatal("Did not remove 3")
+	}
+	removed3 := RemoveCard(Card{
+		Suit:  SUIT_WHITE,
+		Value: 4,
+	}, cards())
+	if len(removed3) != 2 || removed3[0].Value != 2 || removed3[1].Value != 3 {
+		t.Log(removed3)
+		t.Fatal("Did not remove 4")
+	}
+	// Now try one not in the list
+	removed4 := RemoveCard(Card{
+		Suit:  SUIT_WHITE,
+		Value: 5,
+	}, cards())
+	if len(removed4) != 3 {
+		t.Log(removed4)
+		t.Fatal("Removed card")
+	}
+}

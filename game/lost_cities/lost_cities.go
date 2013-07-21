@@ -257,3 +257,15 @@ func (g *Game) CurrentRoundPlayerScore(player int) int {
 	// @todo You want to be looking at g.Board.PlayerExpeditions[player][SUIT_RED] etc
 	return 0
 }
+
+// Remove a card from an array of cards.
+// @example g.Board.PlayerHands[0] = RemoveCard(card, g.Board.PlayerHands[0])
+func RemoveCard(remove Card, cards []Card) []Card {
+	for i, c := range cards {
+		if c.Suit == remove.Suit && c.Value == remove.Value {
+			return append(cards[:i], cards[i+1:]...)
+		}
+	}
+	// Not found, just return the cards
+	return cards
+}
