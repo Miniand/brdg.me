@@ -1,7 +1,6 @@
 package card
 
 type SuitValueCard struct {
-	Card  // Used for sorting
 	Suit  int
 	Value int
 }

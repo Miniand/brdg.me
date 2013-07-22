@@ -9,6 +9,22 @@ import (
 
 type Deck []Card
 
+// Removes cards from the deck.  Removes up to n cards, or removes all instances
+// if n = -1.  Returns deck with cards removed and the cound of cards removed.
+func (d Deck) Remove(removeCard Card, n int) (Deck, int) {
+	removed := 0
+	newD := d[:0]
+	for _, c := range d {
+		result, comparable := c.Compare(removeCard)
+		if comparable && result == 0 && (n < 0 || removed < n) {
+			removed++
+		} else {
+			newD = newD.Push(c)
+		}
+	}
+	return newD, removed
+}
+
 func (d Deck) Shuffle() Deck {
 	l := d.Len()
 	if l <= 1 {
@@ -42,11 +58,14 @@ func (d Deck) Swap(i, j int) {
 }
 
 func (d Deck) Push(card Card) Deck {
-	return append(d, card)
+	return d.PushMany([]Card{card})
 }
 
 func (d Deck) PushMany(cards []Card) Deck {
-	return append(d, cards...)
+	newDeck := make(Deck, d.Len()+len(cards))
+	copy(newDeck, d)
+	copy(newDeck[d.Len():], cards)
+	return newDeck
 }
 
 func (d Deck) Pop() (Card, Deck, error) {
@@ -59,10 +78,10 @@ func (d Deck) Pop() (Card, Deck, error) {
 }
 
 func (d Deck) PopN(n int) (Deck, Deck, error) {
-	if len(d) < n {
+	if d.Len() < n {
 		return nil, nil, errors.New("Not enough cards to pop")
 	}
-	return d[len(d)-n:], d[:len(d)-n], nil
+	return d[d.Len()-n:], d[:d.Len()-n], nil
 }
 
 func (d Deck) Unshift(card Card) Deck {
@@ -83,7 +102,7 @@ func (d Deck) Shift() (Card, Deck, error) {
 }
 
 func (d Deck) ShiftN(n int) (Deck, Deck, error) {
-	if len(d) < n {
+	if d.Len() < n {
 		return nil, nil, errors.New("Not enough cards to shift")
 	}
 	return d[:n], d[n:], nil

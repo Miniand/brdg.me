@@ -4,9 +4,51 @@ import (
 	"testing"
 )
 
+func testIsStandardDeck(d Deck, t *testing.T) {
+	if d.Len() != 52 {
+		t.Fatal("Deck is not 52 cards")
+	}
+	sortedD := d.Sort()
+	i := 0
+	for suit := STANDARD_52_SUIT_SPADES; suit <= STANDARD_52_SUIT_CLUBS; suit++ {
+		for value := STANDARD_52_VALUE_ACE; value <= STANDARD_52_VALUE_KING; value++ {
+			result, comparable := sortedD[i].Compare(SuitValueCard{
+				Suit:  suit,
+				Value: value,
+			})
+			if !comparable || result != 0 {
+				t.Fatal("Deck is not standard, card", sortedD[i])
+			}
+			i++
+		}
+	}
+}
+
+func TestRemove(t *testing.T) {
+	d := Standard52Deck()
+	c := d[3]
+	newD, removed := d.Remove(c, -1)
+	testIsStandardDeck(d, t)
+	if removed != 1 {
+		t.Fatal("Didn't report 1 card was removed")
+	}
+	if newD.Len() != 51 {
+		t.Fatal("Length of deck is not 51")
+	}
+	// Try again, 0 should be removed
+	newD, removed = newD.Remove(c, -1)
+	if removed != 0 {
+		t.Fatal("Didn't report 0 cards were removed")
+	}
+	if newD.Len() != 51 {
+		t.Fatal("Length of deck is not 51")
+	}
+}
+
 func TestShuffle(t *testing.T) {
-	d := Standard52Deck().Shuffle()
-	result, _ := d[0].Compare(SuitValueCard{
+	d := Standard52Deck()
+	newD := d.Shuffle()
+	result, _ := newD[0].Compare(SuitValueCard{
 		Suit:  STANDARD_52_SUIT_CLUBS,
 		Value: STANDARD_52_VALUE_ACE,
 	})
