@@ -127,10 +127,7 @@ func TestPushMany(t *testing.T) {
 
 func TestPop(t *testing.T) {
 	d := Standard52Deck()
-	c, newD, err := d.Pop()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c, newD := d.Pop()
 	if len(d) != 52 {
 		t.Fatal("Pop modified original deck")
 	}
@@ -149,10 +146,7 @@ func TestPop(t *testing.T) {
 
 func TestPopN(t *testing.T) {
 	d := Standard52Deck()
-	cards, newD, err := d.PopN(2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	cards, newD := d.PopN(2)
 	if len(d) != 52 {
 		t.Fatal("PopN modified original deck")
 	}
@@ -228,10 +222,7 @@ func TestUnshiftMany(t *testing.T) {
 
 func TestShift(t *testing.T) {
 	d := Standard52Deck()
-	c, newD, err := d.Shift()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c, newD := d.Shift()
 	if len(d) != 52 {
 		t.Fatal("Shift modified original deck")
 	}
@@ -250,10 +241,7 @@ func TestShift(t *testing.T) {
 
 func TestShiftN(t *testing.T) {
 	d := Standard52Deck()
-	cards, newD, err := d.ShiftN(2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	cards, newD := d.ShiftN(2)
 	if len(d) != 52 {
 		t.Fatal("ShiftN modified original deck")
 	}
