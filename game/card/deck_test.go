@@ -67,13 +67,21 @@ func TestShuffle(t *testing.T) {
 }
 
 func TestSort(t *testing.T) {
-	d := Standard52Deck().Shuffle().Sort()
+	d := Standard52Deck().Shuffle()
+	newD := d.Sort()
 	result, _ := d[0].Compare(SuitValueCard{
 		Suit:  STANDARD_52_SUIT_CLUBS,
 		Value: STANDARD_52_VALUE_ACE,
 	})
+	if result == 0 {
+		t.Fatal("Original neck is no longer shuffled")
+	}
+	result, _ = newD[0].Compare(SuitValueCard{
+		Suit:  STANDARD_52_SUIT_CLUBS,
+		Value: STANDARD_52_VALUE_ACE,
+	})
 	if result != 0 {
-		t.Fatal("Deck did not resort to put the Ace of Spades first")
+		t.Fatal("New deck did not sort to put the ace of clubs first")
 	}
 }
 

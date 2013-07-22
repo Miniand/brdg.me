@@ -47,8 +47,10 @@ func (d Deck) Shuffle() Deck {
 
 // Returns a sorted version of the deck
 func (d Deck) Sort() Deck {
-	sort.Sort(&d)
-	return d
+	newD := make(Deck, d.Len())
+	copy(newD, d)
+	sort.Sort(newD)
+	return newD
 }
 
 // Returns the length of the deck
