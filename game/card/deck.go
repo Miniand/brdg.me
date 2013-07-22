@@ -122,3 +122,12 @@ func (d Deck) ShiftN(n int) (Deck, Deck) {
 	}
 	return d[:n], d[n:]
 }
+
+// Converts deck to a flat array of SuitValueCard
+func (d Deck) ToSuitValueCards() []SuitValueCard {
+	cards := make([]SuitValueCard, d.Len())
+	for i, c := range d {
+		cards[i] = c.(SuitValueCard)
+	}
+	return cards
+}

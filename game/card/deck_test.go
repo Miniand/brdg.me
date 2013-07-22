@@ -274,3 +274,11 @@ func TestShiftN(t *testing.T) {
 		t.Fatal("Second card shifted wasn't Two of Clubs")
 	}
 }
+
+func TestToSuitValueCards(t *testing.T) {
+	d := Standard52Deck()
+	cards := d.ToSuitValueCards()
+	if d.Len() != len(cards) {
+		t.Fatal("Length of deck doesn't match length of cards array")
+	}
+}
