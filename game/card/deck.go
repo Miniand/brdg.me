@@ -9,6 +9,12 @@ import (
 
 type Deck []Card
 
+// Counts how many instances of a card appears in a deck
+func (d Deck) Contains(card Card) int {
+	_, count := d.Remove(card, -1)
+	return count
+}
+
 // Removes cards from the deck.  Removes up to n cards, or removes all instances
 // if n = -1.  Returns deck with cards removed and the cound of cards removed.
 func (d Deck) Remove(removeCard Card, n int) (Deck, int) {

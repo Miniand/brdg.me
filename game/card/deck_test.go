@@ -24,6 +24,15 @@ func testIsStandardDeck(d Deck, t *testing.T) {
 	}
 }
 
+func TestContains(t *testing.T) {
+	d := Standard52Deck()
+	c := d[3]
+	d = d.Push(c)
+	if d.Contains(c) != 2 {
+		t.Fatal("Did not count 2 cards")
+	}
+}
+
 func TestRemove(t *testing.T) {
 	d := Standard52Deck()
 	c := d[3]
