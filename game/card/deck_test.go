@@ -1,8 +1,48 @@
 package card
 
 import (
+	"fmt"
 	"testing"
 )
+
+// Example of shuffling a normal deck and dealing 5 cards each to three players
+func ExampleDeal() {
+	deck := Standard52Deck()
+	deck = deck.Shuffle()
+	player1Hand, deck := deck.PopN(5)
+	player2Hand, deck := deck.PopN(5)
+	player3Hand, deck := deck.PopN(5)
+	fmt.Printf("Player 1 hand size is %d\n", player1Hand.Len())
+	fmt.Printf("Player 2 hand size is %d\n", player2Hand.Len())
+	fmt.Printf("Player 3 hand size is %d\n", player3Hand.Len())
+	fmt.Printf("There are %d cards remaining in the deck", deck.Len())
+	// Output:
+	// Player 1 hand size is 5
+	// Player 2 hand size is 5
+	// Player 3 hand size is 5
+	// There are 37 cards remaining in the deck
+}
+
+// Example of examining values in the card struct, we need to type assert it
+// first.  Shift takes a card from the front instead of the back.  We will also
+// peek the next card on the deck without actually taking it.
+func ExampleExamineCard() {
+	deck := Standard52Deck() // We won't shuffle it so we know the order
+	player1Card, deck := deck.Shift()
+	player2Card, deck := deck.Shift()
+	nextCard, _ := deck.Shift()
+	fmt.Printf("Player 1's card value is %d\n",
+		player1Card.(SuitValueCard).Value)
+	fmt.Printf("Player 2's card value is %d\n",
+		player2Card.(SuitValueCard).Value)
+	fmt.Printf("The next card value is %d\n", nextCard.(SuitValueCard).Value)
+	fmt.Printf("The remaining card count is still %d\n", deck.Len())
+	// Output:
+	// Player 1's card value is 1
+	// Player 2's card value is 2
+	// The next card value is 3
+	// The remaining card count is still 50
+}
 
 func testIsStandardDeck(d Deck, t *testing.T) {
 	if d.Len() != 52 {
@@ -74,7 +114,7 @@ func TestSort(t *testing.T) {
 		Value: STANDARD_52_VALUE_ACE,
 	})
 	if result == 0 {
-		t.Fatal("Original neck is no longer shuffled")
+		t.Fatal("Original deck is no longer shuffled")
 	}
 	result, _ = newD[0].Compare(SuitValueCard{
 		Suit:  STANDARD_52_SUIT_CLUBS,
