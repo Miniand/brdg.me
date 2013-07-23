@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Example of manually building a deck for our own game type
+// Example of manually building a deck for our own game type.
 func ExampleDeckBuild() {
 	deck := Deck{}
 	for i := 1; i <= 3; i++ {
@@ -23,13 +23,17 @@ func ExampleDeckBuild() {
 	// The third card value is 3
 }
 
-// Example of shuffling a normal deck and dealing 5 cards each to three players
+// Example of shuffling a normal deck and dealing 5 cards each to three players.
+// We make sure the player hands remain sorted.
 func ExampleDeal() {
 	deck := Standard52Deck()
 	deck = deck.Shuffle()
 	player1Hand, deck := deck.PopN(5)
+	player1Hand = player1Hand.Sort()
 	player2Hand, deck := deck.PopN(5)
+	player2Hand = player2Hand.Sort()
 	player3Hand, deck := deck.PopN(5)
+	player3Hand = player3Hand.Sort()
 	fmt.Printf("Player 1 hand size is %d\n", player1Hand.Len())
 	fmt.Printf("Player 2 hand size is %d\n", player2Hand.Len())
 	fmt.Printf("Player 3 hand size is %d\n", player3Hand.Len())
