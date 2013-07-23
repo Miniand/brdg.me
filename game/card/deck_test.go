@@ -5,6 +5,24 @@ import (
 	"testing"
 )
 
+// Example of manually building a deck for our own game type
+func ExampleDeckBuild() {
+	deck := Deck{}
+	for i := 1; i <= 3; i++ {
+		deck = deck.Push(SuitValueCard{
+			Suit:  STANDARD_52_SUIT_HEARTS,
+			Value: i,
+		})
+	}
+	fmt.Printf("The first card value is %d\n", deck[0].(SuitValueCard).Value)
+	fmt.Printf("The second card value is %d\n", deck[1].(SuitValueCard).Value)
+	fmt.Printf("The third card value is %d\n", deck[2].(SuitValueCard).Value)
+	// Output:
+	// The first card value is 1
+	// The second card value is 2
+	// The third card value is 3
+}
+
 // Example of shuffling a normal deck and dealing 5 cards each to three players
 func ExampleDeal() {
 	deck := Standard52Deck()
