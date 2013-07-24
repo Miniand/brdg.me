@@ -14,28 +14,28 @@ const (
 
 const (
 	_ = iota // Ignore 0
-	STANDARD_52_VALUE_ACE
-	STANDARD_52_VALUE_2
-	STANDARD_52_VALUE_3
-	STANDARD_52_VALUE_4
-	STANDARD_52_VALUE_5
-	STANDARD_52_VALUE_6
-	STANDARD_52_VALUE_7
-	STANDARD_52_VALUE_8
-	STANDARD_52_VALUE_9
-	STANDARD_52_VALUE_10
-	STANDARD_52_VALUE_JACK
-	STANDARD_52_VALUE_QUEEN
-	STANDARD_52_VALUE_KING
+	STANDARD_52_RANK_ACE
+	STANDARD_52_RANK_2
+	STANDARD_52_RANK_3
+	STANDARD_52_RANK_4
+	STANDARD_52_RANK_5
+	STANDARD_52_RANK_6
+	STANDARD_52_RANK_7
+	STANDARD_52_RANK_8
+	STANDARD_52_RANK_9
+	STANDARD_52_RANK_10
+	STANDARD_52_RANK_JACK
+	STANDARD_52_RANK_QUEEN
+	STANDARD_52_RANK_KING
 )
 
 func Standard52Deck() Deck {
 	d := Deck{}
 	for suit := STANDARD_52_SUIT_CLUBS; suit <= STANDARD_52_SUIT_SPADES; suit++ {
-		for value := STANDARD_52_VALUE_ACE; value <= STANDARD_52_VALUE_KING; value++ {
-			d = append(d, SuitValueCard{
-				Suit:  suit,
-				Value: value,
+		for rank := STANDARD_52_RANK_ACE; rank <= STANDARD_52_RANK_KING; rank++ {
+			d = append(d, SuitRankCard{
+				Suit: suit,
+				Rank: rank,
 			})
 		}
 	}
@@ -45,18 +45,18 @@ func Standard52Deck() Deck {
 func Standard52DeckWithJokers() (d Deck) {
 	d = Standard52Deck()
 	for i := 0; i < 2; i++ {
-		d = append(d, SuitValueCard{
+		d = append(d, SuitRankCard{
 			Suit: STANDARD_52_SUIT_JOKER,
 		})
 	}
 	return d
 }
 
-func (c SuitValueCard) RenderStandard52() string {
+func (c SuitRankCard) RenderStandard52() string {
 	var (
 		symbol string
 		colour string
-		value  string
+		rank   string
 	)
 	switch c.Suit {
 	case STANDARD_52_SUIT_CLUBS:
@@ -72,24 +72,24 @@ func (c SuitValueCard) RenderStandard52() string {
 		symbol = "♠"
 		colour = "black"
 	}
-	switch c.Value {
-	case STANDARD_52_VALUE_ACE:
-		value = "A"
-	case STANDARD_52_VALUE_JACK:
-		value = "J"
-	case STANDARD_52_VALUE_QUEEN:
-		value = "Q"
-	case STANDARD_52_VALUE_KING:
-		value = "K"
+	switch c.Rank {
+	case STANDARD_52_RANK_ACE:
+		rank = "A"
+	case STANDARD_52_RANK_JACK:
+		rank = "J"
+	case STANDARD_52_RANK_QUEEN:
+		rank = "Q"
+	case STANDARD_52_RANK_KING:
+		rank = "K"
 	default:
-		value = fmt.Sprintf("%d", c.Value)
+		rank = fmt.Sprintf("%d", c.Rank)
 	}
-	return fmt.Sprintf(`{{c "%s"}}%s%s{{_c}}`, colour, symbol, value)
+	return fmt.Sprintf(`{{c "%s"}}%s%s{{_c}}`, colour, symbol, rank)
 }
 
-func (c SuitValueCard) RenderStandard52FixedWidth() string {
+func (c SuitRankCard) RenderStandard52FixedWidth() string {
 	output := c.RenderStandard52()
-	if c.Value != 10 {
+	if c.Rank != 10 {
 		output += " "
 	}
 	return output

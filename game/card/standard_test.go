@@ -5,9 +5,9 @@ import (
 )
 
 func TestRenderStandard52(t *testing.T) {
-	c := SuitValueCard{
-		Suit:  STANDARD_52_SUIT_CLUBS,
-		Value: STANDARD_52_VALUE_ACE,
+	c := SuitRankCard{
+		Suit: STANDARD_52_SUIT_CLUBS,
+		Rank: STANDARD_52_RANK_ACE,
 	}
 	expected := `{{c "black"}}♣A{{_c}}`
 	output := c.RenderStandard52()
@@ -19,9 +19,9 @@ func TestRenderStandard52(t *testing.T) {
 	if output != expected {
 		t.Error("Expected", expected, "but got", output)
 	}
-	c = SuitValueCard{
-		Suit:  STANDARD_52_SUIT_DIAMONDS,
-		Value: STANDARD_52_VALUE_10,
+	c = SuitRankCard{
+		Suit: STANDARD_52_SUIT_DIAMONDS,
+		Rank: STANDARD_52_RANK_10,
 	}
 	expected = `{{c "red"}}♦10{{_c}}`
 	output = c.RenderStandard52()
@@ -33,9 +33,9 @@ func TestRenderStandard52(t *testing.T) {
 	if output != expected {
 		t.Error("Expected", expected, "but got", output)
 	}
-	c = SuitValueCard{
-		Suit:  STANDARD_52_SUIT_HEARTS,
-		Value: STANDARD_52_VALUE_KING,
+	c = SuitRankCard{
+		Suit: STANDARD_52_SUIT_HEARTS,
+		Rank: STANDARD_52_RANK_KING,
 	}
 	expected = `{{c "red"}}♥K{{_c}}`
 	output = c.RenderStandard52()
@@ -47,9 +47,9 @@ func TestRenderStandard52(t *testing.T) {
 	if output != expected {
 		t.Error("Expected", expected, "but got", output)
 	}
-	c = SuitValueCard{
-		Suit:  STANDARD_52_SUIT_SPADES,
-		Value: STANDARD_52_VALUE_QUEEN,
+	c = SuitRankCard{
+		Suit: STANDARD_52_SUIT_SPADES,
+		Rank: STANDARD_52_RANK_QUEEN,
 	}
 	expected = `{{c "black"}}♠Q{{_c}}`
 	output = c.RenderStandard52()

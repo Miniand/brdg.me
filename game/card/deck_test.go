@@ -9,18 +9,18 @@ import (
 func ExampleDeckBuild() {
 	deck := Deck{}
 	for i := 1; i <= 3; i++ {
-		deck = deck.Push(SuitValueCard{
-			Suit:  STANDARD_52_SUIT_HEARTS,
-			Value: i,
+		deck = deck.Push(SuitRankCard{
+			Suit: STANDARD_52_SUIT_HEARTS,
+			Rank: i,
 		})
 	}
-	fmt.Printf("The first card value is %d\n", deck[0].(SuitValueCard).Value)
-	fmt.Printf("The second card value is %d\n", deck[1].(SuitValueCard).Value)
-	fmt.Printf("The third card value is %d\n", deck[2].(SuitValueCard).Value)
+	fmt.Printf("The first card rank is %d\n", deck[0].(SuitRankCard).Rank)
+	fmt.Printf("The second card rank is %d\n", deck[1].(SuitRankCard).Rank)
+	fmt.Printf("The third card rank is %d\n", deck[2].(SuitRankCard).Rank)
 	// Output:
-	// The first card value is 1
-	// The second card value is 2
-	// The third card value is 3
+	// The first card rank is 1
+	// The second card rank is 2
+	// The third card rank is 3
 }
 
 // Example of shuffling a normal deck and dealing 5 cards each to three players.
@@ -45,7 +45,7 @@ func ExampleDeal() {
 	// There are 37 cards remaining in the deck
 }
 
-// Example of examining values in the card struct, we need to type assert it
+// Example of examining ranks in the card struct, we need to type assert it
 // first.  Shift takes a card from the front instead of the back.  We will also
 // peek the next card on the deck without actually taking it.
 func ExampleExamineCard() {
@@ -53,16 +53,16 @@ func ExampleExamineCard() {
 	player1Card, deck := deck.Shift()
 	player2Card, deck := deck.Shift()
 	nextCard, _ := deck.Shift()
-	fmt.Printf("Player 1's card value is %d\n",
-		player1Card.(SuitValueCard).Value)
-	fmt.Printf("Player 2's card value is %d\n",
-		player2Card.(SuitValueCard).Value)
-	fmt.Printf("The next card value is %d\n", nextCard.(SuitValueCard).Value)
+	fmt.Printf("Player 1's card rank is %d\n",
+		player1Card.(SuitRankCard).Rank)
+	fmt.Printf("Player 2's card rank is %d\n",
+		player2Card.(SuitRankCard).Rank)
+	fmt.Printf("The next card rank is %d\n", nextCard.(SuitRankCard).Rank)
 	fmt.Printf("The remaining card count is still %d\n", deck.Len())
 	// Output:
-	// Player 1's card value is 1
-	// Player 2's card value is 2
-	// The next card value is 3
+	// Player 1's card rank is 1
+	// Player 2's card rank is 2
+	// The next card rank is 3
 	// The remaining card count is still 50
 }
 
@@ -73,10 +73,10 @@ func testIsStandardDeck(d Deck, t *testing.T) {
 	sortedD := d.Sort()
 	i := 0
 	for suit := STANDARD_52_SUIT_SPADES; suit <= STANDARD_52_SUIT_CLUBS; suit++ {
-		for value := STANDARD_52_VALUE_ACE; value <= STANDARD_52_VALUE_KING; value++ {
-			result, comparable := sortedD[i].Compare(SuitValueCard{
-				Suit:  suit,
-				Value: value,
+		for rank := STANDARD_52_RANK_ACE; rank <= STANDARD_52_RANK_KING; rank++ {
+			result, comparable := sortedD[i].Compare(SuitRankCard{
+				Suit: suit,
+				Rank: rank,
 			})
 			if !comparable || result != 0 {
 				t.Fatal("Deck is not standard, card", sortedD[i])
@@ -119,9 +119,9 @@ func TestRemove(t *testing.T) {
 func TestShuffle(t *testing.T) {
 	d := Standard52Deck()
 	newD := d.Shuffle()
-	result, _ := newD[0].Compare(SuitValueCard{
-		Suit:  STANDARD_52_SUIT_CLUBS,
-		Value: STANDARD_52_VALUE_ACE,
+	result, _ := newD[0].Compare(SuitRankCard{
+		Suit: STANDARD_52_SUIT_CLUBS,
+		Rank: STANDARD_52_RANK_ACE,
 	})
 	if result == 0 {
 		t.Fatal("Ace of Spades didn't move from the first spot, though there's a chance it was still shuffled")
@@ -131,16 +131,16 @@ func TestShuffle(t *testing.T) {
 func TestSort(t *testing.T) {
 	d := Standard52Deck().Shuffle()
 	newD := d.Sort()
-	result, _ := d[0].Compare(SuitValueCard{
-		Suit:  STANDARD_52_SUIT_CLUBS,
-		Value: STANDARD_52_VALUE_ACE,
+	result, _ := d[0].Compare(SuitRankCard{
+		Suit: STANDARD_52_SUIT_CLUBS,
+		Rank: STANDARD_52_RANK_ACE,
 	})
 	if result == 0 {
 		t.Fatal("Original deck is no longer shuffled")
 	}
-	result, _ = newD[0].Compare(SuitValueCard{
-		Suit:  STANDARD_52_SUIT_CLUBS,
-		Value: STANDARD_52_VALUE_ACE,
+	result, _ = newD[0].Compare(SuitRankCard{
+		Suit: STANDARD_52_SUIT_CLUBS,
+		Rank: STANDARD_52_RANK_ACE,
 	})
 	if result != 0 {
 		t.Fatal("New deck did not sort to put the ace of clubs first")
@@ -149,9 +149,9 @@ func TestSort(t *testing.T) {
 
 func TestPush(t *testing.T) {
 	d := Standard52Deck()
-	c := SuitValueCard{
-		Suit:  50,
-		Value: 50,
+	c := SuitRankCard{
+		Suit: 50,
+		Rank: 50,
 	}
 	newD := d.Push(c)
 	if len(d) != 52 {
@@ -169,13 +169,13 @@ func TestPush(t *testing.T) {
 func TestPushMany(t *testing.T) {
 	d := Standard52Deck()
 	cards := []Card{
-		SuitValueCard{
-			Suit:  50,
-			Value: 50,
+		SuitRankCard{
+			Suit: 50,
+			Rank: 50,
 		},
-		SuitValueCard{
-			Suit:  51,
-			Value: 51,
+		SuitRankCard{
+			Suit: 51,
+			Rank: 51,
 		},
 	}
 	newD := d.PushMany(cards)
@@ -204,9 +204,9 @@ func TestPop(t *testing.T) {
 	if len(newD) != 51 {
 		t.Fatal("Deck is not 51 cards")
 	}
-	shouldBeCard := SuitValueCard{
-		Suit:  STANDARD_52_SUIT_SPADES,
-		Value: STANDARD_52_VALUE_KING,
+	shouldBeCard := SuitRankCard{
+		Suit: STANDARD_52_SUIT_SPADES,
+		Rank: STANDARD_52_RANK_KING,
 	}
 	result, _ := c.Compare(shouldBeCard)
 	if result != 0 {
@@ -226,16 +226,16 @@ func TestPopN(t *testing.T) {
 	if len(cards) != 2 {
 		t.Fatal("Taken cards isn't length 2")
 	}
-	result, _ := cards[0].Compare(SuitValueCard{
-		Suit:  STANDARD_52_SUIT_SPADES,
-		Value: STANDARD_52_VALUE_QUEEN,
+	result, _ := cards[0].Compare(SuitRankCard{
+		Suit: STANDARD_52_SUIT_SPADES,
+		Rank: STANDARD_52_RANK_QUEEN,
 	})
 	if result != 0 {
 		t.Fatal("First card popped wasn't Queen of Spades")
 	}
-	result, _ = cards[1].Compare(SuitValueCard{
-		Suit:  STANDARD_52_SUIT_SPADES,
-		Value: STANDARD_52_VALUE_KING,
+	result, _ = cards[1].Compare(SuitRankCard{
+		Suit: STANDARD_52_SUIT_SPADES,
+		Rank: STANDARD_52_RANK_KING,
 	})
 	if result != 0 {
 		t.Fatal("Second card popped wasn't King of Spades")
@@ -244,9 +244,9 @@ func TestPopN(t *testing.T) {
 
 func TestUnshift(t *testing.T) {
 	d := Standard52Deck()
-	c := SuitValueCard{
-		Suit:  50,
-		Value: 50,
+	c := SuitRankCard{
+		Suit: 50,
+		Rank: 50,
 	}
 	newD := d.Unshift(c)
 	if len(d) != 52 {
@@ -264,13 +264,13 @@ func TestUnshift(t *testing.T) {
 func TestUnshiftMany(t *testing.T) {
 	d := Standard52Deck()
 	cards := []Card{
-		SuitValueCard{
-			Suit:  50,
-			Value: 50,
+		SuitRankCard{
+			Suit: 50,
+			Rank: 50,
 		},
-		SuitValueCard{
-			Suit:  51,
-			Value: 51,
+		SuitRankCard{
+			Suit: 51,
+			Rank: 51,
 		},
 	}
 	newD := d.UnshiftMany(cards)
@@ -299,9 +299,9 @@ func TestShift(t *testing.T) {
 	if len(newD) != 51 {
 		t.Fatal("Deck is not 51 cards")
 	}
-	shouldBeCard := SuitValueCard{
-		Suit:  STANDARD_52_SUIT_CLUBS,
-		Value: STANDARD_52_VALUE_ACE,
+	shouldBeCard := SuitRankCard{
+		Suit: STANDARD_52_SUIT_CLUBS,
+		Rank: STANDARD_52_RANK_ACE,
 	}
 	result, _ := c.Compare(shouldBeCard)
 	if result != 0 {
@@ -321,25 +321,25 @@ func TestShiftN(t *testing.T) {
 	if len(cards) != 2 {
 		t.Fatal("Taken cards isn't length 2")
 	}
-	result, _ := cards[0].Compare(SuitValueCard{
-		Suit:  STANDARD_52_SUIT_CLUBS,
-		Value: STANDARD_52_VALUE_ACE,
+	result, _ := cards[0].Compare(SuitRankCard{
+		Suit: STANDARD_52_SUIT_CLUBS,
+		Rank: STANDARD_52_RANK_ACE,
 	})
 	if result != 0 {
 		t.Fatal("First card shifted wasn't Ace of Clubs")
 	}
-	result, _ = cards[1].Compare(SuitValueCard{
-		Suit:  STANDARD_52_SUIT_CLUBS,
-		Value: STANDARD_52_VALUE_2,
+	result, _ = cards[1].Compare(SuitRankCard{
+		Suit: STANDARD_52_SUIT_CLUBS,
+		Rank: STANDARD_52_RANK_2,
 	})
 	if result != 0 {
 		t.Fatal("Second card shifted wasn't Two of Clubs")
 	}
 }
 
-func TestToSuitValueCards(t *testing.T) {
+func TestToSuitRankCards(t *testing.T) {
 	d := Standard52Deck()
-	cards := d.ToSuitValueCards()
+	cards := d.ToSuitRankCards()
 	if d.Len() != len(cards) {
 		t.Fatal("Length of deck doesn't match length of cards array")
 	}

@@ -1,13 +1,13 @@
 package card
 
-type SuitValueCard struct {
-	Suit  int
-	Value int
+type SuitRankCard struct {
+	Suit int
+	Rank int
 }
 
 // Sort by suit first, then card
-func (c SuitValueCard) Compare(otherC Comparer) (int, bool) {
-	otherCStandard, ok := otherC.(SuitValueCard)
+func (c SuitRankCard) Compare(otherC Comparer) (int, bool) {
+	otherCStandard, ok := otherC.(SuitRankCard)
 	if !ok {
 		// Different types
 		return 0, false
@@ -16,9 +16,9 @@ func (c SuitValueCard) Compare(otherC Comparer) (int, bool) {
 		return -1, true
 	} else if c.Suit > otherCStandard.Suit {
 		return 1, true
-	} else if c.Value < otherCStandard.Value {
+	} else if c.Rank < otherCStandard.Rank {
 		return -1, true
-	} else if c.Value > otherCStandard.Value {
+	} else if c.Rank > otherCStandard.Rank {
 		return 1, true
 	}
 	return 0, true
