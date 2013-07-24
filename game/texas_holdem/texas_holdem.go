@@ -7,6 +7,7 @@ import (
 	"github.com/beefsack/brdg.me/game/card"
 	"github.com/beefsack/brdg.me/game/log"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -26,6 +27,7 @@ type Game struct {
 	Log                      log.Log
 	PlayerMoney              []int
 	Bets                     []int
+	FoldedPlayers            []bool
 	MinimumBet               int
 	LargestRaise             int
 	HandsSinceBlindsIncrease int
@@ -69,11 +71,12 @@ func (g *Game) NewHand() {
 	var (
 		smallBlindPlayer, bigBlindPlayer int
 	)
-	activePlayers := g.ActivePlayers()
-	numActivePlayers := len(activePlayers)
-	// Reset current betting info
+	// Reset values
+	g.FoldedPlayers = make([]bool, len(g.Players))
 	g.Bets = make([]int, len(g.Players))
 	g.LargestRaise = 0
+	activePlayers := g.ActivePlayers()
+	numActivePlayers := len(activePlayers)
 	// Raise blinds if we need to
 	if g.HandsSinceBlindsIncrease >= HANDS_PER_BLINDS_INCREASE {
 		g.HandsSinceBlindsIncrease = 0
@@ -109,26 +112,34 @@ func (g *Game) NewHand() {
 	}
 }
 
-func (g *Game) ActivePlayers() map[int]string {
-	active := map[int]string{}
+// Remaining players who haven't busted yet
+func (g *Game) RemainingPlayers() map[int]string {
+	remaining := map[int]string{}
 	for i, p := range g.Players {
 		if g.PlayerMoney[i] > 0 {
+			remaining[i] = p
+		}
+	}
+	return remaining
+}
+
+// Active players are players who are active in the current hand
+func (g *Game) ActivePlayers() map[int]string {
+	active := map[int]string{}
+	for i, p := range g.RemainingPlayers() {
+		if g.PlayerMoney[i] > 0 || !g.FoldedPlayers[i] {
 			active[i] = p
 		}
 	}
 	return active
 }
 
-func (g *Game) NumActivePlayers() int {
-	return len(g.ActivePlayers())
-}
-
 func (g *Game) NextActivePlayerNumFrom(playerNum int) int {
-	if g.NumActivePlayers() == 0 {
+	if len(g.ActivePlayers()) == 0 {
 		panic("No active players")
 	}
 	playerNum = (playerNum + 1) % len(g.Players)
-	for g.PlayerMoney[playerNum] <= 0 {
+	for g.PlayerMoney[playerNum] <= 0 || g.FoldedPlayers[playerNum] {
 		playerNum = (playerNum + 1) % len(g.Players)
 	}
 	return playerNum
@@ -153,8 +164,16 @@ func (g *Game) Bet(playerNum int, amount int) error {
 	return nil
 }
 
-func (g *Game) PlayerAction(player string, action string, args []string) error {
-	return nil
+func (g *Game) PlayerAction(player string, action string, args []string) (err error) {
+	switch strings.ToLower(action) {
+	case "fold":
+	case "call":
+	case "raise":
+	case "allin":
+	default:
+		err = errors.New(fmt.Sprintf("Unknown command: %s", action))
+	}
+	return
 }
 
 func (g *Game) Name() string {
@@ -182,7 +201,7 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return g.NumActivePlayers() < 2
+	return len(g.RemainingPlayers()) < 2
 }
 
 func (g *Game) Winners() []string {

@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/beefsack/brdg.me/game/lost_cities"
 	"github.com/beefsack/brdg.me/game/no_thanks"
+	"github.com/beefsack/brdg.me/game/texas_holdem"
 	"github.com/beefsack/brdg.me/game/tic_tac_toe"
 )
 
@@ -24,9 +25,10 @@ type Playable interface {
 // in here
 func gameList() []Playable {
 	return []Playable{
-		&no_thanks.Game{},
-		&tic_tac_toe.Game{},
 		&lost_cities.Game{},
+		&no_thanks.Game{},
+		&texas_holdem.Game{},
+		&tic_tac_toe.Game{},
 	}
 }
 
