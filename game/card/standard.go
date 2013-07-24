@@ -1,5 +1,9 @@
 package card
 
+import (
+	"fmt"
+)
+
 const (
 	STANDARD_52_SUIT_CLUBS = iota
 	STANDARD_52_SUIT_DIAMONDS
@@ -46,4 +50,55 @@ func Standard52DeckWithJokers() (d Deck) {
 		})
 	}
 	return d
+}
+
+func (c SuitValueCard) RenderStandard52() string {
+	var (
+		symbol string
+		colour string
+		value  string
+	)
+	switch c.Suit {
+	case STANDARD_52_SUIT_CLUBS:
+		symbol = "♣"
+		colour = "black"
+	case STANDARD_52_SUIT_DIAMONDS:
+		symbol = "♦"
+		colour = "red"
+	case STANDARD_52_SUIT_HEARTS:
+		symbol = "♥"
+		colour = "red"
+	case STANDARD_52_SUIT_SPADES:
+		symbol = "♠"
+		colour = "black"
+	}
+	switch c.Value {
+	case STANDARD_52_VALUE_ACE:
+		value = "A"
+	case STANDARD_52_VALUE_JACK:
+		value = "J"
+	case STANDARD_52_VALUE_QUEEN:
+		value = "Q"
+	case STANDARD_52_VALUE_KING:
+		value = "K"
+	default:
+		value = fmt.Sprintf("%d", c.Value)
+	}
+	return fmt.Sprintf(`{{c "%s"}}%s%s{{_c}}`, colour, symbol, value)
+}
+
+func (c SuitValueCard) RenderStandard52FixedWidth() string {
+	output := c.RenderStandard52()
+	if c.Value != 10 {
+		output += " "
+	}
+	return output
+}
+
+func RenderStandard52Hidden() string {
+	return `{{c "gray"}}##{{_c}}`
+}
+
+func RenderStandard52HiddenFixedWidth() string {
+	return RenderStandard52Hidden() + " "
 }
