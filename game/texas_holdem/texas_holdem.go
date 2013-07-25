@@ -1,7 +1,8 @@
 package texas_holdem
 
 import (
-	"encoding/json"
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"github.com/beefsack/brdg.me/game/card"
@@ -404,12 +405,23 @@ func (g *Game) Identifier() string {
 	return "texas_holdem"
 }
 
+func RegisterGobTypes() {
+	gob.Register(card.SuitRankCard{})
+}
+
 func (g *Game) Encode() ([]byte, error) {
-	return json.Marshal(g)
+	RegisterGobTypes()
+	buf := bytes.NewBuffer([]byte{})
+	encoder := gob.NewEncoder(buf)
+	err := encoder.Encode(g)
+	return buf.Bytes(), err
 }
 
 func (g *Game) Decode(data []byte) error {
-	return json.Unmarshal(data, g)
+	RegisterGobTypes()
+	buf := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(buf)
+	return decoder.Decode(g)
 }
 
 func (g *Game) RenderForPlayer(string) (string, error) {
