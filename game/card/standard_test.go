@@ -72,3 +72,10 @@ func TestRenderStandard52(t *testing.T) {
 		t.Error("Expected", expected, "but got", output)
 	}
 }
+
+func TestAceHigh(t *testing.T) {
+	d := Standard52DeckAceHigh()
+	if d[0].(SuitRankCard).RankValue() <= STANDARD_52_RANK_KING {
+		t.Fatal("Expected ace value to be higher than king")
+	}
+}

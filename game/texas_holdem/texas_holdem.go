@@ -105,7 +105,7 @@ func (g *Game) NewHand() {
 	g.CurrentPlayer = g.NextActivePlayerNumFrom(bigBlindPlayer)
 	// Shuffle and deal two cards to each player
 	g.CommunityCards = card.Deck{}
-	g.Deck = card.Standard52Deck().Shuffle()
+	g.Deck = card.Standard52DeckAceHigh().Shuffle()
 	for i, _ := range activePlayers {
 		g.PlayerHands[i], g.Deck = g.Deck.PopN(2)
 		g.PlayerHands[i] = g.PlayerHands[i].Sort()

@@ -42,6 +42,16 @@ func Standard52Deck() Deck {
 	return d
 }
 
+func Standard52DeckAceHigh() Deck {
+	d := Standard52Deck()
+	for i, c := range d {
+		standardC := c.(SuitRankCard)
+		standardC.AceHigh = true
+		d[i] = standardC
+	}
+	return d
+}
+
 func Standard52DeckWithJokers() (d Deck) {
 	d = Standard52Deck()
 	for i := 0; i < 2; i++ {
