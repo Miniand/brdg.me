@@ -122,9 +122,10 @@ func IsFourOfAKind(hand card.Deck) (ok bool, cards card.Deck) {
 }
 
 func IsFullHouse(hand card.Deck) (ok bool, cards card.Deck) {
+	var pair card.Deck
 	ok, cards, remaining := FindMultiple(hand, 3)
 	if ok {
-		ok, pair, _ := FindMultiple(remaining, 2)
+		ok, pair, _ = FindMultiple(remaining, 2)
 		if ok {
 			cards = cards.PushMany(pair)
 		}
@@ -142,9 +143,10 @@ func IsThreeOfAKind(hand card.Deck) (ok bool, cards card.Deck) {
 }
 
 func IsTwoPair(hand card.Deck) (ok bool, cards card.Deck) {
+	var pair card.Deck
 	ok, cards, remaining := FindMultiple(hand, 2)
 	if ok {
-		ok, pair, remaining := FindMultiple(remaining, 2)
+		ok, pair, remaining = FindMultiple(remaining, 2)
 		if ok {
 			cards = cards.PushMany(pair)
 			kicker, _ := FindHighestRank(remaining, 1)
@@ -168,7 +170,7 @@ func FindMultiple(hand card.Deck, n int) (ok bool, cards card.Deck,
 	remaining card.Deck) {
 	remaining = hand
 	byRank := CardsByRank(remaining)
-	for i := len(byRank) - 1; i >= 0; i-- {
+	for i := card.STANDARD_52_RANK_ACE_HIGH; i >= 0; i-- {
 		if len(byRank[i]) >= n {
 			ok = true
 			cards = byRank[i][:n]
@@ -186,7 +188,7 @@ func FindHighestRank(hand card.Deck, n int) (highest card.Deck,
 	remaining card.Deck) {
 	remaining = hand
 	byRank := CardsByRank(remaining)
-	for i := len(byRank) - 1; i >= 0; i-- {
+	for i := card.STANDARD_52_RANK_ACE_HIGH - 1; i >= 0; i-- {
 		take := n - len(highest)
 		if len(byRank[i]) < take {
 			take = len(byRank[i])
