@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/beefsack/brdg.me/game/card"
 	"github.com/beefsack/brdg.me/game/log"
+	"github.com/beefsack/brdg.me/game/poker"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -30,6 +32,7 @@ type Game struct {
 	FoldedPlayers            []bool
 	MinimumBet               int
 	LargestRaise             int
+	LastBettingPlayer        int
 	HandsSinceBlindsIncrease int
 }
 
@@ -75,6 +78,7 @@ func (g *Game) NewHand() {
 	g.FoldedPlayers = make([]bool, len(g.Players))
 	g.Bets = make([]int, len(g.Players))
 	g.LargestRaise = 0
+	g.NewBettingRound()
 	activePlayers := g.ActivePlayers()
 	numActivePlayers := len(activePlayers)
 	// Raise blinds if we need to
@@ -116,7 +120,7 @@ func (g *Game) NewHand() {
 func (g *Game) RemainingPlayers() map[int]string {
 	remaining := map[int]string{}
 	for i, p := range g.Players {
-		if g.PlayerMoney[i] > 0 {
+		if g.PlayerMoney[i] > 0 || g.Bets[i] > 0 {
 			remaining[i] = p
 		}
 	}
@@ -127,7 +131,7 @@ func (g *Game) RemainingPlayers() map[int]string {
 func (g *Game) ActivePlayers() map[int]string {
 	active := map[int]string{}
 	for i, p := range g.RemainingPlayers() {
-		if g.PlayerMoney[i] > 0 || !g.FoldedPlayers[i] {
+		if !g.FoldedPlayers[i] {
 			active[i] = p
 		}
 	}
@@ -139,7 +143,19 @@ func (g *Game) NextActivePlayerNumFrom(playerNum int) int {
 		panic("No active players")
 	}
 	playerNum = (playerNum + 1) % len(g.Players)
-	for g.PlayerMoney[playerNum] <= 0 || g.FoldedPlayers[playerNum] {
+	for (g.PlayerMoney[playerNum] == 0 && g.Bets[playerNum] == 0) ||
+		g.FoldedPlayers[playerNum] {
+		playerNum = (playerNum + 1) % len(g.Players)
+	}
+	return playerNum
+}
+
+func (g *Game) NextRemainingPlayerNumFrom(playerNum int) int {
+	if len(g.RemainingPlayers()) == 0 {
+		panic("No remaining players")
+	}
+	playerNum = (playerNum + 1) % len(g.Players)
+	for g.PlayerMoney[playerNum] == 0 && g.Bets[playerNum] == 0 {
 		playerNum = (playerNum + 1) % len(g.Players)
 	}
 	return playerNum
@@ -161,19 +177,223 @@ func (g *Game) Bet(playerNum int, amount int) error {
 	g.Bets[playerNum] += amount
 	g.PlayerMoney[playerNum] -= amount
 	g.LargestRaise = max(amount, g.LargestRaise)
+	g.LastBettingPlayer = playerNum
 	return nil
 }
 
 func (g *Game) PlayerAction(player string, action string, args []string) (err error) {
-	switch strings.ToLower(action) {
-	case "fold":
-	case "call":
-	case "raise":
-	case "allin":
-	default:
-		err = errors.New(fmt.Sprintf("Unknown command: %s", action))
+	playerNum, err := g.PlayerNum(player)
+	if err == nil {
+		switch strings.ToLower(action) {
+		case "fold":
+			err = g.Fold(playerNum)
+		case "call":
+			err = g.Call(playerNum)
+		case "raise":
+			if len(args) == 0 {
+				err = errors.New("You must specify an amount to raise")
+			} else {
+				amount, err := strconv.Atoi(args[0])
+				if err != nil {
+					err = errors.New("Could not understand your raise amount, only use numbers and no punctuation or symbols")
+				} else {
+					err = g.Raise(playerNum, amount)
+				}
+			}
+		case "allin":
+			err = g.AllIn(playerNum)
+		default:
+			err = errors.New(fmt.Sprintf("Unknown command: %s", action))
+		}
 	}
 	return
+}
+
+func (g *Game) PlayerNum(player string) (int, error) {
+	for playerNum, name := range g.Players {
+		if player == name {
+			return playerNum, nil
+		}
+	}
+	return 0, errors.New("Could not find player with that name")
+}
+
+func (g *Game) Fold(playerNum int) error {
+	if g.IsFinished() || g.CurrentPlayer != playerNum {
+		return errors.New("Not your turn")
+	}
+	g.FoldedPlayers[playerNum] = true
+	if len(g.ActivePlayers()) == 1 {
+		// Everyone folded
+		for activePlayerNum, _ := range g.ActivePlayers() {
+			g.PlayerMoney[activePlayerNum] += g.Pot()
+			g.NewHand()
+			return nil
+		}
+	} else {
+		g.NextPlayer()
+	}
+	return nil
+}
+
+func (g *Game) Call(playerNum int) error {
+	if g.IsFinished() || g.CurrentPlayer != playerNum {
+		return errors.New("Not your turn")
+	}
+	difference := g.CurrentBet() - g.Bets[playerNum]
+	if g.PlayerMoney[playerNum] < difference {
+		return errors.New("You don't have enough to call, you can only go allin")
+	}
+	err := g.Bet(playerNum, difference)
+	if err != nil {
+		return err
+	}
+	g.NextPlayer()
+	return nil
+}
+
+func (g *Game) Raise(playerNum int, amount int) error {
+	if g.IsFinished() || g.CurrentPlayer != playerNum {
+		return errors.New("Not your turn")
+	}
+	minRaise := max(g.MinimumBet, g.LargestRaise)
+	difference := g.CurrentBet() - g.Bets[playerNum]
+	if amount < minRaise {
+		return errors.New(fmt.Sprintf(
+			"Your raise must be at least %d", minRaise))
+	}
+	err := g.Bet(playerNum, difference+amount)
+	if err != nil {
+		return err
+	}
+	if amount > g.LargestRaise {
+
+	}
+	g.NextPlayer()
+	return nil
+}
+
+func (g *Game) AllIn(playerNum int) error {
+	if g.IsFinished() || g.CurrentPlayer != playerNum {
+		return errors.New("Not your turn")
+	}
+	err := g.Bet(playerNum, g.PlayerMoney[playerNum])
+	if err != nil {
+		return err
+	}
+	g.NextPlayer()
+	return nil
+}
+
+func (g *Game) NextPlayer() {
+	for {
+		g.CurrentPlayer = g.NextActivePlayerNumFrom(g.CurrentPlayer)
+		if g.CurrentPlayer == g.LastBettingPlayer {
+			g.NextPhase()
+			break
+		}
+		if g.PlayerMoney[g.CurrentPlayer] > 0 {
+			break
+		}
+	}
+}
+
+func (g *Game) NextPhase() {
+	switch len(g.CommunityCards) {
+	case 0:
+		g.Flop()
+	case 3:
+		g.Turn()
+	case 4:
+		g.River()
+	case 5:
+		g.Showdown()
+	}
+}
+
+func (g *Game) Flop() {
+	g.NewCommunityCards(3)
+	g.NewBettingRound()
+}
+
+func (g *Game) Turn() {
+	g.NewCommunityCards(1)
+	g.NewBettingRound()
+}
+
+func (g *Game) River() {
+	g.NewCommunityCards(1)
+	g.NewBettingRound()
+}
+
+func (g *Game) Showdown() {
+	for g.Pot() > 0 {
+		// Find the minimum bet
+		smallest := g.SmallestBet()
+		pot := 0
+		handResults := map[int]poker.HandResult{}
+		for playerNum, b := range g.Bets {
+			contribution := min(b, smallest)
+			pot += contribution
+			g.Bets[playerNum] -= contribution
+			if !g.FoldedPlayers[playerNum] {
+				handResults[playerNum] = poker.Result(g.PlayerHands[playerNum])
+			}
+		}
+		winners := poker.WinningHandResult(handResults)
+		potPerPlayer := pot / len(winners)
+		for _, winner := range winners {
+			g.PlayerMoney[winner] += potPerPlayer
+		}
+		remainder := pot - potPerPlayer*len(winners)
+		if remainder > 0 {
+			g.PlayerMoney[g.NextRemainingPlayerNumFrom(g.CurrentDealer)] +=
+				remainder
+		}
+	}
+	if !g.IsFinished() {
+		g.NewHand()
+	}
+}
+
+func (g *Game) CurrentBet() int {
+	currentBet := 0
+	for _, b := range g.Bets {
+		if b > currentBet {
+			currentBet = b
+		}
+	}
+	return currentBet
+}
+
+func (g *Game) Pot() int {
+	total := 0
+	for _, b := range g.Bets {
+		total += b
+	}
+	return total
+}
+
+func (g *Game) SmallestBet() int {
+	bet := 0
+	firstRun := true
+	for playerNum, _ := range g.ActivePlayers() {
+		if firstRun || g.Bets[playerNum] < bet {
+			bet = g.Bets[playerNum]
+			firstRun = false
+		}
+	}
+	return bet
+}
+
+func (g *Game) NewCommunityCards(n int) {
+	var cards card.Deck
+	cards, g.Deck = g.Deck.PopN(3)
+	g.CommunityCards = g.CommunityCards.PushMany(cards)
+}
+
+func (g *Game) NewBettingRound() {
+	g.CurrentPlayer = g.NextActivePlayerNumFrom(g.CurrentDealer)
 }
 
 func (g *Game) Name() string {

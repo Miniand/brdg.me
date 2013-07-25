@@ -84,14 +84,14 @@ func (d Deck) PushMany(cards []Card) Deck {
 }
 
 // Returns the last card in the deck, and the remaining cards
-func (d Deck) Pop() (Card, Deck) {
+func (d Deck) Pop() (popped Card, remaining Deck) {
 	cards, newDeck := d.PopN(1)
 	card := cards[0]
 	return card, newDeck
 }
 
 // Returns the last n cards in the deck, and the remaining cards
-func (d Deck) PopN(n int) (Deck, Deck) {
+func (d Deck) PopN(n int) (popped Deck, remaining Deck) {
 	if d.Len() < n {
 		panic("Not enough cards to pop")
 	}
@@ -109,14 +109,14 @@ func (d Deck) UnshiftMany(cards []Card) Deck {
 }
 
 // Returns the first card in the deck, and the remaining cards
-func (d Deck) Shift() (Card, Deck) {
+func (d Deck) Shift() (shifted Card, remaining Deck) {
 	cards, newDeck := d.ShiftN(1)
 	card := cards[0]
 	return card, newDeck
 }
 
 // Returns the first n cards in the deck, and the remaining cards
-func (d Deck) ShiftN(n int) (Deck, Deck) {
+func (d Deck) ShiftN(n int) (shifted Deck, remaining Deck) {
 	if d.Len() < n {
 		panic("Not enough cards to shift")
 	}
