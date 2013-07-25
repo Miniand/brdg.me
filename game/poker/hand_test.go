@@ -215,6 +215,63 @@ func TestFullHouse(t *testing.T) {
 	}
 }
 
+func TestFlush(t *testing.T) {
+	handResult := Result(card.Deck{
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_7,
+		},
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_3,
+		},
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_SPADES,
+			Rank: card.STANDARD_52_RANK_KING,
+		},
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_JACK,
+		},
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_4,
+		},
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_CLUBS,
+			Rank: card.STANDARD_52_RANK_3,
+		},
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_5,
+		},
+	})
+	if handResult.Category != CATEGORY_FLUSH {
+		t.Fatal("Expected flush, got:", handResult.Category)
+	}
+	if handResult.Cards[0].(card.SuitRankCard).Rank !=
+		card.STANDARD_52_RANK_JACK {
+		t.Fatal("Expected 7 high, got:",
+			handResult.Cards[0].(card.SuitRankCard).Rank)
+	}
+	if handResult.Cards[1].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_7 {
+		t.Fatal("Expected 7 high, got:",
+			handResult.Cards[1].(card.SuitRankCard).Rank)
+	}
+	if handResult.Cards[2].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_5 {
+		t.Fatal("Expected 7 high, got:",
+			handResult.Cards[2].(card.SuitRankCard).Rank)
+	}
+	if handResult.Cards[3].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_4 {
+		t.Fatal("Expected 7 high, got:",
+			handResult.Cards[3].(card.SuitRankCard).Rank)
+	}
+	if handResult.Cards[4].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_3 {
+		t.Fatal("Expected 7 high, got:",
+			handResult.Cards[4].(card.SuitRankCard).Rank)
+	}
+}
+
 func TestStraight(t *testing.T) {
 	handResult := Result(card.Deck{
 		card.SuitRankCard{

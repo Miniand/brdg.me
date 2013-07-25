@@ -20,6 +20,7 @@ const (
 type HandResult struct {
 	Category int
 	Cards    card.Deck
+	Name     string
 }
 
 func (hr HandResult) HandScore() []int {
@@ -43,6 +44,7 @@ func Result(hand card.Deck) (result HandResult) {
 		}
 	}
 	if result.Category != CATEGORY_NONE {
+		result.Name = "straight flush"
 		return result
 	}
 	// Four of a kind
@@ -50,6 +52,7 @@ func Result(hand card.Deck) (result HandResult) {
 	if ok {
 		result.Category = CATEGORY_FOUR_OF_A_KIND
 		result.Cards = cards
+		result.Name = "four of a kind"
 		return result
 	}
 	// Full house
@@ -57,14 +60,23 @@ func Result(hand card.Deck) (result HandResult) {
 	if ok {
 		result.Category = CATEGORY_FULL_HOUSE
 		result.Cards = cards
+		result.Name = "full house"
 		return result
 	}
 	// Flush
+	ok, cards = IsFlush(hand)
+	if ok {
+		result.Category = CATEGORY_FLUSH
+		result.Cards = cards
+		result.Name = "flush"
+		return result
+	}
 	// Straight
 	ok, cards = IsStraight(hand)
 	if ok {
 		result.Category = CATEGORY_STRAIGHT
 		result.Cards = cards
+		result.Name = "straight"
 		return result
 	}
 	// Three of a kind
@@ -72,6 +84,7 @@ func Result(hand card.Deck) (result HandResult) {
 	if ok {
 		result.Category = CATEGORY_THREE_OF_A_KIND
 		result.Cards = cards
+		result.Name = "three of a kind"
 		return result
 	}
 	// Two pair
@@ -79,6 +92,7 @@ func Result(hand card.Deck) (result HandResult) {
 	if ok {
 		result.Category = CATEGORY_TWO_PAIR
 		result.Cards = cards
+		result.Name = "two pair"
 		return result
 	}
 	// One pair
@@ -86,12 +100,14 @@ func Result(hand card.Deck) (result HandResult) {
 	if ok {
 		result.Category = CATEGORY_ONE_PAIR
 		result.Cards = cards
+		result.Name = "one pair"
 		return result
 	}
 	// High card
 	result.Category = CATEGORY_HIGH_CARD
 	cards, _ = FindHighestRank(hand, 5)
 	result.Cards = cards
+	result.Name = "high card"
 	return result
 }
 
@@ -136,6 +152,31 @@ func IsFullHouse(hand card.Deck) (ok bool, cards card.Deck) {
 		ok, pair, _ = FindMultiple(remaining, 2)
 		if ok {
 			cards = cards.PushMany(pair)
+		}
+	}
+	return
+}
+
+func IsFlush(hand card.Deck) (ok bool, cards card.Deck) {
+	handResults := map[int]HandResult{}
+	i := 0
+	bySuit := CardsBySuit(hand)
+	for suit := card.STANDARD_52_SUIT_CLUBS; suit <=
+		card.STANDARD_52_SUIT_SPADES; suit++ {
+		if len(bySuit[suit]) >= 5 {
+			flush, _ := FindHighestRank(bySuit[suit], 5)
+			handResults[i] = HandResult{
+				Category: CATEGORY_FLUSH,
+				Cards:    flush,
+			}
+			i++
+		}
+	}
+	if len(handResults) > 0 {
+		winningHand := WinningHandResult(handResults)
+		if len(winningHand) > 0 {
+			ok = true
+			cards = handResults[winningHand[0]].Cards
 		}
 	}
 	return
