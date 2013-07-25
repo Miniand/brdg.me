@@ -27,6 +27,7 @@ const (
 	STANDARD_52_RANK_JACK
 	STANDARD_52_RANK_QUEEN
 	STANDARD_52_RANK_KING
+	STANDARD_52_RANK_ACE_HIGH
 )
 
 func Standard52Deck() Deck {
@@ -43,11 +44,14 @@ func Standard52Deck() Deck {
 }
 
 func Standard52DeckAceHigh() Deck {
-	d := Standard52Deck()
-	for i, c := range d {
-		standardC := c.(SuitRankCard)
-		standardC.AceHigh = true
-		d[i] = standardC
+	d := Deck{}
+	for suit := STANDARD_52_SUIT_CLUBS; suit <= STANDARD_52_SUIT_SPADES; suit++ {
+		for rank := STANDARD_52_RANK_2; rank <= STANDARD_52_RANK_ACE_HIGH; rank++ {
+			d = append(d, SuitRankCard{
+				Suit: suit,
+				Rank: rank,
+			})
+		}
 	}
 	return d
 }

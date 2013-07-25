@@ -20,71 +20,190 @@ const (
 type HandResult struct {
 	Category int
 	Cards    card.Deck
-	Ranks    []int
 }
 
-func Result(hand card.Deck) HandResult {
-	handResult := HandResult{}
-	// cardsByRank := CardsByRank(hand)
+func Result(hand card.Deck) (result HandResult) {
 	cardsBySuit := CardsBySuit(hand)
 	// Straight flush
 	for i := 0; i < 4; i++ {
-		if len(cardsBySuit[i]) >= 5 {
-			ok, highCard, _ := IsStraight(cardsBySuit[i])
-			if ok && (handResult.Category < CATEGORY_STRAIGHT_FLUSH ||
-				highCard > handResult.Ranks[0]) {
-				handResult.Category = CATEGORY_STRAIGHT_FLUSH
-				handResult.Ranks = []int{highCard}
-			}
+		ok, cards := IsStraight(cardsBySuit[i])
+		if ok && (result.Category < CATEGORY_STRAIGHT_FLUSH ||
+			cards[0].(card.SuitRankCard).Rank >
+				result.Cards[0].(card.SuitRankCard).Rank) {
+			result.Category = CATEGORY_STRAIGHT_FLUSH
+			result.Cards = cards
 		}
+	}
+	if result.Category != CATEGORY_NONE {
+		return result
 	}
 	// Four of a kind
+	ok, cards := IsFourOfAKind(hand)
+	if ok {
+		result.Category = CATEGORY_FOUR_OF_A_KIND
+		result.Cards = cards
+		return result
+	}
 	// Full house
+	ok, cards = IsFullHouse(hand)
+	if ok {
+		result.Category = CATEGORY_FULL_HOUSE
+		result.Cards = cards
+		return result
+	}
 	// Flush
 	// Straight
+	ok, cards = IsStraight(hand)
+	if ok {
+		result.Category = CATEGORY_STRAIGHT
+		result.Cards = cards
+		return result
+	}
 	// Three of a kind
+	ok, cards = IsThreeOfAKind(hand)
+	if ok {
+		result.Category = CATEGORY_THREE_OF_A_KIND
+		result.Cards = cards
+		return result
+	}
 	// Two pair
+	ok, cards = IsTwoPair(hand)
+	if ok {
+		result.Category = CATEGORY_TWO_PAIR
+		result.Cards = cards
+		return result
+	}
 	// One pair
+	ok, cards = IsOnePair(hand)
+	if ok {
+		result.Category = CATEGORY_ONE_PAIR
+		result.Cards = cards
+		return result
+	}
 	// High card
-	return handResult
+	result.Category = CATEGORY_HIGH_CARD
+	cards, _ = FindHighestRank(hand, 5)
+	result.Cards = cards
+	return result
 }
 
-func IsStraight(cards card.Deck) (bool, int, card.Deck) {
-	cards = cards.Sort()
-	highCard := 0
-	consecutive := card.Deck{}
-	lastRank := 0
-	hasAce := false
-	for i := len(cards) - 1; i >= 0; i-- {
-		c := cards[i].(card.SuitRankCard)
-		if c.Rank == card.STANDARD_52_RANK_ACE {
-			hasAce = true
-		}
-		if highCard == 0 || (c.RankValue() != lastRank-1 && c.Rank != lastRank) {
-			// Reset
-			highCard = c.RankValue()
-			consecutive = card.Deck{c}
-		} else if c.RankValue() == lastRank-1 {
-			// Consecutive card
-			consecutive = consecutive.Unshift(c)
-			if len(consecutive) == 5 {
-				return true, highCard, consecutive
+func IsStraight(hand card.Deck) (ok bool, cards card.Deck) {
+	if len(hand) < 5 {
+		// Impossible to have a straight with less than five cards
+		return false, card.Deck{}
+	}
+	byRank := CardsByRank(hand)
+	for i := card.STANDARD_52_RANK_ACE_HIGH; i >= 2; i-- {
+		if len(byRank[i]) > 0 {
+			cards = cards.Push(byRank[i][0])
+			if len(cards) == 5 {
+				ok = true
+				break
 			}
+		} else {
+			cards = card.Deck{}
 		}
-		lastRank = c.RankValue()
 	}
-	// Special case if they have the ace and are on a 5 high straight
-	if len(consecutive) == 4 && lastRank == card.STANDARD_52_RANK_2 && hasAce {
-		return true, highCard, consecutive.Unshift(cards[0])
+	if len(cards) == 4 && len(byRank[card.STANDARD_52_RANK_ACE_HIGH]) > 0 {
+		// Ace also counts as low
+		ok = true
+		cards = cards.Push(byRank[card.STANDARD_52_RANK_ACE_HIGH][0])
 	}
-	return false, 0, consecutive
+	return
 }
 
-// Breaks down a deck to ranks by suit, sorted by rank descending
+func IsFourOfAKind(hand card.Deck) (ok bool, cards card.Deck) {
+	ok, cards, remaining := FindMultiple(hand, 4)
+	if ok {
+		kicker, _ := FindHighestRank(remaining, 1)
+		cards = cards.PushMany(kicker)
+	}
+	return
+}
+
+func IsFullHouse(hand card.Deck) (ok bool, cards card.Deck) {
+	ok, cards, remaining := FindMultiple(hand, 3)
+	if ok {
+		ok, pair, _ := FindMultiple(remaining, 2)
+		if ok {
+			cards = cards.PushMany(pair)
+		}
+	}
+	return
+}
+
+func IsThreeOfAKind(hand card.Deck) (ok bool, cards card.Deck) {
+	ok, cards, remaining := FindMultiple(hand, 3)
+	if ok {
+		kickers, _ := FindHighestRank(remaining, 2)
+		cards = cards.PushMany(kickers)
+	}
+	return
+}
+
+func IsTwoPair(hand card.Deck) (ok bool, cards card.Deck) {
+	ok, cards, remaining := FindMultiple(hand, 2)
+	if ok {
+		ok, pair, remaining := FindMultiple(remaining, 2)
+		if ok {
+			cards = cards.PushMany(pair)
+			kicker, _ := FindHighestRank(remaining, 1)
+			cards = cards.PushMany(kicker)
+		}
+	}
+	return
+}
+
+func IsOnePair(hand card.Deck) (ok bool, cards card.Deck) {
+	ok, cards, remaining := FindMultiple(hand, 2)
+	if ok {
+		kickers, _ := FindHighestRank(remaining, 3)
+		cards = cards.PushMany(kickers)
+	}
+	return
+}
+
+// Finds a multiple of a rank of card
+func FindMultiple(hand card.Deck, n int) (ok bool, cards card.Deck,
+	remaining card.Deck) {
+	remaining = hand
+	byRank := CardsByRank(remaining)
+	for i := len(byRank) - 1; i >= 0; i-- {
+		if len(byRank[i]) >= n {
+			ok = true
+			cards = byRank[i][:n]
+			for _, c := range cards {
+				remaining, _ = remaining.Remove(c, 1)
+			}
+			break
+		}
+	}
+	return
+}
+
+// Pick the highest ranking n cards given the hand
+func FindHighestRank(hand card.Deck, n int) (highest card.Deck,
+	remaining card.Deck) {
+	remaining = hand
+	byRank := CardsByRank(remaining)
+	for i := len(byRank) - 1; i >= 0; i-- {
+		take := n - len(highest)
+		if len(byRank[i]) < take {
+			take = len(byRank[i])
+		}
+		highest = highest.PushMany(byRank[i][:take])
+		if len(highest) == n {
+			break
+		}
+	}
+	return
+}
+
+// Breaks down a deck to ranks by suit, sorted by rank ascending
 func CardsBySuit(hand card.Deck) map[int]card.Deck {
 	ranksBySuit := map[int]card.Deck{}
 	// Initialise
-	for i := 0; i < 4; i++ {
+	for i := card.STANDARD_52_SUIT_CLUBS; i < card.STANDARD_52_SUIT_SPADES; i++ {
 		ranksBySuit[i] = card.Deck{}
 	}
 	// Categorise
@@ -93,7 +212,7 @@ func CardsBySuit(hand card.Deck) map[int]card.Deck {
 		ranksBySuit[s] = ranksBySuit[s].Push(c)
 	}
 	// Sort
-	for i := 0; i < 4; i++ {
+	for i := card.STANDARD_52_SUIT_CLUBS; i < card.STANDARD_52_SUIT_SPADES; i++ {
 		ranksBySuit[i] = ranksBySuit[i].Sort()
 	}
 	return ranksBySuit
@@ -102,7 +221,7 @@ func CardsBySuit(hand card.Deck) map[int]card.Deck {
 func CardsByRank(hand card.Deck) map[int]card.Deck {
 	suitsByRank := map[int]card.Deck{}
 	// Initialise
-	for i := 0; i < 14; i++ {
+	for i := card.STANDARD_52_RANK_2; i < card.STANDARD_52_RANK_ACE_HIGH; i++ {
 		suitsByRank[i] = card.Deck{}
 	}
 	// Categorise
