@@ -462,3 +462,145 @@ func TestHighCard(t *testing.T) {
 			handResult.Cards[4].(card.SuitRankCard).Rank)
 	}
 }
+
+func TestHandScore(t *testing.T) {
+	hr := HandResult{
+		Category: CATEGORY_STRAIGHT,
+		Cards: card.Deck{
+			card.SuitRankCard{
+				Rank: card.STANDARD_52_RANK_3,
+			},
+			card.SuitRankCard{
+				Rank: card.STANDARD_52_RANK_4,
+			},
+			card.SuitRankCard{
+				Rank: card.STANDARD_52_RANK_5,
+			},
+		},
+	}
+	hs := hr.HandScore()
+	if len(hs) != 4 {
+		t.Fatal("Hand score is not length 4")
+	}
+	if hs[0] != CATEGORY_STRAIGHT {
+		t.Fatal("First value isn't straight category")
+	}
+	if hs[1] != card.STANDARD_52_RANK_3 {
+		t.Fatal("Second value isn't 3")
+	}
+	if hs[2] != card.STANDARD_52_RANK_4 {
+		t.Fatal("Third value isn't 4")
+	}
+	if hs[3] != card.STANDARD_52_RANK_5 {
+		t.Fatal("Fourth value isn't 5")
+	}
+}
+
+func TestWinningHandResult(t *testing.T) {
+	handResults := map[int]HandResult{
+		// 0 is a pair
+		0: Result(card.Deck{
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_2,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_3,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_SPADES,
+				Rank: card.STANDARD_52_RANK_KING,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_SPADES,
+				Rank: card.STANDARD_52_RANK_6,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_4,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_CLUBS,
+				Rank: card.STANDARD_52_RANK_9,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_KING,
+			},
+		}),
+		// 1 is full house
+		1: Result(card.Deck{
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_HEARTS,
+				Rank: card.STANDARD_52_RANK_3,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_3,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_SPADES,
+				Rank: card.STANDARD_52_RANK_3,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_6,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_4,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_CLUBS,
+				Rank: card.STANDARD_52_RANK_6,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_5,
+			},
+		}),
+		// 2 is same full house
+		2: Result(card.Deck{
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_HEARTS,
+				Rank: card.STANDARD_52_RANK_3,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_3,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_SPADES,
+				Rank: card.STANDARD_52_RANK_3,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_6,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_4,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_CLUBS,
+				Rank: card.STANDARD_52_RANK_6,
+			},
+			card.SuitRankCard{
+				Suit: card.STANDARD_52_SUIT_DIAMONDS,
+				Rank: card.STANDARD_52_RANK_5,
+			},
+		}),
+		3: HandResult{},
+	}
+	winningResults := WinningHandResult(handResults)
+	if len(winningResults) != 2 {
+		t.Fatal("There weren't two winners")
+	}
+	if winningResults[0] != 1 {
+		t.Fatal("First winner wasn't hand at index 1")
+	}
+	if winningResults[1] != 2 {
+		t.Fatal("Second winner wasn't hand at index 2")
+	}
+}

@@ -22,6 +22,14 @@ type HandResult struct {
 	Cards    card.Deck
 }
 
+func (hr HandResult) HandScore() []int {
+	score := []int{hr.Category}
+	for _, c := range hr.Cards {
+		score = append(score, c.(card.SuitRankCard).Rank)
+	}
+	return score
+}
+
 func Result(hand card.Deck) (result HandResult) {
 	cardsBySuit := CardsBySuit(hand)
 	// Straight flush
@@ -232,4 +240,39 @@ func CardsByRank(hand card.Deck) map[int]card.Deck {
 		suitsByRank[r] = suitsByRank[r].Push(c)
 	}
 	return suitsByRank
+}
+
+func WinningHandResult(handResults map[int]HandResult) []int {
+	handScores := map[int][]int{}
+	nextPass := []int{}
+	// Get the scores
+	for id, hr := range handResults {
+		if hr.Category != CATEGORY_NONE {
+			handScores[id] = hr.HandScore()
+			nextPass = append(nextPass, id)
+		}
+	}
+	// Loop until we have a winner
+	valIndex := 0
+	for len(nextPass) > 1 {
+		leaders := []int{}
+		highest := 0
+		for _, handIndex := range nextPass {
+			if len(handScores[handIndex]) <= valIndex {
+				// Run out of cards, call it a tie
+				return nextPass
+			}
+			if handScores[handIndex][valIndex] > highest {
+				leaders = []int{}
+				highest = handScores[handIndex][valIndex]
+			}
+			if handScores[handIndex][valIndex] == highest {
+				leaders = append(leaders, handIndex)
+			}
+		}
+		highest = 0
+		valIndex++
+		nextPass = leaders
+	}
+	return nextPass
 }
