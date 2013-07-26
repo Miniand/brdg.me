@@ -56,6 +56,9 @@ func TestIsStraight(t *testing.T) {
 	if !ok {
 		t.Fatal("Didn't detect as straight")
 	}
+	if len(cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
+	}
 	if cards[0].(card.SuitRankCard).Rank != 6 {
 		t.Fatal("Expected high card of 6, got", cards[0].(card.SuitRankCard).Rank)
 	}
@@ -63,6 +66,9 @@ func TestIsStraight(t *testing.T) {
 	ok, cards = IsStraight(hand)
 	if !ok {
 		t.Fatal("Didn't detect as straight")
+	}
+	if len(cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
 	}
 	if cards[0].(card.SuitRankCard).Rank != 6 {
 		t.Fatal("Expected high card of 6, got", cards[0].(card.SuitRankCard).Rank)
@@ -73,6 +79,9 @@ func TestIsStraight(t *testing.T) {
 	if !ok {
 		t.Fatal("Didn't detect as straight")
 	}
+	if len(cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
+	}
 	if cards[0].(card.SuitRankCard).Rank != 5 {
 		t.Fatal("Expected high card of 5, got", cards[0].(card.SuitRankCard).Rank)
 	}
@@ -81,6 +90,9 @@ func TestIsStraight(t *testing.T) {
 	ok, cards = IsStraight(hand)
 	if !ok {
 		t.Fatal("Didn't detect as straight")
+	}
+	if len(cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
 	}
 	if cards[0].(card.SuitRankCard).Rank != 14 {
 		t.Fatal("Expected high card of 14, got", cards[0].(card.SuitRankCard).Rank)
@@ -121,6 +133,9 @@ func TestStraightFlush(t *testing.T) {
 	if handResult.Category != CATEGORY_STRAIGHT_FLUSH {
 		t.Fatal("Expected straight flush, got:", handResult.Category)
 	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
+	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_7 {
 		t.Fatal("Expected 7 high, got:",
 			handResult.Cards[0].(card.SuitRankCard).Rank)
@@ -160,6 +175,9 @@ func TestFourOfAKind(t *testing.T) {
 	})
 	if handResult.Category != CATEGORY_FOUR_OF_A_KIND {
 		t.Fatal("Expected four of a kind, got:", handResult.Category)
+	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
 	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_3 {
 		t.Fatal("Expected first rank of 3, got:",
@@ -205,6 +223,9 @@ func TestFullHouse(t *testing.T) {
 	if handResult.Category != CATEGORY_FULL_HOUSE {
 		t.Fatal("Expected full house, got:", handResult.Category)
 	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
+	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_3 {
 		t.Fatal("Expected first rank of 3, got:",
 			handResult.Cards[0].(card.SuitRankCard).Rank)
@@ -248,6 +269,9 @@ func TestFlush(t *testing.T) {
 	})
 	if handResult.Category != CATEGORY_FLUSH {
 		t.Fatal("Expected flush, got:", handResult.Category)
+	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
 	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank !=
 		card.STANDARD_52_RANK_JACK {
@@ -306,6 +330,9 @@ func TestStraight(t *testing.T) {
 	if handResult.Category != CATEGORY_STRAIGHT {
 		t.Fatal("Expected straight, got:", handResult.Category)
 	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
+	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_5 {
 		t.Fatal("Expected 5 high, got:",
 			handResult.Cards[0].(card.SuitRankCard).Rank)
@@ -346,6 +373,9 @@ func TestThreeOfAKind(t *testing.T) {
 	if handResult.Category != CATEGORY_THREE_OF_A_KIND {
 		t.Fatal("Expected three of a kind, got:", handResult.Category)
 	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
+	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank != card.STANDARD_52_RANK_3 {
 		t.Fatal("Expected first card to be 3, got:",
 			handResult.Cards[0].(card.SuitRankCard).Rank)
@@ -385,6 +415,9 @@ func TestTwoPair(t *testing.T) {
 	})
 	if handResult.Category != CATEGORY_TWO_PAIR {
 		t.Fatal("Expected two pair, got:", handResult.Category)
+	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
 	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank !=
 		card.STANDARD_52_RANK_KING {
@@ -436,6 +469,9 @@ func TestOnePair(t *testing.T) {
 	})
 	if handResult.Category != CATEGORY_ONE_PAIR {
 		t.Fatal("Expected one pair, got:", handResult.Category)
+	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
 	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank !=
 		card.STANDARD_52_RANK_KING {
@@ -492,6 +528,9 @@ func TestHighCard(t *testing.T) {
 	})
 	if handResult.Category != CATEGORY_HIGH_CARD {
 		t.Fatal("Expected high card, got:", handResult.Category)
+	}
+	if len(handResult.Cards) != 5 {
+		t.Fatal("Didn't get 5 cards back")
 	}
 	if handResult.Cards[0].(card.SuitRankCard).Rank !=
 		card.STANDARD_52_RANK_KING {

@@ -89,6 +89,8 @@ func (c SuitRankCard) RenderStandard52() string {
 	switch c.Rank {
 	case STANDARD_52_RANK_ACE:
 		rank = "A"
+	case STANDARD_52_RANK_ACE_HIGH:
+		rank = "A"
 	case STANDARD_52_RANK_JACK:
 		rank = "J"
 	case STANDARD_52_RANK_QUEEN:

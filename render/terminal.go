@@ -2,7 +2,6 @@ package render
 
 import (
 	"bytes"
-	"github.com/beefsack/brdg.me/game"
 	"text/template"
 )
 
@@ -45,11 +44,11 @@ func (t *TerminalMarkupper) Current() string {
 	return c + "m"
 }
 
-func RenderTerminal(tmpl string, g game.Playable) (string, error) {
+func RenderTerminal(tmpl string) (string, error) {
 	t := template.Must(template.New("tmpl").
 		Funcs(AttachTemplateFuncs(template.FuncMap{}, &TerminalMarkupper{})).Parse(tmpl))
 	buf := &bytes.Buffer{}
-	err := t.Execute(buf, g)
+	err := t.Execute(buf, Context{})
 	if err != nil {
 		return "", err
 	}

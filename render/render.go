@@ -7,6 +7,8 @@ type Markupper interface {
 	EndBold() interface{}
 }
 
+type Context struct{}
+
 // @see http://en.wikipedia.org/wiki/ANSI_escape_code#Colours
 func ValidColours() []string {
 	return []string{

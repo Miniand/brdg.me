@@ -3,7 +3,6 @@ package render
 import (
 	"bytes"
 	"fmt"
-	"github.com/beefsack/brdg.me/game"
 	"strings"
 	"unicode/utf8"
 )
@@ -27,15 +26,54 @@ func PlayerName(playerNum int, name string) string {
 		name)
 }
 
-func Padded(text string, width int, g game.Playable) (string, error) {
+func Padded(text string, width int) (string, error) {
 	buf := bytes.NewBufferString(text)
-	plain, err := RenderPlain(text, g)
+	plain, err := RenderPlain(text)
 	if err != nil {
 		return "", err
 	}
 	extra := width - utf8.RuneCountInString(plain)
 	if extra > 0 {
 		buf.WriteString(strings.Repeat(" ", extra))
+	}
+	return buf.String(), nil
+}
+
+func Table(cells [][]string, rowPadding, colPadding int) (string, error) {
+	// First calculate widths
+	var err error
+	widths := map[int]int{}
+	for _, row := range cells {
+		for colIndex, cell := range row {
+			plain, err := RenderPlain(cell)
+			if err != nil {
+				return "", err
+			}
+			w := utf8.RuneCountInString(plain)
+			if w > widths[colIndex] {
+				widths[colIndex] = w
+			}
+		}
+	}
+	// Output cells
+	buf := bytes.NewBuffer([]byte{})
+	for rowIndex, row := range cells {
+		if rowIndex > 0 {
+			buf.WriteString(strings.Repeat("\n", rowPadding+1))
+		}
+		for colIndex, cell := range row {
+			var padded string
+			if colIndex == len(row)-1 {
+				// Last col doesn't get right padding
+				padded = cell
+			} else {
+				padded, err = Padded(cell, widths[colIndex]+colPadding)
+				if err != nil {
+					return "", err
+				}
+			}
+			buf.WriteString(padded)
+		}
 	}
 	return buf.String(), nil
 }

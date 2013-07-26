@@ -1,7 +1,6 @@
 package render
 
 import (
-	"github.com/beefsack/brdg.me/game/tic_tac_toe"
 	"testing"
 )
 
@@ -21,12 +20,32 @@ func TestPlayerName(t *testing.T) {
 }
 
 func TestPadded(t *testing.T) {
-	g := &tic_tac_toe.Game{}
-	text, err := Padded("{{b}}你好{{_b}}", 5, g)
+	text, err := Padded("{{b}}你好{{_b}}", 5)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if text != "{{b}}你好{{_b}}   " {
 		t.Fatal("Expected 你好 to gain three spaces, got:", text)
+	}
+}
+
+func TestTable(t *testing.T) {
+	output, err := Table([][]string{}, 0, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if output != "" {
+		t.Fatal("Output wasn't blank, got:", output)
+	}
+	output, err = Table([][]string{
+		[]string{"{{b}}Five{{_b}}", "One"},
+		[]string{"Twenty"},
+	}, 0, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if output != `{{b}}Five{{_b}}   One
+Twenty` {
+		t.Fatal("Output wasn't correct, got:", output)
 	}
 }

@@ -198,11 +198,11 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			return err
 		}
 		raw := header + rawOutput + "\n\n" + footer
-		terminalOutput, err := render.RenderTerminal(raw, g)
+		terminalOutput, err := render.RenderTerminal(raw)
 		if err != nil {
 			return err
 		}
-		htmlOutput, err := render.RenderHtml(raw, g)
+		htmlOutput, err := render.RenderHtml(raw)
 		if err != nil {
 			return err
 		}

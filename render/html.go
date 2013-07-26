@@ -2,7 +2,6 @@ package render
 
 import (
 	"bytes"
-	"github.com/beefsack/brdg.me/game"
 	"html/template"
 )
 
@@ -23,11 +22,11 @@ func (t *HtmlMarkupper) EndBold() interface{} {
 	return template.HTML("</b>")
 }
 
-func RenderHtml(tmpl string, g game.Playable) (string, error) {
+func RenderHtml(tmpl string) (string, error) {
 	t := template.Must(template.New("tmpl").
 		Funcs(AttachTemplateFuncs(template.FuncMap{}, &HtmlMarkupper{})).Parse(tmpl))
 	buf := &bytes.Buffer{}
-	err := t.Execute(buf, g)
+	err := t.Execute(buf, Context{})
 	if err != nil {
 		return "", err
 	}

@@ -52,7 +52,7 @@ func RenderForPlayer(g game.Playable, p string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return render.RenderTerminal(rawOutput, g)
+	return render.RenderTerminal(rawOutput)
 }
 
 func NewAction(args []string) error {
@@ -114,6 +114,8 @@ func PlayAction(args []string) error {
 		fmt.Println("--- OUTPUT FOR " + p + " ---")
 		fmt.Println(output)
 	}
+	// Save again in case logs were marked as read
+	saveGame(g)
 	if g.IsFinished() {
 		fmt.Println("Game finished!  Winners: " + strings.Join(g.Winners(), ", "))
 	} else {
