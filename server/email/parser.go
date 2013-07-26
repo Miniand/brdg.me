@@ -136,6 +136,11 @@ func HandleCommands(player, gameId string, commands [][]string) error {
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
+			// Update again to handle saves during render, ie for logger
+			_, err = UpdateGame(bson.ObjectIdHex(gameId), g)
+			if err != nil {
+				return err
+			}
 		}
 		if len(commErrs) > 0 {
 			return errors.New(strings.Join(commErrs, "\n"))
