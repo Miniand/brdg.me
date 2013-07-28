@@ -225,7 +225,7 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			return err
 		}
 		htmlW, err := data.CreatePart(textproto.MIMEHeader{
-			"Content-Type": []string{`text/html;charset="UTF-8"`},
+			"Content-Type": []string{`text/html; charset="UTF-8"`},
 		})
 		if err != nil {
 			return err
