@@ -249,6 +249,9 @@ func (g *Game) Fold(playerNum int) error {
 	if len(g.ActivePlayers()) == 1 {
 		// Everyone folded
 		for activePlayerNum, _ := range g.ActivePlayers() {
+			g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				"%s won %s", g.RenderPlayerName(activePlayerNum),
+				RenderCash(g.Pot()-g.Bets[activePlayerNum]))))
 			g.PlayerMoney[activePlayerNum] += g.Pot()
 			g.NewHand()
 			return nil
