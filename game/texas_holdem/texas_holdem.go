@@ -104,9 +104,15 @@ func (g *Game) NewHand() {
 	} else {
 		smallBlindPlayer = g.NextActivePlayerNumFrom(g.CurrentDealer)
 	}
-	g.BetUpTo(smallBlindPlayer, g.MinimumBet/2)
+	amount := g.BetUpTo(smallBlindPlayer, g.MinimumBet/2)
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s posted a small blind of %s", g.RenderPlayerName(smallBlindPlayer),
+		RenderCash(amount))))
 	bigBlindPlayer = g.NextActivePlayerNumFrom(smallBlindPlayer)
-	g.BetUpTo(bigBlindPlayer, g.MinimumBet)
+	amount = g.BetUpTo(bigBlindPlayer, g.MinimumBet)
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s posted a big blind of %s", g.RenderPlayerName(bigBlindPlayer),
+		RenderCash(amount))))
 	// Make the current player the one next to the big blind
 	g.CurrentPlayer = g.NextActivePlayerNumFrom(bigBlindPlayer)
 	g.LastRaisingPlayer = g.CurrentPlayer
