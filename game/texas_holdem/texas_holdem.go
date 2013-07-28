@@ -256,8 +256,8 @@ func (g *Game) Fold(playerNum int) error {
 		// Everyone folded
 		for activePlayerNum, _ := range g.ActivePlayers() {
 			g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-				"%s won %s", g.RenderPlayerName(activePlayerNum),
-				RenderCash(g.Pot()-g.Bets[activePlayerNum]))))
+				"%s took %s", g.RenderPlayerName(activePlayerNum),
+				RenderCash(g.Pot()))))
 			g.PlayerMoney[activePlayerNum] += g.Pot()
 			g.NewHand()
 			return nil
@@ -418,12 +418,12 @@ func (g *Game) Showdown() {
 		if err != nil {
 			panic(err.Error())
 		}
-		buf.WriteString(fmt.Sprintf("Pot %s\n%s\n", RenderCash(pot),
-			handsTableOutput))
+		buf.WriteString(fmt.Sprintf("Showdown for pot of %s\n%s\n",
+			RenderCash(pot), handsTableOutput))
 		winners := poker.WinningHandResult(handResults)
 		potPerPlayer := pot / len(winners)
 		for _, winner := range winners {
-			buf.WriteString(fmt.Sprintf("%s won %s (%s)\n",
+			buf.WriteString(fmt.Sprintf("%s took %s (%s)\n",
 				g.RenderPlayerName(winner), RenderCash(potPerPlayer),
 				handResults[winner].Name))
 			g.PlayerMoney[winner] += potPerPlayer
