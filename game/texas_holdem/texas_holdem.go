@@ -327,11 +327,21 @@ func (g *Game) AllIn(playerNum int) error {
 
 func (g *Game) NextPlayer() {
 	for {
-		g.CurrentPlayer = g.NextActivePlayerNumFrom(g.CurrentPlayer)
-		if g.CurrentPlayer == g.LastRaisingPlayer {
+		// If we pass the last raising player, next phase
+		distanceToLastRaising := g.LastRaisingPlayer - g.CurrentPlayer
+		if distanceToLastRaising <= 0 {
+			distanceToLastRaising += len(g.Players)
+		}
+		nextPlayer := g.NextActivePlayerNumFrom(g.CurrentPlayer)
+		distanceToNextPlayer := nextPlayer - g.CurrentPlayer
+		if distanceToNextPlayer <= 0 {
+			distanceToNextPlayer += len(g.Players)
+		}
+		if distanceToLastRaising <= distanceToNextPlayer {
 			g.NextPhase()
 			break
 		}
+		g.CurrentPlayer = nextPlayer
 		if g.PlayerMoney[g.CurrentPlayer] > 0 {
 			break
 		}

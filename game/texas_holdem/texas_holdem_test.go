@@ -36,6 +36,9 @@ func TestNextPhaseOnInitialFold(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if len(g.CommunityCards) != 0 {
+		t.Fatal("Cards were already drawn:", g.CommunityCards)
+	}
 	err = g.PlayerAction(g.Players[g.CurrentPlayer], "check", []string{})
 	if err != nil {
 		t.Fatal(err)
