@@ -326,24 +326,36 @@ func (g *Game) AllIn(playerNum int) error {
 }
 
 func (g *Game) NextPlayer() {
-	for {
-		// If we pass the last raising player, next phase
-		distanceToLastRaising := g.LastRaisingPlayer - g.CurrentPlayer
-		if distanceToLastRaising <= 0 {
-			distanceToLastRaising += len(g.Players)
+	// If there's only one player who can bet, just go to next phase
+	bettingPlayerCount := 0
+	for playerNum, _ := range g.ActivePlayers() {
+		if g.PlayerMoney[playerNum] > 0 {
+			bettingPlayerCount++
 		}
-		nextPlayer := g.NextActivePlayerNumFrom(g.CurrentPlayer)
-		distanceToNextPlayer := nextPlayer - g.CurrentPlayer
-		if distanceToNextPlayer <= 0 {
-			distanceToNextPlayer += len(g.Players)
-		}
-		if distanceToLastRaising <= distanceToNextPlayer {
-			g.NextPhase()
-			break
-		}
-		g.CurrentPlayer = nextPlayer
-		if g.PlayerMoney[g.CurrentPlayer] > 0 {
-			break
+	}
+	if bettingPlayerCount < 2 {
+		// Less than two players able to bet, just go to next phase
+		g.NextPhase()
+	} else {
+		for {
+			// If we pass the last raising player, next phase
+			distanceToLastRaising := g.LastRaisingPlayer - g.CurrentPlayer
+			if distanceToLastRaising <= 0 {
+				distanceToLastRaising += len(g.Players)
+			}
+			nextPlayer := g.NextActivePlayerNumFrom(g.CurrentPlayer)
+			distanceToNextPlayer := nextPlayer - g.CurrentPlayer
+			if distanceToNextPlayer <= 0 {
+				distanceToNextPlayer += len(g.Players)
+			}
+			if distanceToLastRaising <= distanceToNextPlayer {
+				g.NextPhase()
+				break
+			}
+			g.CurrentPlayer = nextPlayer
+			if g.PlayerMoney[g.CurrentPlayer] > 0 {
+				break
+			}
 		}
 	}
 }
@@ -423,7 +435,7 @@ func (g *Game) Showdown() {
 				handsTable = append(handsTable, handsTableRow)
 			}
 		}
-		if len(handResults) > 0 {
+		if len(handResults) > 1 {
 			// Multiple people for this pot, showdown
 			handsTableOutput, err := render.Table(handsTable, 0, 1)
 			if err != nil {
@@ -453,7 +465,6 @@ func (g *Game) Showdown() {
 					g.RenderPlayerName(playerNum), RenderCash(pot),
 					handResult.Name))
 				g.PlayerMoney[playerNum] += pot
-				break
 			}
 		}
 	}
