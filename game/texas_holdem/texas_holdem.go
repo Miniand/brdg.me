@@ -416,7 +416,6 @@ func (g *Game) Showdown() {
 				handResults[playerNum] = poker.Result(
 					g.PlayerHands[playerNum].PushMany(g.CommunityCards))
 				handsTableRow := []string{g.RenderPlayerName(playerNum)}
-				fmt.Println(handResults[playerNum].Cards)
 				handsTableRow = append(handsTableRow, strings.Join(
 					RenderCards(handResults[playerNum].Cards), " "))
 				handsTableRow = append(handsTableRow,

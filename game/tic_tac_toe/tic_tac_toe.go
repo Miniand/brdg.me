@@ -3,7 +3,6 @@ package tic_tac_toe
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -69,8 +68,6 @@ func (g *Game) PlayerAction(player string, action string, args []string) error {
 	case "i":
 		x = 2
 		y = 2
-	default:
-		fmt.Println(action, "how did this get here...")
 	}
 	err := g.MarkCellForPlayer(player, x, y)
 	if err != nil {

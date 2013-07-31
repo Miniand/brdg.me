@@ -29,7 +29,7 @@ func TestRenderForPlayer(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err, _ = game.RenderForPlayer("Mick")
+	_, err = game.RenderForPlayer("Mick")
 }
 
 func TestPlayerAction(t *testing.T) {
