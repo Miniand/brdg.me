@@ -423,26 +423,38 @@ func (g *Game) Showdown() {
 				handsTable = append(handsTable, handsTableRow)
 			}
 		}
-		handsTableOutput, err := render.Table(handsTable, 0, 1)
-		if err != nil {
-			panic(err.Error())
-		}
-		buf.WriteString(fmt.Sprintf("Showdown for pot of %s\n%s\n",
-			RenderCash(pot), handsTableOutput))
-		winners := poker.WinningHandResult(handResults)
-		potPerPlayer := pot / len(winners)
-		for _, winner := range winners {
-			buf.WriteString(fmt.Sprintf("%s took %s (%s)\n",
-				g.RenderPlayerName(winner), RenderCash(potPerPlayer),
-				handResults[winner].Name))
-			g.PlayerMoney[winner] += potPerPlayer
-		}
-		remainder := pot - potPerPlayer*len(winners)
-		if remainder > 0 {
-			remainderPlayer := g.NextRemainingPlayerNumFrom(g.CurrentDealer)
-			buf.WriteString(fmt.Sprintf("%s took %s due to uneven split",
-				g.RenderPlayerName(remainderPlayer), RenderCash(remainder)))
-			g.PlayerMoney[remainderPlayer] += remainder
+		if len(handResults) > 0 {
+			// Multiple people for this pot, showdown
+			handsTableOutput, err := render.Table(handsTable, 0, 1)
+			if err != nil {
+				panic(err.Error())
+			}
+			buf.WriteString(fmt.Sprintf("Showdown for pot of %s\n%s\n",
+				RenderCash(pot), handsTableOutput))
+			winners := poker.WinningHandResult(handResults)
+			potPerPlayer := pot / len(winners)
+			for _, winner := range winners {
+				buf.WriteString(fmt.Sprintf("%s took %s (%s)\n",
+					g.RenderPlayerName(winner), RenderCash(potPerPlayer),
+					handResults[winner].Name))
+				g.PlayerMoney[winner] += potPerPlayer
+			}
+			remainder := pot - potPerPlayer*len(winners)
+			if remainder > 0 {
+				remainderPlayer := g.NextRemainingPlayerNumFrom(g.CurrentDealer)
+				buf.WriteString(fmt.Sprintf("%s took %s due to uneven split",
+					g.RenderPlayerName(remainderPlayer), RenderCash(remainder)))
+				g.PlayerMoney[remainderPlayer] += remainder
+			}
+		} else {
+			// Only one player left for the pot, give it to them
+			for playerNum, handResult := range handResults {
+				buf.WriteString(fmt.Sprintf("%s took remaining %s (%s)\n",
+					g.RenderPlayerName(playerNum), RenderCash(pot),
+					handResult.Name))
+				g.PlayerMoney[playerNum] += pot
+				break
+			}
 		}
 	}
 	g.Log = g.Log.Add(log.NewPublicMessage(buf.String()))
@@ -473,7 +485,7 @@ func (g *Game) SmallestBet() int {
 	bet := 0
 	firstRun := true
 	for playerNum, _ := range g.ActivePlayers() {
-		if firstRun || g.Bets[playerNum] < bet {
+		if g.Bets[playerNum] != 0 && (firstRun || g.Bets[playerNum] < bet) {
 			bet = g.Bets[playerNum]
 			firstRun = false
 		}
