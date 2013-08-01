@@ -1,5 +1,9 @@
 package chess
 
-func parseBoard(input string) (b Board) {
-	return
+import (
+	"testing"
+)
+
+func TestChess(t *testing.T) {
+
 }
