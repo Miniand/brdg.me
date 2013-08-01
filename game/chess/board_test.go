@@ -1,7 +1,6 @@
 package chess
 
 import (
-	"fmt"
 	"github.com/beefsack/brdg.me/render"
 	"testing"
 )
@@ -18,8 +17,17 @@ func TestIsEmpty(t *testing.T) {
 }
 
 func TestRender(t *testing.T) {
-	b := Board{}
-	b.Squares[FILE_C][RANK_5] = &Pawn{Piece{TEAM_BLACK}}
-	output, _ := render.RenderTerminal(b.Render())
-	fmt.Println(output)
+	b := InitialBoard()
+	expected := `♜♞♝♛♚♝♞♜
+♟♟♟♟♟♟♟♟
+········
+········
+········
+········
+♙♙♙♙♙♙♙♙
+♖♘♗♕♔♗♘♖`
+	output, _ := render.RenderPlain(b.Render())
+	if output != expected {
+		t.Fatalf("Board was not:\n%s\nGot\n%s", expected, output)
+	}
 }

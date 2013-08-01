@@ -9,6 +9,8 @@ const (
 	FILE_F
 	FILE_G
 	FILE_H
+)
+const (
 	RANK_1 = iota
 	RANK_2
 	RANK_3
