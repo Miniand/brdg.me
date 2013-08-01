@@ -2,6 +2,7 @@ package chess
 
 import (
 	"bytes"
+	"fmt"
 )
 
 type Board struct {
@@ -69,8 +70,11 @@ func (b Board) IsEmpty(l Location) bool {
 }
 
 func (b Board) Render() string {
-	buf := bytes.NewBuffer([]byte{})
+	buf := bytes.NewBuffer([]byte{' '})
+	buf.WriteString(RenderRanks())
+	buf.WriteByte('\n')
 	for r := RANK_8; r >= RANK_1; r-- {
+		buf.WriteString(fmt.Sprintf("%d", r+1))
 		for f := FILE_A; f <= FILE_H; f++ {
 			l := Location{f, r}
 			p := b.PieceAt(l)
@@ -80,9 +84,19 @@ func (b Board) Render() string {
 				buf.WriteRune(p.Rune())
 			}
 		}
-		if r != RANK_1 {
-			buf.WriteByte('\n')
-		}
+		buf.WriteString(fmt.Sprintf("%d\n", r+1))
+	}
+	buf.WriteByte(' ')
+	buf.WriteString(RenderRanks())
+	return buf.String()
+}
+
+func RenderRanks() string {
+	buf := bytes.NewBuffer([]byte{})
+	for _, r := range []byte{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'} {
+		buf.WriteString(`{{c "gray"}}`)
+		buf.WriteByte(r)
+		buf.WriteString("{{_c}}")
 	}
 	return buf.String()
 }
