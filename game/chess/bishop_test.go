@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestDiagonalMovement(t *testing.T) {
+func TestBishopMovement(t *testing.T) {
 	b := parseBoard(`
 ········
 ········
