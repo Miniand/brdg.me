@@ -12,5 +12,12 @@ func (q Queen) Rune() rune {
 }
 
 func (q Queen) AvailableMoves(from Location, b Board) (to []Location) {
+	// Queen is just a mix of rook and bishop moves
+	r := Rook{}
+	r.Team = q.Team
+	to = r.AvailableMoves(from, b)
+	bi := Bishop{}
+	bi.Team = q.Team
+	to = append(to, bi.AvailableMoves(from, b)...)
 	return
 }
