@@ -102,6 +102,7 @@ func (g *Game) InitRound() error {
 	// cards := g.AllCards()
 	// @todo shuffle cards
 	// @see http://stackoverflow.com/a/12264918/155498 for Go array shuffle
+
 	return nil
 }
 
@@ -212,7 +213,42 @@ func (g *Game) WhoseTurn() []string {
 // Returns the full set of cards in a game, 3 investment cards and 9 point cards
 // for each expedition totalling 60 cards
 func (g *Game) AllCards() []Card {
+	Value:=0
+	for x:=0; x<5 ; x++{
+		for y:=0;y<12;y++{
+			switch y {
+				case "0":
+					Value: 0
+				case "1":
+					Value: 0
+				case "2":
+					Value: 0
+				case "3":
+					Value: 2
+				case "4":
+					Value: 3
+				case "5":
+					Value: 4
+				case "6":
+					Value: 5
+				case "7":
+					Value: 6
+				case "8":
+					Value: 7
+				case "9":
+					Value: 8
+				case "10":
+					Value: 9
+				case "11":
+					Value: 10
+				default:
+					fmt.Println(action, "how did this get here...")
+			}
+				//Card.Suit: x
+		}
+	}
 	return []Card{}
+
 }
 
 // Play a card from the hand into an expedition, checking that it is the
