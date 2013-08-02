@@ -12,29 +12,27 @@ func (bi Bishop) Rune() rune {
 }
 
 func (bi Bishop) AvailableMoves(from Location, b Board) (to []Location) {
-	dirStopped := map[int]map[int]bool{}
-	dirStopped[-1] = map[int]bool{}
-	dirStopped[1] = map[int]bool{}
-	for dist := 1; dist <= 8; dist++ {
-		for _, rankDir := range []int{-1, 1} {
-			for _, fileDir := range []int{-1, 1} {
-				l := Location{
-					from.File + dist*fileDir,
-					from.Rank + dist*rankDir}
-				if !dirStopped[rankDir][fileDir] && IsValidLocation(l) {
-					piece := b.PieceAt(l)
-					if piece != nil {
-						dirStopped[rankDir][fileDir] = true
-						if piece.GetTeam() != bi.Team {
-							// Can take this piece
-							to = append(to, l)
-						}
-					} else {
-						// Empty space
-						to = append(to, l)
-					}
-				}
+	for _, dir := range [][]int{
+		[]int{1, 1},
+		[]int{1, -1},
+		[]int{-1, 1},
+		[]int{-1, -1},
+	} {
+		for dist := 1; dist < 8; dist++ {
+			l := Location{
+				from.File + dist*dir[0],
+				from.Rank + dist*dir[1]}
+			if !IsValidLocation(l) {
+				break
 			}
+			piece := b.PieceAt(l)
+			if piece != nil {
+				if piece.GetTeam() != bi.Team {
+					to = append(to, l)
+				}
+				break
+			}
+			to = append(to, l)
 		}
 	}
 	return
