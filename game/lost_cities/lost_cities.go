@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+	"fmt"
 )
 
 type Game struct {
@@ -214,39 +215,55 @@ func (g *Game) WhoseTurn() []string {
 // for each expedition totalling 60 cards
 func (g *Game) AllCards() []Card {
 	Value:=0
-	for x:=0; x<5 ; x++{
+	Suit:=""
+	for x:=0;x<5;x++{
+		switch x {
+			case 0:
+				Suit= "SUIT_RED"
+			case 1:
+				Suit= "SUIT_YELLOW"
+			case 2:
+				Suit= "SUIT_WHITE"
+			case 3:
+				Suit= "SUIT_GREEN"
+			case 4:
+				Suit= "SUIT_BLUE"
+			default:
+				fmt.Println(action, "how did this get here...")
+			}
 		for y:=0;y<12;y++{
 			switch y {
-				case "0":
-					Value: 0
-				case "1":
-					Value: 0
-				case "2":
-					Value: 0
-				case "3":
-					Value: 2
-				case "4":
-					Value: 3
-				case "5":
-					Value: 4
-				case "6":
-					Value: 5
-				case "7":
-					Value: 6
-				case "8":
-					Value: 7
-				case "9":
-					Value: 8
-				case "10":
-					Value: 9
-				case "11":
-					Value: 10
+				case 0:
+					Value= 0
+				case 1:
+					Value= 0
+				case 2:
+					Value= 0
+				case 3:
+					Value= 2
+				case 4:
+					Value= 3
+				case 5:
+					Value= 4
+				case 6:
+					Value= 5
+				case 7:
+					Value= 6
+				case 8:
+					Value= 7
+				case 9:
+					Value= 8
+				case 10:
+					Value= 9
+				case 11:
+					Value= 10
 				default:
 					fmt.Println(action, "how did this get here...")
 			}
-				//Card.Suit: x
 		}
 	}
+	fmt.Println(Value)
+	fmt.Println(Suit)
 	return []Card{}
 
 }
