@@ -22,16 +22,7 @@ func Connect() (*mgo.Session, error) {
 	if addr == "" {
 		addr = "localhost"
 	}
-	session, err := mgo.Dial(addr)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if session.Ping() == nil {
-			session.Close()
-		}
-	}()
-	return session, nil
+	return mgo.Dial(addr)
 }
 
 func Collection(session *mgo.Session) *mgo.Collection {
@@ -44,6 +35,7 @@ func Collection(session *mgo.Session) *mgo.Collection {
 
 func LoadGame(id interface{}) (*GameModel, error) {
 	session, err := Connect()
+	defer session.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +92,7 @@ func (gm *GameModel) ToGame() (game.Playable, error) {
 
 func (gm *GameModel) Save() error {
 	session, err := Connect()
+	defer session.Close()
 	if err != nil {
 		return err
 	}
