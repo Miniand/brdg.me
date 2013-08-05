@@ -35,10 +35,10 @@ func Collection(session *mgo.Session) *mgo.Collection {
 
 func LoadGame(id interface{}) (*GameModel, error) {
 	session, err := Connect()
-	defer session.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer session.Close()
 	m := &GameModel{}
 	err = Collection(session).FindId(id).One(m)
 	m.Id = id
@@ -92,10 +92,10 @@ func (gm *GameModel) ToGame() (game.Playable, error) {
 
 func (gm *GameModel) Save() error {
 	session, err := Connect()
-	defer session.Close()
 	if err != nil {
 		return err
 	}
+	defer session.Close()
 	info, err := Collection(session).UpsertId(gm.Id, gm)
 	if err != nil {
 		return err
