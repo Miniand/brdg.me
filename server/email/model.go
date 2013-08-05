@@ -22,7 +22,12 @@ func Connect() (*mgo.Session, error) {
 	if addr == "" {
 		addr = "localhost"
 	}
-	return mgo.Dial(addr)
+	session, err := mgo.Dial(addr)
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	return session, nil
 }
 
 func Collection(session *mgo.Session) *mgo.Collection {
