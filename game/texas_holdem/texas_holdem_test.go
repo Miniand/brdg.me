@@ -47,3 +47,72 @@ func TestNextPhaseOnInitialFold(t *testing.T) {
 		t.Fatal("No flop, community cards:", g.CommunityCards)
 	}
 }
+
+func TestDealerRaiseWhenLastPlayer(t *testing.T) {
+	g := &Game{}
+	err := g.Start([]string{"BJ", "Pete", "Mick"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.CurrentDealer = 2
+	g.CurrentPlayer = 2
+	g.LastRaisingPlayer = 2
+	g.Bets = []int{
+		0: 5,
+		1: 10,
+		2: 0,
+	}
+	err = g.PlayerAction("Mick", "call", []string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = g.PlayerAction("BJ", "call", []string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(g.CommunityCards) != 0 {
+		t.Fatal("Flopped too early")
+	}
+	err = g.PlayerAction("Pete", "check", []string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(g.CommunityCards) != 3 {
+		t.Fatal("Flop didn't happen")
+	}
+	err = g.PlayerAction("BJ", "check", []string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(g.CommunityCards) != 3 {
+		t.Fatal("Turn happened too early")
+	}
+	err = g.PlayerAction("Pete", "check", []string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(g.CommunityCards) != 3 {
+		t.Fatal("Turn happened too early")
+	}
+	err = g.PlayerAction("Mick", "raise", []string{"10"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(g.CommunityCards) != 3 {
+		t.Fatal("Turn happened too early")
+	}
+	err = g.PlayerAction("BJ", "call", []string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(g.CommunityCards) != 3 {
+		t.Fatal("Turn happened too early")
+	}
+	err = g.PlayerAction("Pete", "call", []string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(g.CommunityCards) != 4 {
+		t.Fatal("Turn didn't happen")
+	}
+}

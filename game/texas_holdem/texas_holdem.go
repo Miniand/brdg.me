@@ -183,7 +183,7 @@ func (g *Game) Bet(playerNum int, amount int) error {
 	if g.PlayerMoney[playerNum] < amount {
 		return errors.New("Not enough money")
 	}
-	raiseAmount := amount - g.CurrentBet()
+	raiseAmount := g.Bets[playerNum] + amount - g.CurrentBet()
 	g.Bets[playerNum] += amount
 	g.PlayerMoney[playerNum] -= amount
 	g.LargestRaise = max(raiseAmount, g.LargestRaise)
