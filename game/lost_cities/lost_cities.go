@@ -214,20 +214,19 @@ func (g *Game) WhoseTurn() []string {
 // Returns the full set of cards in a game, 3 investment cards and 9 point cards
 // for each expedition totalling 60 cards
 func (g *Game) AllCards() []Card {
-	Value := 0
-	Suit := ""
+	var Suit, Value int
 	for x := 0; x < 5; x++ {
 		switch x {
 		case 0:
-			Suit = "SUIT_RED"
+			Suit = SUIT_RED
 		case 1:
-			Suit = "SUIT_YELLOW"
+			Suit = SUIT_YELLOW
 		case 2:
-			Suit = "SUIT_WHITE"
+			Suit = SUIT_WHITE
 		case 3:
-			Suit = "SUIT_GREEN"
+			Suit = SUIT_GREEN
 		case 4:
-			Suit = "SUIT_BLUE"
+			Suit = SUIT_BLUE
 		}
 		for y := 0; y < 12; y++ {
 			switch y {
