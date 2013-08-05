@@ -26,7 +26,11 @@ func Connect() (*mgo.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer session.Close()
+	defer func() {
+		if session.Ping() == nil {
+			session.Close()
+		}
+	}()
 	return session, nil
 }
 
