@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+	"github.com/beefsack/brdg.me/game/card"
 )
 
 type Game struct {
@@ -213,7 +214,11 @@ func (g *Game) WhoseTurn() []string {
 
 // Returns the full set of cards in a game, 3 investment cards and 9 point cards
 // for each expedition totalling 60 cards
-func (g *Game) AllCards() []Card {
+func (g *Game) AllCards() card.Deck {
+	deck := card.Deck{}
+
+
+
 	var value int
 	for suit := SUIT_RED; suit < SUIT_YELLOW; suit++ {
 		for y := 0; y < 12; y++ {
@@ -245,9 +250,13 @@ func (g *Game) AllCards() []Card {
 			}
 			fmt.Println(value)
 			fmt.Println(suit)
+			deck = deck.Push(card.SuitRankCard{
+  				Suit: suit,
+  				Rank: value,
+			})
 		}
 	}
-	return []Card{}
+	return deck
 
 }
 
