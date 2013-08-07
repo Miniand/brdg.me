@@ -1,7 +1,8 @@
 package lost_cities
 
 import (
-	"encoding/json"
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -42,7 +43,7 @@ type Board struct {
 	DiscardPiles SuitedPiles
 	// The draw pile is just a flat array of cards because it doesn't need to be
 	// grouped into suits
-	DrawPile []Card
+	DrawPile card.Deck
 }
 
 // Suited piles are cards sorted into suits.  Each player has a play area which
@@ -101,7 +102,7 @@ func (g *Game) Start(players []string) error {
 // Shuffle cards and deal hands, set the start player, set the turn phase etc
 func (g *Game) InitRound() error {
 	// The following line is commented because it errors as cards isn't used
-	// cards := g.AllCards()
+	g.Board.DrawPile = g.AllCards()
 	// @todo shuffle cards
 	// @see http://stackoverflow.com/a/12264918/155498 for Go array shuffle
 
@@ -169,12 +170,23 @@ func (g *Game) Identifier() string {
 	return "lost_cities"
 }
 
+func RegisterGobTypes() {
+	gob.Register(card.SuitRankCard{})
+}
+
 func (g *Game) Encode() ([]byte, error) {
-	return json.Marshal(g)
+	RegisterGobTypes()
+	buf := bytes.NewBuffer([]byte{})
+	encoder := gob.NewEncoder(buf)
+	err := encoder.Encode(g)
+	return buf.Bytes(), err
 }
 
 func (g *Game) Decode(data []byte) error {
-	return json.Unmarshal(data, g)
+	RegisterGobTypes()
+	buf := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(buf)
+	return decoder.Decode(g)
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
@@ -209,7 +221,8 @@ func (g *Game) Winners() []string {
 // Whose turn it is right now, if it's the end of the round this should return
 // all players that haven't marked themselves as ready
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+
+	return []string{g.Players[g.CurrentlyMoving]}
 }
 
 // Returns the full set of cards in a game, 3 investment cards and 9 point cards
