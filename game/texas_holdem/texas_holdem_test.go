@@ -150,3 +150,19 @@ func TestAllInAboveOtherPlayer(t *testing.T) {
 		t.Fatal("Game progressed without letting Mick call")
 	}
 }
+
+func TestAllPlayersAllInWhenBlindsBiggerThanCash(t *testing.T) {
+	g := &Game{}
+	err := g.Start([]string{"BJ", "Mick"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.PlayerMoney = []int{
+		0: 3,
+		1: 3,
+	}
+	g.NewHand()
+	if !g.IsFinished() {
+		t.Fatal("Game didn't finish when players had lower money than blinds")
+	}
+}
