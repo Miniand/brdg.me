@@ -700,3 +700,43 @@ func TestWinningHandResult(t *testing.T) {
 		t.Fatal("Second winner wasn't hand at index 2")
 	}
 }
+
+// https://github.com/beefsack/brdg.me/issues/4
+func TestAceIsInFlushResult(t *testing.T) {
+	hand := card.Deck{
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_QUEEN,
+		},
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_ACE_HIGH,
+		},
+	}
+	communityCards := card.Deck{
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_10,
+		},
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_SPADES,
+			Rank: card.STANDARD_52_RANK_QUEEN,
+		},		
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_4,
+		},		
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_DIAMONDS,
+			Rank: card.STANDARD_52_RANK_7,
+		},		
+		card.SuitRankCard{
+			Suit: card.STANDARD_52_SUIT_SPADES,
+			Rank: card.STANDARD_52_RANK_4,
+		},		
+	}
+	handResult := Result(hand.PushMany(communityCards));
+	if len(handResult.Cards) != 5 {
+		t.Fatal("There aren't 5 cards in the result")
+	}
+}

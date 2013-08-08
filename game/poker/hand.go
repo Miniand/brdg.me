@@ -237,7 +237,7 @@ func FindHighestRank(hand card.Deck, n int) (highest card.Deck,
 	remaining card.Deck) {
 	remaining = hand
 	byRank := CardsByRank(remaining)
-	for i := card.STANDARD_52_RANK_ACE_HIGH - 1; i >= 0; i-- {
+	for i := card.STANDARD_52_RANK_ACE_HIGH; i >= 0; i-- {
 		take := n - len(highest)
 		if len(byRank[i]) < take {
 			take = len(byRank[i])
