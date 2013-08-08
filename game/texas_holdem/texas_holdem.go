@@ -115,15 +115,20 @@ func (g *Game) NewHand() {
 	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s posted a big blind of %s", g.RenderPlayerName(bigBlindPlayer),
 		RenderCash(amount))))
-	// Make the current player the one next to the big blind
-	g.CurrentPlayer = g.NextActivePlayerNumFrom(bigBlindPlayer)
-	g.FirstBettingPlayer = g.CurrentPlayer
 	// Shuffle and deal two cards to each player
 	g.CommunityCards = card.Deck{}
 	g.Deck = card.Standard52DeckAceHigh().Shuffle()
 	for i, _ := range activePlayers {
 		g.PlayerHands[i], g.Deck = g.Deck.PopN(2)
 		g.PlayerHands[i] = g.PlayerHands[i].Sort()
+	}
+	if len(g.BettingPlayers()) > 0 {
+		// Make the current player the one next to the big blind
+		g.CurrentPlayer = g.NextBettingPlayerNumFrom(bigBlindPlayer)
+		g.FirstBettingPlayer = g.CurrentPlayer
+	} else {
+		// Nobody has money!  Just go to next phase.
+		g.NextPhase()
 	}
 }
 
@@ -174,6 +179,10 @@ func (g *Game) RequiringCallPlayers() map[int]string {
 
 func (g *Game) NextActivePlayerNumFrom(playerNum int) int {
 	return g.NextPlayerInSet(playerNum, g.ActivePlayers())
+}
+
+func (g *Game) NextBettingPlayerNumFrom(playerNum int) int {
+	return g.NextPlayerInSet(playerNum, g.BettingPlayers())
 }
 
 func (g *Game) NextRemainingPlayerNumFrom(playerNum int) int {
