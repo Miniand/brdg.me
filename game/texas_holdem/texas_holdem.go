@@ -34,8 +34,9 @@ type Game struct {
 	FoldedPlayers            []bool
 	MinimumBet               int
 	LargestRaise             int
-	LastRaisingPlayer        int
 	HandsSinceBlindsIncrease int
+	FirstBettingPlayer       int
+	EveryoneHasBetOnce       bool
 }
 
 func RenderCash(amount int) string {
@@ -80,6 +81,7 @@ func (g *Game) NewHand() {
 	g.FoldedPlayers = make([]bool, len(g.Players))
 	g.Bets = make([]int, len(g.Players))
 	g.LargestRaise = 0
+	g.EveryoneHasBetOnce = false
 	g.NewBettingRound()
 	activePlayers := g.ActivePlayers()
 	numActivePlayers := len(activePlayers)
@@ -115,7 +117,7 @@ func (g *Game) NewHand() {
 		RenderCash(amount))))
 	// Make the current player the one next to the big blind
 	g.CurrentPlayer = g.NextActivePlayerNumFrom(bigBlindPlayer)
-	g.LastRaisingPlayer = g.CurrentPlayer
+	g.FirstBettingPlayer = g.CurrentPlayer
 	// Shuffle and deal two cards to each player
 	g.CommunityCards = card.Deck{}
 	g.Deck = card.Standard52DeckAceHigh().Shuffle()
@@ -136,7 +138,7 @@ func (g *Game) RemainingPlayers() map[int]string {
 	return remaining
 }
 
-// Active players are players who are active in the current hand
+// Active players are players who are still in the game and haven't folded
 func (g *Game) ActivePlayers() map[int]string {
 	active := map[int]string{}
 	for i, p := range g.RemainingPlayers() {
@@ -147,27 +149,46 @@ func (g *Game) ActivePlayers() map[int]string {
 	return active
 }
 
+// Betting players are active players who still have money
+func (g *Game) BettingPlayers() map[int]string {
+	betting := map[int]string{}
+	for i, p := range g.ActivePlayers() {
+		if g.PlayerMoney[i] > 0 {
+			betting[i] = p
+		}
+	}
+	return betting
+}
+
+// Requiring call players are betting players who are behind the current bet
+func (g *Game) RequiringCallPlayers() map[int]string {
+	requiringCall := map[int]string{}
+	currentBet := g.CurrentBet()
+	for i, p := range g.BettingPlayers() {
+		if g.Bets[i] < currentBet {
+			requiringCall[i] = p
+		}
+	}
+	return requiringCall
+}
+
 func (g *Game) NextActivePlayerNumFrom(playerNum int) int {
-	if len(g.ActivePlayers()) == 0 {
-		panic("No active players")
-	}
-	playerNum = (playerNum + 1) % len(g.Players)
-	for (g.PlayerMoney[playerNum] == 0 && g.Bets[playerNum] == 0) ||
-		g.FoldedPlayers[playerNum] {
-		playerNum = (playerNum + 1) % len(g.Players)
-	}
-	return playerNum
+	return g.NextPlayerInSet(playerNum, g.ActivePlayers())
 }
 
 func (g *Game) NextRemainingPlayerNumFrom(playerNum int) int {
-	if len(g.RemainingPlayers()) == 0 {
-		panic("No remaining players")
+	return g.NextPlayerInSet(playerNum, g.RemainingPlayers())
+}
+
+func (g *Game) NextPlayerInSet(playerNum int, set map[int]string) int {
+	if len(set) == 0 {
+		panic("No players in set")
 	}
-	playerNum = (playerNum + 1) % len(g.Players)
-	for g.PlayerMoney[playerNum] == 0 && g.Bets[playerNum] == 0 {
-		playerNum = (playerNum + 1) % len(g.Players)
+	nextPlayerNum := (playerNum + 1) % len(g.Players)
+	for set[nextPlayerNum] == "" {
+		nextPlayerNum = (nextPlayerNum + 1) % len(g.Players)
 	}
-	return playerNum
+	return nextPlayerNum
 }
 
 func (g *Game) BetUpTo(playerNum int, amount int) int {
@@ -187,9 +208,6 @@ func (g *Game) Bet(playerNum int, amount int) error {
 	g.Bets[playerNum] += amount
 	g.PlayerMoney[playerNum] -= amount
 	g.LargestRaise = max(raiseAmount, g.LargestRaise)
-	if raiseAmount > 0 {
-		g.LastRaisingPlayer = playerNum
-	}
 	return nil
 }
 
@@ -326,37 +344,31 @@ func (g *Game) AllIn(playerNum int) error {
 }
 
 func (g *Game) NextPlayer() {
-	// If there's only one player who can bet, just go to next phase
-	bettingPlayerCount := 0
-	for playerNum, _ := range g.ActivePlayers() {
-		if g.PlayerMoney[playerNum] > 0 {
-			bettingPlayerCount++
-		}
-	}
-	if bettingPlayerCount < 2 {
-		// Less than two players able to bet, just go to next phase
-		g.NextPhase()
-	} else {
-		for {
-			// If we pass the last raising player, next phase
-			distanceToLastRaising := g.LastRaisingPlayer - g.CurrentPlayer
-			if distanceToLastRaising <= 0 {
-				distanceToLastRaising += len(g.Players)
+	requiringCallPlayers := g.RequiringCallPlayers()
+	bettingPlayers := g.BettingPlayers()
+	if len(bettingPlayers) > 0 {
+		nextPlayer := g.NextPlayerInSet(g.CurrentPlayer, bettingPlayers)
+		if !g.EveryoneHasBetOnce {
+			// Check if we've passed the first fplayer
+			distanceToFirst := g.FirstBettingPlayer - g.CurrentPlayer
+			if distanceToFirst <= 0 {
+				distanceToFirst += len(g.Players)
 			}
-			nextPlayer := g.NextActivePlayerNumFrom(g.CurrentPlayer)
 			distanceToNextPlayer := nextPlayer - g.CurrentPlayer
 			if distanceToNextPlayer <= 0 {
 				distanceToNextPlayer += len(g.Players)
 			}
-			if distanceToLastRaising <= distanceToNextPlayer {
-				g.NextPhase()
-				break
-			}
-			g.CurrentPlayer = nextPlayer
-			if g.PlayerMoney[g.CurrentPlayer] > 0 {
-				break
+			if distanceToNextPlayer >= distanceToFirst {
+				g.EveryoneHasBetOnce = true
 			}
 		}
+		if len(requiringCallPlayers) == 0 && g.EveryoneHasBetOnce {
+			g.NextPhase()
+		} else {
+			g.CurrentPlayer = nextPlayer			
+		}
+	} else {
+		g.NextPhase()
 	}
 }
 
@@ -512,7 +524,8 @@ func (g *Game) NewCommunityCards(n int) {
 
 func (g *Game) NewBettingRound() {
 	g.CurrentPlayer = g.NextActivePlayerNumFrom(g.CurrentDealer)
-	g.LastRaisingPlayer = g.CurrentPlayer
+	g.FirstBettingPlayer = g.CurrentPlayer
+	g.EveryoneHasBetOnce = false
 }
 
 func (g *Game) Name() string {
