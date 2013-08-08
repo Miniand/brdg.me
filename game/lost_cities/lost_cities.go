@@ -5,10 +5,10 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/beefsack/brdg.me/game/card"
 	"math/rand"
 	"strings"
 	"time"
-	"github.com/beefsack/brdg.me/game/card"
 )
 
 type Game struct {
@@ -35,27 +35,15 @@ type Game struct {
 type Board struct {
 	// Player hands are an array of cards, indexed 0 for player 1 and 1 for
 	// player 2
-	PlayerHands [2][]Card
+	PlayerHands [2]card.Deck
 	// Player expeditions are an array of suited piles, indexed 0 for player 1
 	// and 1 for player 2
-	PlayerExpeditions [2]SuitedPiles
+	PlayerExpeditions [5]card.Deck
 	// The discard piles is stored as a hand, because it uses the same structure
-	DiscardPiles SuitedPiles
+	DiscardPiles [5]card.Deck
 	// The draw pile is just a flat array of cards because it doesn't need to be
 	// grouped into suits
 	DrawPile card.Deck
-}
-
-// Suited piles are cards sorted into suits.  Each player has a play area which
-// are suited piles, and the centre discard piles are suited piles.
-type SuitedPiles [5][]Card
-
-// A card is a suit and a value
-type Card struct {
-	// Suits are defined by the colour consts above 0-4
-	Suit int
-	// The value is 2-10 for cards an 0 for multiplier
-	Value int
 }
 
 // Turn phase constant
@@ -120,8 +108,8 @@ func (g *Game) PlayerFromString(player string) (int, error) {
 }
 
 // Takes a string like b6, rx, y10 and turns it into a Card object
-func (g *Game) ParseCardString(cardString string) (Card, error) {
-	return Card{}, nil
+func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
+	return card.SuitRankCard{}, nil
 }
 
 func (g *Game) PlayerAction(player, action string, params []string) error {
@@ -134,20 +122,20 @@ func (g *Game) PlayerAction(player, action string, params []string) error {
 		if len(params) == 0 {
 			return errors.New("You must specify a card to play, such as r5")
 		}
-		card, err := g.ParseCardString(params[0])
+		c, err := g.ParseCardString(params[0])
 		if err != nil {
 			return err
 		}
-		err = g.PlayCard(playerNum, card)
+		err = g.PlayCard(playerNum, c)
 	case "discard":
 		if len(params) == 0 {
 			return errors.New("You must specify a card to play, such as r5")
 		}
-		card, err := g.ParseCardString(params[0])
+		c, err := g.ParseCardString(params[0])
 		if err != nil {
 			return err
 		}
-		err = g.DiscardCard(playerNum, card)
+		err = g.DiscardCard(playerNum, c)
 	case "take":
 		// @todo actually detect the suit from params[0], make sure to check
 		// @params length > 0
@@ -193,7 +181,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	return "", nil
 }
 
-func (g *Game) RenderCard(card Card) string {
+func (g *Game) RenderCard(card card.SuitRankCard) string {
 	// @todo Actually do output from card suit and value.  Maybe make sure
 	// @there's a trailing space if the card value isn't 10, to make sure
 	// @everything lines up nicely.
@@ -230,8 +218,6 @@ func (g *Game) WhoseTurn() []string {
 func (g *Game) AllCards() card.Deck {
 	deck := card.Deck{}
 
-
-
 	var value int
 	for suit := SUIT_RED; suit < SUIT_YELLOW; suit++ {
 		for y := 0; y < 12; y++ {
@@ -264,8 +250,8 @@ func (g *Game) AllCards() card.Deck {
 			fmt.Println(value)
 			fmt.Println(suit)
 			deck = deck.Push(card.SuitRankCard{
-  				Suit: suit,
-  				Rank: value,
+				Suit: suit,
+				Rank: value,
 			})
 		}
 	}
@@ -276,7 +262,7 @@ func (g *Game) AllCards() card.Deck {
 // Play a card from the hand into an expedition, checking that it is the
 // player's turn, that they have the card in their hand, and that they are able
 // to play the card.  Return an error if any of these don't pass.
-func (g *Game) PlayCard(player int, card Card) error {
+func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	return nil
 }
 
@@ -297,7 +283,7 @@ func (g *Game) DrawCard(player int) error {
 // Play a card from the hand into an expedition, checking that it is the
 // player's turn, that they have the card in their hand, and that they are able
 // to play the card.  Return an error if any of these don't pass.
-func (g *Game) DiscardCard(player int, card Card) error {
+func (g *Game) DiscardCard(player int, c card.SuitRankCard) error {
 	return nil
 }
 
@@ -314,16 +300,4 @@ func (g *Game) PlayerReady(player int) error {
 func (g *Game) CurrentRoundPlayerScore(player int) int {
 	// @todo You want to be looking at g.Board.PlayerExpeditions[player][SUIT_RED] etc
 	return 0
-}
-
-// Remove a card from an array of cards.
-// @example g.Board.PlayerHands[0] = RemoveCard(card, g.Board.PlayerHands[0])
-func RemoveCard(remove Card, cards []Card) []Card {
-	for i, c := range cards {
-		if c.Suit == remove.Suit && c.Value == remove.Value {
-			return append(cards[:i], cards[i+1:]...)
-		}
-	}
-	// Not found, just return the cards
-	return cards
 }

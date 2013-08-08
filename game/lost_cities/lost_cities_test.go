@@ -1,11 +1,12 @@
 package lost_cities
 
 import (
+	"github.com/beefsack/brdg.me/game/card"
 	"testing"
 )
 
 // Build a game by hand for testing purposes.  Each player has a full hand, half
-// of the discard stacks have cards, and there are two cards in the draw pile.
+// of the discard.SuitRankCard stacks have card.SuitRankCards, and there are two card.SuitRankCards in the draw pile.
 func mockGame(t *testing.T) *Game {
 	players := []string{"Mick", "Steve"}
 	game := &Game{}
@@ -15,89 +16,89 @@ func mockGame(t *testing.T) *Game {
 	}
 	game.CurrentlyMoving = 0
 	// Set Mick's hand
-	game.Board.PlayerHands[0] = []Card{
-		Card{
-			Suit:  SUIT_BLUE,
-			Value: 6,
+	game.Board.PlayerHands[0] = card.Deck{
+		card.SuitRankCard{
+			Suit: SUIT_BLUE,
+			Rank: 6,
 		},
-		Card{
-			Suit:  SUIT_BLUE,
-			Value: 8,
+		card.SuitRankCard{
+			Suit: SUIT_BLUE,
+			Rank: 8,
 		},
-		Card{
-			Suit:  SUIT_RED,
-			Value: 4,
+		card.SuitRankCard{
+			Suit: SUIT_RED,
+			Rank: 4,
 		},
-		Card{
-			Suit:  SUIT_RED,
-			Value: 5,
+		card.SuitRankCard{
+			Suit: SUIT_RED,
+			Rank: 5,
 		},
-		Card{
-			Suit:  SUIT_YELLOW,
-			Value: 0,
+		card.SuitRankCard{
+			Suit: SUIT_YELLOW,
+			Rank: 0,
 		},
-		Card{
-			Suit:  SUIT_YELLOW,
-			Value: 3,
+		card.SuitRankCard{
+			Suit: SUIT_YELLOW,
+			Rank: 3,
 		},
-		Card{
-			Suit:  SUIT_GREEN,
-			Value: 2,
+		card.SuitRankCard{
+			Suit: SUIT_GREEN,
+			Rank: 2,
 		},
-		Card{
-			Suit:  SUIT_WHITE,
-			Value: 10,
+		card.SuitRankCard{
+			Suit: SUIT_WHITE,
+			Rank: 10,
 		},
 	}
 	// Set Steve's hand
-	game.Board.PlayerHands[1] = []Card{
-		Card{
-			Suit:  SUIT_BLUE,
-			Value: 7,
+	game.Board.PlayerHands[1] = card.Deck{
+		card.SuitRankCard{
+			Suit: SUIT_BLUE,
+			Rank: 7,
 		},
-		Card{
-			Suit:  SUIT_BLUE,
-			Value: 9,
+		card.SuitRankCard{
+			Suit: SUIT_BLUE,
+			Rank: 9,
 		},
-		Card{
-			Suit:  SUIT_RED,
-			Value: 0,
+		card.SuitRankCard{
+			Suit: SUIT_RED,
+			Rank: 0,
 		},
-		Card{
-			Suit:  SUIT_RED,
-			Value: 10,
+		card.SuitRankCard{
+			Suit: SUIT_RED,
+			Rank: 10,
 		},
-		Card{
-			Suit:  SUIT_YELLOW,
-			Value: 4,
+		card.SuitRankCard{
+			Suit: SUIT_YELLOW,
+			Rank: 4,
 		},
-		Card{
-			Suit:  SUIT_YELLOW,
-			Value: 7,
+		card.SuitRankCard{
+			Suit: SUIT_YELLOW,
+			Rank: 7,
 		},
-		Card{
-			Suit:  SUIT_GREEN,
-			Value: 4,
+		card.SuitRankCard{
+			Suit: SUIT_GREEN,
+			Rank: 4,
 		},
-		Card{
-			Suit:  SUIT_WHITE,
-			Value: 8,
+		card.SuitRankCard{
+			Suit: SUIT_WHITE,
+			Rank: 8,
 		},
 	}
-	// Just set the draw pile to have a couple of cards so we can finish the
+	// Just set the draw pile to have a couple of card.SuitRankCards so we can finish the
 	// round quickly for testing.
-	game.Board.DrawPile = []Card{
-		Card{
-			Suit:  SUIT_WHITE,
-			Value: 0,
+	game.Board.DrawPile = card.Deck{
+		card.SuitRankCard{
+			Suit: SUIT_WHITE,
+			Rank: 0,
 		},
-		Card{
-			Suit:  SUIT_WHITE,
-			Value: 0,
+		card.SuitRankCard{
+			Suit: SUIT_WHITE,
+			Rank: 0,
 		},
-		Card{
-			Suit:  SUIT_WHITE,
-			Value: 0,
+		card.SuitRankCard{
+			Suit: SUIT_WHITE,
+			Rank: 0,
 		},
 	}
 	return game
@@ -109,23 +110,23 @@ func TestPlayFullGame(t *testing.T) {
 		t.Fatal("Why is it the end of the round if we've just started?")
 	}
 	if game.TurnPhase != TURN_PHASE_PLAY_OR_DISCARD {
-		t.Fatal("The turn phase isn't for the player to play or discard")
+		t.Fatal("The turn phase isn't for the player to play or discard.SuitRankCard")
 	}
-	// Mick discards red 5
-	err := game.PlayerAction("Mick", "discard", []string{"r5"})
+	// Mick discard.SuitRankCards red 5
+	err := game.PlayerAction("Mick", "discard.SuitRankCard", []string{"r5"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Let's check to make sure it actually happened
 	if len(game.Board.PlayerHands[0]) != 7 {
-		t.Fatal("Red 5 wasn't removed from Mick's hand when he discarded")
+		t.Fatal("Red 5 wasn't removed from Mick's hand when he discard.SuitRankCarded")
 	}
 	if len(game.Board.DiscardPiles[SUIT_RED]) != 1 {
-		t.Fatal("The red discard pile doesn't have any cards in it")
+		t.Fatal("The red discard.SuitRankCard pile doesn't have any card.SuitRankCards in it")
 	}
-	if game.Board.DiscardPiles[SUIT_RED][0].Suit != SUIT_RED &&
-		game.Board.DiscardPiles[SUIT_RED][0].Value != 5 {
-		t.Fatal("Red 5 wasn't discarded onto the red discard pile")
+	firstRed := game.Board.DiscardPiles[SUIT_RED][0].(card.SuitRankCard)
+	if firstRed.Suit != SUIT_RED && firstRed.Rank != 5 {
+		t.Fatal("Red 5 wasn't discard.SuitRankCarded onto the red discard.SuitRankCard pile")
 	}
 	if game.TurnPhase != TURN_PHASE_DRAW {
 		t.Fatal("The turn phase didn't change to DRAW")
@@ -135,59 +136,7 @@ func TestPlayFullGame(t *testing.T) {
 	err = game.PlayerAction("Steve", "draw", []string{})
 	if err == nil {
 		t.Fatal(
-			"Steve was allowed to draw a card even though it wasn't his turn!")
+			"Steve was allowed to draw a card.SuitRankCard even though it wasn't his turn!")
 	}
 	// More to come!
-}
-
-func TestRemoveCard(t *testing.T) {
-	cards := func() []Card {
-		return []Card{
-			Card{
-				Suit:  SUIT_WHITE,
-				Value: 2,
-			},
-			Card{
-				Suit:  SUIT_WHITE,
-				Value: 3,
-			},
-			Card{
-				Suit:  SUIT_WHITE,
-				Value: 4,
-			},
-		}
-	}
-	removed1 := RemoveCard(Card{
-		Suit:  SUIT_WHITE,
-		Value: 2,
-	}, cards())
-	if len(removed1) != 2 || removed1[0].Value != 3 || removed1[1].Value != 4 {
-		t.Log(removed1)
-		t.Fatal("Did not remove 2")
-	}
-	removed2 := RemoveCard(Card{
-		Suit:  SUIT_WHITE,
-		Value: 3,
-	}, cards())
-	if len(removed2) != 2 || removed2[0].Value != 2 || removed2[1].Value != 4 {
-		t.Log(removed2)
-		t.Fatal("Did not remove 3")
-	}
-	removed3 := RemoveCard(Card{
-		Suit:  SUIT_WHITE,
-		Value: 4,
-	}, cards())
-	if len(removed3) != 2 || removed3[0].Value != 2 || removed3[1].Value != 3 {
-		t.Log(removed3)
-		t.Fatal("Did not remove 4")
-	}
-	// Now try one not in the list
-	removed4 := RemoveCard(Card{
-		Suit:  SUIT_WHITE,
-		Value: 5,
-	}, cards())
-	if len(removed4) != 3 {
-		t.Log(removed4)
-		t.Fatal("Removed card")
-	}
 }

@@ -374,7 +374,7 @@ func (g *Game) NextPlayer() {
 		if len(requiringCallPlayers) == 0 && g.EveryoneHasBetOnce {
 			g.NextPhase()
 		} else {
-			g.CurrentPlayer = nextPlayer			
+			g.CurrentPlayer = nextPlayer
 		}
 	} else {
 		g.NextPhase()
