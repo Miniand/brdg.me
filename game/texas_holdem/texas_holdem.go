@@ -382,26 +382,21 @@ func (g *Game) NextPlayer() {
 }
 
 func (g *Game) NextPhase() {
-	playerCountWithMoney := 0
-	for i, _ := range g.ActivePlayers() {
-		if g.PlayerMoney[i] > 0 {
-			playerCountWithMoney++
-		}
-	}
+	bettingPlayersCount := len(g.BettingPlayers())
 	switch len(g.CommunityCards) {
 	case 0:
 		g.Flop()
-		if playerCountWithMoney < 2 {
+		if bettingPlayersCount < 2 {
 			g.NextPhase()
 		}
 	case 3:
 		g.Turn()
-		if playerCountWithMoney < 2 {
+		if bettingPlayersCount < 2 {
 			g.NextPhase()
 		}
 	case 4:
 		g.River()
-		if playerCountWithMoney < 2 {
+		if bettingPlayersCount < 2 {
 			g.NextPhase()
 		}
 	case 5:
@@ -532,7 +527,11 @@ func (g *Game) NewCommunityCards(n int) {
 }
 
 func (g *Game) NewBettingRound() {
-	g.CurrentPlayer = g.NextActivePlayerNumFrom(g.CurrentDealer)
+	if len(g.BettingPlayers()) > 0 {
+		g.CurrentPlayer = g.NextBettingPlayerNumFrom(g.CurrentDealer)
+	} else {
+		g.CurrentPlayer = g.CurrentDealer
+	}
 	g.FirstBettingPlayer = g.CurrentPlayer
 	g.EveryoneHasBetOnce = false
 }

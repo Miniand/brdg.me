@@ -166,3 +166,29 @@ func TestAllPlayersAllInWhenBlindsBiggerThanCash(t *testing.T) {
 		t.Fatal("Game didn't finish when players had lower money than blinds")
 	}
 }
+
+func TestNextPlayerIsSkippedOnNextPhaseWhenNoMoney(t *testing.T) {
+	g := &Game{}
+	err := g.Start([]string{"BJ", "Mick", "Steve"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.CurrentDealer = 0
+	g.CurrentPlayer = 0
+	g.FirstBettingPlayer = 0
+	g.Bets = []int{
+		0: 10,
+		1: 6,
+		2: 10,
+	}
+	g.PlayerMoney = []int{
+		0: 10,
+		1: 0,
+		2: 100,
+	}
+	// Skip to next phase manually
+	g.NextPhase()
+	if g.CurrentPlayer != 2 {
+		t.Fatal("Didn't skip over Mick on new phase even though he is all in, got:", g.CurrentPlayer)
+	}
+}
