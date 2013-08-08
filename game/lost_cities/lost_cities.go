@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"fmt"
 	"github.com/beefsack/brdg.me/game/card"
 	"math/rand"
 	"strings"
@@ -38,7 +37,7 @@ type Board struct {
 	PlayerHands [2]card.Deck
 	// Player expeditions are an array of suited piles, indexed 0 for player 1
 	// and 1 for player 2
-	PlayerExpeditions [5]card.Deck
+	PlayerExpeditions [2][5]card.Deck
 	// The discard piles is stored as a hand, because it uses the same structure
 	DiscardPiles [5]card.Deck
 	// The draw pile is just a flat array of cards because it doesn't need to be
@@ -89,11 +88,7 @@ func (g *Game) Start(players []string) error {
 
 // Shuffle cards and deal hands, set the start player, set the turn phase etc
 func (g *Game) InitRound() error {
-	// The following line is commented because it errors as cards isn't used
-	g.Board.DrawPile = g.AllCards()
-	// @todo shuffle cards
-	// @see http://stackoverflow.com/a/12264918/155498 for Go array shuffle
-
+	g.Board.DrawPile = g.AllCards().Shuffle()
 	return nil
 }
 
@@ -183,8 +178,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 
 func (g *Game) RenderCard(card card.SuitRankCard) string {
 	// @todo Actually do output from card suit and value.  Maybe make sure
-	// @there's a trailing space if the card value isn't 10, to make sure
-	// @everything lines up nicely.
+	// there's a trailing space if the card value isn't 10, to make sure
+	// everything lines up nicely.
 	return `{{c "` + CardColours[card.Suit] + `"}}R5{{_c}}`
 }
 
@@ -209,7 +204,6 @@ func (g *Game) Winners() []string {
 // Whose turn it is right now, if it's the end of the round this should return
 // all players that haven't marked themselves as ready
 func (g *Game) WhoseTurn() []string {
-
 	return []string{g.Players[g.CurrentlyMoving]}
 }
 
@@ -217,7 +211,6 @@ func (g *Game) WhoseTurn() []string {
 // for each expedition totalling 60 cards
 func (g *Game) AllCards() card.Deck {
 	deck := card.Deck{}
-
 	var value int
 	for suit := SUIT_RED; suit < SUIT_YELLOW; suit++ {
 		for y := 0; y < 12; y++ {
@@ -247,8 +240,6 @@ func (g *Game) AllCards() card.Deck {
 			case 11:
 				value = 10
 			}
-			fmt.Println(value)
-			fmt.Println(suit)
 			deck = deck.Push(card.SuitRankCard{
 				Suit: suit,
 				Rank: value,
