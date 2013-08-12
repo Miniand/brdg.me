@@ -11,7 +11,6 @@ import (
 	"net/textproto"
 	"regexp"
 	"strings"
-	"time"
 )
 
 // Search for an email address
@@ -170,9 +169,7 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		if err != nil {
 			return err
 		}
-		_, err = htmlW.Write([]byte(`<pre style="color:#000000;">` +
-			htmlOutput + "\n\n<span style=\"color=#CCCCCC;\">Sent on " +
-			time.Now().Format(time.RFC1123)))
+		_, err = htmlW.Write([]byte(`<pre style="color:#000000;">` + htmlOutput))
 		if err != nil {
 			return err
 		}
