@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// Command is a regexp based command parser, providing an interface for
+// authorisation and instructions.
 type Command interface {
 	// Parses the input string for the command, the return is nil if it could not parse the command, or if it could
 	Parse(input string) []string
@@ -13,6 +15,8 @@ type Command interface {
 	Usage(player string, context interface{}) string
 }
 
+// Tried to call a command given a range of command parsers.  Errors if it was
+// unable to match to any commands.
 func CallInCommands(player string, context interface{}, input string,
 	commands []Command) (err error) {
 	numRun := 0
