@@ -3,9 +3,8 @@ package tic_tac_toe
 import (
 	"encoding/json"
 	"errors"
+	"github.com/beefsack/brdg.me/command"
 	"math/rand"
-	"regexp"
-	"strings"
 	"time"
 )
 
@@ -30,51 +29,10 @@ func (g *Game) Start(players []string) error {
 	return nil
 }
 
-// Make an action for the specified player
-func (g *Game) PlayerAction(player string, action string, args []string) error {
-	action = strings.ToLower(action)
-	if g.CurrentlyMoving != player {
-		return errors.New("Not your turn")
+func (g *Game) Commands() []command.Command {
+	return []command.Command{
+		PlayCommand{},
 	}
-	if !regexp.MustCompile("^[abcdefghi]$").MatchString(action) {
-		return errors.New("Your action must be a letter between a - i")
-	}
-	var x, y int
-	switch action {
-	case "a":
-		x = 0
-		y = 0
-	case "b":
-		x = 1
-		y = 0
-	case "c":
-		x = 2
-		y = 0
-	case "d":
-		x = 0
-		y = 1
-	case "e":
-		x = 1
-		y = 1
-	case "f":
-		x = 2
-		y = 1
-	case "g":
-		x = 0
-		y = 2
-	case "h":
-		x = 1
-		y = 2
-	case "i":
-		x = 2
-		y = 2
-	}
-	err := g.MarkCellForPlayer(player, x, y)
-	if err != nil {
-		return err
-	}
-	g.NextPlayer()
-	return nil
 }
 
 func (g *Game) NextPlayer() {

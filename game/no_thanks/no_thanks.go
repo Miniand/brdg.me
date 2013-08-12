@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/beefsack/brdg.me/command"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -21,15 +22,11 @@ type Game struct {
 	PlayerLogs      map[string][]string
 }
 
-func (g *Game) PlayerAction(player, action string, params []string) error {
-	var err error
-	switch strings.ToLower(action) {
-	case "take":
-		err = g.Take(player)
-	case "pass":
-		err = g.Pass(player)
+func (g *Game) Commands() []command.Command {
+	return []command.Command{
+		TakeCommand{},
+		PassCommand{},
 	}
-	return err
 }
 
 func (g *Game) Name() string {

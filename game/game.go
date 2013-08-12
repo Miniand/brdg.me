@@ -1,6 +1,7 @@
 package game
 
 import (
+	"github.com/beefsack/brdg.me/command"
 	"github.com/beefsack/brdg.me/game/lost_cities"
 	"github.com/beefsack/brdg.me/game/no_thanks"
 	"github.com/beefsack/brdg.me/game/texas_holdem"
@@ -8,7 +9,7 @@ import (
 )
 
 type Playable interface {
-	PlayerAction(string, string, []string) error
+	Commands() []command.Command
 	Name() string
 	Identifier() string
 	Encode() ([]byte, error)

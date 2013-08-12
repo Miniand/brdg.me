@@ -5,12 +5,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/beefsack/brdg.me/command"
 	"github.com/beefsack/brdg.me/game/card"
 	"github.com/beefsack/brdg.me/game/log"
 	"github.com/beefsack/brdg.me/game/poker"
 	"github.com/beefsack/brdg.me/render"
 	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -220,34 +220,14 @@ func (g *Game) Bet(playerNum int, amount int) error {
 	return nil
 }
 
-func (g *Game) PlayerAction(player string, action string, args []string) (err error) {
-	playerNum, err := g.PlayerNum(player)
-	if err == nil {
-		switch strings.ToLower(action) {
-		case "check":
-			err = g.Check(playerNum)
-		case "fold":
-			err = g.Fold(playerNum)
-		case "call":
-			err = g.Call(playerNum)
-		case "raise":
-			if len(args) == 0 {
-				err = errors.New("You must specify an amount to raise")
-			} else {
-				amount, err := strconv.Atoi(args[0])
-				if err != nil {
-					err = errors.New("Could not understand your raise amount, only use numbers and no punctuation or symbols")
-				} else {
-					err = g.Raise(playerNum, amount)
-				}
-			}
-		case "allin":
-			err = g.AllIn(playerNum)
-		default:
-			err = errors.New(fmt.Sprintf("Unknown command: %s", action))
-		}
+func (g *Game) Commands() []command.Command {
+	return []command.Command{
+		CheckCommand{},
+		CallCommand{},
+		RaiseCommand{},
+		FoldCommand{},
+		AllinCommand{},
 	}
-	return
 }
 
 func (g *Game) PlayerNum(player string) (int, error) {

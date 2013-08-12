@@ -1,6 +1,7 @@
 package lost_cities
 
 import (
+	"github.com/beefsack/brdg.me/command"
 	"github.com/beefsack/brdg.me/game/card"
 	"testing"
 )
@@ -119,7 +120,7 @@ func TestPlayFullGame(t *testing.T) {
 		t.Fatal("The turn phase isn't for the player to play or discard")
 	}
 	// Mick discards red 5
-	err := game.PlayerAction("Mick", "discard", []string{"r5"})
+	err := command.CallInCommands("Mick", game, "discard r5", game.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,13 +144,13 @@ func TestPlayFullGame(t *testing.T) {
 	}
 	// Steve tries to butt in, but he shouldn't be allowed cos it's not his
 	// turn!
-	err = game.PlayerAction("Steve", "draw", []string{})
+	err = command.CallInCommands("Steve", game, "draw", game.Commands())
 	if err == nil {
 		t.Fatal(
 			"Steve was allowed to draw a card even though it wasn't his turn!")
 	}
 	// Mick draws from the draw pile
-	err = game.PlayerAction("Mick", "draw", []string{})
+	err = command.CallInCommands("Mick", game, "draw", game.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,12 +172,12 @@ func TestPlayFullGame(t *testing.T) {
 		t.Fatal("The turn phase isn't to play or discard")
 	}
 	// Try to draw first and make sure we aren't allowed
-	err = game.PlayerAction("Steve", "draw", []string{})
+	err = command.CallInCommands("Steve", game, "draw", game.Commands())
 	if err == nil {
 		t.Fatal("The game let Steve draw, he hasn't played yet!")
 	}
 	// Play a blue 9 and check it actually happened
-	err = game.PlayerAction("Steve", "play", []string{"B9"})
+	err = command.CallInCommands("Steve", game, "play B9", game.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,7 +193,7 @@ func TestPlayFullGame(t *testing.T) {
 	// Draw
 
 	// Steve will draw from the red discard pile instead of the draw pile
-	err = game.PlayerAction("Steve", "take", []string{"r"})
+	err = command.CallInCommands("Steve", game, "take r", game.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -212,7 +213,7 @@ func TestPlayFullGame(t *testing.T) {
 	// Play or discard
 
 	// Mick will play the yellow investment card he has
-	err = game.PlayerAction("Mick", "play", []string{"yx"})
+	err = command.CallInCommands("Mick", game, "play yx", game.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}

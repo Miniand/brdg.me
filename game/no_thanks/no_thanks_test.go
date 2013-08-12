@@ -1,6 +1,7 @@
 package no_thanks
 
 import (
+	"github.com/beefsack/brdg.me/command"
 	"sort"
 	"testing"
 )
@@ -346,7 +347,7 @@ func TestPlayerActions(t *testing.T) {
 	}
 	g.CurrentlyMoving = "Steve"
 	topCard := g.PeekTopCard()
-	err = g.PlayerAction("Steve", "Pass", []string{})
+	err = command.CallInCommands("Steve", g, "Pass", g.Commands())
 	if err != nil {
 		t.Error(err)
 		return
@@ -355,7 +356,7 @@ func TestPlayerActions(t *testing.T) {
 		t.Error("Expected Steve's chips to be 10, got", g.PlayerChips["Steve"])
 		return
 	}
-	err = g.PlayerAction("Barabbas", "taKE", []string{})
+	err = command.CallInCommands("Barabbas", g, "taKE", g.Commands())
 	if err != nil {
 		t.Error(err)
 		return
