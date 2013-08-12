@@ -35,15 +35,5 @@ func TestParseBody(t *testing.T) {
  
 Kind regards,
 Bob`
-	commands := ParseBody(body)
-	if len(commands) != 2 {
-		t.Error("Command count incorrect, expected 2, got", len(commands))
-	}
-	if len(commands[0]) != 1 {
-		t.Error("Expected one part for the first command, got",
-			len(commands[0]))
-	}
-	if commands[0][0] != "pass" {
-		t.Error("Expected first command to be pass, got", commands[0][0])
-	}
+	ParseBody(body)
 }

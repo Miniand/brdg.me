@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+var NO_COMMAND_FOUND = errors.New(
+	"We couldn't find any commands in the text you sent, please make sure your commands are at the top")
+
 // Command is a regexp based command parser, providing an interface for
 // authorisation and instructions.
 type Command interface {
@@ -42,7 +45,7 @@ func CallInCommands(player string, context interface{}, input string,
 		}
 	}
 	if numRun == 0 {
-		err = errors.New("We couldn't find any commands in the text you sent, please make sure your commands are at the top")
+		err = NO_COMMAND_FOUND
 	}
 	return
 }

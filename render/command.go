@@ -7,11 +7,11 @@ import (
 
 func OutputCommands(player string, context interface{},
 	commands []command.Command) string {
-	buf := bytes.NewBufferString("{{b}}You can:{{_b}}\n")
+	buf := bytes.NewBufferString("{{b}}You can:{{_b}}")
 	for _, c := range commands {
+		buf.WriteByte('\n')
 		buf.WriteString(" * ")
 		buf.WriteString(c.Usage(player, context))
-		buf.WriteByte('\n')
 	}
 	return buf.String()
 }
