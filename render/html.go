@@ -35,7 +35,7 @@ func RenderHtml(tmpl string) (string, error) {
 
 func HtmlColours() map[string]string {
 	return map[string]string{
-		"black":   "rgb(0,0,0)",
+		"black":   "rgb(1,1,1)", // To fool gmail into not showing purple
 		"red":     "rgb(187,0,0)",
 		"green":   "rgb(0,187,0)",
 		"yellow":  "rgb(187,187,0)",
