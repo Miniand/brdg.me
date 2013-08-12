@@ -574,27 +574,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString("{{b}}Your cash{{_b}}:   ")
 	buf.WriteString(RenderCash(g.PlayerMoney[playerNum]))
 	buf.WriteString("\n\n")
-	if playerNum == g.CurrentPlayer {
-		// Available actions
-		actions := []string{}
-		currentBet := g.CurrentBet()
-		currentBetDiff := currentBet - g.Bets[playerNum]
-		if currentBetDiff == 0 {
-			actions = append(actions, "{{b}}check{{_b}}")
-		}
-		if currentBetDiff > 0 && currentBetDiff < g.PlayerMoney[playerNum] {
-			actions = append(actions, fmt.Sprintf("{{b}}call{{_b}} (for $%d)",
-				currentBet-g.Bets[playerNum]), "{{b}}fold{{_b}}")
-		}
-		if currentBetDiff+g.LargestRaise < g.PlayerMoney[playerNum] {
-			actions = append(actions, fmt.Sprintf(
-				"{{b}}raise ##{{_b}} (where ## is at least $%d)",
-				max(g.MinimumBet, g.LargestRaise)))
-		}
-		actions = append(actions, "{{b}}allin{{_b}}")
-		buf.WriteString(
-			"It's your turn, you can: " + strings.Join(actions, ", ") + "\n\n")
-	}
 	// All players table
 	playersTable := [][]string{
 		[]string{

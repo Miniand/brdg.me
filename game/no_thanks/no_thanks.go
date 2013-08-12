@@ -53,16 +53,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString("\n\n")
 	}
 	if !g.IsFinished() {
-		if player == g.CurrentlyMoving {
-			buf.WriteString(
-				"It's your turn, you can {{b}}take{{_b}} or {{b}}pass{{_b}} the card.\n\n")
-		}
-		buf.WriteString(
-			`{{b}}Current card:  {{c "blue"}}{{.PeekTopCard}}{{_c}}{{_b}} (`)
+		buf.WriteString(`{{b}}Current card:  {{c "blue"}}`)
+		buf.WriteString(strconv.Itoa(g.PeekTopCard()))
+		buf.WriteString(`{{_c}}{{_b}} (`)
 		buf.WriteString(strconv.Itoa(len(g.RemainingCards) - 1))
 		buf.WriteString(" cards remaining)\n")
-		buf.WriteString(
-			`{{b}}Current chips: {{c "green"}}{{.CentreChips}}{{_c}}{{_b}}`)
+		buf.WriteString(`{{b}}Current chips: {{c "green"}}`)
+		buf.WriteString(strconv.Itoa(g.CentreChips))
+		buf.WriteString(`{{_c}}{{_b}}`)
 		buf.WriteString("\n\n")
 		buf.WriteString(`{{b}}Your hand:{{_b}}  `)
 		if len(g.PlayerHands[player]) > 0 {

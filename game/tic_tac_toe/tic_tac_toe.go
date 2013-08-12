@@ -79,7 +79,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			}
 
 		}
-		output += "\n"
+		if x != 2 {
+			output += "\n"
+		}
 	}
 	// @todo implement.
 	//return errors.New("Not implemented yet"), output

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/beefsack/brdg.me/command"
 	"github.com/beefsack/brdg.me/game"
 	"github.com/beefsack/brdg.me/render"
 	"io/ioutil"
@@ -95,7 +96,7 @@ func PlayAction(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = g.PlayerAction(args[0], args[1], args[2:])
+	err = command.CallInCommands(args[0], g, strings.Join(args[1:], " "), g.Commands())
 	if err != nil {
 		return err
 	}
@@ -106,6 +107,16 @@ func PlayAction(args []string) error {
 	saveGame(g)
 	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
 	fmt.Println(output)
+	available := command.AvailableCommands(args[0], g, g.Commands())
+	if len(available) > 0 {
+		commandsOutput, err := render.RenderTerminal(render.OutputCommands(
+			args[0], g, available))
+		if err != nil {
+			return err
+		}
+		fmt.Println()
+		fmt.Println(commandsOutput)
+	}
 	for _, p := range g.WhoseTurn() {
 		output, err = RenderForPlayer(g, p)
 		if err != nil {
@@ -113,6 +124,16 @@ func PlayAction(args []string) error {
 		}
 		fmt.Println("--- OUTPUT FOR " + p + " ---")
 		fmt.Println(output)
+		available = command.AvailableCommands(p, g, g.Commands())
+		if len(available) > 0 {
+			commandsOutput, err := render.RenderTerminal(render.OutputCommands(
+				p, g, available))
+			if err != nil {
+				return err
+			}
+			fmt.Println()
+			fmt.Println(commandsOutput)
+		}
 	}
 	// Save again in case logs were marked as read
 	saveGame(g)

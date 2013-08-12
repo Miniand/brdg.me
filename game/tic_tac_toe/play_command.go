@@ -66,5 +66,5 @@ func (c PlayCommand) Call(player string, context interface{}, args []string) err
 }
 
 func (c PlayCommand) Usage(player string, context interface{}) string {
-	return "Send a letter between a - i to play in that square"
+	return "Send a letter between {{b}}a - i{{_b}} to play in that square"
 }

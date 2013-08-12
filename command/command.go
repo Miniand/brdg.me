@@ -46,3 +46,13 @@ func CallInCommands(player string, context interface{}, input string,
 	}
 	return
 }
+
+func AvailableCommands(player string, context interface{},
+	commands []Command) (available []Command) {
+	for _, c := range commands {
+		if c.CanCall(player, context) {
+			available = append(available, c)
+		}
+	}
+	return
+}
