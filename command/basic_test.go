@@ -1,7 +1,6 @@
 package command
 
 import (
-	"github.com/beefsack/brdg.me/game"
 	"testing"
 )
 
@@ -9,10 +8,10 @@ func TestBasicCommand(t *testing.T) {
 	c := BasicCommand{
 		Name:    "play",
 		NumArgs: 2,
-		CanCallFunc: func(player string, g *game.Playable) bool {
+		CanCallFunc: func(player string, context interface{}) bool {
 			return true
 		},
-		CallFunc: func(player string, g *game.Playable, args []string) error {
+		CallFunc: func(player string, context interface{}, args []string) error {
 			if len(args) != 2 {
 				t.Fatal("There aren't two args")
 			}

@@ -2,33 +2,32 @@ package command
 
 import (
 	"errors"
-	"github.com/beefsack/brdg.me/game"
 	"strings"
 )
 
 type Command interface {
 	// Parses the input string for the command, the return is nil if it could not parse the command, or if it could
 	Parse(input string) []string
-	CanCall(player string, g *game.Playable) bool
-	Call(player string, g *game.Playable, args []string) error
-	Usage(player string, g *game.Playable) string
+	CanCall(player string, context interface{}) bool
+	Call(player string, context interface{}, args []string) error
+	Usage(player string, context interface{}) string
 }
 
-func CallInCommands(player string, g *game.Playable, input string,
+func CallInCommands(player string, context interface{}, input string,
 	commands []Command) (err error) {
 	numRun := 0
 	for {
 		input = strings.TrimSpace(input)
 		initialInput := input
 		for _, c := range commands {
-			if c.CanCall(player, g) {
+			if c.CanCall(player, context) {
 				args := c.Parse(input)
 				if args != nil {
 					// The command matches
 					numRun++
 					// Trim the matched text out of the input string
 					input = input[len(args[0]):]
-					err = c.Call(player, g, args)
+					err = c.Call(player, context, args)
 					break
 				}
 			}

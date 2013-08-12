@@ -2,7 +2,6 @@ package command
 
 import (
 	"fmt"
-	"github.com/beefsack/brdg.me/game"
 	"regexp"
 	"strings"
 )
@@ -12,9 +11,9 @@ const ARGUMENT_REGEXP = `\s*(\b[^\s]+\b)`
 type BasicCommand struct {
 	Name        string
 	NumArgs     int
-	CanCallFunc func(player string, g *game.Playable) bool
-	CallFunc    func(player string, g *game.Playable, args []string) error
-	UsageFunc   func(player string, g *game.Playable) string
+	CanCallFunc func(player string, context interface{}) bool
+	CallFunc    func(player string, context interface{}, args []string) error
+	UsageFunc   func(player string, context interface{}) string
 }
 
 func (b BasicCommand) Parse(input string) []string {
@@ -22,17 +21,17 @@ func (b BasicCommand) Parse(input string) []string {
 		ARGUMENT_REGEXP, b.NumArgs)+`\s*$`, b.Name)).FindStringSubmatch(input)
 }
 
-func (b BasicCommand) CanCall(player string, g *game.Playable) bool {
-	return b.CanCallFunc(player, g)
+func (b BasicCommand) CanCall(player string, context interface{}) bool {
+	return b.CanCallFunc(player, context)
 }
 
-func (b BasicCommand) Call(player string, g *game.Playable, args []string) error {
-	return b.CallFunc(player, g, args[1:])
+func (b BasicCommand) Call(player string, context interface{}, args []string) error {
+	return b.CallFunc(player, context, args[1:])
 }
 
-func (b BasicCommand) Usage(player string, g *game.Playable) string {
+func (b BasicCommand) Usage(player string, context interface{}) string {
 	if b.UsageFunc == nil {
 		return b.Name
 	}
-	return b.UsageFunc(player, g)
+	return b.UsageFunc(player, context)
 }

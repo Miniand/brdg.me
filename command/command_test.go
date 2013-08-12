@@ -1,7 +1,6 @@
 package command
 
 import (
-	"github.com/beefsack/brdg.me/game"
 	"regexp"
 	"testing"
 )
@@ -11,13 +10,13 @@ type CommandTest struct{}
 func (c CommandTest) Parse(input string) []string {
 	return regexp.MustCompile(`(?im)^\s*test\b\s$*`).FindStringSubmatch(input)
 }
-func (c CommandTest) CanCall(player string, g *game.Playable) bool {
+func (c CommandTest) CanCall(player string, context interface{}) bool {
 	return true
 }
-func (c CommandTest) Call(player string, g *game.Playable, args []string) error {
+func (c CommandTest) Call(player string, context interface{}, args []string) error {
 	return nil
 }
-func (c CommandTest) Usage(player string, g *game.Playable) string {
+func (c CommandTest) Usage(player string, context interface{}) string {
 	return "Fart"
 }
 
