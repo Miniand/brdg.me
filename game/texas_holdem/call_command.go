@@ -1,6 +1,7 @@
 package texas_holdem
 
 import (
+	"fmt"
 	"github.com/beefsack/brdg.me/command"
 )
 
@@ -32,5 +33,12 @@ func (cc CallCommand) Call(player string, context interface{}, args []string) er
 }
 
 func (cc CallCommand) Usage(player string, context interface{}) string {
-	return "{{b}}call{{_b}} to increase your bet to match the current bet"
+	g := context.(*Game)
+	playerNum, err := g.PlayerNum(player)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf(
+		"{{b}}call{{_b}} to increase your bet by %d to match the current bet",
+		g.CurrentBet()-g.Bets[playerNum])
 }
