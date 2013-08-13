@@ -3,12 +3,11 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"github.com/beefsack/brdg.me/command"
 	"github.com/beefsack/brdg.me/game"
 	"github.com/beefsack/brdg.me/render"
 	"labix.org/v2/mgo/bson"
-	"mime/multipart"
-	"net/textproto"
 	"regexp"
 	"strings"
 )
@@ -44,13 +43,10 @@ func HandleCommandText(player, gameId string, commandText string) error {
 				body.WriteString("\n\n")
 			}
 			body.WriteString("Welcome to brdg.me!\n\n")
-			htmlOutput, err := render.RenderHtml(render.OutputCommands(player,
-				nil, command.AvailableCommands(player, nil, commands)))
-			if err != nil {
-				return err
-			}
-			body.WriteString(htmlOutput)
-			err = SendMail([]string{player}, body.String())
+			body.WriteString(render.OutputCommands(player, nil,
+				command.AvailableCommands(player, nil, commands)))
+			err = SendRichMail([]string{player}, "Welcome to brdg.me!",
+				body.String(), []string{})
 			if err != nil {
 				return err
 			}
@@ -141,58 +137,20 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		if err != nil {
 			return err
 		}
-		raw := pHeader + "\n\n" + rawOutput
-		terminalOutput, err := render.RenderTerminal(raw)
-		if err != nil {
-			return err
-		}
-		htmlOutput, err := render.RenderHtml(raw)
-		if err != nil {
-			return err
-		}
-		// Make a multipart message
-		buf := &bytes.Buffer{}
-		data := multipart.NewWriter(buf)
-		plainW, err := data.CreatePart(textproto.MIMEHeader{
-			"Content-Type": []string{"text/plain"},
-		})
-		if err != nil {
-			return err
-		}
-		_, err = plainW.Write([]byte(terminalOutput))
-		if err != nil {
-			return err
-		}
-		htmlW, err := data.CreatePart(textproto.MIMEHeader{
-			"Content-Type": []string{`text/html; charset="UTF-8"`},
-		})
-		if err != nil {
-			return err
-		}
-		_, err = htmlW.Write([]byte(`<pre style="color:#000000;">` + htmlOutput))
-		if err != nil {
-			return err
-		}
-		err = data.Close()
-		if err != nil {
-			return err
-		}
-		// Handle Message-ID and In-Reply-To for email threading
-		threadingHeaders := ""
+		body := pHeader + "\n\n" + rawOutput
+		subject := fmt.Sprintf("%s (%s)", g.Name(), id.(bson.ObjectId).Hex())
+		extraHeaders := []string{}
 		messageId := id.(bson.ObjectId).Hex() + "@brdg.me"
 		if initial {
 			// We create the base Message-ID
-			threadingHeaders = "Message-Id: <" + messageId + ">\r\n"
+			extraHeaders = append(extraHeaders,
+				fmt.Sprintf("Message-Id: <%s>", messageId))
 		} else {
 			// We create a unique Message-ID and set the In-Reply-To to original
-			threadingHeaders = "In-Reply-To: <" + messageId + ">\r\n"
+			extraHeaders = append(extraHeaders,
+				fmt.Sprintf("In-Reply-To: <%s>", messageId))
 		}
-		err = SendMail([]string{p},
-			"Subject: "+g.Name()+" ("+id.(bson.ObjectId).Hex()+")\r\n"+
-				"MIME-Version: 1.0\r\n"+
-				"Content-Type: multipart/alternative; boundary="+data.Boundary()+"\r\n"+
-				threadingHeaders+
-				buf.String())
+		err = SendRichMail([]string{p}, subject, body, extraHeaders)
 		if err != nil {
 			return err
 		}

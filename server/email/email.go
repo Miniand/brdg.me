@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
+	"github.com/beefsack/brdg.me/render"
 	"io"
 	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/mail"
 	"net/smtp"
+	"net/textproto"
 	"os"
 	"regexp"
 	"strings"
@@ -116,10 +120,58 @@ func SendMailAuth() smtp.Auth {
 	return smtp.PlainAuth("", FromAddr(), "password", "mail.brdg.me")
 }
 
-func SendMail(to []string, msg string) error {
+func SendRichMail(to []string, subject string, body string,
+	extraHeaders []string) error {
+	terminalOutput, err := render.RenderTerminal(body)
+	if err != nil {
+		return err
+	}
+	htmlOutput, err := render.RenderHtml(body)
+	if err != nil {
+		return err
+	}
+	// Make a multipart message
+	buf := &bytes.Buffer{}
+	data := multipart.NewWriter(buf)
+	plainW, err := data.CreatePart(textproto.MIMEHeader{
+		"Content-Type": []string{"text/plain"},
+	})
+	if err != nil {
+		return err
+	}
+	_, err = plainW.Write([]byte(terminalOutput))
+	if err != nil {
+		return err
+	}
+	htmlW, err := data.CreatePart(textproto.MIMEHeader{
+		"Content-Type": []string{`text/html; charset="UTF-8"`},
+	})
+	if err != nil {
+		return err
+	}
+	_, err = htmlW.Write([]byte(`<pre style="color:#000000;">` + htmlOutput))
+	if err != nil {
+		return err
+	}
+	err = data.Close()
+	if err != nil {
+		return err
+	}
+	headers := []string{
+		fmt.Sprintf("Subject: %s", subject),
+		"MIME-Version: 1.0",
+		fmt.Sprintf("Content-Type: multipart/alternative; boundary=%s",
+			data.Boundary()),
+	}
+	headers = append(headers, extraHeaders...)
+	return SendMail(to,
+		fmt.Sprintf("%s\r\n%s", strings.Join(headers, "\r\n"), buf.String()))
+}
+
+func SendMail(to []string, data string) error {
 	smtpAddr := os.Getenv("BRDGME_EMAIL_SERVER_SMTP_ADDR")
 	if smtpAddr == "" {
 		smtpAddr = "localhost:25"
 	}
-	return smtp.SendMail(smtpAddr, SendMailAuth(), FromAddr(), to, []byte(msg))
+	return smtp.SendMail(smtpAddr, SendMailAuth(), FromAddr(), to, []byte(data))
 }
