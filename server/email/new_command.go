@@ -4,15 +4,18 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/beefsack/brdg.me/command"
 	"github.com/beefsack/brdg.me/game"
 	"github.com/beefsack/brdg.me/server/model"
+	"regexp"
+	"strings"
 )
 
 type NewCommand struct{}
 
 func (nc NewCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("new", 1, -1, input)
+	return regexp.MustCompile(
+		`(?im)^\s*new\s+(\S+)((\s+\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b)+)\s*$`).
+		FindStringSubmatch(input)
 }
 
 func (nc NewCommand) CanCall(player string, context interface{}) bool {
@@ -24,17 +27,17 @@ func (nc NewCommand) CanCall(player string, context interface{}) bool {
 }
 
 func (nc NewCommand) Call(player string, context interface{}, args []string) error {
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
-		return errors.New("Please also specify a game ID when starting a new game")
+	if len(args) < 2 {
+		errors.New("Could not find game name and email addresses")
 	}
-	gType := game.Collection()[a[0]]
+	gType := game.Collection()[args[1]]
 	if gType == nil {
 		return errors.New(fmt.Sprintf(
 			`Sorry, could not find a game called "%s", please see below for available game IDs`,
-			a[0]))
+			args[1]))
 	}
-	players := append([]string{player}, a[1:]...)
+	players := append([]string{player}, regexp.MustCompile(`\s+`).Split(
+		strings.TrimSpace(args[2]), -1)...)
 	g, err := gType(players)
 	if err != nil {
 		return err
