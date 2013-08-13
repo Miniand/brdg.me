@@ -65,11 +65,11 @@ func HandleCommandText(player, gameId string, commandText string) error {
 		commands := append(g.Commands(), Commands()...)
 		initialWhoseTurn := g.WhoseTurn()
 		err = command.CallInCommands(player, g, commandText, commands)
-		commErrs := []string{}
 		header := ""
 		if err != nil {
 			header = err.Error()
 		}
+		commErrs := []string{}
 		commErr := CommunicateGameTo(gm.Id, g, []string{player}, header, false)
 		if commErr != nil {
 			commErrs = append(commErrs, commErr.Error())
@@ -126,7 +126,7 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			header += ", the winners were: " + strings.Join(winners, ", ")
 		}
 	} else {
-		header = "Current turn: " + strings.Join(g.WhoseTurn(), ", ")
+		header += "Current turn: " + strings.Join(g.WhoseTurn(), ", ")
 	}
 	for _, p := range to {
 		unsubscribed, err := UserIsUnsubscribed(p)

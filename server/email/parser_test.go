@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/beefsack/brdg.me/command"
+	"github.com/beefsack/brdg.me/game/texas_holdem"
 	"testing"
 )
 
@@ -36,4 +38,19 @@ func TestParseBody(t *testing.T) {
 Kind regards,
 Bob`
 	ParseBody(body)
+}
+
+// @see https://github.com/beefsack/brdg.me/issues/22
+func TestTexasHoldemRaiseBelowMin(t *testing.T) {
+	g := &texas_holdem.Game{}
+	err := g.Start([]string{"beefsack@gmail.com", "baconheist@gmail.com",
+		"striker203@gmail.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	commands := append(g.Commands(), Commands()...)
+	err = command.CallInCommands(g.WhoseTurn()[0], g, "raise 1", commands)
+	if err == nil || err.Error() == "" {
+		t.Fatal("Did not get an error!")
+	}
 }
