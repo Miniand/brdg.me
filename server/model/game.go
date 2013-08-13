@@ -1,14 +1,14 @@
-package main
+package model
 
 import (
 	"errors"
 	"github.com/beefsack/brdg.me/game"
 	"labix.org/v2/mgo"
-	"os"
+	"labix.org/v2/mgo/bson"
 )
 
 type GameModel struct {
-	Id         interface{}
+	Id         interface{} "_id"
 	PlayerList []string
 	Winners    []string
 	IsFinished bool
@@ -17,20 +17,8 @@ type GameModel struct {
 	State      string
 }
 
-func Connect() (*mgo.Session, error) {
-	addr := os.Getenv("BRDGME_MONGODB_ADDRESS")
-	if addr == "" {
-		addr = "localhost"
-	}
-	return mgo.Dial(addr)
-}
-
-func Collection(session *mgo.Session) *mgo.Collection {
-	db := os.Getenv("BRDGME_MONGODB_DATABASE")
-	if db == "" {
-		db = "brdgme"
-	}
-	return session.DB(db).C("games")
+func GameCollection(session *mgo.Session) *mgo.Collection {
+	return session.DB(DatabaseName()).C("games")
 }
 
 func LoadGame(id interface{}) (*GameModel, error) {
@@ -40,8 +28,10 @@ func LoadGame(id interface{}) (*GameModel, error) {
 	}
 	defer session.Close()
 	m := &GameModel{}
-	err = Collection(session).FindId(id).One(m)
-	m.Id = id
+	err = GameCollection(session).FindId(id).One(m)
+	if m.Id == nil {
+		m = nil
+	}
 	return m, err
 }
 
@@ -96,12 +86,12 @@ func (gm *GameModel) Save() error {
 		return err
 	}
 	defer session.Close()
-	info, err := Collection(session).UpsertId(gm.Id, gm)
+	if gm.Id == nil {
+		gm.Id = bson.NewObjectId()
+	}
+	_, err = GameCollection(session).UpsertId(gm.Id, gm)
 	if err != nil {
 		return err
-	}
-	if gm.Id == nil {
-		gm.Id = info.UpsertedId
 	}
 	return nil
 }

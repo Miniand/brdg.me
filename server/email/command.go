@@ -7,5 +7,6 @@ import (
 func Commands() []command.Command {
 	return []command.Command{
 		NewCommand{},
+		UnsubscribeCommand{},
 	}
 }

@@ -1,17 +1,13 @@
-package main
+package model
 
 import (
 	"github.com/beefsack/brdg.me/game"
-	"os"
 	"testing"
 )
 
-func modelTestShouldRun() bool {
-	return os.Getenv("TEST_DATABASE") != ""
-}
-
-func TestSavingAndLoading(t *testing.T) {
+func TestGameSavingAndLoading(t *testing.T) {
 	if modelTestShouldRun() {
+		cleanTestingDatabase()
 		g, err := game.Collection()["tic_tac_toe"]([]string{"Mick", "Steve"})
 		if err != nil {
 			t.Error(err)

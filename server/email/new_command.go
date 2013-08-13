@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/beefsack/brdg.me/command"
 	"github.com/beefsack/brdg.me/game"
+	"github.com/beefsack/brdg.me/server/model"
 )
 
 type NewCommand struct{}
@@ -15,6 +16,10 @@ func (nc NewCommand) Parse(input string) []string {
 }
 
 func (nc NewCommand) CanCall(player string, context interface{}) bool {
+	unsubscribed, err := UserIsUnsubscribed(player)
+	if err == nil && unsubscribed {
+		return false
+	}
 	return context == nil || context.(game.Playable).IsFinished()
 }
 
@@ -34,7 +39,7 @@ func (nc NewCommand) Call(player string, context interface{}, args []string) err
 	if err != nil {
 		return err
 	}
-	gm, err := SaveGame(g)
+	gm, err := model.SaveGame(g)
 	if err != nil {
 		return err
 	}

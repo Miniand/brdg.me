@@ -7,6 +7,7 @@ import (
 	"github.com/beefsack/brdg.me/command"
 	"github.com/beefsack/brdg.me/game"
 	"github.com/beefsack/brdg.me/render"
+	"github.com/beefsack/brdg.me/server/model"
 	"labix.org/v2/mgo/bson"
 	"regexp"
 	"strings"
@@ -32,7 +33,8 @@ func ParseBody(body string) string {
 
 // Run commands on the game, email relevant people and handle action issues
 func HandleCommandText(player, gameId string, commandText string) error {
-	if gameId == "" {
+	unsubscribed, err := UserIsUnsubscribed(player)
+	if (err == nil && unsubscribed) || gameId == "" {
 		commands := Commands()
 		err := command.CallInCommands(player, nil, commandText, commands)
 		if err != nil {
@@ -52,7 +54,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 			}
 		}
 	} else {
-		gm, err := LoadGame(bson.ObjectIdHex(gameId))
+		gm, err := model.LoadGame(bson.ObjectIdHex(gameId))
 		if err != nil {
 			return err
 		}
@@ -73,7 +75,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 			commErrs = append(commErrs, commErr.Error())
 		}
 		if err != command.NO_COMMAND_FOUND {
-			_, err := UpdateGame(bson.ObjectIdHex(gameId), g)
+			_, err := model.UpdateGame(bson.ObjectIdHex(gameId), g)
 			if err != nil {
 				return err
 			}
@@ -84,7 +86,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 				commErrs = append(commErrs, commErr.Error())
 			}
 			// Update again to handle saves during render, ie for logger
-			_, err = UpdateGame(bson.ObjectIdHex(gameId), g)
+			_, err = model.UpdateGame(bson.ObjectIdHex(gameId), g)
 			if err != nil {
 				return err
 			}
@@ -127,6 +129,10 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		header = "Current turn: " + strings.Join(g.WhoseTurn(), ", ")
 	}
 	for _, p := range to {
+		unsubscribed, err := UserIsUnsubscribed(p)
+		if err == nil && unsubscribed {
+			continue
+		}
 		pHeader := header
 		rawOutput, err := g.RenderForPlayer(p)
 		commands := append(g.Commands(), Commands()...)
