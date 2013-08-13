@@ -5,7 +5,7 @@ import (
 )
 
 func UserIsUnsubscribed(email string) (bool, error) {
-	u, err := model.LoadUserByEmail(email)
+	u, err := model.FirstUserByEmail(email)
 	if err != nil {
 		return false, err
 	}

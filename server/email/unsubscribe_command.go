@@ -21,7 +21,7 @@ func (uc UnsubscribeCommand) CanCall(player string, context interface{}) bool {
 }
 
 func (uc UnsubscribeCommand) Call(player string, context interface{}, args []string) error {
-	u, err := model.LoadUserByEmail(player)
+	u, err := model.FirstUserByEmail(player)
 	if err != nil {
 		return errors.New("Could not find you in the database")
 	}

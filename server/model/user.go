@@ -29,7 +29,7 @@ func LoadUser(id interface{}) (*UserModel, error) {
 	return m, err
 }
 
-func LoadUserByEmail(email string) (*UserModel, error) {
+func FirstUserByEmail(email string) (*UserModel, error) {
 	session, err := Connect()
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func LoadUserByEmail(email string) (*UserModel, error) {
 	err = UserCollection(session).Find(bson.M{
 		"email": email,
 	}).One(m)
-	if m.Id == nil {
-		m = nil
+	if err == mgo.ErrNotFound {
+		return nil, nil
 	}
 	return m, err
 }
