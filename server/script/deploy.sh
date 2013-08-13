@@ -4,8 +4,6 @@ set -e
 DEPLOY_ADDRESS=${DEPLOY_ADDRESS:-root@brdg.me}
 
 #Check we're 64-bit Linux
-platform=`uname`
-architecture=`uname -m`
 if [[ `uname` != "Linux" || `uname -m` != "x86_64" ]]; then
 	echo "Can only deploy from 64-bit Linux"
 	exit 1
