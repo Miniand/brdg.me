@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+var currentGameId interface{}
+
 // Search for an email address
 func ParseFrom(from string) string {
 	reg := regexp.MustCompile(EmailSearchRegexString())
@@ -62,6 +64,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 		if err != nil {
 			return err
 		}
+		currentGameId = gm.Id
 		commands := append(g.Commands(), Commands()...)
 		initialWhoseTurn := g.WhoseTurn()
 		err = command.CallInCommands(player, g, commandText, commands)

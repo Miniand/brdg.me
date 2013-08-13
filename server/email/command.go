@@ -6,6 +6,7 @@ import (
 
 func Commands() []command.Command {
 	return []command.Command{
+		PokeCommand{},
 		NewCommand{},
 		UnsubscribeCommand{},
 		SubscribeCommand{},
