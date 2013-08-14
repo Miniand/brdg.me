@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 DEPLOY_ADDRESS=${DEPLOY_ADDRESS:-root@brdg.me}
