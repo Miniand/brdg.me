@@ -651,6 +651,15 @@ func (g *Game) WhoseTurn() []string {
 	return []string{g.Players[g.CurrentPlayer]}
 }
 
+func (g *Game) EliminatedPlayerList() (eliminatedPlayers []string) {
+	for playerNum, p := range g.Players {
+		if g.PlayerMoney[playerNum] == 0 && g.Bets[playerNum] == 0 {
+			eliminatedPlayers = append(eliminatedPlayers, p)
+		}
+	}
+	return
+}
+
 func min(numbers ...int) int {
 	l := len(numbers)
 	if l == 0 {

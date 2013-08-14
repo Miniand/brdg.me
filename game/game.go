@@ -22,6 +22,10 @@ type Playable interface {
 	WhoseTurn() []string
 }
 
+type Eliminator interface {
+	EliminatedPlayerList() []string
+}
+
 // The actual list of games, for a game to be active in the app it needs to be
 // in here
 func gameList() []Playable {

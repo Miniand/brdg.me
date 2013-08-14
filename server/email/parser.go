@@ -56,6 +56,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 			}
 		}
 	} else {
+		var initialEliminated []string
 		gm, err := model.LoadGame(bson.ObjectIdHex(gameId))
 		if err != nil {
 			return err
@@ -67,6 +68,10 @@ func HandleCommandText(player, gameId string, commandText string) error {
 		currentGameId = gm.Id
 		commands := append(g.Commands(), Commands()...)
 		initialWhoseTurn := g.WhoseTurn()
+		eliminator, isEliminator := g.(game.Eliminator)
+		if isEliminator {
+			initialEliminated = eliminator.EliminatedPlayerList()
+		}
 		err = command.CallInCommands(player, g, commandText, commands)
 		header := ""
 		if err != nil {
@@ -88,6 +93,15 @@ func HandleCommandText(player, gameId string, commandText string) error {
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
+			// Email any players who were eliminated this turn
+			if isEliminator {
+				commErr = CommunicateGameTo(gm.Id, g, FindNewStringsInSlice(
+					initialEliminated, eliminator.EliminatedPlayerList()),
+					"You have been eliminated from the game.", false)
+				if commErr != nil {
+					commErrs = append(commErrs, commErr.Error())
+				}
+			}
 			// Update again to handle saves during render, ie for logger
 			_, err = model.UpdateGame(bson.ObjectIdHex(gameId), g)
 			if err != nil {
@@ -102,17 +116,20 @@ func HandleCommandText(player, gameId string, commandText string) error {
 }
 
 func WhoseTurnNow(g game.Playable, initialWhoseTurn []string) []string {
-	initialWhoseTurnMap := map[string]bool{}
-	for _, p := range initialWhoseTurn {
-		initialWhoseTurnMap[p] = true
+	return FindNewStringsInSlice(initialWhoseTurn, g.WhoseTurn())
+}
+
+func FindNewStringsInSlice(oldSlice, newSlice []string) (newStrings []string) {
+	oldSliceMap := map[string]bool{}
+	for _, s := range oldSlice {
+		oldSliceMap[s] = true
 	}
-	whoseTurnNow := []string{}
-	for _, p := range g.WhoseTurn() {
-		if !initialWhoseTurnMap[p] {
-			whoseTurnNow = append(whoseTurnNow, p)
+	for _, s := range newSlice {
+		if !oldSliceMap[s] {
+			newStrings = append(newStrings, s)
 		}
 	}
-	return whoseTurnNow
+	return
 }
 
 func CommunicateGameTo(id interface{}, g game.Playable, to []string,

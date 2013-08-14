@@ -196,3 +196,19 @@ func TestNextPlayerIsSkippedOnNextPhaseWhenNoMoney(t *testing.T) {
 		t.Fatal("Didn't skip over Mick on new phase even though he is all in, got:", g.CurrentPlayer)
 	}
 }
+
+func TestEliminatedPlayers(t *testing.T) {
+	g := &Game{}
+	err := g.Start([]string{"BJ", "Mick", "Steve"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.PlayerMoney[0] = 0
+	g.PlayerMoney[1] = 0
+	g.Bets[0] = 0
+	g.Bets[1] = 5
+	eliminated := g.EliminatedPlayerList()
+	if len(eliminated) != 1 || eliminated[0] != "BJ" {
+		t.Fatal("Expected only BJ to be eliminated, got:", eliminated)
+	}
+}
