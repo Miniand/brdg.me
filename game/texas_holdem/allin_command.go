@@ -16,9 +16,8 @@ func (ac AllinCommand) CanCall(player string, context interface{}) bool {
 	if err != nil {
 		return false
 	}
-	currentBet := g.CurrentBet()
-	return g.CurrentPlayer == playerNum && g.Bets[playerNum] < currentBet &&
-		g.PlayerMoney[playerNum] > 0 && !g.IsFinished()
+	return g.CurrentPlayer == playerNum && g.PlayerMoney[playerNum] > 0 &&
+		!g.IsFinished()
 }
 
 func (ac AllinCommand) Call(player string, context interface{}, args []string) error {
