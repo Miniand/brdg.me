@@ -28,7 +28,7 @@ func TestNextPhaseOnInitialFold(t *testing.T) {
 		t.Fatal(err)
 	}
 	// First player folds
-	err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "fold",
+	_, err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "fold",
 		g.Commands())
 	if err != nil {
 		t.Fatal(err)
@@ -37,14 +37,14 @@ func TestNextPhaseOnInitialFold(t *testing.T) {
 		t.Fatal("Cards were already drawn:", g.CommunityCards)
 	}
 	// Next two players call and check, should flop
-	err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "call", g.Commands())
+	_, err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Cards were already drawn:", g.CommunityCards)
 	}
-	err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "check", g.Commands())
+	_, err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "check", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,56 +67,56 @@ func TestDealerRaiseWhenLastPlayer(t *testing.T) {
 		1: 10,
 		2: 0,
 	}
-	err = command.CallInCommands("Mick", g, "call", g.Commands())
+	_, err = command.CallInCommands("Mick", g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Flopped too early")
 	}
-	err = command.CallInCommands("BJ", g, "call", g.Commands())
+	_, err = command.CallInCommands("BJ", g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Flopped too early")
 	}
-	err = command.CallInCommands("Pete", g, "check", g.Commands())
+	_, err = command.CallInCommands("Pete", g, "check", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Flop didn't happen")
 	}
-	err = command.CallInCommands("BJ", g, "check", g.Commands())
+	_, err = command.CallInCommands("BJ", g, "check", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	err = command.CallInCommands("Pete", g, "check", g.Commands())
+	_, err = command.CallInCommands("Pete", g, "check", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	err = command.CallInCommands("Mick", g, "raise 10", g.Commands())
+	_, err = command.CallInCommands("Mick", g, "raise 10", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	err = command.CallInCommands("BJ", g, "call", g.Commands())
+	_, err = command.CallInCommands("BJ", g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	err = command.CallInCommands("Pete", g, "call", g.Commands())
+	_, err = command.CallInCommands("Pete", g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +145,7 @@ func TestAllInAboveOtherPlayer(t *testing.T) {
 		1: 20,
 	}
 	// Go all in with BJ
-	err = command.CallInCommands("BJ", g, "allin", g.Commands())
+	_, err = command.CallInCommands("BJ", g, "allin", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}

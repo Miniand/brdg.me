@@ -23,13 +23,14 @@ func (cc CallCommand) CanCall(player string, context interface{}) bool {
 		!g.IsFinished()
 }
 
-func (cc CallCommand) Call(player string, context interface{}, args []string) error {
+func (cc CallCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerNum(player)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.Call(playerNum)
+	return "", g.Call(playerNum)
 }
 
 func (cc CallCommand) Usage(player string, context interface{}) string {

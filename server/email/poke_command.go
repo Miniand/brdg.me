@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
+	"strings"
 )
 
 type PokeCommand struct {
@@ -16,9 +17,6 @@ func (pc PokeCommand) Parse(input string) []string {
 }
 
 func (pc PokeCommand) CanCall(player string, context interface{}) bool {
-	if pc.gameId == nil {
-		return false
-	}
 	g, ok := context.(game.Playable)
 	if !ok || g.IsFinished() {
 		return false
@@ -33,17 +31,21 @@ func (pc PokeCommand) CanCall(player string, context interface{}) bool {
 	return true
 }
 
-func (pc PokeCommand) Call(player string, context interface{}, args []string) error {
-	if pc.gameId == nil {
-		return errors.New("There is no relevant game ID to poke for")
-	}
+func (pc PokeCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g, ok := context.(game.Playable)
-	if !ok || g.IsFinished() {
-		return errors.New("The game is already finished")
+	if !ok {
+		return "", errors.New("No game was passed in")
 	}
-	CommunicateGameTo(pc.gameId, g, g.WhoseTurn(),
-		fmt.Sprintf("%s wants to remind you it's your turn!", player), false)
-	return nil
+	if g.IsFinished() {
+		return "", errors.New("The game is already finished")
+	}
+	whoseTurn := g.WhoseTurn()
+	if pc.gameId != nil {
+		CommunicateGameTo(pc.gameId, g, whoseTurn, fmt.Sprintf(
+			"%s wants to remind you it's your turn!", player), false)
+	}
+	return "You poked " + strings.Join(whoseTurn, ", "), nil
 }
 
 func (pc PokeCommand) Usage(player string, context interface{}) string {

@@ -21,13 +21,14 @@ func (fc FoldCommand) CanCall(player string, context interface{}) bool {
 		!g.IsFinished()
 }
 
-func (fc FoldCommand) Call(player string, context interface{}, args []string) error {
+func (fc FoldCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerNum(player)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.Fold(playerNum)
+	return "", g.Fold(playerNum)
 }
 
 func (fc FoldCommand) Usage(player string, context interface{}) string {

@@ -15,9 +15,10 @@ func (tc TakeCommand) CanCall(player string, context interface{}) bool {
 	return g.CurrentlyMoving == player && !g.IsFinished()
 }
 
-func (tc TakeCommand) Call(player string, context interface{}, args []string) error {
+func (tc TakeCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
-	return g.Take(player)
+	return "", g.Take(player)
 }
 
 func (tc TakeCommand) Usage(player string, context interface{}) string {

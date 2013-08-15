@@ -36,12 +36,16 @@ func HandleCommandText(player, gameId string, commandText string) error {
 	unsubscribed, err := UserIsUnsubscribed(player)
 	if (err == nil && unsubscribed) || gameId == "" {
 		commands := Commands(nil)
-		err := command.CallInCommands(player, nil, commandText, commands)
+		output, err := command.CallInCommands(player, nil, commandText, commands)
 		if err != nil {
 			// Print help
 			body := bytes.NewBufferString("")
 			if err != command.NO_COMMAND_FOUND {
 				body.WriteString(err.Error())
+				body.WriteString("\n\n")
+			}
+			if output != "" {
+				body.WriteString(output)
 				body.WriteString("\n\n")
 			}
 			body.WriteString("Welcome to brdg.me!\n\n")
@@ -70,10 +74,16 @@ func HandleCommandText(player, gameId string, commandText string) error {
 		if isEliminator {
 			initialEliminated = eliminator.EliminatedPlayerList()
 		}
-		err = command.CallInCommands(player, g, commandText, commands)
+		output, err := command.CallInCommands(player, g, commandText, commands)
 		header := ""
 		if err != nil {
 			header = err.Error()
+		}
+		if output != "" {
+			if header != "" {
+				header += "\n\n"
+			}
+			header += output
 		}
 		commErrs := []string{}
 		commErr := CommunicateGameTo(gm.Id, g, []string{player}, header, false)

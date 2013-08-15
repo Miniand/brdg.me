@@ -41,7 +41,7 @@ func TestPlayerAction(t *testing.T) {
 		t.Error(err)
 	}
 	// First lets see that a valid action works
-	err = command.CallInCommands(game.CurrentlyMoving, game, "a", game.Commands())
+	_, err = command.CallInCommands(game.CurrentlyMoving, game, "a", game.Commands())
 	if err != nil {
 		t.Error(err)
 	}
@@ -49,7 +49,7 @@ func TestPlayerAction(t *testing.T) {
 		t.Error("The action didn't actually do anything")
 	}
 	// Now lets make an invalid action
-	err = command.CallInCommands(game.CurrentlyMoving, game, "moog", game.Commands())
+	_, err = command.CallInCommands(game.CurrentlyMoving, game, "moog", game.Commands())
 	if err == nil {
 		t.Error("It didn't actually error")
 	}
@@ -84,13 +84,13 @@ func TestPlaySameCell(t *testing.T) {
 	game.StartPlayer = "Mick"
 	game.CurrentlyMoving = "Mick"
 	// Play on a cell
-	err = command.CallInCommands("Mick", game, "a", game.Commands())
+	_, err = command.CallInCommands("Mick", game, "a", game.Commands())
 	if err != nil {
 		t.Error(err)
 	}
 	// Try to play again on the cell, it should return any errors from
 	// MarkCellForPlayer
-	err = command.CallInCommands("Steve", game, "a", game.Commands())
+	_, err = command.CallInCommands("Steve", game, "a", game.Commands())
 	if err == nil {
 		t.Error("It allowed us to play on the same cell, it should return error if MarkCellForPlayer errors")
 	}
@@ -200,7 +200,7 @@ func TestAllowUpperCase(t *testing.T) {
 		t.Error(err)
 	}
 	// Test to see if uppercase plays work
-	err = command.CallInCommands(game.CurrentlyMoving, game, "A", game.Commands())
+	_, err = command.CallInCommands(game.CurrentlyMoving, game, "A", game.Commands())
 	if err != nil {
 		t.Error(err)
 	}

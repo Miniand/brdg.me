@@ -14,14 +14,16 @@ type Command interface {
 	// Parses the input string for the command, the return is nil if it could not parse the command, or if it could
 	Parse(input string) []string
 	CanCall(player string, context interface{}) bool
-	Call(player string, context interface{}, args []string) error
+	Call(player string, context interface{}, args []string) (output string,
+		err error)
 	Usage(player string, context interface{}) string
 }
 
 // Tried to call a command given a range of command parsers.  Errors if it was
 // unable to match to any commands.
 func CallInCommands(player string, context interface{}, input string,
-	commands []Command) (err error) {
+	commands []Command) (output string, err error) {
+	var commandOutput string
 	numRun := 0
 	for {
 		input = strings.TrimSpace(input)
@@ -34,7 +36,14 @@ func CallInCommands(player string, context interface{}, input string,
 					numRun++
 					// Trim the matched text out of the input string
 					input = input[len(args[0]):]
-					err = c.Call(player, context, args)
+					commandOutput, err = c.Call(player, context, args)
+					// If we got some output, add it
+					if commandOutput != "" {
+						if output != "" {
+							output += "\n"
+						}
+						output += commandOutput
+					}
 					break
 				}
 			}

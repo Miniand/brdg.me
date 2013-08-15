@@ -96,13 +96,17 @@ func PlayAction(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = command.CallInCommands(args[0], g, strings.Join(args[1:], " "), g.Commands())
+	commandOutput, err := command.CallInCommands(args[0],
+		g, strings.Join(args[1:], " "), g.Commands())
 	if err != nil {
 		return err
 	}
 	output, err := RenderForPlayer(g, args[0])
 	if err != nil {
 		return err
+	}
+	if commandOutput != "" {
+		output = commandOutput + "\n\n" + output
 	}
 	saveGame(g)
 	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
@@ -124,7 +128,8 @@ func PlayAction(args []string) error {
 		}
 		fmt.Println("--- OUTPUT FOR " + p + " ---")
 		fmt.Println(output)
-		usages = command.AvailableCommands(p, g, g.Commands())
+		usages = command.CommandUsages(p, g,
+			command.AvailableCommands(p, g, g.Commands()))
 		if len(usages) > 0 {
 			commandsOutput, err := render.RenderTerminal(render.CommandUsages(
 				usages))

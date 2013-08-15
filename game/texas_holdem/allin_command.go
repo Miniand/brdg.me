@@ -20,13 +20,14 @@ func (ac AllinCommand) CanCall(player string, context interface{}) bool {
 		!g.IsFinished()
 }
 
-func (ac AllinCommand) Call(player string, context interface{}, args []string) error {
+func (ac AllinCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerNum(player)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.AllIn(playerNum)
+	return "", g.AllIn(playerNum)
 }
 
 func (ac AllinCommand) Usage(player string, context interface{}) string {

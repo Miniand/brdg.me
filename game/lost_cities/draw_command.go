@@ -16,13 +16,14 @@ func (d DrawCommand) CanCall(player string, context interface{}) bool {
 		g.TurnPhase == TURN_PHASE_DRAW && !g.IsFinished()
 }
 
-func (d DrawCommand) Call(player string, context interface{}, args []string) error {
+func (d DrawCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.DrawCard(playerNum)
+	return "", g.DrawCard(playerNum)
 }
 
 func (d DrawCommand) Usage(player string, context interface{}) string {

@@ -17,17 +17,18 @@ func (d TakeCommand) CanCall(player string, context interface{}) bool {
 		g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
 }
 
-func (d TakeCommand) Call(player string, context interface{}, args []string) error {
+func (d TakeCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {
-		return errors.New("You must specify a type of card to take, such as r")
+		return "", errors.New("You must specify a type of card to take, such as r")
 	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.TakeCard(playerNum, SUIT_RED)
+	return "", g.TakeCard(playerNum, SUIT_RED)
 }
 
 func (d TakeCommand) Usage(player string, context interface{}) string {

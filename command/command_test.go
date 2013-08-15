@@ -13,8 +13,9 @@ func (c CommandTest) Parse(input string) []string {
 func (c CommandTest) CanCall(player string, context interface{}) bool {
 	return true
 }
-func (c CommandTest) Call(player string, context interface{}, args []string) error {
-	return nil
+func (c CommandTest) Call(player string, context interface{},
+	args []string) (string, error) {
+	return "tessssst", nil
 }
 func (c CommandTest) Usage(player string, context interface{}) string {
 	return "Fart"
@@ -37,9 +38,12 @@ func TestCommandInterface(t *testing.T) {
 }
 
 func TestCallInCommands(t *testing.T) {
-	err := CallInCommands("bob", nil, `test
+	output, err := CallInCommands("bob", nil, `test
 		  test`, []Command{CommandTest{}})
 	if err != nil {
 		t.Fatal(err)
+	}
+	if output != "tessssst" {
+		t.Fatal("Expected output to be tessssst, got:", output)
 	}
 }

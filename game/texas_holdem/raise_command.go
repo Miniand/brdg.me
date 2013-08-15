@@ -26,21 +26,22 @@ func (rc RaiseCommand) CanCall(player string, context interface{}) bool {
 		!g.IsFinished()
 }
 
-func (rc RaiseCommand) Call(player string, context interface{}, args []string) error {
+func (rc RaiseCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {
-		return errors.New("You must specify the amount to raise by")
+		return "", errors.New("You must specify the amount to raise by")
 	}
 	amount, err := strconv.Atoi(a[0])
 	if err != nil {
-		return errors.New("Could not understand your raise amount, only use numbers and no punctuation or symbols")
+		return "", errors.New("Could not understand your raise amount, only use numbers and no punctuation or symbols")
 	}
 	playerNum, err := g.PlayerNum(player)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.Raise(playerNum, amount)
+	return "", g.Raise(playerNum, amount)
 }
 
 func (rc RaiseCommand) Usage(player string, context interface{}) string {

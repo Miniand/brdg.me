@@ -17,21 +17,22 @@ func (d PlayCommand) CanCall(player string, context interface{}) bool {
 		g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
 }
 
-func (d PlayCommand) Call(player string, context interface{}, args []string) error {
+func (d PlayCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {
-		return errors.New("You must specify a card to play, such as r5")
+		return "", errors.New("You must specify a card to play, such as r5")
 	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
-		return err
+		return "", err
 	}
 	c, err := g.ParseCardString(a[0])
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.PlayCard(playerNum, c)
+	return "", g.PlayCard(playerNum, c)
 }
 
 func (d PlayCommand) Usage(player string, context interface{}) string {

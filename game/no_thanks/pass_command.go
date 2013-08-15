@@ -16,9 +16,10 @@ func (pc PassCommand) CanCall(player string, context interface{}) bool {
 		!g.IsFinished()
 }
 
-func (pc PassCommand) Call(player string, context interface{}, args []string) error {
+func (pc PassCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
-	return g.Pass(player)
+	return "", g.Pass(player)
 }
 
 func (pc PassCommand) Usage(player string, context interface{}) string {

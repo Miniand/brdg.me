@@ -17,21 +17,22 @@ func (d DiscardCommand) CanCall(player string, context interface{}) bool {
 		g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
 }
 
-func (d DiscardCommand) Call(player string, context interface{}, args []string) error {
+func (d DiscardCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {
-		return errors.New("You must specify a card to discard, such as r5")
+		return "", errors.New("You must specify a card to discard, such as r5")
 	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
-		return err
+		return "", err
 	}
 	c, err := g.ParseCardString(a[0])
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.DiscardCard(playerNum, c)
+	return "", g.DiscardCard(playerNum, c)
 }
 
 func (d DiscardCommand) Usage(player string, context interface{}) string {

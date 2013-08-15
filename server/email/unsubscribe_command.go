@@ -20,10 +20,11 @@ func (uc UnsubscribeCommand) CanCall(player string, context interface{}) bool {
 	return !unsubscribed
 }
 
-func (uc UnsubscribeCommand) Call(player string, context interface{}, args []string) error {
+func (uc UnsubscribeCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	u, err := model.FirstUserByEmail(player)
 	if err != nil {
-		return errors.New("Could not find you in the database")
+		return "", errors.New("Could not find you in the database")
 	}
 	if u == nil {
 		u = &model.UserModel{
@@ -33,9 +34,9 @@ func (uc UnsubscribeCommand) Call(player string, context interface{}, args []str
 	u.Unsubscribed = true
 	err = u.Save()
 	if err != nil {
-		return errors.New("Could not mark you as unsubscribed in the database")
+		return "", errors.New("Could not mark you as unsubscribed in the database")
 	}
-	return nil
+	return "You have unsubscribed from brdg.me", nil
 }
 
 func (uc UnsubscribeCommand) Usage(player string, context interface{}) string {

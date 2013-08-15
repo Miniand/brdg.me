@@ -26,13 +26,14 @@ func (nc NewCommand) CanCall(player string, context interface{}) bool {
 	return context == nil || context.(game.Playable).IsFinished()
 }
 
-func (nc NewCommand) Call(player string, context interface{}, args []string) error {
+func (nc NewCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	if len(args) < 2 {
 		errors.New("Could not find game name and email addresses")
 	}
 	gType := game.Collection()[args[1]]
 	if gType == nil {
-		return errors.New(fmt.Sprintf(
+		return "", errors.New(fmt.Sprintf(
 			`Sorry, could not find a game called "%s", please see below for available game IDs`,
 			args[1]))
 	}
@@ -40,13 +41,13 @@ func (nc NewCommand) Call(player string, context interface{}, args []string) err
 		strings.TrimSpace(args[2]), -1)...)
 	g, err := gType(players)
 	if err != nil {
-		return err
+		return "", err
 	}
 	gm, err := model.SaveGame(g)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return CommunicateGameTo(gm.Id, g, g.PlayerList(),
+	return "", CommunicateGameTo(gm.Id, g, g.PlayerList(),
 		"You have been invited by "+player+" to play "+g.Name()+" by email!",
 		true)
 }

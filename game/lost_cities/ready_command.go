@@ -19,13 +19,14 @@ func (d ReadyCommand) CanCall(player string, context interface{}) bool {
 	return !g.ReadyPlayers[playerNum] && g.IsEndOfRound()
 }
 
-func (d ReadyCommand) Call(player string, context interface{}, args []string) error {
+func (d ReadyCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return g.PlayerReady(playerNum)
+	return "", g.PlayerReady(playerNum)
 }
 
 func (d ReadyCommand) Usage(player string, context interface{}) string {

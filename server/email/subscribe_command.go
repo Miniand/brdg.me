@@ -20,10 +20,11 @@ func (sc SubscribeCommand) CanCall(player string, context interface{}) bool {
 	return unsubscribed
 }
 
-func (sc SubscribeCommand) Call(player string, context interface{}, args []string) error {
+func (sc SubscribeCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	u, err := model.FirstUserByEmail(player)
 	if err != nil {
-		return errors.New("Could not find you in the database")
+		return "", errors.New("Could not find you in the database")
 	}
 	if u == nil {
 		u = &model.UserModel{
@@ -33,9 +34,9 @@ func (sc SubscribeCommand) Call(player string, context interface{}, args []strin
 	u.Unsubscribed = false
 	err = u.Save()
 	if err != nil {
-		return errors.New("Could not mark you as subscribed in the database")
+		return "", errors.New("Could not mark you as subscribed in the database")
 	}
-	return nil
+	return "You are now able to access brdg.me again", nil
 }
 
 func (sc SubscribeCommand) Usage(player string, context interface{}) string {

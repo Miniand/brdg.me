@@ -18,14 +18,15 @@ func (c PlayCommand) CanCall(player string, context interface{}) bool {
 }
 
 // Make an action for the specified player
-func (c PlayCommand) Call(player string, context interface{}, args []string) error {
+func (c PlayCommand) Call(player string, context interface{},
+	args []string) (string, error) {
 	g := context.(*Game)
 	action := strings.ToLower(args[1])
 	if g.CurrentlyMoving != player {
-		return errors.New("Not your turn")
+		return "", errors.New("Not your turn")
 	}
 	if !regexp.MustCompile("^[abcdefghi]$").MatchString(action) {
-		return errors.New("Your action must be a letter between a - i")
+		return "", errors.New("Your action must be a letter between a - i")
 	}
 	var x, y int
 	switch action {
@@ -59,10 +60,10 @@ func (c PlayCommand) Call(player string, context interface{}, args []string) err
 	}
 	err := g.MarkCellForPlayer(player, x, y)
 	if err != nil {
-		return err
+		return "", err
 	}
 	g.NextPlayer()
-	return nil
+	return "", nil
 }
 
 func (c PlayCommand) Usage(player string, context interface{}) string {
