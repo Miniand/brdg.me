@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/beefsack/brdg.me/command"
-	"github.com/beefsack/brdg.me/game"
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game"
 )
 
 type PokeCommand struct{}

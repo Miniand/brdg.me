@@ -1,8 +1,8 @@
 package lost_cities
 
 import (
-	"github.com/beefsack/brdg.me/command"
-	"github.com/beefsack/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
 	"testing"
 )
 

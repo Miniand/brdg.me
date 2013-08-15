@@ -1,7 +1,7 @@
 package texas_holdem
 
 import (
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 	"testing"
 )
 
@@ -125,7 +125,7 @@ func TestDealerRaiseWhenLastPlayer(t *testing.T) {
 	}
 }
 
-// https://github.com/beefsack/brdg.me/issues/3
+// https://github.com/Miniand/brdg.me/issues/3
 func TestAllInAboveOtherPlayer(t *testing.T) {
 	g := &Game{}
 	err := g.Start([]string{"BJ", "Mick"})
@@ -170,7 +170,7 @@ func TestAllPlayersAllInWhenBlindsBiggerThanCash(t *testing.T) {
 	}
 }
 
-// https://github.com/beefsack/brdg.me/issues/5
+// https://github.com/Miniand/brdg.me/issues/5
 func TestNextPlayerIsSkippedOnNextPhaseWhenNoMoney(t *testing.T) {
 	g := &Game{}
 	err := g.Start([]string{"BJ", "Mick", "Steve"})

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 	"math/rand"
 	"sort"
 	"strconv"

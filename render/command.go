@@ -2,7 +2,7 @@ package render
 
 import (
 	"bytes"
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 )
 
 func OutputCommands(player string, context interface{},

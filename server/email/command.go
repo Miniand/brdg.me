@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 )
 
 func Commands() []command.Command {

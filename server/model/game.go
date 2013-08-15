@@ -2,7 +2,7 @@ package model
 
 import (
 	"errors"
-	"github.com/beefsack/brdg.me/game"
+	"github.com/Miniand/brdg.me/game"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )

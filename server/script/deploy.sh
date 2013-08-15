@@ -10,24 +10,8 @@ if [[ `uname` != "Linux" || `uname -m` != "x86_64" ]]; then
 fi
 
 # Run tests first
-cd $(dirname $0)/../..
-TEST_DIRS=(
-	"command"
-	"game"
-	"game/card"
-	"game/log"
-	"game/poker"
-	"game/no_thanks"
-	"game/tic_tac_toe"
-	"render"
-	"server/email"
-	"server/model"
-)
-for i in "${TEST_DIRS[@]}"
-do
-	go test -i ./$i
-	go test ./$i
-done
+cd $(dirname $0)
+./test.sh
 
 # Build and deploy files
 cd server/email

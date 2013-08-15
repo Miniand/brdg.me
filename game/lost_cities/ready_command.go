@@ -1,7 +1,7 @@
 package lost_cities
 
 import (
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 )
 
 type ReadyCommand struct{}

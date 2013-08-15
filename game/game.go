@@ -1,11 +1,11 @@
 package game
 
 import (
-	"github.com/beefsack/brdg.me/command"
-	"github.com/beefsack/brdg.me/game/lost_cities"
-	"github.com/beefsack/brdg.me/game/no_thanks"
-	"github.com/beefsack/brdg.me/game/texas_holdem"
-	"github.com/beefsack/brdg.me/game/tic_tac_toe"
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/lost_cities"
+	"github.com/Miniand/brdg.me/game/no_thanks"
+	"github.com/Miniand/brdg.me/game/texas_holdem"
+	"github.com/Miniand/brdg.me/game/tic_tac_toe"
 )
 
 type Playable interface {

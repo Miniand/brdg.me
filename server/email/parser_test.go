@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/beefsack/brdg.me/command"
-	"github.com/beefsack/brdg.me/game/texas_holdem"
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/texas_holdem"
 	"testing"
 )
 
@@ -40,7 +40,7 @@ Bob`
 	ParseBody(body)
 }
 
-// @see https://github.com/beefsack/brdg.me/issues/22
+// @see https://github.com/Miniand/brdg.me/issues/22
 func TestTexasHoldemRaiseBelowMin(t *testing.T) {
 	g := &texas_holdem.Game{}
 	err := g.Start([]string{"beefsack@gmail.com", "baconheist@gmail.com",

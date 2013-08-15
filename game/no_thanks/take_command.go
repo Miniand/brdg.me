@@ -1,7 +1,7 @@
 package no_thanks
 
 import (
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 )
 
 type TakeCommand struct{}

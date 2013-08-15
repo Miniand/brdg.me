@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/beefsack/brdg.me/game"
-	"github.com/beefsack/brdg.me/server/model"
+	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/server/model"
 	"regexp"
 	"strings"
 )

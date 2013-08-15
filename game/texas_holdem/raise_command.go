@@ -3,7 +3,7 @@ package texas_holdem
 import (
 	"errors"
 	"fmt"
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 	"strconv"
 )
 

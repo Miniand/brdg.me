@@ -1,7 +1,7 @@
 package tic_tac_toe
 
 import (
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 	"testing"
 )
 

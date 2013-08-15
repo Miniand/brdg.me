@@ -2,7 +2,7 @@ package chess
 
 import (
 	"bytes"
-	"github.com/beefsack/brdg.me/render"
+	"github.com/Miniand/brdg.me/render"
 	"strings"
 	"testing"
 )

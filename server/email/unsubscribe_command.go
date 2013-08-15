@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"github.com/beefsack/brdg.me/command"
-	"github.com/beefsack/brdg.me/server/model"
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/server/model"
 )
 
 type UnsubscribeCommand struct{}

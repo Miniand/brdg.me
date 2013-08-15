@@ -1,7 +1,7 @@
 package texas_holdem
 
 import (
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 )
 
 type CheckCommand struct{}

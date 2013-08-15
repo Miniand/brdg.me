@@ -2,7 +2,7 @@ package texas_holdem
 
 import (
 	"fmt"
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 )
 
 type CallCommand struct{}

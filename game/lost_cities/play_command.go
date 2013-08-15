@@ -2,7 +2,7 @@ package lost_cities
 
 import (
 	"errors"
-	"github.com/beefsack/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 )
 
 type PlayCommand struct{}

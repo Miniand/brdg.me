@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/beefsack/brdg.me/server/model"
+	"github.com/Miniand/brdg.me/server/model"
 )
 
 func UserIsUnsubscribed(email string) (bool, error) {

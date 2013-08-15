@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/beefsack/brdg.me/game"
+	"github.com/Miniand/brdg.me/game"
 	"testing"
 )
 

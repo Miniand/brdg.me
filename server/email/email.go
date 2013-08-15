@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/beefsack/brdg.me/render"
+	"github.com/Miniand/brdg.me/render"
 	"io"
 	"io/ioutil"
 	"mime"
