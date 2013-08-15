@@ -59,3 +59,14 @@ func AvailableCommands(player string, context interface{},
 	}
 	return
 }
+
+func CommandUsages(player string, context interface{},
+	commands []Command) (usages []string) {
+	for _, c := range commands {
+		usage := c.Usage(player, context)
+		if usage != "" {
+			usages = append(usages, usage)
+		}
+	}
+	return
+}

@@ -122,11 +122,14 @@ func SendMailAuth() smtp.Auth {
 
 func SendRichMail(to []string, subject string, body string,
 	extraHeaders []string) error {
-	terminalOutput, err := render.RenderTerminal(body)
+	bodyWithFooter := fmt.Sprintf(
+		"%s\n\n\n{{c \"gray\"}}To no longer receive emails or game invites, please reply with {{b}}unsubscribe{{_b}}.{{_c}}",
+		body)
+	terminalOutput, err := render.RenderTerminal(bodyWithFooter)
 	if err != nil {
 		return err
 	}
-	htmlOutput, err := render.RenderHtml(body)
+	htmlOutput, err := render.RenderHtml(bodyWithFooter)
 	if err != nil {
 		return err
 	}

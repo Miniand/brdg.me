@@ -2,16 +2,14 @@ package render
 
 import (
 	"bytes"
-	"github.com/Miniand/brdg.me/command"
 )
 
-func OutputCommands(player string, context interface{},
-	commands []command.Command) string {
+func CommandUsages(usages []string) string {
 	buf := bytes.NewBufferString("{{b}}You can:{{_b}}")
-	for _, c := range commands {
+	for _, usage := range usages {
 		buf.WriteByte('\n')
 		buf.WriteString(" * ")
-		buf.WriteString(c.Usage(player, context))
+		buf.WriteString(usage)
 	}
 	return buf.String()
 }

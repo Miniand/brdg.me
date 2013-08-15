@@ -14,7 +14,7 @@ type GameModel struct {
 	IsFinished bool
 	WhoseTurn  []string
 	Type       string
-	State      string
+	State      []byte
 }
 
 func GameCollection(session *mgo.Session) *mgo.Collection {
@@ -65,7 +65,7 @@ func GameToGameModel(g game.Playable) (*GameModel, error) {
 		IsFinished: g.IsFinished(),
 		WhoseTurn:  g.WhoseTurn(),
 		Type:       g.Identifier(),
-		State:      string(state),
+		State:      state,
 	}
 	return gm, nil
 	return nil, nil
@@ -76,7 +76,7 @@ func (gm *GameModel) ToGame() (game.Playable, error) {
 	if g == nil {
 		return nil, errors.New("Unable to find game type " + gm.Type)
 	}
-	err := g.Decode([]byte(gm.State))
+	err := g.Decode(gm.State)
 	return g, err
 }
 

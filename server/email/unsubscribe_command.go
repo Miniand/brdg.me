@@ -39,5 +39,6 @@ func (uc UnsubscribeCommand) Call(player string, context interface{}, args []str
 }
 
 func (uc UnsubscribeCommand) Usage(player string, context interface{}) string {
-	return "{{b}}unsubscribe{{_b}} to stop getting any future emails or game invites"
+	// We don't want it to show in the usage section
+	return ""
 }

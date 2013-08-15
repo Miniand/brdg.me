@@ -14,7 +14,7 @@ cd $(dirname $0)
 ./test.sh
 
 # Build and deploy files
-cd server/email
+cd ../email
 go get
 go build
 ssh $DEPLOY_ADDRESS service brdg.me-email stop

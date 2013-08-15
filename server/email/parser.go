@@ -47,8 +47,9 @@ func HandleCommandText(player, gameId string, commandText string) error {
 				body.WriteString("\n\n")
 			}
 			body.WriteString("Welcome to brdg.me!\n\n")
-			body.WriteString(render.OutputCommands(player, nil,
-				command.AvailableCommands(player, nil, commands)))
+			body.WriteString(render.CommandUsages(
+				command.CommandUsages(player, nil,
+					command.AvailableCommands(player, nil, commands))))
 			err = SendRichMail([]string{player}, "Welcome to brdg.me!",
 				body.String(), []string{})
 			if err != nil {
@@ -148,6 +149,7 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 	} else {
 		header += "Current turn: " + strings.Join(g.WhoseTurn(), ", ")
 	}
+	commErrs := []string{}
 	for _, p := range to {
 		unsubscribed, err := UserIsUnsubscribed(p)
 		if err == nil && unsubscribed {
@@ -155,13 +157,15 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		}
 		pHeader := header
 		rawOutput, err := g.RenderForPlayer(p)
-		commands := append(g.Commands(), Commands()...)
-		available := command.AvailableCommands(p, g, commands)
-		if len(available) > 0 {
-			pHeader += "\n\n" + render.OutputCommands(p, g, available)
-		}
 		if err != nil {
-			return err
+			commErrs = append(commErrs, err.Error())
+			continue
+		}
+		commands := append(g.Commands(), Commands()...)
+		usages := command.CommandUsages(p, g,
+			command.AvailableCommands(p, g, commands))
+		if len(usages) > 0 {
+			pHeader += "\n\n" + render.CommandUsages(usages)
 		}
 		body := pHeader + "\n\n" + rawOutput
 		subject := fmt.Sprintf("%s (%s)", g.Name(), id.(bson.ObjectId).Hex())
@@ -178,8 +182,12 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		}
 		err = SendRichMail([]string{p}, subject, body, extraHeaders)
 		if err != nil {
-			return err
+			commErrs = append(commErrs, err.Error())
+			continue
 		}
+	}
+	if len(commErrs) > 0 {
+		return errors.New(strings.Join(commErrs, "\n"))
 	}
 	return nil
 }

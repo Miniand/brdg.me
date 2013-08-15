@@ -107,10 +107,10 @@ func PlayAction(args []string) error {
 	saveGame(g)
 	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
 	fmt.Println(output)
-	available := command.AvailableCommands(args[0], g, g.Commands())
-	if len(available) > 0 {
-		commandsOutput, err := render.RenderTerminal(render.OutputCommands(
-			args[0], g, available))
+	usages := command.CommandUsages(args[0], g, g.Commands())
+	if len(usages) > 0 {
+		commandsOutput, err := render.RenderTerminal(render.CommandUsages(
+			usages))
 		if err != nil {
 			return err
 		}
@@ -124,10 +124,10 @@ func PlayAction(args []string) error {
 		}
 		fmt.Println("--- OUTPUT FOR " + p + " ---")
 		fmt.Println(output)
-		available = command.AvailableCommands(p, g, g.Commands())
-		if len(available) > 0 {
-			commandsOutput, err := render.RenderTerminal(render.OutputCommands(
-				p, g, available))
+		usages = command.AvailableCommands(p, g, g.Commands())
+		if len(usages) > 0 {
+			commandsOutput, err := render.RenderTerminal(render.CommandUsages(
+				usages))
 			if err != nil {
 				return err
 			}
