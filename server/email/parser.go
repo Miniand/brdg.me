@@ -13,8 +13,6 @@ import (
 	"strings"
 )
 
-var currentGameId interface{}
-
 // Search for an email address
 func ParseFrom(from string) string {
 	reg := regexp.MustCompile(EmailSearchRegexString())
@@ -37,7 +35,7 @@ func ParseBody(body string) string {
 func HandleCommandText(player, gameId string, commandText string) error {
 	unsubscribed, err := UserIsUnsubscribed(player)
 	if (err == nil && unsubscribed) || gameId == "" {
-		commands := Commands()
+		commands := Commands(nil)
 		err := command.CallInCommands(player, nil, commandText, commands)
 		if err != nil {
 			// Print help
@@ -66,8 +64,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 		if err != nil {
 			return err
 		}
-		currentGameId = gm.Id
-		commands := append(g.Commands(), Commands()...)
+		commands := append(g.Commands(), Commands(gm.Id)...)
 		initialWhoseTurn := g.WhoseTurn()
 		eliminator, isEliminator := g.(game.Eliminator)
 		if isEliminator {
@@ -161,7 +158,7 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			commErrs = append(commErrs, err.Error())
 			continue
 		}
-		commands := append(g.Commands(), Commands()...)
+		commands := append(g.Commands(), Commands(id)...)
 		usages := command.CommandUsages(p, g,
 			command.AvailableCommands(p, g, commands))
 		if len(usages) > 0 {

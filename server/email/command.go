@@ -4,9 +4,11 @@ import (
 	"github.com/Miniand/brdg.me/command"
 )
 
-func Commands() []command.Command {
+func Commands(gameId interface{}) []command.Command {
 	return []command.Command{
-		PokeCommand{},
+		PokeCommand{
+			gameId: gameId,
+		},
 		NewCommand{},
 		UnsubscribeCommand{},
 		SubscribeCommand{},

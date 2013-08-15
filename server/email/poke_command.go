@@ -7,14 +7,16 @@ import (
 	"github.com/Miniand/brdg.me/game"
 )
 
-type PokeCommand struct{}
+type PokeCommand struct {
+	gameId interface{}
+}
 
 func (pc PokeCommand) Parse(input string) []string {
 	return command.ParseNamedCommandNArgs("poke", 0, input)
 }
 
 func (pc PokeCommand) CanCall(player string, context interface{}) bool {
-	if currentGameId == nil {
+	if pc.gameId == nil {
 		return false
 	}
 	g, ok := context.(game.Playable)
@@ -32,14 +34,14 @@ func (pc PokeCommand) CanCall(player string, context interface{}) bool {
 }
 
 func (pc PokeCommand) Call(player string, context interface{}, args []string) error {
-	if currentGameId == nil {
+	if pc.gameId == nil {
 		return errors.New("There is no relevant game ID to poke for")
 	}
 	g, ok := context.(game.Playable)
 	if !ok || g.IsFinished() {
 		return errors.New("The game is already finished")
 	}
-	CommunicateGameTo(currentGameId, g, g.WhoseTurn(),
+	CommunicateGameTo(pc.gameId, g, g.WhoseTurn(),
 		fmt.Sprintf("%s wants to remind you it's your turn!", player), false)
 	return nil
 }
