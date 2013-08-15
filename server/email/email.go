@@ -152,7 +152,7 @@ func SendRichMail(to []string, subject string, body string,
 	if err != nil {
 		return err
 	}
-	_, err = htmlW.Write([]byte(`<pre style="color:#000000;">` + htmlOutput))
+	_, err = htmlW.Write([]byte(`<pre style="color:#000001;">` + htmlOutput))
 	if err != nil {
 		return err
 	}
