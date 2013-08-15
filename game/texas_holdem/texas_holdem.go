@@ -580,7 +580,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			"{{b}}Players{{_b}}",
 			"{{b}}Cash{{_b}}",
 			"{{b}}Bet{{_b}}",
-			"{{b}}Cards{{_b}}",
 		},
 	}
 	for tablePlayerNum, _ := range g.Players {
@@ -591,20 +590,13 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		if g.PlayerMoney[tablePlayerNum] == 0 && g.Bets[tablePlayerNum] == 0 {
 			playerRow = append(playerRow, `{{c "gray"}}Out{{_c}}`)
 		} else {
-			var cards []string
+			extraInfo := ""
 			if g.FoldedPlayers[tablePlayerNum] {
-				cards = []string{`{{c "gray"}}Folded{{_c}}`}
-			} else if g.CanSeeHand(playerNum, tablePlayerNum) {
-				cards = RenderCards(g.PlayerHands[tablePlayerNum])
-			} else {
-				cards = []string{
-					card.RenderStandard52HiddenFixedWidth(),
-					card.RenderStandard52HiddenFixedWidth(),
-				}
+				extraInfo = `{{c "gray"}}Folded{{_c}}`
 			}
 			playerRow = append(playerRow,
 				RenderCash(g.PlayerMoney[tablePlayerNum]),
-				RenderCash(g.Bets[tablePlayerNum]), strings.Join(cards, " "))
+				RenderCash(g.Bets[tablePlayerNum]), extraInfo)
 		}
 		playersTable = append(playersTable, playerRow)
 	}
@@ -619,8 +611,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 
 func RenderCards(deck card.Deck) (output []string) {
 	for _, c := range deck {
-		output = append(output, "{{b}}"+
-			c.(card.SuitRankCard).RenderStandard52FixedWidth()+"{{_b}}")
+		output = append(output, "{{l}}{{b}}"+
+			c.(card.SuitRankCard).RenderStandard52FixedWidth()+"{{_b}}{{_l}}")
 	}
 	return
 }

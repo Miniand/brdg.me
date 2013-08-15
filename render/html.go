@@ -22,7 +22,7 @@ func (t *HtmlMarkupper) EndBold() interface{} {
 	return template.HTML("</b>")
 }
 func (t *HtmlMarkupper) StartLarge() interface{} {
-	return template.HTML(`<span style="text-size:1.6em;">`)
+	return template.HTML(`<span style="font-size:1.6em;">`)
 }
 func (t *HtmlMarkupper) EndLarge() interface{} {
 	return template.HTML("</span>")
