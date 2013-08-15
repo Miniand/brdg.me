@@ -8,6 +8,8 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+	"fmt"
+	"strconv"
 )
 
 type Game struct {
@@ -89,6 +91,10 @@ func (g *Game) Start(players []string) error {
 // Shuffle cards and deal hands, set the start player, set the turn phase etc
 func (g *Game) InitRound() error {
 	g.Board.DrawPile = g.AllCards().Shuffle()
+	g.Board.PlayerHands[0], g.Board.DrawPile = g.Board.DrawPile.PopN(5)
+	g.Board.PlayerHands[0] = g.Board.PlayerHands[0].Sort()
+	g.Board.PlayerHands[1], g.Board.DrawPile = g.Board.DrawPile.PopN(5)
+	g.Board.PlayerHands[1] = g.Board.PlayerHands[1].Sort()
 	return nil
 }
 
@@ -104,7 +110,40 @@ func (g *Game) PlayerFromString(player string) (int, error) {
 
 // Takes a string like b6, rx, y10 and turns it into a Card object
 func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
-	return card.SuitRankCard{}, nil
+	suitnum:=0
+	if len(cardString)<2{
+		return card.SuitRankCard{}, errors.New("not lengthy enough (heyoooo!)")
+	}
+	suit := cardString[0]
+
+	fmt.Println(suit)
+	fmt.Println(cardString)	
+val,err:=strconv.Atoi(cardString[1:])
+if err!=nil{
+		return card.SuitRankCard{}, err
+	}
+
+
+
+switch suit {
+			case 'r':
+				suitnum = SUIT_RED
+			case 'y':
+				suitnum = SUIT_YELLOW
+			case 'b':
+				suitnum = SUIT_BLUE
+			case 'w':
+				suitnum = SUIT_WHITE
+			case 'g':
+				suitnum = SUIT_GREEN
+			}
+
+	return 	card.SuitRankCard{
+			Suit: suitnum,
+			Rank: val,
+	}, nil
+
+
 }
 
 func (g *Game) PlayerAction(player, action string, params []string) error {
@@ -131,6 +170,7 @@ func (g *Game) PlayerAction(player, action string, params []string) error {
 			return err
 		}
 		err = g.DiscardCard(playerNum, c)
+		g.PlayerAction(player, "draw", []string{})
 	case "take":
 		// @todo actually detect the suit from params[0], make sure to check
 		// @params length > 0
@@ -271,10 +311,16 @@ func (g *Game) DrawCard(player int) error {
 	return nil
 }
 
-// Play a card from the hand into an expedition, checking that it is the
-// player's turn, that they have the card in their hand, and that they are able
-// to play the card.  Return an error if any of these don't pass.
+// Discard a card from the hand into a discard stack, checking that it is the
+// player's turn, that they have the card in their hand, 
+// Return an error if any of these don't pass.
 func (g *Game) DiscardCard(player int, c card.SuitRankCard) error {
+	removeCount:=0
+	g.Board.PlayerHands[player], removeCount = g.Board.PlayerHands[player].Remove(c,1)
+	if removeCount==0{
+		return errors.New ("did not have card in hand")
+	}
+	g.Board.DiscardPiles[c.Suit]=g.Board.DiscardPiles[c.Suit].Push(c)
 	return nil
 }
 
