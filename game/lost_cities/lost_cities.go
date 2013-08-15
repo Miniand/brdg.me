@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"github.com/beefsack/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
 	"math/rand"
 	"strings"
 	"time"
@@ -146,6 +147,7 @@ switch suit {
 
 }
 
+// DEPRECATED!  DO NOT MODIFY THIS, IT WILL NEED TO BE DELETED
 func (g *Game) PlayerAction(player, action string, params []string) error {
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
@@ -183,6 +185,18 @@ func (g *Game) PlayerAction(player, action string, params []string) error {
 		err = errors.New("Did not understand your action: " + action)
 	}
 	return err
+}
+
+// Defines which commands are available for Lost Cities, see the _command.go
+// files in this directory.
+func (g *Game) Commands() []command.Command {
+	return []command.Command{
+		DiscardCommand{},
+		PlayCommand{},
+		DrawCommand{},
+		TakeCommand{},
+		ReadyCommand{},
+	}
 }
 
 func (g *Game) Name() string {

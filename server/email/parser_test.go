@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/texas_holdem"
 	"testing"
 )
 
@@ -35,15 +37,20 @@ func TestParseBody(t *testing.T) {
  
 Kind regards,
 Bob`
-	commands := ParseBody(body)
-	if len(commands) != 2 {
-		t.Error("Command count incorrect, expected 2, got", len(commands))
+	ParseBody(body)
+}
+
+// @see https://github.com/Miniand/brdg.me/issues/22
+func TestTexasHoldemRaiseBelowMin(t *testing.T) {
+	g := &texas_holdem.Game{}
+	err := g.Start([]string{"beefsack@gmail.com", "baconheist@gmail.com",
+		"striker203@gmail.com"})
+	if err != nil {
+		t.Fatal(err)
 	}
-	if len(commands[0]) != 1 {
-		t.Error("Expected one part for the first command, got",
-			len(commands[0]))
-	}
-	if commands[0][0] != "pass" {
-		t.Error("Expected first command to be pass, got", commands[0][0])
+	commands := append(g.Commands(), Commands()...)
+	err = command.CallInCommands(g.WhoseTurn()[0], g, "raise 1", commands)
+	if err == nil || err.Error() == "" {
+		t.Fatal("Did not get an error!")
 	}
 }

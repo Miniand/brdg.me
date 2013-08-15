@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/Miniand/brdg.me/command"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -21,15 +22,11 @@ type Game struct {
 	PlayerLogs      map[string][]string
 }
 
-func (g *Game) PlayerAction(player, action string, params []string) error {
-	var err error
-	switch strings.ToLower(action) {
-	case "take":
-		err = g.Take(player)
-	case "pass":
-		err = g.Pass(player)
+func (g *Game) Commands() []command.Command {
+	return []command.Command{
+		TakeCommand{},
+		PassCommand{},
 	}
-	return err
 }
 
 func (g *Game) Name() string {
@@ -56,16 +53,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString("\n\n")
 	}
 	if !g.IsFinished() {
-		if player == g.CurrentlyMoving {
-			buf.WriteString(
-				"It's your turn, you can {{b}}take{{_b}} or {{b}}pass{{_b}} the card.\n\n")
-		}
-		buf.WriteString(
-			`{{b}}Current card:  {{c "blue"}}{{.PeekTopCard}}{{_c}}{{_b}} (`)
+		buf.WriteString(`{{b}}Current card:  {{c "blue"}}`)
+		buf.WriteString(strconv.Itoa(g.PeekTopCard()))
+		buf.WriteString(`{{_c}}{{_b}} (`)
 		buf.WriteString(strconv.Itoa(len(g.RemainingCards) - 1))
 		buf.WriteString(" cards remaining)\n")
-		buf.WriteString(
-			`{{b}}Current chips: {{c "green"}}{{.CentreChips}}{{_c}}{{_b}}`)
+		buf.WriteString(`{{b}}Current chips: {{c "green"}}`)
+		buf.WriteString(strconv.Itoa(g.CentreChips))
+		buf.WriteString(`{{_c}}{{_b}}`)
 		buf.WriteString("\n\n")
 		buf.WriteString(`{{b}}Your hand:{{_b}}  `)
 		if len(g.PlayerHands[player]) > 0 {

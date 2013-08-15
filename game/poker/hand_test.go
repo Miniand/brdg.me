@@ -1,7 +1,7 @@
 package poker
 
 import (
-	"github.com/beefsack/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/card"
 	"testing"
 )
 
@@ -701,7 +701,7 @@ func TestWinningHandResult(t *testing.T) {
 	}
 }
 
-// https://github.com/beefsack/brdg.me/issues/4
+// https://github.com/Miniand/brdg.me/issues/4
 func TestAceIsInFlushResult(t *testing.T) {
 	hand := card.Deck{
 		card.SuitRankCard{

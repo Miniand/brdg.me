@@ -1,6 +1,7 @@
 package texas_holdem
 
 import (
+	"github.com/Miniand/brdg.me/command"
 	"testing"
 )
 
@@ -27,7 +28,8 @@ func TestNextPhaseOnInitialFold(t *testing.T) {
 		t.Fatal(err)
 	}
 	// First player folds
-	err = g.PlayerAction(g.Players[g.CurrentPlayer], "fold", []string{})
+	err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "fold",
+		g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,14 +37,14 @@ func TestNextPhaseOnInitialFold(t *testing.T) {
 		t.Fatal("Cards were already drawn:", g.CommunityCards)
 	}
 	// Next two players call and check, should flop
-	err = g.PlayerAction(g.Players[g.CurrentPlayer], "call", []string{})
+	err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Cards were already drawn:", g.CommunityCards)
 	}
-	err = g.PlayerAction(g.Players[g.CurrentPlayer], "check", []string{})
+	err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "check", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,56 +67,56 @@ func TestDealerRaiseWhenLastPlayer(t *testing.T) {
 		1: 10,
 		2: 0,
 	}
-	err = g.PlayerAction("Mick", "call", []string{})
+	err = command.CallInCommands("Mick", g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Flopped too early")
 	}
-	err = g.PlayerAction("BJ", "call", []string{})
+	err = command.CallInCommands("BJ", g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Flopped too early")
 	}
-	err = g.PlayerAction("Pete", "check", []string{})
+	err = command.CallInCommands("Pete", g, "check", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Flop didn't happen")
 	}
-	err = g.PlayerAction("BJ", "check", []string{})
+	err = command.CallInCommands("BJ", g, "check", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	err = g.PlayerAction("Pete", "check", []string{})
+	err = command.CallInCommands("Pete", g, "check", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	err = g.PlayerAction("Mick", "raise", []string{"10"})
+	err = command.CallInCommands("Mick", g, "raise 10", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	err = g.PlayerAction("BJ", "call", []string{})
+	err = command.CallInCommands("BJ", g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	err = g.PlayerAction("Pete", "call", []string{})
+	err = command.CallInCommands("Pete", g, "call", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +125,7 @@ func TestDealerRaiseWhenLastPlayer(t *testing.T) {
 	}
 }
 
-// https://github.com/beefsack/brdg.me/issues/3
+// https://github.com/Miniand/brdg.me/issues/3
 func TestAllInAboveOtherPlayer(t *testing.T) {
 	g := &Game{}
 	err := g.Start([]string{"BJ", "Mick"})
@@ -143,7 +145,7 @@ func TestAllInAboveOtherPlayer(t *testing.T) {
 		1: 20,
 	}
 	// Go all in with BJ
-	err = g.PlayerAction("BJ", "allin", []string{})
+	err = command.CallInCommands("BJ", g, "allin", g.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +170,7 @@ func TestAllPlayersAllInWhenBlindsBiggerThanCash(t *testing.T) {
 	}
 }
 
-// https://github.com/beefsack/brdg.me/issues/5
+// https://github.com/Miniand/brdg.me/issues/5
 func TestNextPlayerIsSkippedOnNextPhaseWhenNoMoney(t *testing.T) {
 	g := &Game{}
 	err := g.Start([]string{"BJ", "Mick", "Steve"})
@@ -192,5 +194,21 @@ func TestNextPlayerIsSkippedOnNextPhaseWhenNoMoney(t *testing.T) {
 	g.NextPhase()
 	if g.CurrentPlayer != 2 {
 		t.Fatal("Didn't skip over Mick on new phase even though he is all in, got:", g.CurrentPlayer)
+	}
+}
+
+func TestEliminatedPlayers(t *testing.T) {
+	g := &Game{}
+	err := g.Start([]string{"BJ", "Mick", "Steve"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.PlayerMoney[0] = 0
+	g.PlayerMoney[1] = 0
+	g.Bets[0] = 0
+	g.Bets[1] = 5
+	eliminated := g.EliminatedPlayerList()
+	if len(eliminated) != 1 || eliminated[0] != "BJ" {
+		t.Fatal("Expected only BJ to be eliminated, got:", eliminated)
 	}
 }

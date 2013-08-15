@@ -19,8 +19,8 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 	// Body is an actual email
 	player := ParseFrom(msg.Header.Get("From"))
 	gameId := ParseSubject(msg.Header.Get("Subject"))
-	commands := ParseBody(body)
-	err = HandleCommands(player, gameId, commands)
+	commandText := ParseBody(body)
+	err = HandleCommandText(player, gameId, commandText)
 	if err != nil {
 		log.Println("Error handling commands: " + err.Error())
 		http.Error(w, "Error handling commands: "+err.Error(), 500)

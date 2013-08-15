@@ -5,12 +5,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/beefsack/brdg.me/game/card"
-	"github.com/beefsack/brdg.me/game/log"
-	"github.com/beefsack/brdg.me/game/poker"
-	"github.com/beefsack/brdg.me/render"
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/game/poker"
+	"github.com/Miniand/brdg.me/render"
 	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -220,34 +220,14 @@ func (g *Game) Bet(playerNum int, amount int) error {
 	return nil
 }
 
-func (g *Game) PlayerAction(player string, action string, args []string) (err error) {
-	playerNum, err := g.PlayerNum(player)
-	if err == nil {
-		switch strings.ToLower(action) {
-		case "check":
-			err = g.Check(playerNum)
-		case "fold":
-			err = g.Fold(playerNum)
-		case "call":
-			err = g.Call(playerNum)
-		case "raise":
-			if len(args) == 0 {
-				err = errors.New("You must specify an amount to raise")
-			} else {
-				amount, err := strconv.Atoi(args[0])
-				if err != nil {
-					err = errors.New("Could not understand your raise amount, only use numbers and no punctuation or symbols")
-				} else {
-					err = g.Raise(playerNum, amount)
-				}
-			}
-		case "allin":
-			err = g.AllIn(playerNum)
-		default:
-			err = errors.New(fmt.Sprintf("Unknown command: %s", action))
-		}
+func (g *Game) Commands() []command.Command {
+	return []command.Command{
+		CheckCommand{},
+		CallCommand{},
+		RaiseCommand{},
+		FoldCommand{},
+		AllinCommand{},
 	}
-	return
 }
 
 func (g *Game) PlayerNum(player string) (int, error) {
@@ -594,27 +574,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString("{{b}}Your cash{{_b}}:   ")
 	buf.WriteString(RenderCash(g.PlayerMoney[playerNum]))
 	buf.WriteString("\n\n")
-	if playerNum == g.CurrentPlayer {
-		// Available actions
-		actions := []string{}
-		currentBet := g.CurrentBet()
-		currentBetDiff := currentBet - g.Bets[playerNum]
-		if currentBetDiff == 0 {
-			actions = append(actions, "{{b}}check{{_b}}")
-		}
-		if currentBetDiff > 0 && currentBetDiff < g.PlayerMoney[playerNum] {
-			actions = append(actions, fmt.Sprintf("{{b}}call{{_b}} (for $%d)",
-				currentBet-g.Bets[playerNum]), "{{b}}fold{{_b}}")
-		}
-		if currentBetDiff+g.LargestRaise < g.PlayerMoney[playerNum] {
-			actions = append(actions, fmt.Sprintf(
-				"{{b}}raise ##{{_b}} (where ## is at least $%d)",
-				max(g.MinimumBet, g.LargestRaise)))
-		}
-		actions = append(actions, "{{b}}allin{{_b}}")
-		buf.WriteString(
-			"It's your turn, you can: " + strings.Join(actions, ", ") + "\n\n")
-	}
 	// All players table
 	playersTable := [][]string{
 		[]string{
@@ -690,6 +649,15 @@ func (g *Game) Winners() []string {
 
 func (g *Game) WhoseTurn() []string {
 	return []string{g.Players[g.CurrentPlayer]}
+}
+
+func (g *Game) EliminatedPlayerList() (eliminatedPlayers []string) {
+	for playerNum, p := range g.Players {
+		if g.PlayerMoney[playerNum] == 0 && g.Bets[playerNum] == 0 {
+			eliminatedPlayers = append(eliminatedPlayers, p)
+		}
+	}
+	return
 }
 
 func min(numbers ...int) int {
