@@ -21,6 +21,12 @@ func (t *HtmlMarkupper) StartBold() interface{} {
 func (t *HtmlMarkupper) EndBold() interface{} {
 	return template.HTML("</b>")
 }
+func (t *HtmlMarkupper) StartLarge() interface{} {
+	return template.HTML(`<span style="text-size:1.6em;">`)
+}
+func (t *HtmlMarkupper) EndLarge() interface{} {
+	return template.HTML("</span>")
+}
 
 func RenderHtml(tmpl string) (string, error) {
 	t := template.Must(template.New("tmpl").

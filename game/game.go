@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/farkle"
 	"github.com/Miniand/brdg.me/game/lost_cities"
 	"github.com/Miniand/brdg.me/game/no_thanks"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
@@ -30,6 +31,7 @@ type Eliminator interface {
 // in here
 func gameList() []Playable {
 	return []Playable{
+		&farkle.Game{},
 		&lost_cities.Game{},
 		&no_thanks.Game{},
 		&texas_holdem.Game{},

@@ -21,6 +21,12 @@ func (t *PlainMarkupper) StartBold() interface{} {
 func (t *PlainMarkupper) EndBold() interface{} {
 	return ""
 }
+func (t *PlainMarkupper) StartLarge() interface{} {
+	return ""
+}
+func (t *PlainMarkupper) EndLarge() interface{} {
+	return ""
+}
 
 func RenderPlain(tmpl string) (string, error) {
 	t := template.Must(template.New("tmpl").
