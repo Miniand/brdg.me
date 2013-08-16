@@ -28,7 +28,11 @@ type Game struct {
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		TakeCommand{},
+		RollCommand{},
+		DoneCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -53,6 +57,10 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
+	playerNum, err := g.GetPlayerNum(player)
+	if err != nil {
+		return "", err
+	}
 	buf := bytes.NewBufferString("")
 	newMessages := g.Log.NewMessagesFor(player)
 	if len(newMessages) > 0 {
@@ -60,11 +68,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString(log.RenderMessages(newMessages))
 		buf.WriteString("\n\n")
 	}
-	cells := [][]string{
-		[]string{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
-		[]string{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)},
-		[]string{"{{b}}Your score{{_b}}", strconv.Itoa(g.TurnScore)},
+	cells := [][]string{}
+	if playerNum == g.Player {
+		cells = append(cells,
+			[]string{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
+			[]string{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)})
 	}
+	cells = append(cells,
+		[]string{"{{b}}Your score{{_b}}", strconv.Itoa(g.Scores[playerNum])})
 	t, err := render.Table(cells, 0, 1)
 	if err != nil {
 		return "", err
@@ -100,6 +111,7 @@ func (g *Game) Start(players []string) error {
 		return errors.New("Farkle requires at least two players")
 	}
 	g.Log = log.NewLog()
+	g.Scores = map[int]int{}
 	g.Players = players
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	g.Player = r.Int() % len(g.Players)
@@ -109,7 +121,7 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) StartTurn() {
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("It is now %s's turn",
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("It is now %s's turn",
 		render.PlayerName(g.Player, g.Players[g.Player]))))
 	g.TurnScore = 0
 	g.TakenThisRoll = false
@@ -168,22 +180,17 @@ func (g *Game) Roll(n int) {
 		g.RemainingDice[i] = r.Int()%6 + 1
 	}
 	sort.IntSlice(g.RemainingDice).Sort()
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s rolled %s",
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s rolled %s",
 		render.PlayerName(g.Player, g.Players[g.Player]),
 		RenderDice(g.RemainingDice))))
-	// Check that there is something to score in the roll, otherwise end of turn
-	for _, s := range Scores() {
-		isIn, _ := die.DiceInDice(s.Dice, g.RemainingDice)
-		if isIn {
-			return
-		}
+	if len(AvailableScores(g.RemainingDice)) == 0 {
+		// No dice!
+		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s rolled no scoring dice and lost %d points!",
+			render.PlayerName(g.Player, g.Players[g.Player]),
+			g.TurnScore)))
+		g.NextPlayer()
 	}
-	// No dice!
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s rolled no scoring dice and lost %d points!",
-		render.PlayerName(g.Player, g.Players[g.Player]),
-		g.TurnScore)))
-	g.NextPlayer()
 }
 
 func RenderDice(dice []int) string {
@@ -195,4 +202,13 @@ func RenderDice(dice []int) string {
 	buf.WriteString(strings.Join(renderedDice, " "))
 	buf.WriteString("{{_l}}")
 	return buf.String()
+}
+
+func (g *Game) GetPlayerNum(player string) (int, error) {
+	for playerNum, p := range g.Players {
+		if p == player {
+			return playerNum, nil
+		}
+	}
+	return 0, errors.New("Could not find player " + player)
 }

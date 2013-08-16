@@ -34,3 +34,18 @@ func ScoreStrings() (scoreStrings []string) {
 	}
 	return
 }
+
+func AvailableScores(dice []int) (available map[string]Score) {
+	available = map[string]Score{}
+	for _, s := range Scores() {
+		isIn, _ := die.DiceInDice(s.Dice, dice)
+		if isIn {
+			str, err := die.DiceToValueString(dice)
+			if err != nil {
+				panic(err.Error())
+			}
+			available[str] = s
+		}
+	}
+	return
+}

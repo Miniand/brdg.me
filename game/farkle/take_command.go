@@ -18,7 +18,8 @@ func (tc TakeCommand) Parse(input string) []string {
 
 func (tc TakeCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	return player == g.Players[g.Player] && !g.IsFinished()
+	return player == g.Players[g.Player] && !g.IsFinished() &&
+		len(AvailableScores(g.RemainingDice)) > 0
 }
 
 func (tc TakeCommand) Call(player string, context interface{},
@@ -58,10 +59,10 @@ func (tc TakeCommand) Call(player string, context interface{},
 	g.TurnScore += score
 	g.TakenThisRoll = true
 	g.RemainingDice = remaining
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s took %s for %d points, has %d points this turn",
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s took %s for %d points",
 		render.PlayerName(g.Player, g.Players[g.Player]),
-		RenderDice(take), score, g.TurnScore)))
+		RenderDice(take), score)))
 	return "", nil
 }
 
