@@ -28,10 +28,7 @@ func (dc DoneCommand) Call(player string, context interface{},
 	if g.IsFinished() {
 		return "", errors.New("The game is already finished")
 	}
-	g.Player = (g.Player + 1) % len(g.Players)
-	if !g.IsFinished() {
-		g.StartTurn()
-	}
+	g.NextPlayer()
 	return "", nil
 }
 

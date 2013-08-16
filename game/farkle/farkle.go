@@ -4,10 +4,14 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/die"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 	"math/rand"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -20,6 +24,7 @@ type Game struct {
 	TurnScore     int
 	RemainingDice []int
 	TakenThisRoll bool
+	Log           log.Log
 }
 
 func (g *Game) Commands() []command.Command {
@@ -48,19 +53,53 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	output := bytes.NewBufferString("")
-	renderedDice := make([]string, len(g.RemainingDice))
-	for i, d := range g.RemainingDice {
-		renderedDice[i] = die.Render(d)
+	buf := bytes.NewBufferString("")
+	newMessages := g.Log.NewMessagesFor(player)
+	if len(newMessages) > 0 {
+		buf.WriteString("{{b}}Since last time:{{_b}}\n")
+		buf.WriteString(log.RenderMessages(newMessages))
+		buf.WriteString("\n\n")
 	}
-	output.WriteString(strings.Join(renderedDice, " "))
-	return output.String(), nil
+	cells := [][]string{
+		[]string{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
+		[]string{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)},
+		[]string{"{{b}}Your score{{_b}}", strconv.Itoa(g.TurnScore)},
+	}
+	t, err := render.Table(cells, 0, 1)
+	if err != nil {
+		return "", err
+	}
+	buf.WriteString(t)
+	buf.WriteString("\n\n")
+	cells = [][]string{
+		[]string{
+			"{{b}}Player{{_b}}",
+			"{{b}}Score{{_b}}",
+		},
+	}
+	for playerNum, player := range g.Players {
+		playerName := player
+		if playerNum == g.FirstPlayer {
+			playerName += " (started)"
+		}
+		cells = append(cells, []string{
+			playerName,
+			strconv.Itoa(g.Scores[playerNum]),
+		})
+	}
+	t, err = render.Table(cells, 0, 1)
+	if err != nil {
+		return "", err
+	}
+	buf.WriteString(t)
+	return buf.String(), nil
 }
 
 func (g *Game) Start(players []string) error {
 	if len(players) < 2 {
 		return errors.New("Farkle requires at least two players")
 	}
+	g.Log = log.NewLog()
 	g.Players = players
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	g.Player = r.Int() % len(g.Players)
@@ -70,6 +109,8 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) StartTurn() {
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("It is now %s's turn",
+		render.PlayerName(g.Player, g.Players[g.Player]))))
 	g.TurnScore = 0
 	g.TakenThisRoll = false
 	g.Roll(6)
@@ -80,6 +121,14 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
+	if g.Player != g.FirstPlayer {
+		return false
+	}
+	for _, s := range g.Scores {
+		if s >= 10000 {
+			return true
+		}
+	}
 	return false
 }
 
@@ -87,11 +136,29 @@ func (g *Game) Winners() []string {
 	if !g.IsFinished() {
 		return []string{}
 	}
-	return []string{}
+	winners := []string{}
+	winningScore := 0
+	for playerNum, player := range g.Players {
+		if g.Scores[playerNum] > winningScore {
+			winners = []string{}
+			winningScore = g.Scores[playerNum]
+		}
+		if g.Scores[playerNum] == winningScore {
+			winners = append(winners, player)
+		}
+	}
+	return winners
 }
 
 func (g *Game) WhoseTurn() []string {
 	return []string{g.Players[g.Player]}
+}
+
+func (g *Game) NextPlayer() {
+	g.Player = (g.Player + 1) % len(g.Players)
+	if !g.IsFinished() {
+		g.StartTurn()
+	}
 }
 
 func (g *Game) Roll(n int) {
@@ -101,4 +168,31 @@ func (g *Game) Roll(n int) {
 		g.RemainingDice[i] = r.Int()%6 + 1
 	}
 	sort.IntSlice(g.RemainingDice).Sort()
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s rolled %s",
+		render.PlayerName(g.Player, g.Players[g.Player]),
+		RenderDice(g.RemainingDice))))
+	// Check that there is something to score in the roll, otherwise end of turn
+	for _, s := range Scores() {
+		isIn, _ := die.DiceInDice(s.Dice, g.RemainingDice)
+		if isIn {
+			return
+		}
+	}
+	// No dice!
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s rolled no scoring dice and lost %d points!",
+		render.PlayerName(g.Player, g.Players[g.Player]),
+		g.TurnScore)))
+	g.NextPlayer()
+}
+
+func RenderDice(dice []int) string {
+	buf := bytes.NewBufferString("{{l}}")
+	renderedDice := make([]string, len(dice))
+	for i, d := range dice {
+		renderedDice[i] = die.Render(d)
+	}
+	buf.WriteString(strings.Join(renderedDice, " "))
+	buf.WriteString("{{_l}}")
+	return buf.String()
 }

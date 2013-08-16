@@ -28,7 +28,11 @@ func (rc RollCommand) Call(player string, context interface{},
 	if g.IsFinished() {
 		return "", errors.New("The game is already finished")
 	}
-	g.Roll(len(g.RemainingDice))
+	if len(g.RemainingDice) > 0 {
+		g.Roll(len(g.RemainingDice))
+	} else {
+		g.Roll(6)
+	}
 	g.TakenThisRoll = false
 	return "", nil
 }
