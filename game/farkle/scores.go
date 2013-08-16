@@ -23,6 +23,18 @@ func Scores() []Score {
 	}
 }
 
+func (s Score) ValueString() string {
+	valueString, err := die.DiceToValueString(s.Dice)
+	if err != nil {
+		panic(err.Error())
+	}
+	return valueString
+}
+
+func (s Score) Description() string {
+	return fmt.Sprintf("%s (%d points)", s.ValueString(), s.Value)
+}
+
 func ScoreStrings() (scoreStrings []string) {
 	for _, s := range Scores() {
 		valueString, err := die.DiceToValueString(s.Dice)
@@ -40,11 +52,7 @@ func AvailableScores(dice []int) (available map[string]Score) {
 	for _, s := range Scores() {
 		isIn, _ := die.DiceInDice(s.Dice, dice)
 		if isIn {
-			str, err := die.DiceToValueString(dice)
-			if err != nil {
-				panic(err.Error())
-			}
-			available[str] = s
+			available[s.ValueString()] = s
 		}
 	}
 	return

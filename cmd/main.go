@@ -162,6 +162,16 @@ func ViewAction(args []string) error {
 	if err == nil {
 		fmt.Println(output)
 	}
+	usages := command.CommandUsages(args[0], g, g.Commands())
+	if len(usages) > 0 {
+		commandsOutput, err := render.RenderTerminal(render.CommandUsages(
+			usages))
+		if err != nil {
+			return err
+		}
+		fmt.Println()
+		fmt.Println(commandsOutput)
+	}
 	return err
 }
 

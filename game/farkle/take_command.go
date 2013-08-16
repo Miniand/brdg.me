@@ -47,8 +47,7 @@ func (tc TakeCommand) Call(player string, context interface{},
 	}
 	if score == 0 {
 		return "", errors.New(fmt.Sprintf(
-			"%s is not valid, see below for valid dice to take:\n%s",
-			takeString, strings.Join(ScoreStrings(), "\n")))
+			"%s is not valid, please check the usage examples", takeString))
 	}
 	// Check that we've actually got the dice
 	isIn, remaining := die.DiceInDice(take, g.RemainingDice)
@@ -67,5 +66,13 @@ func (tc TakeCommand) Call(player string, context interface{},
 }
 
 func (tc TakeCommand) Usage(player string, context interface{}) string {
-	return "{{b}}take #{{_b}} to take some dice for points, eg. {{b}}take 222{{_b}} or {{b}}take 5{{_b}}"
+	g := context.(*Game)
+	scoreStrings := []string{}
+	for _, s := range AvailableScores(g.RemainingDice) {
+		scoreStrings = append(scoreStrings, fmt.Sprintf("     take %s",
+			s.Description()))
+	}
+	return fmt.Sprintf(
+		"{{b}}take #{{_b}} to take some dice for points.  You can:\n%s",
+		strings.Join(scoreStrings, "\n"))
 }
