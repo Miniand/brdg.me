@@ -7,6 +7,7 @@ TEST_DIRS=(
 	"command"
 	"game"
 	"game/card"
+	"game/farkle"
 	"game/log"
 	"game/poker"
 	"game/no_thanks"
