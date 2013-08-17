@@ -21,9 +21,26 @@ func PlayerColour(playerNum int) string {
 	return colours[playerNum%len(colours)]
 }
 
-func PlayerName(playerNum int, name string) string {
+func PlayerName(playerNum int, player string) string {
 	return fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, PlayerColour(playerNum),
-		name)
+		player)
+}
+
+func PlayerNameInPlayers(player string, players []string) string {
+	for playerNum, p := range players {
+		if player == p {
+			return PlayerName(playerNum, player)
+		}
+	}
+	return player
+}
+
+func PlayerNamesInPlayers(players []string, playerList []string) []string {
+	renderedPlayers := make([]string, len(players))
+	for i, p := range players {
+		renderedPlayers[i] = PlayerNameInPlayers(p, playerList)
+	}
+	return renderedPlayers
 }
 
 func Padded(text string, width int) (string, error) {

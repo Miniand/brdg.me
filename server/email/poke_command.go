@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
-	"strings"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type PokeCommand struct {
@@ -43,9 +43,10 @@ func (pc PokeCommand) Call(player string, context interface{},
 	whoseTurn := g.WhoseTurn()
 	if pc.gameId != nil {
 		CommunicateGameTo(pc.gameId, g, whoseTurn, fmt.Sprintf(
-			"%s wants to remind you it's your turn!", player), false)
+			"%s wants to remind you it's your turn!",
+			render.PlayerNameInPlayers(player, g.PlayerList())), false)
 	}
-	return "You poked " + strings.Join(whoseTurn, ", "), nil
+	return "You poked the current turn players", nil
 }
 
 func (pc PokeCommand) Usage(player string, context interface{}) string {

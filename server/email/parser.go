@@ -151,10 +151,12 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 		if len(winners) == 0 {
 			header += ", it was a draw!"
 		} else {
-			header += ", the winners were: " + strings.Join(winners, ", ")
+			header += ", the winners were: " + strings.Join(
+				render.PlayerNamesInPlayers(winners, g.PlayerList()), ", ")
 		}
 	} else {
-		header += "Current turn: " + strings.Join(g.WhoseTurn(), ", ")
+		header += "Current turn: " + strings.Join(render.PlayerNamesInPlayers(
+			g.WhoseTurn(), g.PlayerList()), ", ")
 	}
 	commErrs := []string{}
 	for _, p := range to {

@@ -89,7 +89,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		},
 	}
 	for playerNum, player := range g.Players {
-		playerName := player
+		playerName := render.PlayerName(playerNum, player)
 		if playerNum == g.FirstPlayer {
 			playerName += " (started)"
 		}
@@ -195,13 +195,12 @@ func (g *Game) Roll(n int) {
 }
 
 func RenderDice(dice []int) string {
-	buf := bytes.NewBufferString("{{l}}")
+	buf := bytes.NewBufferString("")
 	renderedDice := make([]string, len(dice))
 	for i, d := range dice {
 		renderedDice[i] = die.Render(d)
 	}
 	buf.WriteString(strings.Join(renderedDice, " "))
-	buf.WriteString("{{_l}}")
 	return buf.String()
 }
 

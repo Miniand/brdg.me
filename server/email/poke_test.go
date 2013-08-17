@@ -20,7 +20,7 @@ func TestPokeCall(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if output != "You poked mick" {
+	if output != "You poked the current turn players" {
 		t.Fatal("Expected output to be 'You poked mick' but got:", output)
 	}
 }
