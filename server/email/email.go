@@ -136,32 +136,9 @@ func SendRichMail(to []string, subject string, body string,
 	// Stop conversion of email addresses to links
 	htmlOutput = strings.Replace(htmlOutput, "@", "<span>@</span>", -1)
 	htmlOutput = strings.Replace(htmlOutput, ".", "<span>.</span>", -1)
-	// Replace fancy unicode with images
-	htmlOutput, found := ReplaceCharactersWithCidImg(htmlOutput,
-		CharacterReplacements)
 	// Make a multipart message
 	buf := &bytes.Buffer{}
 	data := multipart.NewWriter(buf)
-	// Write any SVGs with Content-ID for found replacements
-	for _, r := range found {
-		cid := RuneCid(r)
-		name := fmt.Sprintf("%s.png", cid)
-		svgW, err := data.CreatePart(textproto.MIMEHeader{
-			"Content-Type": []string{fmt.Sprintf(
-				`image/png; name="%s"`, name)},
-			"Content-ID":                []string{fmt.Sprintf("<%s>", cid)},
-			"Content-Transfer-Encoding": []string{"base64"},
-			"Content-Disposition": []string{fmt.Sprintf(
-				`inline; filename="%s"`, name)},
-		})
-		if err != nil {
-			return err
-		}
-		_, err = svgW.Write([]byte(CharacterReplacements[r]))
-		if err != nil {
-			return err
-		}
-	}
 	// Write plain version
 	plainW, err := data.CreatePart(textproto.MIMEHeader{
 		"Content-Type": []string{"text/plain"},
