@@ -152,13 +152,9 @@ func SendRichMail(to []string, subject string, body string,
 	if err != nil {
 		return err
 	}
-	_, err = htmlW.Write([]byte(fmt.Sprintf(`<style>
-@font-face {
-	font-family: brdgme;
-	src: url(data:font/ttf;base64,%s) format('truetype');
-}
-</style><pre style="color:#000001;font-family:brdgme">%s`,
-		FontData, htmlOutput)))
+	_, err = htmlW.Write([]byte(fmt.Sprintf(
+		`<pre style="color:#000001;font-family:monospace,Segoe UI Symbol;">%s`,
+		htmlOutput)))
 	if err != nil {
 		return err
 	}
