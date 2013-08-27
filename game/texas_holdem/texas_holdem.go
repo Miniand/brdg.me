@@ -611,8 +611,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 
 func RenderCards(deck card.Deck) (output []string) {
 	for _, c := range deck {
-		output = append(output, "{{l}}{{b}}"+
-			c.(card.SuitRankCard).RenderStandard52FixedWidth()+"{{_b}}{{_l}}")
+		output = append(output, "{{b}}"+
+			c.(card.SuitRankCard).RenderStandard52FixedWidth()+"{{_b}}")
 	}
 	return
 }
