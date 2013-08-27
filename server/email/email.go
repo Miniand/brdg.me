@@ -133,9 +133,6 @@ func SendRichMail(to []string, subject string, body string,
 	if err != nil {
 		return err
 	}
-	// Stop conversion of email addresses to links
-	htmlOutput = strings.Replace(htmlOutput, "@", "<span>@</span>", -1)
-	htmlOutput = strings.Replace(htmlOutput, ".", "<span>.</span>", -1)
 	// Make a multipart message
 	buf := &bytes.Buffer{}
 	data := multipart.NewWriter(buf)
