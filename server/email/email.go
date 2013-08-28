@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"github.com/Miniand/brdg.me/render"
 	"io"
@@ -47,65 +48,88 @@ func GetPlainEmailBody(r io.Reader) (*mail.Message, string, error) {
 		return nil, "", err
 	}
 	body, _, err := GetPlainEmailBodyReader(m.Body,
-		m.Header.Get("Content-Type"))
+		m.Header.Get("Content-Type"),
+		m.Header.Get("Content-Transfer-Encoding"))
 	return m, body, err
 }
 
-func GetPlainEmailBodyReader(r io.Reader, contentType string) (string, string,
-	error) {
+func GetPlainEmailBodyReader(r io.Reader, contentType string,
+	contentTransferEncoding string) (string, string, error) {
 	var body, foundContentType string
+	// Extract body
 	if contentType == "" {
 		// No content type, assume plain
 		rawBody, err := ioutil.ReadAll(r)
 		if err != nil {
 			return "", "", err
 		}
-		return string(rawBody), "text/plain", nil
-	}
-	mediatype, params, err := mime.ParseMediaType(contentType)
-	if err != nil {
-		return "", "", err
-	}
-	foundContentType = mediatype
-	if mediatype == "text/plain" {
-		rawBody, err := ioutil.ReadAll(r)
-		if err != nil {
-			return "", "", err
-		}
 		body = string(rawBody)
-	} else if mediatype == "text/html" {
-		rawBody, err := ioutil.ReadAll(r)
+		foundContentType = "text/plain"
+	} else {
+		mediatype, params, err := mime.ParseMediaType(contentType)
 		if err != nil {
 			return "", "", err
 		}
-		body = StripHtmlTags(string(rawBody))
-	} else if strings.Contains(mediatype, "multipart") &&
-		params["boundary"] != "" {
-		// Recurse parts
-		mpr := multipart.NewReader(r, params["boundary"])
-		for {
-			part, err := mpr.NextPart()
-			if err != nil {
-				if err == io.EOF {
-					break
-				} else {
-					return "", "", err
-				}
-			}
-			pBody, pContentType, err := GetPlainEmailBodyReader(part,
-				part.Header.Get("Content-Type"))
+		foundContentType = mediatype
+		if mediatype == "text/plain" {
+			rawBody, err := ioutil.ReadAll(r)
 			if err != nil {
 				return "", "", err
 			}
-			if pContentType == "text/plain" {
-				body = pBody
-				break
-			} else if pBody != "" {
-				body = pBody
+			body = string(rawBody)
+		} else if mediatype == "text/html" {
+			rawBody, err := ioutil.ReadAll(r)
+			if err != nil {
+				return "", "", err
+			}
+			body = StripHtmlTags(string(rawBody))
+		} else if strings.Contains(mediatype, "multipart") &&
+			params["boundary"] != "" {
+			// Recurse parts
+			mpr := multipart.NewReader(r, params["boundary"])
+			for {
+				part, err := mpr.NextPart()
+				if err != nil {
+					if err == io.EOF {
+						break
+					} else {
+						return "", "", err
+					}
+				}
+				pBody, pContentType, err := GetPlainEmailBodyReader(part,
+					part.Header.Get("Content-Type"),
+					part.Header.Get("Content-Transfer-Encoding"))
+				if err != nil {
+					return "", "", err
+				}
+				if pContentType == "text/plain" {
+					body = pBody
+					break
+				} else if pBody != "" {
+					body = pBody
+				}
 			}
 		}
 	}
+	// Convert based on content transfer encoding
+	switch contentTransferEncoding {
+	case "quoted-printable":
+		body = DecodeQuotedPrintable(body)
+	}
 	return body, foundContentType, nil
+}
+
+func DecodeQuotedPrintable(body string) string {
+
+	return regexp.MustCompile(`=[0-9A-F]{2}`).ReplaceAllStringFunc(
+		regexp.MustCompile(`=\r\n`).ReplaceAllString(body, ""),
+		func(repl string) string {
+			b, err := hex.DecodeString(repl[1:])
+			if err != nil {
+				panic(err.Error())
+			}
+			return string(b)
+		})
 }
 
 func FromAddr() string {
