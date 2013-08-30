@@ -8,6 +8,7 @@ TEST_DIRS=(
 	"game"
 	"game/card"
 	"game/farkle"
+	"game/liars_dice"
 	"game/log"
 	"game/poker"
 	"game/no_thanks"
