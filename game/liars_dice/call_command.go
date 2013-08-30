@@ -1,7 +1,12 @@
 package liars_dice
 
 import (
+	"fmt"
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/die"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
+	"strings"
 )
 
 type CallCommand struct{}
@@ -17,6 +22,10 @@ func (c CallCommand) CanCall(player string, context interface{}) bool {
 
 func (c CallCommand) Call(player string, context interface{}, args []string) (
 	output string, err error) {
+	var (
+		resultText   string
+		losingPlayer int
+	)
 	g := context.(*Game)
 	quantity := 0
 	for _, pd := range g.PlayerDice {
@@ -26,13 +35,39 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 			}
 		}
 	}
+	bidPlayerName := render.PlayerNameInPlayers(g.Players[g.BidPlayer],
+		g.Players)
+	callPlayerName := render.PlayerNameInPlayers(g.Players[g.CurrentPlayer],
+		g.Players)
 	if quantity < g.BidQuantity {
 		// Caller was correct
-		g.PlayerDice[g.BidPlayer] = g.PlayerDice[g.BidPlayer][1:]
+		losingPlayer = g.BidPlayer
+		resultText = fmt.Sprintf("%s bid too high and lost a die",
+			bidPlayerName)
 	} else {
 		// Bidder was correct
-		g.PlayerDice[g.CurrentPlayer] = g.PlayerDice[g.CurrentPlayer][1:]
+		losingPlayer = g.CurrentPlayer
+		resultText = fmt.Sprintf("%s bid correctly and %s lost a dice",
+			bidPlayerName, callPlayerName)
 	}
+	cells := [][]string{}
+	for _, pNum := range g.ActivePlayers() {
+		cells = append(cells, []string{
+			render.PlayerNameInPlayers(g.Players[pNum], g.Players),
+			fmt.Sprintf(`{{l}}%s{{_l}}`, strings.Join(die.RenderDice(
+				g.PlayerDice[pNum]), " ")),
+		})
+	}
+	g.PlayerDice[losingPlayer] = g.PlayerDice[losingPlayer][1:]
+	table, err := render.Table(cells, 0, 1)
+	if err != nil {
+		return "", err
+	}
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`%s called the bid of %d %s by %s
+Everyone revealed the following dice:
+%s
+%s`, callPlayerName, g.BidQuantity, die.Render(g.BidValue), bidPlayerName,
+		table, resultText)))
 	if !g.IsFinished() {
 		g.StartRound()
 		g.CurrentPlayer = g.NextActivePlayer(g.CurrentPlayer)

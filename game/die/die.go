@@ -26,6 +26,13 @@ func Render(value int) (output string) {
 	return
 }
 
+func RenderDice(values []int) (outputs []string) {
+	for _, d := range values {
+		outputs = append(outputs, Render(d))
+	}
+	return
+}
+
 func DiceToValueString(dice []int) (string, error) {
 	buf := bytes.NewBufferString("")
 	for _, d := range dice {

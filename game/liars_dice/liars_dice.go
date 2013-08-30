@@ -1,9 +1,16 @@
 package liars_dice
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
+	"fmt"
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/die"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -18,6 +25,7 @@ type Game struct {
 	BidQuantity   int
 	BidValue      int
 	BidPlayer     int
+	Log           log.Log
 }
 
 func (g *Game) Commands() []command.Command {
@@ -36,18 +44,63 @@ func (g *Game) Identifier() string {
 }
 
 func (g *Game) Encode() ([]byte, error) {
-	return []byte{}, nil
+	buf := bytes.NewBuffer([]byte{})
+	encoder := gob.NewEncoder(buf)
+	err := encoder.Encode(g)
+	return buf.Bytes(), err
 }
 
-func (g *Game) Decode([]byte) error {
-	return nil
+func (g *Game) Decode(data []byte) error {
+	buf := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(buf)
+	return decoder.Decode(g)
+}
+
+func (g *Game) PlayerNum(player string) (int, error) {
+	for pNum, pName := range g.Players {
+		if pName == player {
+			return pNum, nil
+		}
+	}
+	return 0, errors.New("Could not find player")
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	return "", nil
+	playerNum, err := g.PlayerNum(player)
+	if err != nil {
+		return "", err
+	}
+	buf := bytes.NewBufferString("")
+	// Log
+	newMessages := g.Log.NewMessagesFor(player)
+	if len(newMessages) > 0 {
+		buf.WriteString("{{b}}Since last time:{{_b}}\n")
+		buf.WriteString(log.RenderMessages(newMessages))
+		buf.WriteString("\n\n")
+	}
+	if len(g.PlayerDice[playerNum]) > 0 {
+		buf.WriteString(fmt.Sprintf("Your dice: {{l}}%s{{_l}}\n\n",
+			strings.Join(die.RenderDice(g.PlayerDice[playerNum]), " ")))
+	}
+	cells := [][]string{
+		[]string{"{{b}}Player{{_b}}", "{{b}}Remaining dice{{_b}}"},
+	}
+	for pNum, p := range g.Players {
+		cells = append(cells, []string{
+			render.PlayerName(pNum, p),
+			fmt.Sprintf("%d", len(g.PlayerDice[pNum])),
+		})
+	}
+	table, err := render.Table(cells, 0, 1)
+	if err != nil {
+		return "", err
+	}
+	buf.WriteString(table)
+	return buf.String(), nil
 }
 
 func (g *Game) Start(players []string) error {
+	g.Log = log.NewLog()
 	// Set players
 	if len(players) < 2 || len(players) > 6 {
 		return errors.New("Liar's Dice must be between 2 and 6 players")

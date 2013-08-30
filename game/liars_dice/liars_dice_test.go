@@ -102,4 +102,10 @@ func TestExampleRound(t *testing.T) {
 	if len(g.PlayerDice[0]) != 5 && len(g.PlayerDice[1]) != 5 {
 		t.Fatal("Mick and Steve shouldn't have lost dice")
 	}
+	if g.CurrentPlayer != 1 {
+		t.Fatal("Steve didn't become the current player")
+	}
+	if len(g.ActivePlayers()) != 2 {
+		t.Fatal("BJ wasn't eliminated")
+	}
 }
