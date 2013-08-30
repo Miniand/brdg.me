@@ -15,10 +15,16 @@ type Game struct {
 	Players       []string
 	CurrentPlayer int
 	PlayerDice    [][]int
+	BidQuantity   int
+	BidValue      int
+	BidPlayer     int
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		BidCommand{},
+		CallCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -61,6 +67,7 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) StartRound() {
+	g.BidQuantity = 0
 	g.RollDice()
 }
 
@@ -78,13 +85,33 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return len(g.ActivePlayers()) < 2
 }
 
 func (g *Game) Winners() []string {
+	if g.IsFinished() {
+		return []string{g.Players[g.ActivePlayers()[0]]}
+	}
 	return []string{}
 }
 
 func (g *Game) WhoseTurn() []string {
 	return []string{g.Players[g.CurrentPlayer]}
+}
+
+func (g *Game) ActivePlayers() (players []int) {
+	for pNum, _ := range g.Players {
+		if len(g.PlayerDice[pNum]) > 0 {
+			players = append(players, pNum)
+		}
+	}
+	return
+}
+
+func (g *Game) NextActivePlayer(from int) int {
+	next := (from + 1) % len(g.Players)
+	for len(g.PlayerDice[next]) == 0 && next != from {
+		next = (next + 1) % len(g.Players)
+	}
+	return next
 }

@@ -1,14 +1,14 @@
 package liars_dice
 
 import (
+	"github.com/Miniand/brdg.me/command"
 	"testing"
 )
 
 func TestStart(t *testing.T) {
 	g := &Game{}
 	p := []string{"Mick", "Steve", "BJ"}
-	err := g.Start(p)
-	if err != nil {
+	if err := g.Start(p); err != nil {
 		t.Fatal(err)
 	}
 	pl := g.PlayerList()
@@ -32,5 +32,74 @@ func TestStart(t *testing.T) {
 				t.Fatalf("Dice isn't in the range of 1 to 6")
 			}
 		}
+	}
+}
+
+func TestExampleRound(t *testing.T) {
+	g := &Game{}
+	p := []string{"Mick", "Steve", "BJ"}
+	if err := g.Start(p); err != nil {
+		t.Fatal(err)
+	}
+	// Override the game values so we know what's there
+	g.PlayerDice = [][]int{
+		// Mick
+		[]int{1, 3, 4, 4, 6},
+		// Steve
+		[]int{2, 2, 3, 3, 3},
+		// BJ
+		[]int{1},
+	}
+	// First player is mick
+	g.CurrentPlayer = 0
+	// Make sure we can't call on the first turn
+	if _, err := command.CallInCommands("Mick", g, "call",
+		g.Commands()); err == nil {
+		t.Fatal("Didn't fail when calling on the first turn")
+	}
+	// Start with a few legit commands
+	if _, err := command.CallInCommands("Mick", g, "bid 2 5",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Steve", g, "bid 2 6",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("BJ", g, "bid 3 5",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	// Do a few illegal commands and make sure they're picked up
+	if _, err := command.CallInCommands("Mick", g, "bid 3 5",
+		g.Commands()); err == nil {
+		t.Fatal("Didn't fail when making same bid")
+	}
+	if _, err := command.CallInCommands("Mick", g, "bid 3 3",
+		g.Commands()); err == nil {
+		t.Fatal("Didn't fail when bidding a lower value dice")
+	}
+	if _, err := command.CallInCommands("Mick", g, "bid 2 6",
+		g.Commands()); err == nil {
+		t.Fatal("Didn't fail when reducing the quantity")
+	}
+	if _, err := command.CallInCommands("Mick", g, "bid 3 7",
+		g.Commands()); err == nil {
+		t.Fatal("Didn't fail when making an bid of an invalid dice value")
+	}
+	if _, err := command.CallInCommands("BJ", g, "bid 6 5",
+		g.Commands()); err == nil {
+		t.Fatal("Didn't fail when BJ barged in")
+	}
+	// Call it and check
+	if _, err := command.CallInCommands("Mick", g, "call",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if len(g.PlayerDice[2]) != 0 {
+		t.Fatal("BJ should have lost his dice")
+	}
+	if len(g.PlayerDice[0]) != 5 && len(g.PlayerDice[1]) != 5 {
+		t.Fatal("Mick and Steve shouldn't have lost dice")
 	}
 }
