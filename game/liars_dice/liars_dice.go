@@ -101,6 +101,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf.WriteString(table)
+	g.Log = g.Log.MarkReadFor(player)
 	return buf.String(), nil
 }
 
