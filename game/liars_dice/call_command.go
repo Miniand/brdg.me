@@ -47,7 +47,7 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 	} else {
 		// Bidder was correct
 		losingPlayer = g.CurrentPlayer
-		resultText = fmt.Sprintf("%s bid correctly and %s lost a dice",
+		resultText = fmt.Sprintf("%s bid correctly and %s lost a die",
 			bidPlayerName, callPlayerName)
 	}
 	cells := [][]string{}

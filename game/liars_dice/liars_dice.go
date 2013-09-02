@@ -78,6 +78,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString(log.RenderMessages(newMessages))
 		buf.WriteString("\n\n")
 	}
+	currentBidText := `{{c "gray"}}first bid{{_c}}`
+	if g.BidQuantity != 0 {
+		currentBidText = RenderBid(g.BidQuantity, g.BidValue)
+	}
+	buf.WriteString(fmt.Sprintf("Current bid: %s\n", currentBidText))
 	if len(g.PlayerDice[playerNum]) > 0 {
 		buf.WriteString(fmt.Sprintf("Your dice: {{l}}%s{{_l}}\n\n",
 			strings.Join(die.RenderDice(g.PlayerDice[playerNum]), " ")))
@@ -167,4 +172,8 @@ func (g *Game) NextActivePlayer(from int) int {
 		next = (next + 1) % len(g.Players)
 	}
 	return next
+}
+
+func RenderBid(quantity int, value int) string {
+	return fmt.Sprintf("%d {{l}}%s{{_l}}", quantity, die.Render(value))
 }

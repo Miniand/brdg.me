@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game/die"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 	"strconv"
@@ -49,9 +48,9 @@ func (c BidCommand) Call(player string, context interface{}, args []string) (
 	g.BidQuantity = quantity
 	g.BidValue = value
 	g.BidPlayer = g.CurrentPlayer
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s %s %d {{l}}%s{{_l}}",
-		render.PlayerNameInPlayers(player, g.Players), verb, g.BidQuantity,
-		die.Render(g.BidValue))))
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s %s %s",
+		render.PlayerNameInPlayers(player, g.Players), verb,
+		RenderBid(g.BidQuantity, g.BidValue))))
 	g.CurrentPlayer = g.NextActivePlayer(g.CurrentPlayer)
 	return
 }
