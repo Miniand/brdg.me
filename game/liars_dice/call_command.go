@@ -52,10 +52,18 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 	}
 	cells := [][]string{}
 	for _, pNum := range g.ActivePlayers() {
+		renderedPlayerDice := []string{}
+		for _, d := range g.PlayerDice[pNum] {
+			renderedPlayerDie := die.Render(d)
+			if d == g.BidValue || d == 1 {
+				renderedPlayerDie = fmt.Sprintf(`{{c "red"}}%s{{_c}}`,
+					renderedPlayerDie)
+			}
+			renderedPlayerDice = append(renderedPlayerDice, renderedPlayerDie)
+		}
 		cells = append(cells, []string{
 			render.PlayerNameInPlayers(g.Players[pNum], g.Players),
-			fmt.Sprintf(`{{l}}%s{{_l}}`, strings.Join(die.RenderDice(
-				g.PlayerDice[pNum]), " ")),
+			fmt.Sprintf(`{{l}}%s{{_l}}`, strings.Join(renderedPlayerDice, " ")),
 		})
 	}
 	g.PlayerDice[losingPlayer] = g.PlayerDice[losingPlayer][1:]
