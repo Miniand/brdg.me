@@ -115,16 +115,19 @@ func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
 	if len(cardString)<2{
 		return card.SuitRankCard{}, errors.New("not lengthy enough (heyoooo!)")
 	}
-	suit := cardString[0]
 
-	fmt.Println(suit)
+	fmt.Println("cardstring:")
 	fmt.Println(cardString)	
+	suit := cardString[0]
+	fmt.Println("suit")
+	fmt.Println(suit)
+
 val,err:=strconv.Atoi(cardString[1:])
 if err!=nil{
 		return card.SuitRankCard{}, err
 	}
-
-
+	fmt.Println("val")
+	fmt.Println(val)
 
 switch suit {
 			case 'r':
@@ -163,6 +166,7 @@ func (g *Game) PlayerAction(player, action string, params []string) error {
 			return err
 		}
 		err = g.PlayCard(playerNum, c)
+		g.TurnPhase = 1
 	case "discard":
 		if len(params) == 0 {
 			return errors.New("You must specify a card to play, such as r5")
@@ -172,7 +176,10 @@ func (g *Game) PlayerAction(player, action string, params []string) error {
 			return err
 		}
 		err = g.DiscardCard(playerNum, c)
-		g.PlayerAction(player, "draw", []string{})
+		fmt.Println("attempting to change phase")
+		g.TurnPhase = 1
+		fmt.Println(g.TurnPhase)
+		//g.PlayerAction(player, "draw", []string{})
 	case "take":
 		// @todo actually detect the suit from params[0], make sure to check
 		// @params length > 0
@@ -308,6 +315,17 @@ func (g *Game) AllCards() card.Deck {
 // player's turn, that they have the card in their hand, and that they are able
 // to play the card.  Return an error if any of these don't pass.
 func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
+	//removeCount:=0
+	fmt.Println(c.Suit)	
+
+	g.Board.PlayerExpeditions[player][c.Suit] = g.Board.PlayerHands[player].Push(c)
+	fmt.Println(g.Board.PlayerExpeditions[player][c.Suit][0])
+	//if removeCount==0{
+	//	return errors.New ("did not have card in hand")
+	//}
+
+	
+	g.TurnPhase = 1
 	return nil
 }
 
@@ -318,10 +336,22 @@ func (g *Game) TakeCard(player int, suit int) error {
 	return nil
 }
 
-// Play a card from the hand into an expedition, checking that it is the
-// player's turn, that they have the card in their hand, and that they are able
-// to play the card.  Return an error if any of these don't pass.
+// Take a card from the draw pile into the hand, checking that it is the
+// player's turn and that there are cards in the stack.
+// Return an error if any of these don't pass.
 func (g *Game) DrawCard(player int) error {
+
+	var drawnCard card.Card
+	drawnCard, g.Board.DrawPile = g.Board.DrawPile.Pop()
+	// Then put it into the player's hand
+	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard)
+	g.PlayerReady(player)
+	if g.CurrentlyMoving == 1{
+	g.CurrentlyMoving = 0
+	}else{
+	g.CurrentlyMoving = 1
+	}
+	g.TurnPhase = 0
 	return nil
 }
 
@@ -335,6 +365,9 @@ func (g *Game) DiscardCard(player int, c card.SuitRankCard) error {
 		return errors.New ("did not have card in hand")
 	}
 	g.Board.DiscardPiles[c.Suit]=g.Board.DiscardPiles[c.Suit].Push(c)
+	g.TurnPhase = 1
+
+	//fmt.Println("I get to here")
 	return nil
 }
 
