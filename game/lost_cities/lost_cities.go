@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
-	"fmt"
-	"strconv"
 )
 
 type Game struct {
@@ -111,43 +111,43 @@ func (g *Game) PlayerFromString(player string) (int, error) {
 
 // Takes a string like b6, rx, y10 and turns it into a Card object
 func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
-	suitnum:=0
-	if len(cardString)<2{
+	suitnum := 0
+	if len(cardString) < 2 {
 		return card.SuitRankCard{}, errors.New("not lengthy enough (heyoooo!)")
 	}
 
 	fmt.Println("cardstring:")
-	fmt.Println(cardString)	
-	suit := cardString[0]
+	fmt.Println(cardString)
+	suit := strings.ToLower(cardString[0:1])
 	fmt.Println("suit")
 	fmt.Println(suit)
 
-val,err:=strconv.Atoi(cardString[1:])
-if err!=nil{
+	val, err := strconv.Atoi(cardString[1:])
+	if err != nil {
 		return card.SuitRankCard{}, err
 	}
 	fmt.Println("val")
 	fmt.Println(val)
 
-switch suit {
-			case 'r':
-				suitnum = SUIT_RED
-			case 'y':
-				suitnum = SUIT_YELLOW
-			case 'b':
-				suitnum = SUIT_BLUE
-			case 'w':
-				suitnum = SUIT_WHITE
-			case 'g':
-				suitnum = SUIT_GREEN
-			}
+	switch suit {
+	case "r":
+		suitnum = SUIT_RED
+	case "y":
+		suitnum = SUIT_YELLOW
+	case "b":
+		suitnum = SUIT_BLUE
+	case "w":
+		suitnum = SUIT_WHITE
+	case "g":
+		suitnum = SUIT_GREEN
+	default:
+		return card.SuitRankCard{}, errors.New("Could not parse suit")
+	}
 
-	return 	card.SuitRankCard{
-			Suit: suitnum,
-			Rank: val,
+	return card.SuitRankCard{
+		Suit: suitnum,
+		Rank: val,
 	}, nil
-
-
 }
 
 // DEPRECATED!  DO NOT MODIFY THIS, IT WILL NEED TO BE DELETED
@@ -316,7 +316,7 @@ func (g *Game) AllCards() card.Deck {
 // to play the card.  Return an error if any of these don't pass.
 func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	//removeCount:=0
-	fmt.Println(c.Suit)	
+	fmt.Println(c.Suit)
 
 	g.Board.PlayerExpeditions[player][c.Suit] = g.Board.PlayerHands[player].Push(c)
 	fmt.Println(g.Board.PlayerExpeditions[player][c.Suit][0])
@@ -324,7 +324,6 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	//	return errors.New ("did not have card in hand")
 	//}
 
-	
 	g.TurnPhase = 1
 	return nil
 }
@@ -346,25 +345,25 @@ func (g *Game) DrawCard(player int) error {
 	// Then put it into the player's hand
 	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard)
 	g.PlayerReady(player)
-	if g.CurrentlyMoving == 1{
-	g.CurrentlyMoving = 0
-	}else{
-	g.CurrentlyMoving = 1
+	if g.CurrentlyMoving == 1 {
+		g.CurrentlyMoving = 0
+	} else {
+		g.CurrentlyMoving = 1
 	}
 	g.TurnPhase = 0
 	return nil
 }
 
 // Discard a card from the hand into a discard stack, checking that it is the
-// player's turn, that they have the card in their hand, 
+// player's turn, that they have the card in their hand,
 // Return an error if any of these don't pass.
 func (g *Game) DiscardCard(player int, c card.SuitRankCard) error {
-	removeCount:=0
-	g.Board.PlayerHands[player], removeCount = g.Board.PlayerHands[player].Remove(c,1)
-	if removeCount==0{
-		return errors.New ("did not have card in hand")
+	removeCount := 0
+	g.Board.PlayerHands[player], removeCount = g.Board.PlayerHands[player].Remove(c, 1)
+	if removeCount == 0 {
+		return errors.New("did not have card in hand")
 	}
-	g.Board.DiscardPiles[c.Suit]=g.Board.DiscardPiles[c.Suit].Push(c)
+	g.Board.DiscardPiles[c.Suit] = g.Board.DiscardPiles[c.Suit].Push(c)
 	g.TurnPhase = 1
 
 	//fmt.Println("I get to here")
