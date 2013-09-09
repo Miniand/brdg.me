@@ -115,20 +115,22 @@ func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
 	if len(cardString) < 2 {
 		return card.SuitRankCard{}, errors.New("not lengthy enough (heyoooo!)")
 	}
-
+val:=0
 	fmt.Println("cardstring:")
 	fmt.Println(cardString)
 	suit := strings.ToLower(cardString[0:1])
 	fmt.Println("suit")
 	fmt.Println(suit)
-
+if cardString[1:] == "x" {
+		val=2
+} else {
 	val, err := strconv.Atoi(cardString[1:])
 	if err != nil {
 		return card.SuitRankCard{}, err
 	}
 	fmt.Println("val")
 	fmt.Println(val)
-
+}
 	switch suit {
 	case "r":
 		suitnum = SUIT_RED
