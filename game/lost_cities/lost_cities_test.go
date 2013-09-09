@@ -108,8 +108,8 @@ func mockGame(t *testing.T) *Game {
 
 func TestPlayFullGame(t *testing.T) {
 	game := mockGame(t)
-	 t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
-	 t.Logf(" \n")
+	 //t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
+	 //t.Logf(" \n")
 	if game.IsEndOfRound() || game.IsFinished() {
 		t.Fatal("Why is it the end of the round if we've just started?")
 	}
@@ -177,15 +177,15 @@ func TestPlayFullGame(t *testing.T) {
 	if err == nil {
 		t.Fatal("The game let Steve draw, he hasn't played yet!")
 	}
-	 t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
-	 t.Logf(" \n")
+	 //t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
+	 //t.Logf(" \n")
 	// Play a blue 9 and check it actually happened
 	_, err = command.CallInCommands("Steve", game, "play B9", game.Commands())
 	if err != nil {
 		t.Fatal(err)
 	}
-	 t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
-	 t.Logf(" \n")
+	// t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
+	// t.Logf(" \n")
 	if len(game.Board.PlayerExpeditions[1][SUIT_BLUE]) != 1 ||
 		game.Board.PlayerExpeditions[1][SUIT_BLUE][0].(card.SuitRankCard).Rank != 9 {
 		t.Fatal("We couldn't find the blue 9 in Steve's blue player expedition")

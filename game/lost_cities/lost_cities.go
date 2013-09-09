@@ -316,12 +316,12 @@ func (g *Game) AllCards() card.Deck {
 // to play the card.  Return an error if any of these don't pass.
 func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	removeCount:=0
-	fmt.Println("in PlayCard c.Suit")
-	fmt.Println(c.Suit)
-	fmt.Println("in PlayCard c.Rank")
-	fmt.Println(c.Rank)	
-fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
-fmt.Println(" \n")
+	//fmt.Println("in PlayCard c.Suit")
+	//fmt.Println(c.Suit)
+	//fmt.Println("in PlayCard c.Rank")
+	//fmt.Println(c.Rank)	
+	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
+	//fmt.Println(" \n")
 	
 
 	g.Board.PlayerExpeditions[player][c.Suit] = g.Board.PlayerExpeditions[player][c.Suit].Push(c)
@@ -329,9 +329,9 @@ fmt.Println(" \n")
 
 	g.Board.PlayerHands[player], removeCount = g.Board.PlayerHands[player].Remove(c, 1)
 
-fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
-fmt.Println(" \n")
-	fmt.Println(g.Board.PlayerExpeditions[player][c.Suit][0])
+	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
+	//fmt.Println(" \n")
+	//fmt.Println(g.Board.PlayerExpeditions[player][c.Suit][0])
 	if removeCount==0{
 		return errors.New ("did not have card in hand")
 	}
@@ -344,7 +344,29 @@ fmt.Println(" \n")
 // player's turn, and that the discard stack has cards in it.  Return an error
 // if any of these don't pass.
 func (g *Game) TakeCard(player int, suit int) error {
+	fmt.Println("gonna take a card")
+	fmt.Println(suit)
+	
+	var drawnCard card.Card
+	drawnCard, g.Board.DiscardPiles[suit] = g.Board.DiscardPiles[suit].Pop()
+	fmt.Println(drawnCard)
+
+	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard)
+	fmt.Println(g.Board.PlayerHands[player])	
+		//fmt.Println(c.Suit)
+	//fmt.Println("in PlayCard c.Rank")
+	//fmt.Println(c.Rank)
+
+	//g.Board.DiscardPiles[suit], removeCount = g.Board.PlayerHands[player].Remove(c, 1)
+
+	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
+	//fmt.Println(" \n")
+	//fmt.Println(g.Board.PlayerExpeditions[player][c.Suit][0])
+	//if removeCount==0{
+	//	return errors.New ("did not have card in hand")
+	//}
 	return nil
+
 }
 
 // Take a card from the draw pile into the hand, checking that it is the
