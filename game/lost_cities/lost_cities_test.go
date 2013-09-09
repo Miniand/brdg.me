@@ -108,8 +108,8 @@ func mockGame(t *testing.T) *Game {
 
 func TestPlayFullGame(t *testing.T) {
 	game := mockGame(t)
-	 //t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
-	 //t.Logf(" \n")
+	//t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
+	//t.Logf(" \n")
 	if game.IsEndOfRound() || game.IsFinished() {
 		t.Fatal("Why is it the end of the round if we've just started?")
 	}
@@ -177,8 +177,8 @@ func TestPlayFullGame(t *testing.T) {
 	if err == nil {
 		t.Fatal("The game let Steve draw, he hasn't played yet!")
 	}
-	 //t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
-	 //t.Logf(" \n")
+	//t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
+	//t.Logf(" \n")
 	// Play a blue 9 and check it actually happened
 	_, err = command.CallInCommands("Steve", game, "play B9", game.Commands())
 	if err != nil {
@@ -224,4 +224,185 @@ func TestPlayFullGame(t *testing.T) {
 	}
 
 	// More to come!
+}
+
+func TestExpeditionScores(t *testing.T) {
+	var (
+		expedition    card.Deck
+		expectedScore int
+	)
+
+	// Empty expedition should be 0, -20 is not applied
+	expedition = card.Deck{}
+	expectedScore = 0
+	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
+
+	// But if we've got a card, -20 is applied.  This test also tests multiplier
+	expedition = card.Deck{
+		card.SuitRankCard{
+			Rank: 0,
+		},
+	}
+	expectedScore = -40
+	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
+
+	// Try a hand without a multiplier but only value cards
+	expedition = card.Deck{
+		card.SuitRankCard{
+			Rank: 3,
+		},
+		card.SuitRankCard{
+			Rank: 5,
+		},
+		card.SuitRankCard{
+			Rank: 7,
+		},
+	}
+	expectedScore = -5
+	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
+
+	// Try a hand with both
+	expedition = card.Deck{
+		card.SuitRankCard{
+			Rank: 0,
+		},
+		card.SuitRankCard{
+			Rank: 5,
+		},
+		card.SuitRankCard{
+			Rank: 7,
+		},
+		card.SuitRankCard{
+			Rank: 10,
+		},
+	}
+	expectedScore = 4
+	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
+
+	// Check that the 20 point bonus is applied for 8 cards after multiplier is
+	// applied
+	expedition = card.Deck{
+		card.SuitRankCard{
+			Rank: 0,
+		},
+		card.SuitRankCard{
+			Rank: 2,
+		},
+		card.SuitRankCard{
+			Rank: 3,
+		},
+		card.SuitRankCard{
+			Rank: 4,
+		},
+		card.SuitRankCard{
+			Rank: 5,
+		},
+		card.SuitRankCard{
+			Rank: 6,
+		},
+		card.SuitRankCard{
+			Rank: 7,
+		},
+		card.SuitRankCard{
+			Rank: 10,
+		},
+	}
+	expectedScore = 54
+	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
+
+	// But make sure there is no 20 point bonus for only 7 cards!
+	expedition = card.Deck{
+		card.SuitRankCard{
+			Rank: 0,
+		},
+		card.SuitRankCard{
+			Rank: 2,
+		},
+		card.SuitRankCard{
+			Rank: 3,
+		},
+		card.SuitRankCard{
+			Rank: 4,
+		},
+		card.SuitRankCard{
+			Rank: 5,
+		},
+		card.SuitRankCard{
+			Rank: 6,
+		},
+		card.SuitRankCard{
+			Rank: 7,
+		},
+	}
+	expectedScore = 94
+	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
+
+	// Min score
+	expedition = card.Deck{
+		card.SuitRankCard{
+			Rank: 0,
+		},
+		card.SuitRankCard{
+			Rank: 0,
+		},
+		card.SuitRankCard{
+			Rank: 0,
+		},
+	}
+	expectedScore = -80
+	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
+
+	// Max score, including 20 point bonus after multiplier
+	expedition = card.Deck{
+		card.SuitRankCard{
+			Rank: 0,
+		},
+		card.SuitRankCard{
+			Rank: 0,
+		},
+		card.SuitRankCard{
+			Rank: 0,
+		},
+		card.SuitRankCard{
+			Rank: 2,
+		},
+		card.SuitRankCard{
+			Rank: 3,
+		},
+		card.SuitRankCard{
+			Rank: 4,
+		},
+		card.SuitRankCard{
+			Rank: 5,
+		},
+		card.SuitRankCard{
+			Rank: 6,
+		},
+		card.SuitRankCard{
+			Rank: 7,
+		},
+		card.SuitRankCard{
+			Rank: 8,
+		},
+		card.SuitRankCard{
+			Rank: 9,
+		},
+		card.SuitRankCard{
+			Rank: 10,
+		},
+	}
+	expectedScore = 236
+	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
+}
+func ensureExpeditionMatchesExpectedScore(t *testing.T, expedition card.Deck,
+	expectedScore int) {
+	actualScore := ScoreExpedition(expedition)
+	if ScoreExpedition(expedition) != expectedScore {
+		ranks := []int{} // We build raw ranks to make output easier to read
+		for _, c := range expedition {
+			ranks = append(ranks, c.(card.SuitRankCard).Rank)
+		}
+		t.Fatalf("Score for expedition %v was expected to be %d, but got %d",
+			ranks, expectedScore, actualScore)
+	}
 }

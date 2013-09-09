@@ -315,25 +315,23 @@ func (g *Game) AllCards() card.Deck {
 // player's turn, that they have the card in their hand, and that they are able
 // to play the card.  Return an error if any of these don't pass.
 func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
-	removeCount:=0
+	removeCount := 0
 	//fmt.Println("in PlayCard c.Suit")
 	//fmt.Println(c.Suit)
 	//fmt.Println("in PlayCard c.Rank")
-	//fmt.Println(c.Rank)	
+	//fmt.Println(c.Rank)
 	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
 	//fmt.Println(" \n")
-	
 
 	g.Board.PlayerExpeditions[player][c.Suit] = g.Board.PlayerExpeditions[player][c.Suit].Push(c)
-
 
 	g.Board.PlayerHands[player], removeCount = g.Board.PlayerHands[player].Remove(c, 1)
 
 	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
 	//fmt.Println(" \n")
 	//fmt.Println(g.Board.PlayerExpeditions[player][c.Suit][0])
-	if removeCount==0{
-		return errors.New ("did not have card in hand")
+	if removeCount == 0 {
+		return errors.New("did not have card in hand")
 	}
 
 	g.TurnPhase = 1
@@ -346,14 +344,14 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 func (g *Game) TakeCard(player int, suit int) error {
 	fmt.Println("gonna take a card")
 	fmt.Println(suit)
-	
+
 	var drawnCard card.Card
 	drawnCard, g.Board.DiscardPiles[suit] = g.Board.DiscardPiles[suit].Pop()
 	fmt.Println(drawnCard)
 
 	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard)
-	fmt.Println(g.Board.PlayerHands[player])	
-		//fmt.Println(c.Suit)
+	fmt.Println(g.Board.PlayerHands[player])
+	//fmt.Println(c.Suit)
 	//fmt.Println("in PlayCard c.Rank")
 	//fmt.Println(c.Rank)
 
@@ -416,5 +414,12 @@ func (g *Game) PlayerReady(player int) error {
 // Calculate the current score for this round for a player.
 func (g *Game) CurrentRoundPlayerScore(player int) int {
 	// @todo You want to be looking at g.Board.PlayerExpeditions[player][SUIT_RED] etc
+	return 0
+}
+
+// Run through an expedition to calculate the score.  Ignore suits here, just
+// focus on values, the rest of the game logic can ensure the deck is of the
+// right suit.
+func ScoreExpedition(hand card.Deck) int {
 	return 0
 }
