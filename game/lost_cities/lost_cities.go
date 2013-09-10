@@ -112,25 +112,32 @@ func (g *Game) PlayerFromString(player string) (int, error) {
 // Takes a string like b6, rx, y10 and turns it into a Card object
 func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
 	suitnum := 0
+	val:=0
+	var err error
+		fmt.Println("val")
+	fmt.Println(val)
 	if len(cardString) < 2 {
 		return card.SuitRankCard{}, errors.New("not lengthy enough (heyoooo!)")
 	}
-val:=0
 	fmt.Println("cardstring:")
 	fmt.Println(cardString)
+	fmt.Println("cardstring 1::")
+	fmt.Println(cardString[1:])
 	suit := strings.ToLower(cardString[0:1])
 	fmt.Println("suit")
 	fmt.Println(suit)
-if cardString[1:] == "x" {
-		val=2
-} else {
-	val, err := strconv.Atoi(cardString[1:])
-	if err != nil {
-		return card.SuitRankCard{}, err
+	if cardString[1:] == "x" {
+		val=0
+	} else {
+		val, err = strconv.Atoi(cardString[1:])
+		if err != nil {
+			return card.SuitRankCard{}, err
+		}
+		fmt.Println("val")
+		fmt.Println(val)
 	}
-	fmt.Println("val")
+	fmt.Println("val now")
 	fmt.Println(val)
-}
 	switch suit {
 	case "r":
 		suitnum = SUIT_RED
@@ -150,50 +157,6 @@ if cardString[1:] == "x" {
 		Suit: suitnum,
 		Rank: val,
 	}, nil
-}
-
-// DEPRECATED!  DO NOT MODIFY THIS, IT WILL NEED TO BE DELETED
-func (g *Game) PlayerAction(player, action string, params []string) error {
-	playerNum, err := g.PlayerFromString(player)
-	if err != nil {
-		return err
-	}
-	switch strings.ToLower(action) {
-	case "play":
-		if len(params) == 0 {
-			return errors.New("You must specify a card to play, such as r5")
-		}
-		c, err := g.ParseCardString(params[0])
-		if err != nil {
-			return err
-		}
-		err = g.PlayCard(playerNum, c)
-		g.TurnPhase = 1
-	case "discard":
-		if len(params) == 0 {
-			return errors.New("You must specify a card to play, such as r5")
-		}
-		c, err := g.ParseCardString(params[0])
-		if err != nil {
-			return err
-		}
-		err = g.DiscardCard(playerNum, c)
-		fmt.Println("attempting to change phase")
-		g.TurnPhase = 1
-		fmt.Println(g.TurnPhase)
-		//g.PlayerAction(player, "draw", []string{})
-	case "take":
-		// @todo actually detect the suit from params[0], make sure to check
-		// @params length > 0
-		err = g.TakeCard(playerNum, SUIT_RED)
-	case "draw":
-		err = g.DrawCard(playerNum)
-	case "ready":
-		err = g.PlayerReady(playerNum)
-	default:
-		err = errors.New("Did not understand your action: " + action)
-	}
-	return err
 }
 
 // Defines which commands are available for Lost Cities, see the _command.go
@@ -365,6 +328,13 @@ func (g *Game) TakeCard(player int, suit int) error {
 	//if removeCount==0{
 	//	return errors.New ("did not have card in hand")
 	//}
+		g.PlayerReady(player)
+	if g.CurrentlyMoving == 1 {
+		g.CurrentlyMoving = 0
+	} else {
+		g.CurrentlyMoving = 1
+	}
+	g.TurnPhase = 0
 	return nil
 
 }
