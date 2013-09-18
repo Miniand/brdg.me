@@ -109,3 +109,23 @@ func TestExampleRound(t *testing.T) {
 		t.Fatal("BJ wasn't eliminated")
 	}
 }
+
+func TestPlayerElimination(t *testing.T) {
+	g := &Game{}
+	p := []string{"Mick", "Steve", "BJ", "Ross"}
+	if err := g.Start(p); err != nil {
+		t.Fatal(err)
+	}
+	g.PlayerDice[0] = []int{}
+	g.PlayerDice[2] = []int{}
+	eliminated := g.EliminatedPlayerList()
+	if len(eliminated) != 2 {
+		t.Fatal("Two players weren't eliminated, got:", eliminated)
+	}
+	if eliminated[0] != "Mick" {
+		t.Fatal("Mick was not eliminated, got:", eliminated)
+	}
+	if eliminated[1] != "BJ" {
+		t.Fatal("BJ was not eliminated, got:", eliminated)
+	}
+}

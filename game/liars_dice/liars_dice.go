@@ -175,6 +175,15 @@ func (g *Game) NextActivePlayer(from int) int {
 	return next
 }
 
+func (g *Game) EliminatedPlayerList() (eliminated []string) {
+	for pNum, p := range g.Players {
+		if len(g.PlayerDice[pNum]) == 0 {
+			eliminated = append(eliminated, p)
+		}
+	}
+	return
+}
+
 func RenderBid(quantity int, value int) string {
 	return fmt.Sprintf("%d {{l}}%s{{_l}}", quantity, die.Render(value))
 }
