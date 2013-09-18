@@ -19,6 +19,7 @@ func Actions() map[string](func([]string) error) {
 	return map[string](func([]string) error){
 		"new":  NewAction,
 		"play": PlayAction,
+		"bot":  BotAction,
 		"view": ViewAction,
 		"dump": DumpAction,
 	}
@@ -121,14 +122,22 @@ func PlayAction(args []string) error {
 		fmt.Println()
 		fmt.Println(commandsOutput)
 	}
+	err = OutputGameForPlayingPlayers(g)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func OutputGameForPlayingPlayers(g game.Playable) error {
 	for _, p := range g.WhoseTurn() {
-		output, err = RenderForPlayer(g, p)
+		output, err := RenderForPlayer(g, p)
 		if err != nil {
 			return err
 		}
 		fmt.Println("--- OUTPUT FOR " + p + " ---")
 		fmt.Println(output)
-		usages = command.CommandUsages(p, g,
+		usages := command.CommandUsages(p, g,
 			command.AvailableCommands(p, g, g.Commands()))
 		if len(usages) > 0 {
 			commandsOutput, err := render.RenderTerminal(render.CommandUsages(
@@ -148,6 +157,27 @@ func PlayAction(args []string) error {
 		fmt.Println("Current turn: " + strings.Join(g.WhoseTurn(), ", "))
 	}
 	return nil
+}
+
+func BotAction(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Specify a player name to simulate")
+	}
+	player := args[0]
+	rawG, err := loadGame()
+	if err != nil {
+		return err
+	}
+	g, ok := rawG.(game.Botter)
+	if !ok {
+		return errors.New("Game does not have bot support")
+	}
+	err = g.BotPlay(player)
+	if err != nil {
+		return err
+	}
+	saveGame(rawG)
+	return OutputGameForPlayingPlayers(rawG)
 }
 
 func ViewAction(args []string) error {

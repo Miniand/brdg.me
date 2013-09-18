@@ -333,3 +333,22 @@ func (g *Game) AddPlayerLog(msg string) {
 func (g *Game) ClearPlayerLog(player string) {
 	g.PlayerLogs[player] = []string{}
 }
+
+func (g *Game) BotPlay(player string) error {
+	if g.CurrentlyMoving != player {
+		return errors.New("Not their turn")
+	}
+	// If they're out of money, they gotta take it
+	if g.PlayerChips[player] == 0 {
+		_, err := command.CallInCommands(player, g, "take", g.Commands())
+		return err
+	}
+	// Decide how much we want the card
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	if r.Int()%2 == 0 {
+		_, err := command.CallInCommands(player, g, "take", g.Commands())
+		return err
+	}
+	_, err := command.CallInCommands(player, g, "pass", g.Commands())
+	return err
+}
