@@ -11,7 +11,7 @@ func (q Queen) Rune() rune {
 	return '♛'
 }
 
-func (q Queen) AvailableMoves(from Location, b Board) (to []Location) {
+func (q Queen) AvailableMoves(from Location, b Board) (to []Move) {
 	// Queen is just a mix of rook and bishop moves
 	r := Rook{}
 	r.Team = q.Team

@@ -12,7 +12,7 @@ func (r Rook) Rune() rune {
 	return '♜'
 }
 
-func (r Rook) AvailableMoves(from Location, b Board) (to []Location) {
+func (r Rook) AvailableMoves(from Location, b Board) (to []Move) {
 	for _, dir := range [][]int{
 		[]int{1, 0},
 		[]int{-1, 0},
@@ -29,11 +29,18 @@ func (r Rook) AvailableMoves(from Location, b Board) (to []Location) {
 			piece := b.PieceAt(l)
 			if piece != nil {
 				if piece.GetTeam() != r.Team {
-					to = append(to, l)
+					to = append(to, Move{
+						From:   from,
+						To:     l,
+						TakeAt: &l,
+					})
 				}
 				break
 			}
-			to = append(to, l)
+			to = append(to, Move{
+				From: from,
+				To:   l,
+			})
 		}
 	}
 	return

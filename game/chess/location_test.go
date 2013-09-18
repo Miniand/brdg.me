@@ -1,8 +1,8 @@
 package chess
 
-func inLocations(needle Location, haystack []Location) bool {
+func inLocations(needle Location, haystack []Move) bool {
 	for _, h := range haystack {
-		if needle == h {
+		if needle == h.To {
 			return true
 		}
 	}

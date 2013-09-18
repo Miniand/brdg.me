@@ -2,7 +2,7 @@ package chess
 
 type Piecer interface {
 	Rune() rune
-	AvailableMoves(from Location, b Board) (to []Location)
+	AvailableMoves(from Location, b Board) (moves []Move)
 	GetTeam() int
 }
 

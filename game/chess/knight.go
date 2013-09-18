@@ -11,6 +11,6 @@ func (k Knight) Rune() rune {
 	return '♞'
 }
 
-func (k Knight) AvailableMoves(from Location, b Board) (to []Location) {
+func (k Knight) AvailableMoves(from Location, b Board) (to []Move) {
 	return
 }

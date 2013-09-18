@@ -11,7 +11,7 @@ func (bi Bishop) Rune() rune {
 	return '♝'
 }
 
-func (bi Bishop) AvailableMoves(from Location, b Board) (to []Location) {
+func (bi Bishop) AvailableMoves(from Location, b Board) (to []Move) {
 	for _, dir := range [][]int{
 		[]int{1, 1},
 		[]int{1, -1},
@@ -28,11 +28,18 @@ func (bi Bishop) AvailableMoves(from Location, b Board) (to []Location) {
 			piece := b.PieceAt(l)
 			if piece != nil {
 				if piece.GetTeam() != bi.Team {
-					to = append(to, l)
+					to = append(to, Move{
+						From:   from,
+						To:     l,
+						TakeAt: &l,
+					})
 				}
 				break
 			}
-			to = append(to, l)
+			to = append(to, Move{
+				From: from,
+				To:   l,
+			})
 		}
 	}
 	return

@@ -12,16 +12,22 @@ func (p Pawn) Rune() rune {
 	return '♟'
 }
 
-func (p Pawn) AvailableMoves(from Location, b Board) (to []Location) {
+func (p Pawn) AvailableMoves(from Location, b Board) (to []Move) {
 	// Check advancing one space forward
 	advanceOne := Location{from.File, from.Rank + p.Team}
 	if IsValidLocation(advanceOne) && b.IsEmpty(advanceOne) {
-		to = append(to, advanceOne)
+		to = append(to, Move{
+			From: from,
+			To:   advanceOne,
+		})
 		// Check if it's the initial move, which allows two spaces
 		if from.Rank == StartRank(p.Team)+p.Team {
 			advanceTwo := Location{advanceOne.File, advanceOne.Rank + p.Team}
 			if b.IsEmpty(advanceTwo) {
-				to = append(to, advanceTwo)
+				to = append(to, Move{
+					From: from,
+					To:   advanceTwo,
+				})
 			}
 		}
 	}
@@ -34,7 +40,11 @@ func (p Pawn) AvailableMoves(from Location, b Board) (to []Location) {
 			attackDownPiece := b.PieceAt(l)
 			if attackDownPiece != nil {
 				if attackDownPiece.GetTeam() != p.Team {
-					to = append(to, l)
+					to = append(to, Move{
+						From:   from,
+						To:     l,
+						TakeAt: &l,
+					})
 				}
 			} else {
 				// Check en passant, @see https://en.wikipedia.org/wiki/En_passant
@@ -42,7 +52,11 @@ func (p Pawn) AvailableMoves(from Location, b Board) (to []Location) {
 				adjacentPawn, ok := adjacentPiece.(*Pawn)
 				if ok && adjacentPawn.Team != p.Team &&
 					adjacentPawn.MoveWasAdvanceTwo {
-					to = append(to, l)
+					to = append(to, Move{
+						From:   from,
+						To:     l,
+						TakeAt: &Location{l.File, from.Rank},
+					})
 				}
 			}
 		}
