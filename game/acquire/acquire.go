@@ -13,13 +13,14 @@ import (
 
 const (
 	TILE_EMPTY = iota
-	TILE_CORP_AMERICAN
-	TILE_CORP_CONTINENTAL
+	TILE_PLACED
+	TILE_CORP_WORLDWIDE
+	TILE_CORP_SACKSON
 	TILE_CORP_FESTIVAL
 	TILE_CORP_IMPERIAL
-	TILE_CORP_SACKSON
+	TILE_CORP_AMERICAN
+	TILE_CORP_CONTINENTAL
 	TILE_CORP_TOWER
-	TILE_CORP_WORLDWIDE
 )
 
 const (
@@ -49,34 +50,53 @@ const (
 	BOARD_COL_12
 )
 
+const (
+	INIT_SHARES      = 25
+	INIT_CASH        = 6000
+	INIT_TILES       = 6
+	START_VALUE_LOW  = 200
+	START_VALUE_MED  = 300
+	START_VALUE_HIGH = 400
+)
+
 var CorpColours = map[int]string{
-	TILE_CORP_AMERICAN:    "blue",
-	TILE_CORP_CONTINENTAL: "red",
+	TILE_CORP_WORLDWIDE:   "magenta",
+	TILE_CORP_SACKSON:     "cyan",
 	TILE_CORP_FESTIVAL:    "green",
 	TILE_CORP_IMPERIAL:    "yellow",
-	TILE_CORP_SACKSON:     "magenta",
-	TILE_CORP_TOWER:       "cyan",
-	TILE_CORP_WORLDWIDE:   "black",
+	TILE_CORP_AMERICAN:    "blue",
+	TILE_CORP_CONTINENTAL: "red",
+	TILE_CORP_TOWER:       "black",
 }
 
 var CorpNames = map[int]string{
-	TILE_CORP_AMERICAN:    "American",
-	TILE_CORP_CONTINENTAL: "Continental",
+	TILE_CORP_WORLDWIDE:   "Worldwide",
+	TILE_CORP_SACKSON:     "Sackson",
 	TILE_CORP_FESTIVAL:    "Festival",
 	TILE_CORP_IMPERIAL:    "Imperial",
-	TILE_CORP_SACKSON:     "Sackson",
+	TILE_CORP_AMERICAN:    "American",
+	TILE_CORP_CONTINENTAL: "Continental",
 	TILE_CORP_TOWER:       "Tower",
-	TILE_CORP_WORLDWIDE:   "Worldwide",
 }
 
 var CorpShortNames = map[int]string{
-	TILE_CORP_AMERICAN:    "AM",
-	TILE_CORP_CONTINENTAL: "CO",
+	TILE_CORP_WORLDWIDE:   "WO",
+	TILE_CORP_SACKSON:     "SA",
 	TILE_CORP_FESTIVAL:    "FE",
 	TILE_CORP_IMPERIAL:    "IM",
-	TILE_CORP_SACKSON:     "SA",
+	TILE_CORP_AMERICAN:    "AM",
+	TILE_CORP_CONTINENTAL: "CO",
 	TILE_CORP_TOWER:       "TO",
-	TILE_CORP_WORLDWIDE:   "WO",
+}
+
+var CorpStartValues = map[int]int{
+	TILE_CORP_WORLDWIDE:   START_VALUE_LOW,
+	TILE_CORP_SACKSON:     START_VALUE_LOW,
+	TILE_CORP_FESTIVAL:    START_VALUE_MED,
+	TILE_CORP_IMPERIAL:    START_VALUE_MED,
+	TILE_CORP_AMERICAN:    START_VALUE_MED,
+	TILE_CORP_CONTINENTAL: START_VALUE_HIGH,
+	TILE_CORP_TOWER:       START_VALUE_HIGH,
 }
 
 type Game struct {
@@ -133,10 +153,17 @@ func (g *Game) Start(players []string) error {
 	g.BankTiles = Tiles().Shuffle()
 	g.PlayerTiles = map[int]card.Deck{}
 	for p, _ := range g.Players {
+		g.PlayerCash[p] = INIT_CASH
 		g.PlayerShares[p] = map[int]int{}
-		g.PlayerTiles[p], g.BankTiles = g.BankTiles.PopN(8)
+		g.PlayerTiles[p], g.BankTiles = g.BankTiles.PopN(INIT_TILES)
+	}
+	// Initialise shares
+	g.BankShares = map[int]int{}
+	for _, c := range Corps() {
+		g.BankShares[c] = INIT_SHARES
 	}
 	// Testing values
+	g.Board[BOARD_ROW_H][BOARD_COL_11] = TILE_PLACED
 	g.Board[BOARD_ROW_B][BOARD_COL_6] = TILE_CORP_AMERICAN
 	g.Board[BOARD_ROW_C][BOARD_COL_1] = TILE_CORP_CONTINENTAL
 	g.Board[BOARD_ROW_A][BOARD_COL_4] = TILE_CORP_FESTIVAL
@@ -168,6 +195,8 @@ func (g *Game) RenderTile(row, col int) (output string) {
 	switch t {
 	case TILE_EMPTY:
 		output = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, TileText(row, col))
+	case TILE_PLACED:
+		output = `{{b}}{{c "gray"}}XX{{_c}}{{_b}}`
 	default:
 		output = fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, CorpColours[t],
 			CorpShortNames[t])
@@ -180,7 +209,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	output := bytes.NewBufferString("")
+	output := bytes.NewBufferString("{{b}}Board:{{_b}}\n\n")
 	// Board
 	cells := [][]string{}
 	for _, r := range Rows() {
@@ -210,8 +239,36 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		handTiles = append(handTiles, TileText(tCard.Suit, tCard.Rank))
 	}
 	output.WriteString(fmt.Sprintf(
-		"\n\nYour tiles: {{b}}{{c \"gray\"}}%s{{_c}}{{_b}}",
+		"\n\n{{b}}Your tiles: {{c \"gray\"}}%s{{_c}}{{_b}}\n",
 		strings.Join(handTiles, " ")))
+	output.WriteString(fmt.Sprintf(
+		"{{b}}Your cash:  $%d{{_b}}", g.PlayerCash[pNum]))
+	// Corp table
+	cells = [][]string{
+		[]string{
+			"{{b}}Corporation{{_b}}",
+			"{{b}}Size{{_b}}",
+			"{{b}}Value{{_b}}",
+			"{{b}}You own{{_b}}",
+			"{{b}}Remaining{{_b}}",
+		},
+	}
+	for _, c := range Corps() {
+		cells = append(cells, []string{
+			fmt.Sprintf(`{{b}}{{c "%s"}}%s (%s){{_c}}{{_b}}`, CorpColours[c],
+				CorpNames[c], CorpShortNames[c]),
+			fmt.Sprintf("%d", g.CorpSize(c)),
+			fmt.Sprintf("$%d", g.CorpValue(c)),
+			fmt.Sprintf("%d shares", g.PlayerShares[pNum][c]),
+			fmt.Sprintf("%d shares", g.BankShares[c]),
+		})
+	}
+	corpOutput, err := render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	output.WriteString("\n\n")
+	output.WriteString(corpOutput)
 	return output.String(), nil
 }
 
@@ -222,6 +279,48 @@ func (g *Game) PlayerNumber(player string) (int, error) {
 		}
 	}
 	return 0, errors.New("Could not find player")
+}
+
+func (g *Game) CorpSize(corp int) (n int) {
+	for _, r := range Rows() {
+		for _, c := range Cols() {
+			if g.Board[r][c] == corp {
+				n += 1
+			}
+		}
+	}
+	return
+}
+
+func (g *Game) CorpValue(corp int) int {
+	return CorpValue(g.CorpSize(corp), corp)
+}
+
+func CorpValue(size, corp int) int {
+	if size <= 0 {
+		return 0
+	}
+	multiplier := size - 2
+	if size >= 41 {
+		multiplier = 8
+	} else if size >= 31 {
+		multiplier = 7
+	} else if size >= 21 {
+		multiplier = 6
+	} else if size >= 11 {
+		multiplier = 5
+	} else if size >= 6 {
+		multiplier = 4
+	}
+	return CorpStartValues[corp] + multiplier*100
+}
+
+func CorpMajorityShareholderBonus(size, corp int) int {
+	return CorpMinorityShareholderBonus(size, corp) * 2
+}
+
+func CorpMinorityShareholderBonus(size, corp int) int {
+	return CorpValue(size, corp) * 5
 }
 
 func TileText(row, col int) string {
@@ -246,7 +345,7 @@ func Cols() []int {
 
 func Corps() []int {
 	corps := []int{}
-	for c := TILE_CORP_AMERICAN; c <= TILE_CORP_WORLDWIDE; c++ {
+	for c := TILE_CORP_WORLDWIDE; c <= TILE_CORP_TOWER; c++ {
 		corps = append(corps, c)
 	}
 	return corps
