@@ -6,7 +6,7 @@ import (
 
 func TestStart(t *testing.T) {
 	g := Game{}
-	if err := g.Start([]string{"Mick", "Steve"}); err != nil {
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -76,10 +76,10 @@ func TestCorpValue(t *testing.T) {
 	checkCorpValues(TILE_CORP_TOWER, high, t)
 }
 
-func checkCorpMajorityShareholderBonuses(corp int, expected map[int]int,
+func checkCorp1stBonuses(corp int, expected map[int]int,
 	t *testing.T) {
 	for size, expectedValue := range expected {
-		actual := CorpMajorityShareholderBonus(size, corp)
+		actual := Corp1stBonus(size, corp)
 		if actual != expectedValue {
 			t.Fatal("Corp", corp, "size", size, "expected", expectedValue,
 				"got", actual)
@@ -87,7 +87,7 @@ func checkCorpMajorityShareholderBonuses(corp int, expected map[int]int,
 	}
 }
 
-func TestCorpMajorityShareholderBonuses(t *testing.T) {
+func TestCorp1stBonuses(t *testing.T) {
 	low := map[int]int{
 		2:  2000,
 		3:  3000,
@@ -133,19 +133,19 @@ func TestCorpMajorityShareholderBonuses(t *testing.T) {
 		40: 11000,
 		41: 12000,
 	}
-	checkCorpMajorityShareholderBonuses(TILE_CORP_WORLDWIDE, low, t)
-	checkCorpMajorityShareholderBonuses(TILE_CORP_SACKSON, low, t)
-	checkCorpMajorityShareholderBonuses(TILE_CORP_FESTIVAL, med, t)
-	checkCorpMajorityShareholderBonuses(TILE_CORP_IMPERIAL, med, t)
-	checkCorpMajorityShareholderBonuses(TILE_CORP_AMERICAN, med, t)
-	checkCorpMajorityShareholderBonuses(TILE_CORP_CONTINENTAL, high, t)
-	checkCorpMajorityShareholderBonuses(TILE_CORP_TOWER, high, t)
+	checkCorp1stBonuses(TILE_CORP_WORLDWIDE, low, t)
+	checkCorp1stBonuses(TILE_CORP_SACKSON, low, t)
+	checkCorp1stBonuses(TILE_CORP_FESTIVAL, med, t)
+	checkCorp1stBonuses(TILE_CORP_IMPERIAL, med, t)
+	checkCorp1stBonuses(TILE_CORP_AMERICAN, med, t)
+	checkCorp1stBonuses(TILE_CORP_CONTINENTAL, high, t)
+	checkCorp1stBonuses(TILE_CORP_TOWER, high, t)
 }
 
-func checkCorpMinorityShareholderBonuses(corp int, expected map[int]int,
+func checkCorp2ndBonuses(corp int, expected map[int]int,
 	t *testing.T) {
 	for size, expectedValue := range expected {
-		actual := CorpMinorityShareholderBonus(size, corp)
+		actual := Corp2ndBonus(size, corp)
 		if actual != expectedValue {
 			t.Fatal("Corp", corp, "size", size, "expected", expectedValue,
 				"got", actual)
@@ -153,7 +153,7 @@ func checkCorpMinorityShareholderBonuses(corp int, expected map[int]int,
 	}
 }
 
-func TestCorpMinorityShareholderBonuses(t *testing.T) {
+func TestCorp2ndBonuses(t *testing.T) {
 	low := map[int]int{
 		2:  1000,
 		3:  1500,
@@ -199,11 +199,60 @@ func TestCorpMinorityShareholderBonuses(t *testing.T) {
 		40: 5500,
 		41: 6000,
 	}
-	checkCorpMinorityShareholderBonuses(TILE_CORP_WORLDWIDE, low, t)
-	checkCorpMinorityShareholderBonuses(TILE_CORP_SACKSON, low, t)
-	checkCorpMinorityShareholderBonuses(TILE_CORP_FESTIVAL, med, t)
-	checkCorpMinorityShareholderBonuses(TILE_CORP_IMPERIAL, med, t)
-	checkCorpMinorityShareholderBonuses(TILE_CORP_AMERICAN, med, t)
-	checkCorpMinorityShareholderBonuses(TILE_CORP_CONTINENTAL, high, t)
-	checkCorpMinorityShareholderBonuses(TILE_CORP_TOWER, high, t)
+	checkCorp2ndBonuses(TILE_CORP_WORLDWIDE, low, t)
+	checkCorp2ndBonuses(TILE_CORP_SACKSON, low, t)
+	checkCorp2ndBonuses(TILE_CORP_FESTIVAL, med, t)
+	checkCorp2ndBonuses(TILE_CORP_IMPERIAL, med, t)
+	checkCorp2ndBonuses(TILE_CORP_AMERICAN, med, t)
+	checkCorp2ndBonuses(TILE_CORP_CONTINENTAL, high, t)
+	checkCorp2ndBonuses(TILE_CORP_TOWER, high, t)
+}
+
+func checkParseTileText(text string, expectedRow, expectedCol int,
+	t *testing.T) {
+	tile, err := ParseTileText(text)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tile.Row != expectedRow {
+		t.Fatal("Expected row", expectedRow, "got", tile.Row)
+	}
+	if tile.Column != expectedCol {
+		t.Fatal("Expected col", expectedCol, "got", tile.Column)
+	}
+}
+
+func TestParseTileText(t *testing.T) {
+	checkParseTileText("1A", BOARD_ROW_A, BOARD_COL_1, t)
+	checkParseTileText("12i", BOARD_ROW_I, BOARD_COL_12, t)
+	checkParseTileText("6c", BOARD_ROW_C, BOARD_COL_6, t)
+}
+
+func TestAdjacentTiles(t *testing.T) {
+	adj := AdjacentTiles(Tile{BOARD_ROW_A, BOARD_COL_1})
+	if len(adj) != 2 {
+		t.Fatal("Expected there to only be two")
+	}
+	if _, n := adj.Remove(Tile{BOARD_ROW_B, BOARD_COL_1}, -1); n != 1 {
+		t.Fatal("Expected 1B to be adjacent")
+	}
+	if _, n := adj.Remove(Tile{BOARD_ROW_A, BOARD_COL_2}, -1); n != 1 {
+		t.Fatal("Expected 2A to be adjacent")
+	}
+	adj = AdjacentTiles(Tile{BOARD_ROW_F, BOARD_COL_4})
+	if len(adj) != 4 {
+		t.Fatal("Expected there to only be four")
+	}
+	if _, n := adj.Remove(Tile{BOARD_ROW_F, BOARD_COL_3}, -1); n != 1 {
+		t.Fatal("Expected 3F to be adjacent")
+	}
+	if _, n := adj.Remove(Tile{BOARD_ROW_F, BOARD_COL_5}, -1); n != 1 {
+		t.Fatal("Expected 5F to be adjacent")
+	}
+	if _, n := adj.Remove(Tile{BOARD_ROW_E, BOARD_COL_4}, -1); n != 1 {
+		t.Fatal("Expected 4E to be adjacent")
+	}
+	if _, n := adj.Remove(Tile{BOARD_ROW_G, BOARD_COL_4}, -1); n != 1 {
+		t.Fatal("Expected 4G to be adjacent")
+	}
 }

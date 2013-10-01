@@ -8,6 +8,8 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/render"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -48,6 +50,13 @@ const (
 	BOARD_COL_10
 	BOARD_COL_11
 	BOARD_COL_12
+)
+
+const (
+	TURN_PHASE_PLAY_TILE = iota
+	TURN_PHASE_PLACE_CORP
+	TURN_PHASE_MERGER
+	TURN_PHASE_BUY_TILES
 )
 
 const (
@@ -100,13 +109,16 @@ var CorpStartValues = map[int]int{
 }
 
 type Game struct {
-	Players      []string
-	Board        map[int]map[int]int
-	PlayerCash   map[int]int
-	PlayerShares map[int]map[int]int
-	PlayerTiles  map[int]card.Deck
-	BankShares   map[int]int
-	BankTiles    card.Deck
+	Players       []string
+	CurrentPlayer int
+	TurnPhase     int
+	GameEnded     bool
+	Board         map[int]map[int]int
+	PlayerCash    map[int]int
+	PlayerShares  map[int]map[int]int
+	PlayerTiles   map[int]card.Deck
+	BankShares    map[int]int
+	BankTiles     card.Deck
 }
 
 func (g *Game) Name() string {
@@ -118,11 +130,13 @@ func (g *Game) Identifier() string {
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		PlayCommand{},
+	}
 }
 
 func RegisterGobTypes() {
-	gob.Register(card.SuitRankCard{})
+	gob.Register(Tile{})
 }
 
 func (g *Game) Encode() ([]byte, error) {
@@ -141,6 +155,9 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) Start(players []string) error {
+	if len(players) < 3 || len(players) > 6 {
+		return errors.New("Acquire is between 3 and 6 players")
+	}
 	g.Players = players
 	// Initialise board
 	g.Board = map[int]map[int]int{}
@@ -179,7 +196,7 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.GameEnded
 }
 
 func (g *Game) Winners() []string {
@@ -187,25 +204,28 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return g.Players
+	if g.IsFinished() {
+		return []string{}
+	}
+	return []string{g.Players[g.CurrentPlayer]}
 }
 
-func (g *Game) RenderTile(row, col int) (output string) {
-	t := g.Board[row][col]
-	switch t {
+func (g *Game) RenderTile(t Tile) (output string) {
+	val := g.Board[t.Row][t.Column]
+	switch val {
 	case TILE_EMPTY:
-		output = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, TileText(row, col))
+		output = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, TileText(t))
 	case TILE_PLACED:
 		output = `{{b}}{{c "gray"}}XX{{_c}}{{_b}}`
 	default:
-		output = fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, CorpColours[t],
-			CorpShortNames[t])
+		output = fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, CorpColours[val],
+			CorpShortNames[val])
 	}
 	return
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	pNum, err := g.PlayerNumber(player)
+	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
@@ -215,11 +235,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	for _, r := range Rows() {
 		row := []string{}
 		for _, c := range Cols() {
-			cellOutput := g.RenderTile(r, c)
+			cellOutput := g.RenderTile(Tile{r, c})
 			// We embolden the tile if the player has it in their hand
-			if _, n := g.PlayerTiles[pNum].Remove(card.SuitRankCard{
-				Suit: r,
-				Rank: c,
+			if _, n := g.PlayerTiles[pNum].Remove(Tile{
+				Row:    r,
+				Column: c,
 			}, 1); n > 0 {
 				cellOutput = fmt.Sprintf("{{b}}%s{{_b}}", cellOutput)
 			}
@@ -234,9 +254,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString(boardOutput)
 	// Hand
 	handTiles := []string{}
-	for _, t := range g.PlayerTiles[pNum].Sort() {
-		tCard := t.(card.SuitRankCard)
-		handTiles = append(handTiles, TileText(tCard.Suit, tCard.Rank))
+	for _, tRaw := range g.PlayerTiles[pNum].Sort() {
+		t := tRaw.(Tile)
+		handTiles = append(handTiles, TileText(t))
 	}
 	output.WriteString(fmt.Sprintf(
 		"\n\n{{b}}Your tiles: {{c \"gray\"}}%s{{_c}}{{_b}}\n",
@@ -251,6 +271,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			"{{b}}Value{{_b}}",
 			"{{b}}You own{{_b}}",
 			"{{b}}Remaining{{_b}}",
+			"{{b}}1st bonus{{_b}}",
+			"{{b}}2nd bonus{{_b}}",
 		},
 	}
 	for _, c := range Corps() {
@@ -261,6 +283,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			fmt.Sprintf("$%d", g.CorpValue(c)),
 			fmt.Sprintf("%d shares", g.PlayerShares[pNum][c]),
 			fmt.Sprintf("%d shares", g.BankShares[c]),
+			fmt.Sprintf("$%d", g.Corp1stBonus(c)),
+			fmt.Sprintf("$%d", g.Corp2ndBonus(c)),
 		})
 	}
 	corpOutput, err := render.Table(cells, 0, 2)
@@ -269,10 +293,29 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	output.WriteString("\n\n")
 	output.WriteString(corpOutput)
+	if g.IsFinished() {
+		// Player table
+		cells = [][]string{
+			[]string{
+				"{{b}}Player{{_b}}",
+			},
+		}
+		for pNum, p := range g.Players {
+			cells = append(cells, []string{
+				fmt.Sprintf("{{b}}%s{{_b}}", render.PlayerName(pNum, p)),
+			})
+		}
+		playerOutput, err := render.Table(cells, 0, 2)
+		if err != nil {
+			return "", err
+		}
+		output.WriteString("\n\n")
+		output.WriteString(playerOutput)
+	}
 	return output.String(), nil
 }
 
-func (g *Game) PlayerNumber(player string) (int, error) {
+func (g *Game) PlayerNum(player string) (int, error) {
 	for pNum, p := range g.Players {
 		if p == player {
 			return pNum, nil
@@ -296,6 +339,35 @@ func (g *Game) CorpValue(corp int) int {
 	return CorpValue(g.CorpSize(corp), corp)
 }
 
+func (g *Game) Corp1stBonus(corp int) int {
+	return Corp1stBonus(g.CorpSize(corp), corp)
+}
+
+func (g *Game) Corp2ndBonus(corp int) int {
+	return Corp2ndBonus(g.CorpSize(corp), corp)
+}
+
+func (g *Game) PlayTile(playerNum int, t Tile) error {
+	if g.IsFinished() || g.CurrentPlayer != playerNum ||
+		g.TurnPhase != TURN_PHASE_PLAY_TILE {
+		return errors.New("You are not allowed to play a tile at the moment")
+	}
+	// Check the tile is in the relevant player's hand
+	newPlayerTiles, n := g.PlayerTiles[playerNum].Remove(t, 1)
+	if n == 0 {
+		return errors.New("You don't have that tile in your hand")
+	}
+	g.PlayerTiles[playerNum] = newPlayerTiles
+	// Check if the tile is adjacent to others
+
+	return nil
+}
+
+func IsValidLocation(t Tile) bool {
+	return t.Row >= BOARD_ROW_A && t.Row <= BOARD_ROW_I &&
+		t.Column >= BOARD_COL_1 && t.Column <= BOARD_COL_12
+}
+
 func CorpValue(size, corp int) int {
 	if size <= 0 {
 		return 0
@@ -315,16 +387,61 @@ func CorpValue(size, corp int) int {
 	return CorpStartValues[corp] + multiplier*100
 }
 
-func CorpMajorityShareholderBonus(size, corp int) int {
-	return CorpMinorityShareholderBonus(size, corp) * 2
+func Corp1stBonus(size, corp int) int {
+	return Corp2ndBonus(size, corp) * 2
 }
 
-func CorpMinorityShareholderBonus(size, corp int) int {
+func Corp2ndBonus(size, corp int) int {
 	return CorpValue(size, corp) * 5
 }
 
-func TileText(row, col int) string {
-	return fmt.Sprintf("%d%c", 1+col, 'A'+row)
+func TileText(t Tile) string {
+	return fmt.Sprintf("%d%c", 1+t.Column, 'A'+t.Row)
+}
+
+func ParseTileText(text string) (t Tile, err error) {
+	matches := regexp.MustCompile(`\b(\d{1,2})([A-I])\b`).FindStringSubmatch(
+		strings.ToUpper(text))
+	if matches == nil {
+		err = errors.New(
+			"Invalid tile, it must be between 1A and 12H")
+		return
+	}
+	t.Column, err = strconv.Atoi(matches[1])
+	if err != nil {
+		return
+	}
+	t.Column = t.Column - 1 // 0 index
+	t.Row = int(matches[2][0] - 'A')
+	if !IsValidLocation(t) {
+		err = errors.New("Invalid tile, it must be between 1A and 12H")
+	}
+	return
+}
+
+func AdjacentTiles(t Tile) card.Deck {
+	d := card.Deck{}
+	// Left
+	left := Tile{t.Row - 1, t.Column}
+	if IsValidLocation(left) {
+		d = d.Push(left)
+	}
+	// Right
+	right := Tile{t.Row + 1, t.Column}
+	if IsValidLocation(right) {
+		d = d.Push(right)
+	}
+	// Up
+	up := Tile{t.Row, t.Column - 1}
+	if IsValidLocation(up) {
+		d = d.Push(up)
+	}
+	// Down
+	down := Tile{t.Row, t.Column + 1}
+	if IsValidLocation(down) {
+		d = d.Push(down)
+	}
+	return d
 }
 
 func Rows() []int {
@@ -355,10 +472,7 @@ func Tiles() card.Deck {
 	d := card.Deck{}
 	for _, r := range Rows() {
 		for _, c := range Cols() {
-			d = d.Push(card.SuitRankCard{
-				Suit: r,
-				Rank: c,
-			})
+			d = d.Push(Tile{r, c})
 		}
 	}
 	return d
