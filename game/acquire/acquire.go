@@ -3,9 +3,12 @@ package acquire
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/render"
+	"strings"
 )
 
 const (
@@ -53,7 +56,7 @@ var CorpColours = map[int]string{
 	TILE_CORP_IMPERIAL:    "yellow",
 	TILE_CORP_SACKSON:     "magenta",
 	TILE_CORP_TOWER:       "cyan",
-	TILE_CORP_WORLDWIDE:   "gray",
+	TILE_CORP_WORLDWIDE:   "black",
 }
 
 var CorpNames = map[int]string{
@@ -77,8 +80,13 @@ var CorpShortNames = map[int]string{
 }
 
 type Game struct {
-	Players []string
-	Board   [BOARD_ROW_I + 1][BOARD_COL_12 + 1]int
+	Players      []string
+	Board        map[int]map[int]int
+	PlayerCash   map[int]int
+	PlayerShares map[int]map[int]int
+	PlayerTiles  map[int]card.Deck
+	BankShares   map[int]int
+	BankTiles    card.Deck
 }
 
 func (g *Game) Name() string {
@@ -93,7 +101,12 @@ func (g *Game) Commands() []command.Command {
 	return []command.Command{}
 }
 
+func RegisterGobTypes() {
+	gob.Register(card.SuitRankCard{})
+}
+
 func (g *Game) Encode() ([]byte, error) {
+	RegisterGobTypes()
 	buf := bytes.NewBuffer([]byte{})
 	encoder := gob.NewEncoder(buf)
 	err := encoder.Encode(g)
@@ -101,6 +114,7 @@ func (g *Game) Encode() ([]byte, error) {
 }
 
 func (g *Game) Decode(data []byte) error {
+	RegisterGobTypes()
 	buf := bytes.NewBuffer(data)
 	decoder := gob.NewDecoder(buf)
 	return decoder.Decode(g)
@@ -108,6 +122,21 @@ func (g *Game) Decode(data []byte) error {
 
 func (g *Game) Start(players []string) error {
 	g.Players = players
+	// Initialise board
+	g.Board = map[int]map[int]int{}
+	for _, r := range Rows() {
+		g.Board[r] = map[int]int{}
+	}
+	// Initialise player supplies
+	g.PlayerCash = map[int]int{}
+	g.PlayerShares = map[int]map[int]int{}
+	g.BankTiles = Tiles().Shuffle()
+	g.PlayerTiles = map[int]card.Deck{}
+	for p, _ := range g.Players {
+		g.PlayerShares[p] = map[int]int{}
+		g.PlayerTiles[p], g.BankTiles = g.BankTiles.PopN(8)
+	}
+	// Testing values
 	g.Board[BOARD_ROW_B][BOARD_COL_6] = TILE_CORP_AMERICAN
 	g.Board[BOARD_ROW_C][BOARD_COL_1] = TILE_CORP_CONTINENTAL
 	g.Board[BOARD_ROW_A][BOARD_COL_4] = TILE_CORP_FESTIVAL
@@ -138,7 +167,7 @@ func (g *Game) RenderTile(row, col int) (output string) {
 	t := g.Board[row][col]
 	switch t {
 	case TILE_EMPTY:
-		output = TileText(row, col)
+		output = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, TileText(row, col))
 	default:
 		output = fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, CorpColours[t],
 			CorpShortNames[t])
@@ -147,21 +176,91 @@ func (g *Game) RenderTile(row, col int) (output string) {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
+	pNum, err := g.PlayerNumber(player)
+	if err != nil {
+		return "", err
+	}
+	output := bytes.NewBufferString("")
+	// Board
 	cells := [][]string{}
-	for r := BOARD_ROW_A; r <= BOARD_ROW_I; r++ {
+	for _, r := range Rows() {
 		row := []string{}
-		for c := BOARD_COL_1; c <= BOARD_COL_12; c++ {
-			row = append(row, g.RenderTile(r, c))
+		for _, c := range Cols() {
+			cellOutput := g.RenderTile(r, c)
+			// We embolden the tile if the player has it in their hand
+			if _, n := g.PlayerTiles[pNum].Remove(card.SuitRankCard{
+				Suit: r,
+				Rank: c,
+			}, 1); n > 0 {
+				cellOutput = fmt.Sprintf("{{b}}%s{{_b}}", cellOutput)
+			}
+			row = append(row, cellOutput)
 		}
 		cells = append(cells, row)
 	}
-	for letter := 'A'; letter <= 'I'; letter++ {
-		for number := 1; number <= 12; number++ {
+	boardOutput, err := render.Table(cells, 0, 1)
+	if err != nil {
+		return "", err
+	}
+	output.WriteString(boardOutput)
+	// Hand
+	handTiles := []string{}
+	for _, t := range g.PlayerTiles[pNum].Sort() {
+		tCard := t.(card.SuitRankCard)
+		handTiles = append(handTiles, TileText(tCard.Suit, tCard.Rank))
+	}
+	output.WriteString(fmt.Sprintf(
+		"\n\nYour tiles: {{b}}{{c \"gray\"}}%s{{_c}}{{_b}}",
+		strings.Join(handTiles, " ")))
+	return output.String(), nil
+}
+
+func (g *Game) PlayerNumber(player string) (int, error) {
+	for pNum, p := range g.Players {
+		if p == player {
+			return pNum, nil
 		}
 	}
-	return render.Table(cells, 0, 1)
+	return 0, errors.New("Could not find player")
 }
 
 func TileText(row, col int) string {
 	return fmt.Sprintf("%d%c", 1+col, 'A'+row)
+}
+
+func Rows() []int {
+	rows := []int{}
+	for r := BOARD_ROW_A; r <= BOARD_ROW_I; r++ {
+		rows = append(rows, r)
+	}
+	return rows
+}
+
+func Cols() []int {
+	cols := []int{}
+	for c := BOARD_COL_1; c <= BOARD_COL_12; c++ {
+		cols = append(cols, c)
+	}
+	return cols
+}
+
+func Corps() []int {
+	corps := []int{}
+	for c := TILE_CORP_AMERICAN; c <= TILE_CORP_WORLDWIDE; c++ {
+		corps = append(corps, c)
+	}
+	return corps
+}
+
+func Tiles() card.Deck {
+	d := card.Deck{}
+	for _, r := range Rows() {
+		for _, c := range Cols() {
+			d = d.Push(card.SuitRankCard{
+				Suit: r,
+				Rank: c,
+			})
+		}
+	}
+	return d
 }
