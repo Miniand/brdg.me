@@ -8,6 +8,7 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/render"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -249,7 +250,7 @@ func (g *Game) RenderTile(t Tile) (output string) {
 	case TILE_EMPTY:
 		output = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, TileText(t))
 	case TILE_UNINCORPORATED:
-		output = `{{b}}{{c "gray"}}XX{{_c}}{{_b}}`
+		output = `{{b}}{{c "gray"}}::{{_c}}{{_b}}`
 	default:
 		output = fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, CorpColours[val],
 			CorpShortNames[val])
@@ -398,30 +399,63 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 	}
 	// Check for special actions based on adjacent tiles
 	adjacentCorps := g.AdjacentCorps(t)
-	if len(adjacentCorps) == 1 && adjacentCorps[0] == TILE_UNINCORPORATED {
-		// We have a new corp
-		if len(g.InactiveCorps()) == 0 {
-			return errors.New(fmt.Sprintf(
-				"You are not allowed to play %s as there are no inactive corporations available to place on the board",
-				TileText(t)))
-		}
-		g.TurnPhase = TURN_PHASE_FOUND_CORP
-	} else if potentialMergers := g.PotentialMergers(t); len(potentialMergers) > 0 {
+	if len(adjacentCorps) > 1 {
 		// We have a merger
+		potentialMergers := g.PotentialMergers(t)
 		if len(potentialMergers) > 1 {
+			g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
 			g.TurnPhase = TURN_PHASE_MERGER_CHOOSE
 		} else {
 			g.ChooseMerger(t, potentialMergers[0][0], potentialMergers[0][1])
 		}
+	} else if len(adjacentCorps) == 1 {
+		// Extending an existing corp
+		g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
+		g.SetAreaOnBoard(t, adjacentCorps[0])
+		g.BuySharesPhase()
+	} else if g.AdjacentToUnincorporated(t) {
+		// We have a new corp
+		if len(g.InactiveCorps()) == 0 {
+			return errors.New(fmt.Sprintf(
+				"You are not allowed to play %s as there are no corporations available to found",
+				TileText(t)))
+		}
+		g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
+		g.TurnPhase = TURN_PHASE_FOUND_CORP
 	} else {
 		// Nothing adjacent
-		g.TurnPhase = TURN_PHASE_BUY_SHARES
-		g.BoughtShares = 0
+		g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
+		g.BuySharesPhase()
 	}
+
 	// Remove the tile from the player's hand
 	g.PlayedTile = t
 	g.PlayerTiles[playerNum] = newPlayerTiles
 	return nil
+}
+
+func (g *Game) BuySharesPhase() {
+	if g.PlayerCanAffordShares(g.CurrentPlayer) {
+		g.TurnPhase = TURN_PHASE_BUY_SHARES
+		g.BoughtShares = 0
+	} else {
+		// Too poor
+		g.NextPlayer()
+	}
+}
+
+func (g *Game) PlayerCanAffordShares(playerNum int) bool {
+	if g.PlayerCash[playerNum] < START_VALUE_LOW {
+		return false
+	}
+	for _, corp := range Corps() {
+		corpValue := g.CorpValue(corp)
+		if g.BankShares[corp] > 0 && corpValue > 0 && corpValue <=
+			g.PlayerCash[playerNum] {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *Game) ChooseMerger(at Tile, from, into int) error {
@@ -440,6 +474,56 @@ func (g *Game) ChooseMerger(at Tile, from, into int) error {
 	g.MergerCurrentPlayer = g.CurrentPlayer
 	g.MergerFromCorp = from
 	g.MergerIntoCorp = into
+	if g.Board[at.Row][at.Column] == TILE_EMPTY {
+		g.Board[at.Row][at.Column] = TILE_UNINCORPORATED
+		g.SetAreaOnBoard(at, into)
+	}
+	// Shareholder bonuses
+	majors := []int{}
+	majorCount := 0
+	minors := []int{}
+	minorCount := 0
+	for pNum, _ := range g.Players {
+		count := g.PlayerShares[pNum][from]
+		if count > 0 {
+			if count > majorCount {
+				// Shuffle down
+				minors = majors
+				minorCount = majorCount
+				majors = []int{}
+				majorCount = count
+			}
+			if count == majorCount {
+				majors = append(majors, pNum)
+			} else {
+				if count > minorCount {
+					minors = []int{}
+					minorCount = count
+				}
+				if count == minorCount {
+					minors = append(minors, pNum)
+				}
+			}
+		}
+	}
+	majorBonus := float64(g.Corp1stBonus(from))
+	minorBonus := float64(g.Corp2ndBonus(from))
+	if len(majors) > 1 || len(minors) == 0 {
+		majorBonus += minorBonus
+	}
+	// Pay major
+	aveMajorBonus := int(math.Ceil(majorBonus/100/float64(len(majors)))) * 100
+	for _, pNum := range majors {
+		g.PlayerCash[pNum] += aveMajorBonus
+	}
+	// Pay minor if needed
+	if len(majors) == 1 && len(minors) > 0 {
+		aveMinorBonus := int(math.Ceil(minorBonus/100/float64(len(minors)))) *
+			100
+		for _, pNum := range minors {
+			g.PlayerCash[pNum] += aveMinorBonus
+		}
+	}
 	return nil
 }
 
@@ -516,7 +600,7 @@ func (g *Game) BuyShares(playerNum, corp, amount int) error {
 	if corpValue == 0 {
 		return errors.New(fmt.Sprintf(
 			"Cannot buy shares in %s because they aren't active on the board",
-		))
+			CorpNames[corp]))
 	}
 	if g.PlayerCash[playerNum] < corpValue*amount {
 		return errors.New(fmt.Sprintf("That would cost $%d, you only have $%d",
@@ -526,7 +610,8 @@ func (g *Game) BuyShares(playerNum, corp, amount int) error {
 	g.BankShares[corp] -= amount
 	g.PlayerShares[playerNum][corp] += amount
 	g.BoughtShares += amount
-	if g.BoughtShares == MAX_BUY_PER_TURN {
+	if g.BoughtShares == MAX_BUY_PER_TURN ||
+		!g.PlayerCanAffordShares(playerNum) {
 		g.NextPlayer()
 	}
 	return nil
@@ -546,8 +631,7 @@ func (g *Game) FoundCorp(playerNum, corp int) error {
 		g.BankShares[corp] -= 1
 		g.PlayerShares[playerNum][corp] += 1
 	}
-	g.TurnPhase = TURN_PHASE_BUY_SHARES
-	g.BoughtShares = 0
+	g.BuySharesPhase()
 	return nil
 }
 
@@ -589,8 +673,7 @@ func (g *Game) NextMergerPhasePlayer() {
 					potentialMergers[0][1])
 			}
 		} else {
-			g.TurnPhase = TURN_PHASE_BUY_SHARES
-			g.BoughtShares = 0
+			g.BuySharesPhase()
 		}
 	} else if g.PlayerShares[g.MergerCurrentPlayer][g.MergerFromCorp] == 0 {
 		g.NextMergerPhasePlayer()
@@ -601,6 +684,14 @@ func (g *Game) NextPlayer() {
 	if g.FinalTurn {
 		g.GameEnded = true
 	} else {
+		// Draw tiles if needed
+		drawNum := INIT_TILES - len(g.PlayerTiles[g.CurrentPlayer])
+		if drawNum > 0 {
+			var drawnTiles card.Deck
+			drawnTiles, g.BankTiles = g.BankTiles.PopN(drawNum)
+			g.PlayerTiles[g.CurrentPlayer] =
+				g.PlayerTiles[g.CurrentPlayer].PushMany(drawnTiles)
+		}
 		g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
 		g.TurnPhase = TURN_PHASE_PLAY_TILE
 	}
@@ -680,7 +771,7 @@ func (g *Game) AdjacentCorps(t Tile) []int {
 	adjacentCorpMap := map[int]bool{}
 	for _, adjTRaw := range AdjacentTiles(t) {
 		adjT := adjTRaw.(Tile)
-		if g.Board[adjT.Row][adjT.Column] != TILE_EMPTY {
+		if g.Board[adjT.Row][adjT.Column] > TILE_UNINCORPORATED {
 			adjacentCorpMap[g.Board[adjT.Row][adjT.Column]] = true
 		}
 	}
@@ -689,6 +780,16 @@ func (g *Game) AdjacentCorps(t Tile) []int {
 		adjacentCorps = append(adjacentCorps, c)
 	}
 	return adjacentCorps
+}
+
+func (g *Game) AdjacentToUnincorporated(t Tile) bool {
+	for _, adjTRaw := range AdjacentTiles(t) {
+		adjT := adjTRaw.(Tile)
+		if g.Board[adjT.Row][adjT.Column] == TILE_UNINCORPORATED {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *Game) ActiveCorps() []int {

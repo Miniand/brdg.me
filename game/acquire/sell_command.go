@@ -40,6 +40,6 @@ func (c SellCommand) Call(player string, context interface{},
 func (c SellCommand) Usage(player string, context interface{}) string {
 	g := context.(*Game)
 	return fmt.Sprintf(
-		`{{b}}sell #{{_b}} to sell a certain number of your {{b}}{c "%s"}}%s{_c}}{{_b}} shares.  Eg. {{b}}sell 3{{_b}}`,
+		`{{b}}sell #{{_b}} to sell a certain number of your {{b}}{{c "%s"}}%s{{_c}}{{_b}} shares.  Eg. {{b}}sell 3{{_b}}`,
 		CorpColours[g.MergerFromCorp], CorpNames[g.MergerFromCorp])
 }

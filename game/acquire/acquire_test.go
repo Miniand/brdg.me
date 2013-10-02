@@ -528,12 +528,6 @@ func TestPlayCommandResultInBuyShares(t *testing.T) {
 	if len(g.PlayerTiles[0]) != INIT_TILES {
 		t.Fatal("It appears Mick didn't lose the tile when playing it")
 	}
-	if g.CurrentPlayer != 0 {
-		t.Fatal("Mick lost the current turn")
-	}
-	if g.TurnPhase != TURN_PHASE_BUY_SHARES {
-		t.Fatal("The turn phase didn't change to place corp")
-	}
 }
 
 func TestMergeCommand(t *testing.T) {
@@ -848,6 +842,9 @@ func TestFoundCorp(t *testing.T) {
 	if _, err := command.CallInCommands("Mick", g, "found to",
 		g.Commands()); err != nil {
 		t.Fatal(err)
+	}
+	if g.CorpSize(TILE_CORP_TOWER) != 3 {
+		t.Fatal("Size was not 3")
 	}
 }
 

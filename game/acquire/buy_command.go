@@ -1,7 +1,6 @@
 package acquire
 
 import (
-	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"strconv"
 )
@@ -41,8 +40,5 @@ func (c BuyCommand) Call(player string, context interface{},
 }
 
 func (c BuyCommand) Usage(player string, context interface{}) string {
-	g := context.(*Game)
-	return fmt.Sprintf(
-		`{{b}}sell #{{_b}} to sell a certain number of your {{b}}{c "%s"}}%s{_c}}{{_b}} shares.  Eg. {{b}}sell 3{{_b}}`,
-		CorpColours[g.MergerFromCorp], CorpNames[g.MergerFromCorp])
+	return `{{b}}buy # ##{{_b}} to buy a certain number of shares in a corp.  Eg. {{b}}buy 3 wo{{_b}}`
 }
