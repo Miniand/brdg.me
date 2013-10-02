@@ -69,6 +69,7 @@ const (
 	START_VALUE_HIGH = 400
 	CORP_SAFE_SIZE   = 11
 	TILE_REGEXP      = `\b(1[012]|[1-9])([A-I])\b`
+	MAX_BUY_PER_TURN = 3
 )
 
 var CorpColours = map[int]string{
@@ -144,6 +145,7 @@ func (g *Game) Commands() []command.Command {
 		MergeCommand{},
 		SellCommand{},
 		TradeCommand{},
+		BuyCommand{},
 	}
 }
 
@@ -218,6 +220,9 @@ func (g *Game) Winners() []string {
 func (g *Game) WhoseTurn() []string {
 	if g.IsFinished() {
 		return []string{}
+	}
+	if g.TurnPhase == TURN_PHASE_MERGER {
+		return []string{g.Players[g.MergerCurrentPlayer]}
 	}
 	return []string{g.Players[g.CurrentPlayer]}
 }
@@ -478,13 +483,52 @@ func (g *Game) KeepShares(playerNum int) error {
 	return nil
 }
 
+func (g *Game) BuyShares(playerNum, corp, amount int) error {
+	if g.TurnPhase != TURN_PHASE_BUY_SHARES || g.CurrentPlayer != playerNum {
+		return errors.New("It's not your turn to buy shares")
+	}
+	if amount > MAX_BUY_PER_TURN-g.BoughtShares {
+		return errors.New(fmt.Sprintf("You can only buy %d more this turn",
+			MAX_BUY_PER_TURN-g.BoughtShares))
+	}
+	if amount > g.BankShares[corp] {
+		return errors.New(fmt.Sprintf(
+			"%s does not have %d left in the bank, has %d remaining",
+			CorpNames[corp], amount, g.BankShares[corp]))
+	}
+	corpValue := g.CorpValue(corp)
+	if corpValue == 0 {
+		return errors.New(fmt.Sprintf(
+			"Cannot buy shares in %s because they aren't active on the board",
+		))
+	}
+	if g.PlayerCash[playerNum] < corpValue*amount {
+		return errors.New(fmt.Sprintf("That would cost $%d, you only have $%d",
+			corpValue*amount, g.PlayerCash[playerNum]))
+	}
+	g.PlayerCash[playerNum] -= corpValue * amount
+	g.BankShares[corp] -= amount
+	g.PlayerShares[playerNum][corp] += amount
+	g.BoughtShares += amount
+	if g.BoughtShares == MAX_BUY_PER_TURN {
+		g.NextPlayer()
+	}
+	return nil
+}
+
 func (g *Game) NextMergerPhasePlayer() {
 	g.MergerCurrentPlayer = (g.MergerCurrentPlayer + 1) % len(g.Players)
 	if g.MergerCurrentPlayer == g.CurrentPlayer {
 		g.TurnPhase = TURN_PHASE_BUY_SHARES
+		g.BoughtShares = 0
 	} else if g.PlayerShares[g.MergerCurrentPlayer][g.MergerFromCorp] == 0 {
 		g.NextMergerPhasePlayer()
 	}
+}
+
+func (g *Game) NextPlayer() {
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+	g.TurnPhase = TURN_PHASE_PLAY_TILE
 }
 
 func (g *Game) IsJoiningSafeCorps(t Tile) bool {

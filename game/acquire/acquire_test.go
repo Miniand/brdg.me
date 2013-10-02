@@ -684,3 +684,52 @@ func TestTradeCommand(t *testing.T) {
 		t.Fatal("Turn changed too early")
 	}
 }
+
+func TestBuyCommand(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerShares[0][4] = 5
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_A, BOARD_COL_1})
+	if _, err := command.CallInCommands("Mick", g, "play 1a",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 4 %s",
+		CorpShortNames[2]), g.Commands()); err == nil {
+		t.Fatal("Expected error because 4 is too high")
+	}
+	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 2 %s",
+		CorpShortNames[6]), g.Commands()); err == nil {
+		t.Fatal("Expected error because 6 is inactive")
+	}
+	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 2 %s",
+		CorpShortNames[2]), g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 2 %s",
+		CorpShortNames[2]), g.Commands()); err == nil {
+		t.Fatal("Expected error because 2 is too high")
+	}
+	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 1 %s",
+		CorpShortNames[2]), g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if g.CurrentPlayer == 0 {
+		t.Fatal("Current player didn't change")
+	}
+}
