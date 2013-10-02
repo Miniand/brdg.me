@@ -32,8 +32,7 @@ func (c PlayCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	err = g.PlayTile(playerNum, t)
-	return "", err
+	return "", g.PlayTile(playerNum, t)
 }
 
 func (c PlayCommand) Usage(player string, context interface{}) string {

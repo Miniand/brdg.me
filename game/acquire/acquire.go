@@ -142,6 +142,7 @@ func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		PlayCommand{},
 		MergeCommand{},
+		SellCommand{},
 	}
 }
 
@@ -388,10 +389,7 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 		if len(potentialMergers) > 1 {
 			g.TurnPhase = TURN_PHASE_MERGER_CHOOSE
 		} else {
-			g.TurnPhase = TURN_PHASE_MERGER
-			g.MergerCurrentPlayer = playerNum
-			g.MergerFromCorp = potentialMergers[0][0]
-			g.MergerIntoCorp = potentialMergers[0][1]
+			g.ChooseMerger(t, potentialMergers[0][0], potentialMergers[0][1])
 		}
 	} else {
 		// Nothing adjacent
@@ -404,8 +402,39 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 	return nil
 }
 
-func (g *Game) ChooseMerger(from, into int) error {
-	return errors.New("Not implemented")
+func (g *Game) ChooseMerger(at Tile, from, into int) error {
+	found := false
+	for _, merger := range g.PotentialMergers(at) {
+		if merger[0] == from && merger[1] == into {
+			found = true
+		}
+	}
+	if !found {
+		return errors.New(fmt.Sprintf(
+			"A merger from %s into %s is not available at the moment",
+			CorpShortNames[from], CorpShortNames[into]))
+	}
+	g.TurnPhase = TURN_PHASE_MERGER
+	g.MergerCurrentPlayer = g.CurrentPlayer
+	g.MergerFromCorp = from
+	g.MergerIntoCorp = into
+	return nil
+}
+
+func (g *Game) SellShares(playerNum, corp, amount int) error {
+	if g.TurnPhase != TURN_PHASE_MERGER || g.MergerCurrentPlayer != playerNum {
+		return errors.New("It's not your turn to sell shares")
+	}
+	if corp != g.MergerFromCorp {
+		return errors.New("You can't sell shares in that corp")
+	}
+	if amount > g.PlayerShares[playerNum][corp] {
+		return errors.New(fmt.Sprintf(`You only have %d shares`,
+			g.PlayerShares[playerNum][corp]))
+	}
+	g.PlayerCash[playerNum] += g.CorpValue(corp) * amount
+	g.PlayerShares[playerNum][corp] -= amount
+	return nil
 }
 
 func (g *Game) IsJoiningSafeCorps(t Tile) bool {

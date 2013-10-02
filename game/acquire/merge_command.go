@@ -32,7 +32,7 @@ func (c MergeCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	return "", g.ChooseMerger(from, into)
+	return "", g.ChooseMerger(g.PlayedTile, from, into)
 }
 
 func (c MergeCommand) Usage(player string, context interface{}) string {

@@ -555,11 +555,51 @@ func TestMergeCommand(t *testing.T) {
 	// Prepare environment
 	g.CurrentPlayer = 0
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
-	if _, err := command.CallInCommands("Mick", g, "play 6g", g.Commands()); err != nil {
+	if _, err := command.CallInCommands("Mick", g, "play 6g",
+		g.Commands()); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf(
-		"merge %s into %s", CorpShortNames[3], CorpShortNames[2]),
+		"merge %s into %s", CorpShortNames[4], CorpShortNames[2]),
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSellCommand(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 6 6 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerShares[0][4] = 3
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
+	if _, err := command.CallInCommands("Mick", g, "play 6g",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf(
+		"merge %s into %s", CorpShortNames[4], CorpShortNames[2]),
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Mick", g, "sell 4",
+		g.Commands()); err == nil {
+		t.Fatal("Expected this to error")
+	}
+	if _, err := command.CallInCommands("Mick", g, "sell 3",
 		g.Commands()); err != nil {
 		t.Fatal(err)
 	}
