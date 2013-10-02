@@ -61,15 +61,16 @@ const (
 )
 
 const (
-	INIT_SHARES      = 25
-	INIT_CASH        = 6000
-	INIT_TILES       = 6
-	START_VALUE_LOW  = 200
-	START_VALUE_MED  = 300
-	START_VALUE_HIGH = 400
-	CORP_SAFE_SIZE   = 11
-	TILE_REGEXP      = `\b(1[012]|[1-9])([A-I])\b`
-	MAX_BUY_PER_TURN = 3
+	INIT_SHARES        = 25
+	INIT_CASH          = 6000
+	INIT_TILES         = 6
+	START_VALUE_LOW    = 200
+	START_VALUE_MED    = 300
+	START_VALUE_HIGH   = 400
+	CORP_SAFE_SIZE     = 11
+	CORP_END_GAME_SIZE = 41
+	TILE_REGEXP        = `\b(1[012]|[1-9])([A-I])\b`
+	MAX_BUY_PER_TURN   = 3
 )
 
 var CorpColours = map[int]string{
@@ -141,6 +142,7 @@ func (g *Game) Identifier() string {
 
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
+		EndCommand{},
 		PlayCommand{},
 		MergeCommand{},
 		SellCommand{},
@@ -171,8 +173,8 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) Start(players []string) error {
-	if len(players) < 3 || len(players) > 6 {
-		return errors.New("Acquire is between 3 and 6 players")
+	if len(players) < 2 || len(players) > 6 {
+		return errors.New("Acquire is between 2 and 6 players")
 	}
 	g.Players = players
 	// Initialise board
@@ -214,7 +216,21 @@ func (g *Game) IsFinished() bool {
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if g.IsFinished() {
+		return []string{}
+	}
+	highestCash := 0
+	highestPlayers := []string{}
+	for pNum, p := range g.Players {
+		if g.PlayerCash[pNum] > highestCash {
+			highestCash = g.PlayerCash[pNum]
+			highestPlayers = []string{}
+		}
+		if g.PlayerCash[pNum] == highestCash {
+			highestPlayers = append(highestPlayers, p)
+		}
+	}
+	return highestPlayers
 }
 
 func (g *Game) WhoseTurn() []string {
@@ -582,8 +598,12 @@ func (g *Game) NextMergerPhasePlayer() {
 }
 
 func (g *Game) NextPlayer() {
-	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
-	g.TurnPhase = TURN_PHASE_PLAY_TILE
+	if g.FinalTurn {
+		g.GameEnded = true
+	} else {
+		g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+		g.TurnPhase = TURN_PHASE_PLAY_TILE
+	}
 }
 
 func (g *Game) IsJoiningSafeCorps(t Tile) bool {
@@ -693,6 +713,24 @@ func (g *Game) InactiveCorps() []int {
 
 func (g *Game) TileAt(t Tile) int {
 	return g.Board[t.Row][t.Column]
+}
+
+func (g *Game) CanEnd(playerNum int) bool {
+	if g.FinalTurn || g.IsFinished() || g.CurrentPlayer != playerNum ||
+		g.TurnPhase != TURN_PHASE_PLAY_TILE {
+		return false
+	}
+	allSafe := true
+	oneActive := false
+	for _, corp := range Corps() {
+		size := g.CorpSize(corp)
+		if size >= CORP_END_GAME_SIZE {
+			return true
+		}
+		oneActive = oneActive || size > 0
+		allSafe = allSafe && (size == 0 || size >= CORP_SAFE_SIZE)
+	}
+	return oneActive && allSafe
 }
 
 func IsValidLocation(t Tile) bool {
