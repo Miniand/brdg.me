@@ -66,6 +66,7 @@ const (
 	START_VALUE_LOW  = 200
 	START_VALUE_MED  = 300
 	START_VALUE_HIGH = 400
+	CORP_SAFE_SIZE   = 11
 )
 
 var CorpColours = map[int]string{
@@ -358,9 +359,41 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 		return errors.New("You don't have that tile in your hand")
 	}
 	g.PlayerTiles[playerNum] = newPlayerTiles
-	// Check if the tile is adjacent to others
-
+	// Check if it is a valid play, ie. not next to two or more safe corps
+	if g.IsJoiningSafeCorps(t) {
+		return errors.New(fmt.Sprintf(
+			"You are not allowed to play %s as it would join two safe corporations",
+			TileText(t)))
+	}
 	return nil
+}
+
+func (g *Game) IsJoiningSafeCorps(t Tile) bool {
+	safeCorps := 0
+	for _, c := range g.AdjacentCorps(t) {
+		if c != TILE_PLACED && g.CorpSize(c) >= CORP_SAFE_SIZE {
+			safeCorps += 1
+			if safeCorps > 1 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (g *Game) AdjacentCorps(t Tile) []int {
+	adjacentCorpMap := map[int]bool{}
+	for _, adjTRaw := range AdjacentTiles(t) {
+		adjT := adjTRaw.(Tile)
+		if g.Board[adjT.Row][adjT.Column] != TILE_EMPTY {
+			adjacentCorpMap[g.Board[adjT.Row][adjT.Column]] = true
+		}
+	}
+	adjacentCorps := []int{}
+	for c, _ := range adjacentCorpMap {
+		adjacentCorps = append(adjacentCorps, c)
+	}
+	return adjacentCorps
 }
 
 func IsValidLocation(t Tile) bool {

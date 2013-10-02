@@ -1,8 +1,46 @@
 package acquire
 
 import (
+	"github.com/Miniand/brdg.me/game/card"
+	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 )
+
+func (g *Game) parseGameBoard(b string, t *testing.T) {
+	g.BankTiles = card.Deck{}
+	rows := regexp.MustCompile(`\n`).Split(strings.TrimSpace(b), -1)
+	if len(rows) != 9 {
+		t.Fatal("Must be 9 rows")
+	}
+	colReg := regexp.MustCompile(`\s+`)
+	for rowN, row := range rows {
+		cols := colReg.Split(row, -1)
+		if len(cols) != 12 {
+			t.Fatal("Must be 12 cols")
+		}
+		for colN, cell := range cols {
+			val, err := strconv.Atoi(cell)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if val < TILE_EMPTY || val > TILE_CORP_TOWER {
+				t.Fatal("Invalid number")
+			}
+			g.Board[rowN][colN] = val
+			if val == TILE_EMPTY {
+				g.BankTiles = g.BankTiles.Push(Tile{
+					Row:    rowN,
+					Column: colN,
+				})
+			}
+		}
+	}
+	for playerN, _ := range g.Players {
+		g.PlayerTiles[playerN], g.BankTiles = g.BankTiles.PopN(INIT_TILES)
+	}
+}
 
 func TestStart(t *testing.T) {
 	g := Game{}
@@ -254,5 +292,41 @@ func TestAdjacentTiles(t *testing.T) {
 	}
 	if _, n := adj.Remove(Tile{BOARD_ROW_G, BOARD_COL_4}, -1); n != 1 {
 		t.Fatal("Expected 4G to be adjacent")
+	}
+}
+
+func TestIsJoiningSafeCorps(t *testing.T) {
+	g := Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	if !g.IsJoiningSafeCorps(Tile{
+		Row:    BOARD_ROW_B,
+		Column: BOARD_COL_6,
+	}) {
+		t.Fatal("6B should be joining safe corps")
+	}
+	if !g.IsJoiningSafeCorps(Tile{
+		Row:    BOARD_ROW_G,
+		Column: BOARD_COL_6,
+	}) {
+		t.Fatal("6B should be joining safe corps")
+	}
+	if g.IsJoiningSafeCorps(Tile{
+		Row:    BOARD_ROW_H,
+		Column: BOARD_COL_5,
+	}) {
+		t.Fatal("6B should be joining safe corps")
 	}
 }
