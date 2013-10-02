@@ -54,7 +54,7 @@ const (
 
 const (
 	TURN_PHASE_PLAY_TILE = iota
-	TURN_PHASE_PLACE_CORP
+	TURN_PHASE_FOUND_CORP
 	TURN_PHASE_MERGER_CHOOSE
 	TURN_PHASE_MERGER
 	TURN_PHASE_BUY_SHARES
@@ -147,6 +147,7 @@ func (g *Game) Commands() []command.Command {
 		TradeCommand{},
 		BuyCommand{},
 		DoneCommand{},
+		FoundCommand{},
 	}
 }
 
@@ -194,15 +195,13 @@ func (g *Game) Start(players []string) error {
 	for _, c := range Corps() {
 		g.BankShares[c] = INIT_SHARES
 	}
-	// Testing values
-	g.Board[BOARD_ROW_H][BOARD_COL_11] = TILE_UNINCORPORATED
-	g.Board[BOARD_ROW_B][BOARD_COL_6] = TILE_CORP_AMERICAN
-	g.Board[BOARD_ROW_C][BOARD_COL_1] = TILE_CORP_CONTINENTAL
-	g.Board[BOARD_ROW_A][BOARD_COL_4] = TILE_CORP_FESTIVAL
-	g.Board[BOARD_ROW_D][BOARD_COL_7] = TILE_CORP_IMPERIAL
-	g.Board[BOARD_ROW_F][BOARD_COL_3] = TILE_CORP_SACKSON
-	g.Board[BOARD_ROW_I][BOARD_COL_12] = TILE_CORP_TOWER
-	g.Board[BOARD_ROW_G][BOARD_COL_10] = TILE_CORP_WORLDWIDE
+	// Draw tiles to the board for the number of players
+	var rawT card.Card
+	for _, _ = range g.Players {
+		rawT, g.BankTiles = g.BankTiles.Pop()
+		t := rawT.(Tile)
+		g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
+	}
 	return nil
 }
 
@@ -390,7 +389,7 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 				"You are not allowed to play %s as there are no inactive corporations available to place on the board",
 				TileText(t)))
 		}
-		g.TurnPhase = TURN_PHASE_PLACE_CORP
+		g.TurnPhase = TURN_PHASE_FOUND_CORP
 	} else if potentialMergers := g.PotentialMergers(t); len(potentialMergers) > 0 {
 		// We have a merger
 		if len(potentialMergers) > 1 {
@@ -517,11 +516,66 @@ func (g *Game) BuyShares(playerNum, corp, amount int) error {
 	return nil
 }
 
+func (g *Game) FoundCorp(playerNum, corp int) error {
+	if g.TurnPhase != TURN_PHASE_FOUND_CORP || g.CurrentPlayer != playerNum {
+		return errors.New("It's not your turn to buy shares")
+	}
+	if g.CorpSize(corp) > 0 {
+		return errors.New(fmt.Sprintf("%s is already active on the board",
+			CorpNames[corp]))
+	}
+	g.SetAreaOnBoard(g.PlayedTile, corp)
+	if g.BankShares[corp] > 0 {
+		// Free share for founder
+		g.BankShares[corp] -= 1
+		g.PlayerShares[playerNum][corp] += 1
+	}
+	g.TurnPhase = TURN_PHASE_BUY_SHARES
+	g.BoughtShares = 0
+	return nil
+}
+
+func (g *Game) SetAreaOnBoard(t Tile, val int) {
+	origVal := g.TileAt(t)
+	if origVal == val {
+		return
+	}
+	g.Board[t.Row][t.Column] = val
+	for _, rawAdjT := range AdjacentTiles(t) {
+		adjT := rawAdjT.(Tile)
+		if g.TileAt(adjT) == origVal {
+			g.SetAreaOnBoard(adjT, val)
+		}
+	}
+}
+
+func (g *Game) ConvertCorp(from, to int) {
+	for _, r := range Rows() {
+		for _, c := range Cols() {
+			if g.Board[r][c] == from {
+				g.Board[r][c] = to
+			}
+		}
+	}
+}
+
 func (g *Game) NextMergerPhasePlayer() {
 	g.MergerCurrentPlayer = (g.MergerCurrentPlayer + 1) % len(g.Players)
 	if g.MergerCurrentPlayer == g.CurrentPlayer {
-		g.TurnPhase = TURN_PHASE_BUY_SHARES
-		g.BoughtShares = 0
+		g.ConvertCorp(g.MergerFromCorp, g.MergerIntoCorp)
+		// Check if we have more mergers to do
+		if potentialMergers := g.PotentialMergers(
+			g.PlayedTile); len(potentialMergers) > 0 {
+			if len(potentialMergers) > 1 {
+				g.TurnPhase = TURN_PHASE_MERGER_CHOOSE
+			} else {
+				g.ChooseMerger(g.PlayedTile, potentialMergers[0][0],
+					potentialMergers[0][1])
+			}
+		} else {
+			g.TurnPhase = TURN_PHASE_BUY_SHARES
+			g.BoughtShares = 0
+		}
 	} else if g.PlayerShares[g.MergerCurrentPlayer][g.MergerFromCorp] == 0 {
 		g.NextMergerPhasePlayer()
 	}

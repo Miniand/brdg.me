@@ -498,7 +498,7 @@ func TestPlayCommandResultInPlaceCorp(t *testing.T) {
 	if g.CurrentPlayer != 0 {
 		t.Fatal("Mick lost the current turn")
 	}
-	if g.TurnPhase != TURN_PHASE_PLACE_CORP {
+	if g.TurnPhase != TURN_PHASE_FOUND_CORP {
 		t.Fatal("The turn phase didn't change to place corp")
 	}
 }
@@ -764,5 +764,89 @@ func TestDoneCommand(t *testing.T) {
 	}
 	if g.CurrentPlayer == 0 {
 		t.Fatal("Current player didn't change")
+	}
+}
+
+func TestSetAreaOnBoard(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	g.SetAreaOnBoard(Tile{
+		Row:    BOARD_ROW_H,
+		Column: BOARD_COL_6,
+	}, 6)
+	if g.CorpSize(6) != 4 || g.CorpSize(3) != 0 {
+		t.Fatal("Did not set")
+	}
+}
+
+func TestConvertCorp(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	g.ConvertCorp(3, 6)
+	if g.CorpSize(6) != 4 || g.CorpSize(3) != 0 {
+		t.Fatal("Did not set")
+	}
+}
+
+func TestFoundCorp(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 1 0 7 0 0 0 0 0 0 0 0
+1 0 0 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerShares[0][4] = 5
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_C, BOARD_COL_2})
+	if _, err := command.CallInCommands("Mick", g, "play 2c",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if g.TurnPhase != TURN_PHASE_FOUND_CORP {
+		t.Fatal("Turn phase didn't change to found")
+	}
+	if _, err := command.CallInCommands("Mick", g, "found co",
+		g.Commands()); err == nil {
+		t.Fatal("It shouldn't let us found a corp")
+	}
+	if _, err := command.CallInCommands("Mick", g, "found to",
+		g.Commands()); err != nil {
+		t.Fatal(err)
 	}
 }
