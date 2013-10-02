@@ -143,6 +143,7 @@ func (g *Game) Commands() []command.Command {
 		PlayCommand{},
 		MergeCommand{},
 		SellCommand{},
+		TradeCommand{},
 	}
 }
 
@@ -434,7 +435,56 @@ func (g *Game) SellShares(playerNum, corp, amount int) error {
 	}
 	g.PlayerCash[playerNum] += g.CorpValue(corp) * amount
 	g.PlayerShares[playerNum][corp] -= amount
+	g.BankShares[corp] += amount
+	if g.PlayerShares[playerNum][corp] == 0 {
+		g.NextMergerPhasePlayer()
+	}
 	return nil
+}
+
+func (g *Game) TradeShares(playerNum, from, into, amount int) error {
+	if g.TurnPhase != TURN_PHASE_MERGER || g.MergerCurrentPlayer != playerNum {
+		return errors.New("It's not your turn to trade shares")
+	}
+	if from != g.MergerFromCorp {
+		return errors.New("You can't trade shares from that corp")
+	}
+	if into != g.MergerIntoCorp {
+		return errors.New("You can't trade shares into that corp")
+	}
+	if amount%2 != 0 {
+		return errors.New(
+			"You can only trade multiples of 2, trades are 2 for 1")
+	}
+	if amount > g.PlayerShares[playerNum][from] {
+		return errors.New(fmt.Sprintf(`You only have %d shares`,
+			g.PlayerShares[playerNum][from]))
+	}
+	g.PlayerShares[playerNum][from] -= amount
+	g.BankShares[from] += amount
+	g.PlayerShares[playerNum][into] += amount / 2
+	g.BankShares[into] -= amount / 2
+	if g.PlayerShares[playerNum][from] == 0 {
+		g.NextMergerPhasePlayer()
+	}
+	return nil
+}
+
+func (g *Game) KeepShares(playerNum int) error {
+	if g.TurnPhase != TURN_PHASE_MERGER || g.MergerCurrentPlayer != playerNum {
+		return errors.New("It's not your turn to keep shares")
+	}
+	g.NextMergerPhasePlayer()
+	return nil
+}
+
+func (g *Game) NextMergerPhasePlayer() {
+	g.MergerCurrentPlayer = (g.MergerCurrentPlayer + 1) % len(g.Players)
+	if g.MergerCurrentPlayer == g.CurrentPlayer {
+		g.TurnPhase = TURN_PHASE_BUY_SHARES
+	} else if g.PlayerShares[g.MergerCurrentPlayer][g.MergerFromCorp] == 0 {
+		g.NextMergerPhasePlayer()
+	}
 }
 
 func (g *Game) IsJoiningSafeCorps(t Tile) bool {

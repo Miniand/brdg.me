@@ -585,6 +585,7 @@ func TestSellCommand(t *testing.T) {
 	// Prepare environment
 	g.CurrentPlayer = 0
 	g.PlayerShares[0][4] = 3
+	g.PlayerShares[1][4] = 1
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
 	if _, err := command.CallInCommands("Mick", g, "play 6g",
 		g.Commands()); err != nil {
@@ -599,8 +600,87 @@ func TestSellCommand(t *testing.T) {
 		g.Commands()); err == nil {
 		t.Fatal("Expected this to error")
 	}
-	if _, err := command.CallInCommands("Mick", g, "sell 3",
+	if g.BankShares[4] != INIT_SHARES {
+		t.Fatal("Corp shares changed when it shouldn't have")
+	}
+	if _, err := command.CallInCommands("Mick", g, "sell 2",
 		g.Commands()); err != nil {
 		t.Fatal(err)
+	}
+	if g.BankShares[4] != INIT_SHARES+2 {
+		t.Fatal("Corp shares didn't increase by 2")
+	}
+	if g.PlayerShares[0][4] != 1 {
+		t.Fatal("Mick's shares didn't decrease to 1")
+	}
+	if g.CurrentPlayer != 0 {
+		t.Fatal("Turn changed before player ran out of shares")
+	}
+	if _, err := command.CallInCommands("Mick", g, "sell 1",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if g.MergerCurrentPlayer == 0 {
+		t.Fatal("Turn didn't change after player was out of shares")
+	}
+}
+
+func TestTradeCommand(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 6 6 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerShares[0][4] = 5
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
+	if _, err := command.CallInCommands("Mick", g, "play 6g",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf(
+		"merge %s into %s", CorpShortNames[4], CorpShortNames[2]),
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Mick", g, "trade 5",
+		g.Commands()); err == nil {
+		t.Fatal("Expected this to error")
+	}
+	if g.BankShares[4] != INIT_SHARES {
+		t.Fatal("Corp shares changed when it shouldn't have")
+	}
+	if g.BankShares[2] != INIT_SHARES {
+		t.Fatal("Corp shares changed when it shouldn't have")
+	}
+	if _, err := command.CallInCommands("Mick", g, "trade 4",
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if g.BankShares[4] != INIT_SHARES+4 {
+		t.Fatal("Corp shares didn't increase by 4")
+	}
+	if g.BankShares[2] != INIT_SHARES-2 {
+		t.Fatal("Corp shares didn't decrease by 2")
+	}
+	if g.PlayerShares[0][4] != 1 {
+		t.Fatal("Corp shares didn't decrease to 1")
+	}
+	if g.PlayerShares[0][2] != 2 {
+		t.Fatal("Corp shares didn't increase 2")
+	}
+	if g.MergerCurrentPlayer != 0 {
+		t.Fatal("Turn changed too early")
 	}
 }
