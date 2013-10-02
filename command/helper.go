@@ -40,6 +40,15 @@ func ParseNamedCommand(name string, input string) []string {
 	return ParseNamedCommandNArgs(name, -1, input)
 }
 
+// Parses using provided regexp, replacing spaces with non-newline space matchers
+func ParseRegexp(reg, input string) []string {
+	return regexp.MustCompile(fmt.Sprintf(`(?im)[^\S\r\n]*%s[^\S\r\n]*$`,
+		regexp.MustCompile(`\bARG\b`).ReplaceAllString(
+			regexp.MustCompile(`\s+?`).ReplaceAllString(reg, `[^\S\r\n]+`),
+			`\b[^\s]+\b`))).
+		FindStringSubmatch(input)
+}
+
 // Extracts the actual arguments from the result of a ParseNamedCommand call
 func ExtractNamedCommandArgs(args []string) []string {
 	return regexp.MustCompile(`\s+`).Split(strings.TrimSpace(args[1]), -1)

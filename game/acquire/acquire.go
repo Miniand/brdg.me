@@ -55,8 +55,9 @@ const (
 const (
 	TURN_PHASE_PLAY_TILE = iota
 	TURN_PHASE_PLACE_CORP
+	TURN_PHASE_MERGER_CHOOSE
 	TURN_PHASE_MERGER
-	TURN_PHASE_BUY_TILES
+	TURN_PHASE_BUY_SHARES
 )
 
 const (
@@ -67,6 +68,7 @@ const (
 	START_VALUE_MED  = 300
 	START_VALUE_HIGH = 400
 	CORP_SAFE_SIZE   = 11
+	TILE_REGEXP      = `\b(1[012]|[1-9])([A-I])\b`
 )
 
 var CorpColours = map[int]string{
@@ -110,16 +112,22 @@ var CorpStartValues = map[int]int{
 }
 
 type Game struct {
-	Players       []string
-	CurrentPlayer int
-	TurnPhase     int
-	GameEnded     bool
-	Board         map[int]map[int]int
-	PlayerCash    map[int]int
-	PlayerShares  map[int]map[int]int
-	PlayerTiles   map[int]card.Deck
-	BankShares    map[int]int
-	BankTiles     card.Deck
+	Players             []string
+	CurrentPlayer       int
+	TurnPhase           int
+	GameEnded           bool
+	FinalTurn           bool
+	Board               map[int]map[int]int
+	PlayerCash          map[int]int
+	PlayerShares        map[int]map[int]int
+	PlayerTiles         map[int]card.Deck
+	BankShares          map[int]int
+	BankTiles           card.Deck
+	PlayedTile          Tile
+	MergerCurrentPlayer int
+	MergerFromCorp      int
+	MergerIntoCorp      int
+	BoughtShares        int
 }
 
 func (g *Game) Name() string {
@@ -133,6 +141,7 @@ func (g *Game) Identifier() string {
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		PlayCommand{},
+		MergeCommand{},
 	}
 }
 
@@ -374,13 +383,29 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 				TileText(t)))
 		}
 		g.TurnPhase = TURN_PHASE_PLACE_CORP
-	} else if len(adjacentCorps) > 0 {
+	} else if potentialMergers := g.PotentialMergers(t); len(potentialMergers) > 0 {
 		// We have a merger
-		// potentialMergers := g.PotentialMergers(t)
+		if len(potentialMergers) > 1 {
+			g.TurnPhase = TURN_PHASE_MERGER_CHOOSE
+		} else {
+			g.TurnPhase = TURN_PHASE_MERGER
+			g.MergerCurrentPlayer = playerNum
+			g.MergerFromCorp = potentialMergers[0][0]
+			g.MergerIntoCorp = potentialMergers[0][1]
+		}
+	} else {
+		// Nothing adjacent
+		g.TurnPhase = TURN_PHASE_BUY_SHARES
+		g.BoughtShares = 0
 	}
 	// Remove the tile from the player's hand
+	g.PlayedTile = t
 	g.PlayerTiles[playerNum] = newPlayerTiles
 	return nil
+}
+
+func (g *Game) ChooseMerger(from, into int) error {
+	return errors.New("Not implemented")
 }
 
 func (g *Game) IsJoiningSafeCorps(t Tile) bool {
@@ -488,6 +513,10 @@ func (g *Game) InactiveCorps() []int {
 	return active
 }
 
+func (g *Game) TileAt(t Tile) int {
+	return g.Board[t.Row][t.Column]
+}
+
 func IsValidLocation(t Tile) bool {
 	return t.Row >= BOARD_ROW_A && t.Row <= BOARD_ROW_I &&
 		t.Column >= BOARD_COL_1 && t.Column <= BOARD_COL_12
@@ -525,8 +554,8 @@ func TileText(t Tile) string {
 }
 
 func ParseTileText(text string) (t Tile, err error) {
-	matches := regexp.MustCompile(`\b(\d{1,2})([A-I])\b`).FindStringSubmatch(
-		strings.ToUpper(text))
+	matches := regexp.MustCompile(fmt.Sprintf(`\b%s\b`, TILE_REGEXP)).
+		FindStringSubmatch(strings.ToUpper(text))
 	if matches == nil {
 		err = errors.New(
 			"Invalid tile, it must be between 1A and 12H")
@@ -601,4 +630,14 @@ func Tiles() card.Deck {
 		}
 	}
 	return d
+}
+
+func CorpFromShortName(shortName string) (int, error) {
+	for _, corp := range Corps() {
+		if strings.ToLower(shortName) == strings.ToLower(CorpShortNames[corp]) {
+			return corp, nil
+		}
+	}
+	return 0, errors.New(fmt.Sprintf(
+		"Could not find a corporation with the short name %s", shortName))
 }

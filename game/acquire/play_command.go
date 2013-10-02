@@ -1,13 +1,14 @@
 package acquire
 
 import (
+	"fmt"
 	"github.com/Miniand/brdg.me/command"
 )
 
 type PlayCommand struct{}
 
 func (c PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
+	return command.ParseRegexp(fmt.Sprintf("play (%s)", TILE_REGEXP), input)
 }
 
 func (c PlayCommand) CanCall(player string, context interface{}) bool {
@@ -22,7 +23,7 @@ func (c PlayCommand) CanCall(player string, context interface{}) bool {
 
 func (c PlayCommand) Call(player string, context interface{},
 	args []string) (string, error) {
-	t, err := ParseTileText(args[0])
+	t, err := ParseTileText(args[1])
 	if err != nil {
 		return "", err
 	}

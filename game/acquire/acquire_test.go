@@ -1,6 +1,8 @@
 package acquire
 
 import (
+	"fmt"
+	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"regexp"
 	"strconv"
@@ -43,7 +45,7 @@ func (g *Game) parseGameBoard(b string, t *testing.T) {
 }
 
 func TestStart(t *testing.T) {
-	g := Game{}
+	g := &Game{}
 	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +298,7 @@ func TestAdjacentTiles(t *testing.T) {
 }
 
 func TestIsJoiningSafeCorps(t *testing.T) {
-	g := Game{}
+	g := &Game{}
 	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
 		t.Fatal(err)
 	}
@@ -356,7 +358,7 @@ func checkPotentialMergers(expected, actual [][2]int, t *testing.T) {
 }
 
 func TestPotentialMergers(t *testing.T) {
-	g := Game{}
+	g := &Game{}
 	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
 		t.Fatal(err)
 	}
@@ -391,4 +393,174 @@ func TestPotentialMergers(t *testing.T) {
 		Row:    BOARD_ROW_C,
 		Column: BOARD_COL_4,
 	}), t)
+}
+
+func TestPlayCommandResultInMergerChoose(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 6 6 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
+	if _, err := command.CallInCommands("Mick", g, "play 6g", g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if len(g.PlayerTiles[0]) != INIT_TILES {
+		t.Fatal("It appears Mick didn't lose the tile when playing it")
+	}
+	if g.CurrentPlayer != 0 {
+		t.Fatal("Mick lost the current turn")
+	}
+	if g.TurnPhase != TURN_PHASE_MERGER_CHOOSE {
+		t.Fatal("The turn phase didn't change to merger choose")
+	}
+}
+
+func TestPlayCommandResultInMerger(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 6 6 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_D, BOARD_COL_9})
+	if _, err := command.CallInCommands("Mick", g, "play 9d", g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if len(g.PlayerTiles[0]) != INIT_TILES {
+		t.Fatal("It appears Mick didn't lose the tile when playing it")
+	}
+	if g.CurrentPlayer != 0 {
+		t.Fatal("Mick lost the current turn")
+	}
+	if g.TurnPhase != TURN_PHASE_MERGER {
+		t.Fatal("The turn phase didn't change to merger")
+	}
+	if g.MergerCurrentPlayer != 0 {
+		t.Fatal("Mick isn't the merger current turn")
+	}
+	if g.MergerFromCorp != 5 {
+		t.Fatal("The merge from corp isn't 5")
+	}
+	if g.MergerIntoCorp != 2 {
+		t.Fatal("The merge into corp isn't 2")
+	}
+}
+
+func TestPlayCommandResultInPlaceCorp(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 1 0 0 0 0 0 0 0 0
+0 0 0 0 1 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_D, BOARD_COL_5})
+	if _, err := command.CallInCommands("Mick", g, "play 5d", g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if len(g.PlayerTiles[0]) != INIT_TILES {
+		t.Fatal("It appears Mick didn't lose the tile when playing it")
+	}
+	if g.CurrentPlayer != 0 {
+		t.Fatal("Mick lost the current turn")
+	}
+	if g.TurnPhase != TURN_PHASE_PLACE_CORP {
+		t.Fatal("The turn phase didn't change to place corp")
+	}
+}
+
+func TestPlayCommandResultInBuyShares(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_D, BOARD_COL_5})
+	if _, err := command.CallInCommands("Mick", g, "play 5d", g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if len(g.PlayerTiles[0]) != INIT_TILES {
+		t.Fatal("It appears Mick didn't lose the tile when playing it")
+	}
+	if g.CurrentPlayer != 0 {
+		t.Fatal("Mick lost the current turn")
+	}
+	if g.TurnPhase != TURN_PHASE_BUY_SHARES {
+		t.Fatal("The turn phase didn't change to place corp")
+	}
+}
+
+func TestMergeCommand(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 6 6 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	// Prepare environment
+	g.CurrentPlayer = 0
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
+	if _, err := command.CallInCommands("Mick", g, "play 6g", g.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf(
+		"merge %s into %s", CorpShortNames[3], CorpShortNames[2]),
+		g.Commands()); err != nil {
+		t.Fatal(err)
+	}
 }

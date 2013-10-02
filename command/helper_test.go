@@ -30,3 +30,19 @@ func TestParseNamedCommandRangeArgs(t *testing.T) {
 		t.Fatal("actualArgs[2] wasn't 'bacon', got:", actualArgs[2])
 	}
 }
+
+func TestParseRegexp(t *testing.T) {
+	result := ParseRegexp(`buy (\d+) (ARG)`, " buy   	5  oranges   ")
+	if result == nil {
+		t.Fatal("Could not match to input")
+	}
+	if len(result) != 3 {
+		t.Fatal("Expected result to be 3 parts, got", result)
+	}
+	if result[1] != "5" {
+		t.Fatal("Expected arg 1 to be 5, got", result[1])
+	}
+	if result[2] != "oranges" {
+		t.Fatal("Expected arg 2 to be oranges, got", result[2])
+	}
+}
