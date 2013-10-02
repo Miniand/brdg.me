@@ -303,9 +303,9 @@ func TestIsJoiningSafeCorps(t *testing.T) {
 	g.parseGameBoard(`
 0 0 0 0 0 0 0 0 0 0 0 0
 0 0 0 4 4 0 2 2 0 0 0 0
-0 0 0 4 4 0 2 2 0 0 0 0
-0 0 0 4 4 0 2 2 0 0 0 0
-0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
 0 0 0 4 4 0 2 2 0 0 0 0
 0 0 0 4 4 0 2 2 0 0 0 0
 0 0 0 0 0 3 0 0 0 0 0 0
@@ -321,12 +321,74 @@ func TestIsJoiningSafeCorps(t *testing.T) {
 		Row:    BOARD_ROW_G,
 		Column: BOARD_COL_6,
 	}) {
-		t.Fatal("6B should be joining safe corps")
+		t.Fatal("6G should be joining safe corps")
 	}
 	if g.IsJoiningSafeCorps(Tile{
 		Row:    BOARD_ROW_H,
 		Column: BOARD_COL_5,
 	}) {
-		t.Fatal("6B should be joining safe corps")
+		t.Fatal("5H shouldn't be joining safe corps")
 	}
+	if g.IsJoiningSafeCorps(Tile{
+		Row:    BOARD_ROW_C,
+		Column: BOARD_COL_9,
+	}) {
+		t.Fatal("9C shouldn't be joining safe corps")
+	}
+}
+
+func checkPotentialMergers(expected, actual [][2]int, t *testing.T) {
+	if len(expected) != len(actual) {
+		t.Fatal("Expected length", len(expected), "got", len(actual))
+	}
+	for _, e := range expected {
+		found := false
+		for _, a := range actual {
+			if e == a {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("Could not find %#v in %#v", e, actual)
+		}
+	}
+}
+
+func TestPotentialMergers(t *testing.T) {
+	g := Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.parseGameBoard(`
+0 0 0 7 0 0 0 0 0 0 0 0
+0 0 0 7 0 0 0 0 0 0 0 0
+0 6 6 0 0 0 0 0 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 5 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 4 4 0 2 2 0 0 0 0
+0 0 0 0 0 3 0 0 0 0 0 0
+0 0 0 0 3 3 3 0 0 0 0 0
+`, t)
+	checkPotentialMergers([][2]int{
+		[2]int{2, 4},
+		[2]int{4, 2},
+	}, g.PotentialMergers(Tile{
+		Row:    BOARD_ROW_G,
+		Column: BOARD_COL_6,
+	}), t)
+	checkPotentialMergers([][2]int{
+		[2]int{3, 4},
+	}, g.PotentialMergers(Tile{
+		Row:    BOARD_ROW_H,
+		Column: BOARD_COL_5,
+	}), t)
+	checkPotentialMergers([][2]int{
+		[2]int{6, 4},
+		[2]int{7, 4},
+	}, g.PotentialMergers(Tile{
+		Row:    BOARD_ROW_C,
+		Column: BOARD_COL_4,
+	}), t)
 }

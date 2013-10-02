@@ -15,7 +15,7 @@ import (
 
 const (
 	TILE_EMPTY = iota
-	TILE_PLACED
+	TILE_UNINCORPORATED
 	TILE_CORP_WORLDWIDE
 	TILE_CORP_SACKSON
 	TILE_CORP_FESTIVAL
@@ -181,7 +181,7 @@ func (g *Game) Start(players []string) error {
 		g.BankShares[c] = INIT_SHARES
 	}
 	// Testing values
-	g.Board[BOARD_ROW_H][BOARD_COL_11] = TILE_PLACED
+	g.Board[BOARD_ROW_H][BOARD_COL_11] = TILE_UNINCORPORATED
 	g.Board[BOARD_ROW_B][BOARD_COL_6] = TILE_CORP_AMERICAN
 	g.Board[BOARD_ROW_C][BOARD_COL_1] = TILE_CORP_CONTINENTAL
 	g.Board[BOARD_ROW_A][BOARD_COL_4] = TILE_CORP_FESTIVAL
@@ -216,7 +216,7 @@ func (g *Game) RenderTile(t Tile) (output string) {
 	switch val {
 	case TILE_EMPTY:
 		output = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, TileText(t))
-	case TILE_PLACED:
+	case TILE_UNINCORPORATED:
 		output = `{{b}}{{c "gray"}}XX{{_c}}{{_b}}`
 	default:
 		output = fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, CorpColours[val],
@@ -358,20 +358,35 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 	if n == 0 {
 		return errors.New("You don't have that tile in your hand")
 	}
-	g.PlayerTiles[playerNum] = newPlayerTiles
-	// Check if it is a valid play, ie. not next to two or more safe corps
+	// Check the tile is not next to two or more safe corps
 	if g.IsJoiningSafeCorps(t) {
 		return errors.New(fmt.Sprintf(
 			"You are not allowed to play %s as it would join two safe corporations",
 			TileText(t)))
 	}
+	// Check for special actions based on adjacent tiles
+	adjacentCorps := g.AdjacentCorps(t)
+	if len(adjacentCorps) == 1 && adjacentCorps[0] == TILE_UNINCORPORATED {
+		// We have a new corp
+		if len(g.InactiveCorps()) == 0 {
+			return errors.New(fmt.Sprintf(
+				"You are not allowed to play %s as there are no inactive corporations available to place on the board",
+				TileText(t)))
+		}
+		g.TurnPhase = TURN_PHASE_PLACE_CORP
+	} else if len(adjacentCorps) > 0 {
+		// We have a merger
+		// potentialMergers := g.PotentialMergers(t)
+	}
+	// Remove the tile from the player's hand
+	g.PlayerTiles[playerNum] = newPlayerTiles
 	return nil
 }
 
 func (g *Game) IsJoiningSafeCorps(t Tile) bool {
 	safeCorps := 0
 	for _, c := range g.AdjacentCorps(t) {
-		if c != TILE_PLACED && g.CorpSize(c) >= CORP_SAFE_SIZE {
+		if c != TILE_UNINCORPORATED && g.CorpSize(c) >= CORP_SAFE_SIZE {
 			safeCorps += 1
 			if safeCorps > 1 {
 				return true
@@ -379,6 +394,63 @@ func (g *Game) IsJoiningSafeCorps(t Tile) bool {
 		}
 	}
 	return false
+}
+
+func (g *Game) PotentialMergers(t Tile) [][2]int {
+	potentialMergers := [][2]int{}
+	from := []int{}
+	fromSize := 0
+	into := []int{}
+	intoSize := 0
+	// Figure out potential mergers based on sizes
+	for _, corp := range g.AdjacentCorps(t) {
+		if corp != TILE_UNINCORPORATED {
+			size := g.CorpSize(corp)
+			if size > intoSize {
+				// Biggest so far, shuffle down
+				from = into
+				fromSize = intoSize
+				into = []int{}
+				intoSize = size
+			}
+			if size == intoSize {
+				// Matches the current biggest size, potentially merged into
+				into = append(into, corp)
+			} else {
+				if size > fromSize {
+					// The new biggest from size
+					from = []int{}
+					fromSize = size
+				}
+				if size == fromSize {
+					// The same at the other from sizes, potentially merged from
+					from = append(from, corp)
+				}
+			}
+		}
+	}
+	// Organise into relevant mergers, [2]int{from, into}
+	if len(from)+len(into) < 2 {
+		// No potential mergers
+		return potentialMergers
+	}
+	if len(into) > 1 {
+		// Potential mergers between same sized corps, calculate permutations
+		for _, corp1 := range into {
+			for _, corp2 := range into {
+				if corp1 != corp2 {
+					potentialMergers = append(potentialMergers,
+						[2]int{corp1, corp2})
+				}
+			}
+		}
+		return potentialMergers
+	}
+	// One or more from
+	for _, fromCorp := range from {
+		potentialMergers = append(potentialMergers, [2]int{fromCorp, into[0]})
+	}
+	return potentialMergers
 }
 
 func (g *Game) AdjacentCorps(t Tile) []int {
@@ -394,6 +466,26 @@ func (g *Game) AdjacentCorps(t Tile) []int {
 		adjacentCorps = append(adjacentCorps, c)
 	}
 	return adjacentCorps
+}
+
+func (g *Game) ActiveCorps() []int {
+	active := []int{}
+	for _, corp := range Corps() {
+		if g.CorpSize(corp) > 0 {
+			active = append(active, corp)
+		}
+	}
+	return active
+}
+
+func (g *Game) InactiveCorps() []int {
+	active := []int{}
+	for _, corp := range Corps() {
+		if g.CorpSize(corp) == 0 {
+			active = append(active, corp)
+		}
+	}
+	return active
 }
 
 func IsValidLocation(t Tile) bool {
