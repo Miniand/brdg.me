@@ -146,6 +146,7 @@ func (g *Game) Commands() []command.Command {
 		SellCommand{},
 		TradeCommand{},
 		BuyCommand{},
+		DoneCommand{},
 	}
 }
 
