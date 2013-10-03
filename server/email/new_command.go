@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/server/model"
+	"math/rand"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type NewCommand struct{}
@@ -39,7 +41,25 @@ func (nc NewCommand) Call(player string, context interface{},
 	}
 	players := append([]string{player}, regexp.MustCompile(`\s+`).Split(
 		strings.TrimSpace(args[2]), -1)...)
-	g, err := gType(players)
+	// Unique players
+	playerMap := map[string]bool{}
+	for _, p := range players {
+		playerMap[p] = true
+	}
+	uniquePlayers := []string{}
+	for p, _ := range playerMap {
+		uniquePlayers = append(uniquePlayers, p)
+	}
+	// Shuffle players
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	l := len(uniquePlayers)
+	perm := r.Perm(l)
+	shuffledPlayers := make([]string, l)
+	for i := 0; i < l; i++ {
+		shuffledPlayers[i] = uniquePlayers[perm[i]]
+	}
+	// Start game
+	g, err := gType(shuffledPlayers)
 	if err != nil {
 		return "", err
 	}
