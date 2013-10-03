@@ -27,7 +27,7 @@ func (c FoundCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	corp, err := CorpFromShortName(args[1])
+	corp, err := FindCorp(args[1])
 	if err != nil {
 		return "", err
 	}
@@ -35,5 +35,5 @@ func (c FoundCommand) Call(player string, context interface{},
 }
 
 func (c FoundCommand) Usage(player string, context interface{}) string {
-	return `{{b}}found ##{{_b}} to found a corporation on your tile.  Eg. {{b}}found fe{{_b}}`
+	return `{{b}}found ##{{_b}} to found a corporation on your tile.  Eg. {{b}}found festival{{_b}} or {{b}}found fe{{_b}}`
 }

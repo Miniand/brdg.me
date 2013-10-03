@@ -3,6 +3,7 @@ package acquire
 import (
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
+	"strings"
 )
 
 type MergeCommand struct{}
@@ -24,11 +25,11 @@ func (c MergeCommand) CanCall(player string, context interface{}) bool {
 func (c MergeCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	from, err := CorpFromShortName(args[1])
+	from, err := FindCorp(args[1])
 	if err != nil {
 		return "", err
 	}
-	into, err := CorpFromShortName(args[2])
+	into, err := FindCorp(args[2])
 	if err != nil {
 		return "", err
 	}
@@ -43,10 +44,12 @@ func (c MergeCommand) Usage(player string, context interface{}) string {
 		into := merger[1]
 		availableCommands = append(availableCommands,
 			fmt.Sprintf(
-				`     {{b}}merge %s into %s{{_b}} to merge {{b}}{{c "%s"}}%s{{_c}}{{_b}} into {{b}}{{c "%s"}}%s{{_c}}{{_b}}`,
+				`     {{b}}merge %s into %s{{_b}} to merge {{b}}%s{{_b}} into {{b}}%s{{_b}}`,
 				CorpShortNames[from], CorpShortNames[into],
-				CorpColours[from], CorpNames[from],
-				CorpColours[into], CorpNames[into]))
+				RenderCorp(from),
+				RenderCorp(into)))
 	}
-	return `{{b}}merge ## into ##{{_b}} to choose which corporation to merge into another.  Your available options are:`
+	return fmt.Sprintf(
+		"{{b}}merge ## into ##{{_b}} to choose which corporation to merge into another.  Your available options are:\n%s",
+		strings.Join(availableCommands, "\n"))
 }

@@ -446,6 +446,7 @@ func TestPlayCommandResultInMerger(t *testing.T) {
 `, t)
 	// Prepare environment
 	g.CurrentPlayer = 0
+	g.PlayerShares[0][5] = 3
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_D, BOARD_COL_9})
 	if _, err := command.CallInCommands("Mick", g, "play 9d", g.Commands()); err != nil {
 		t.Fatal(err)

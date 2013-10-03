@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 	"math"
 	"regexp"
@@ -131,6 +132,7 @@ type Game struct {
 	MergerFromCorp      int
 	MergerIntoCorp      int
 	BoughtShares        int
+	Log                 log.Log
 }
 
 func (g *Game) Name() string {
@@ -178,6 +180,7 @@ func (g *Game) Start(players []string) error {
 	if len(players) < 2 || len(players) > 6 {
 		return errors.New("Acquire is between 2 and 6 players")
 	}
+	g.Log = log.NewLog()
 	g.Players = players
 	// Initialise board
 	g.Board = map[int]map[int]int{}
@@ -201,11 +204,17 @@ func (g *Game) Start(players []string) error {
 	}
 	// Draw tiles to the board for the number of players
 	var rawT card.Card
+	tileStrings := []string{}
 	for _, _ = range g.Players {
 		rawT, g.BankTiles = g.BankTiles.Pop()
 		t := rawT.(Tile)
 		g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
+		tileStrings = append(tileStrings, fmt.Sprintf(
+			"{{b}}%s{{_b}}", TileText(t)))
 	}
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"Started the game with %s on the board",
+		render.CommaList(tileStrings))))
 	return nil
 }
 
@@ -218,7 +227,7 @@ func (g *Game) IsFinished() bool {
 }
 
 func (g *Game) Winners() []string {
-	if g.IsFinished() {
+	if !g.IsFinished() {
 		return []string{}
 	}
 	highestCash := 0
@@ -253,8 +262,7 @@ func (g *Game) RenderTile(t Tile) (output string) {
 	case TILE_UNINCORPORATED:
 		output = `{{b}}{{c "gray"}}::{{_c}}{{_b}}`
 	default:
-		output = fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, CorpColours[val],
-			CorpShortNames[val])
+		output = fmt.Sprintf(`{{b}}%s{{_b}}`, RenderCorpShort(val))
 	}
 	return
 }
@@ -264,7 +272,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	output := bytes.NewBufferString("{{b}}Board:{{_b}}\n\n")
+	output := bytes.NewBufferString("")
+	newMessages := g.Log.NewMessagesFor(player)
+	if len(newMessages) > 0 {
+		output.WriteString("{{b}}Since last time:{{_b}}\n")
+		output.WriteString(log.RenderMessages(newMessages))
+		output.WriteString("\n\n")
+	}
+	output.WriteString("{{b}}Board:{{_b}}\n\n")
 	// Board
 	cells := [][]string{}
 	for _, r := range Rows() {
@@ -312,8 +327,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	for _, c := range Corps() {
 		cells = append(cells, []string{
-			fmt.Sprintf(`{{b}}{{c "%s"}}%s (%s){{_c}}{{_b}}`, CorpColours[c],
-				CorpNames[c], CorpShortNames[c]),
+			fmt.Sprintf(`{{b}}%s{{_b}}`, RenderCorpWithShort(c)),
 			fmt.Sprintf("%d", g.CorpSize(c)),
 			fmt.Sprintf("$%d", g.CorpValue(c)),
 			fmt.Sprintf("%d shares", g.PlayerShares[pNum][c]),
@@ -347,6 +361,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		output.WriteString("\n\n")
 		output.WriteString(playerOutput)
 	}
+	g.Log = g.Log.MarkReadFor(player)
 	return output.String(), nil
 }
 
@@ -413,6 +428,9 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 	adjacentCorps := g.AdjacentCorps(t)
 	if len(adjacentCorps) > 1 {
 		// We have a merger
+		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"{{b}}%s{{_b}} played {{b}}%s{{_b}} which triggered a merger",
+			g.RenderPlayer(playerNum), TileText(t))))
 		potentialMergers := g.PotentialMergers(t)
 		if len(potentialMergers) > 1 {
 			g.TurnPhase = TURN_PHASE_MERGER_CHOOSE
@@ -422,10 +440,20 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 	} else if len(adjacentCorps) == 1 {
 		// Extending an existing corp
 		g.SetAreaOnBoard(t, adjacentCorps[0])
+		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`{{b}}%s{{_b}} played {{b}}%s{{_b}} which increased the size of {{b}}%s{{_b}} to {{b}}%d{{_b}}`,
+			g.RenderPlayer(playerNum), TileText(t),
+			RenderCorp(adjacentCorps[0]), g.CorpSize(adjacentCorps[0]))))
 		g.BuySharesPhase()
 	} else if g.AdjacentToUnincorporated(t) {
+		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`{{b}}%s{{_b}} played {{b}}%s{{_b}} to found a new corporation`,
+			g.RenderPlayer(playerNum), TileText(t))))
 		g.TurnPhase = TURN_PHASE_FOUND_CORP
 	} else {
+		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`{{b}}%s{{_b}} played {{b}}%s{{_b}}`,
+			g.RenderPlayer(playerNum), TileText(t))))
 		// Nothing adjacent
 		g.BuySharesPhase()
 	}
@@ -467,6 +495,7 @@ func (g *Game) PlayerCanAffordShares(playerNum int) bool {
 }
 
 func (g *Game) PayShareholderBonuses(corp int) {
+	buf := bytes.NewBuffer([]byte{})
 	// Shareholder bonuses
 	majors := []int{}
 	majorCount := 0
@@ -500,9 +529,21 @@ func (g *Game) PayShareholderBonuses(corp int) {
 	if len(majors) > 1 || len(minors) == 0 {
 		majorBonus += minorBonus
 	}
+	buf.WriteString(fmt.Sprintf(
+		`Paying shareholder bonuses for {{b}}%s{{_b}} (size {{b}}%d{{_b}}), major bonus is {{b}}$%d{{_b}}, minor bonus is {{b}}$%d{{_b}}.  Player share counts are as follows:`,
+		RenderCorp(corp), g.CorpSize(corp),
+		g.Corp1stBonus(corp), g.Corp2ndBonus(corp)))
+	for pNum, _ := range g.Players {
+		buf.WriteString(fmt.Sprintf("\n{{b}}%s{{_b}}: {{b}}%d{{_b}}",
+			g.RenderPlayer(pNum), g.PlayerShares[pNum][corp]))
+	}
+
 	// Pay major
 	aveMajorBonus := int(math.Ceil(majorBonus/100/float64(len(majors)))) * 100
 	for _, pNum := range majors {
+		buf.WriteString(fmt.Sprintf(
+			"\nPaid {{b}}%s{{_b}} a major bonus of {{b}}$%d{{_b}}",
+			g.RenderPlayer(pNum), aveMajorBonus))
 		g.PlayerCash[pNum] += aveMajorBonus
 	}
 	// Pay minor if needed
@@ -510,9 +551,13 @@ func (g *Game) PayShareholderBonuses(corp int) {
 		aveMinorBonus := int(math.Ceil(minorBonus/100/float64(len(minors)))) *
 			100
 		for _, pNum := range minors {
+			buf.WriteString(fmt.Sprintf(
+				"\nPaid {{b}}%s{{_b}} a minor bonus of {{b}}$%d{{_b}}",
+				g.RenderPlayer(pNum), aveMinorBonus))
 			g.PlayerCash[pNum] += aveMinorBonus
 		}
 	}
+	g.Log = g.Log.Add(log.NewPublicMessage(buf.String()))
 }
 
 func (g *Game) ChooseMerger(at Tile, from, into int) error {
@@ -531,11 +576,19 @@ func (g *Game) ChooseMerger(at Tile, from, into int) error {
 	g.MergerCurrentPlayer = g.CurrentPlayer
 	g.MergerFromCorp = from
 	g.MergerIntoCorp = into
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} (size {{b}}%d{{_b}}) is merging into {{b}}%s{{_b}} (size {{b}}%d{{_b}})`,
+		RenderCorp(from), g.CorpSize(from),
+		RenderCorp(into), g.CorpSize(into))))
 	if g.Board[at.Row][at.Column] <= TILE_UNINCORPORATED {
 		g.Board[at.Row][at.Column] = TILE_UNINCORPORATED
 		g.SetAreaOnBoard(at, into)
 	}
 	g.PayShareholderBonuses(from)
+	// Go to next player if merging player has no shares
+	if g.PlayerShares[g.MergerCurrentPlayer][g.MergerFromCorp] == 0 {
+		g.NextMergerPhasePlayer()
+	}
 	return nil
 }
 
@@ -560,7 +613,12 @@ func (g *Game) SellShares(playerNum, corp, amount int) error {
 		return errors.New(fmt.Sprintf(`You only have %d shares`,
 			g.PlayerShares[playerNum][corp]))
 	}
-	g.PlayerCash[playerNum] += g.CorpValue(corp) * amount
+	corpValue := g.CorpValue(corp)
+	total := corpValue * amount
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} sold {{b}}%d{{_b}} shares in {{b}}%s{{_b}} for {{b}}$%d{{_b}} ({{b}}$%d{{_b}} per share)`,
+		g.RenderPlayer(playerNum), amount, RenderCorp(corp), total, corpValue)))
+	g.PlayerCash[playerNum] += total
 	g.PlayerShares[playerNum][corp] -= amount
 	g.BankShares[corp] += amount
 	return nil
@@ -588,6 +646,10 @@ func (g *Game) TradeShares(playerNum, from, into, amount int) error {
 		return errors.New(fmt.Sprintf(`The bank only has %d left in %s`,
 			g.BankShares[into], CorpNames[into]))
 	}
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} traded {{b}}%d{{_b}} shares in {{b}}%s{{_b}} ({{b}}$%d{{_b}} per share) for {{b}}%d{{_b}} shares in {{b}}%s{{_b}} ({{b}}$%d{{_b}} per share)`,
+		g.RenderPlayer(playerNum), amount, RenderCorp(from), g.CorpValue(from),
+		amount/2, RenderCorp(into), g.CorpValue(into))))
 	g.PlayerShares[playerNum][from] -= amount
 	g.BankShares[from] += amount
 	g.PlayerShares[playerNum][into] += amount / 2
@@ -602,6 +664,10 @@ func (g *Game) KeepShares(playerNum int) error {
 	if g.TurnPhase != TURN_PHASE_MERGER || g.MergerCurrentPlayer != playerNum {
 		return errors.New("It's not your turn to keep shares")
 	}
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} kept remaining {{b}}%d{{_b}} shares in {{b}}%s{{_b}}`,
+		g.RenderPlayer(playerNum), g.PlayerShares[playerNum][g.MergerFromCorp],
+		RenderCorp(g.MergerFromCorp))))
 	g.NextMergerPhasePlayer()
 	return nil
 }
@@ -625,11 +691,15 @@ func (g *Game) BuyShares(playerNum, corp, amount int) error {
 			"Cannot buy shares in %s because they aren't active on the board",
 			CorpNames[corp]))
 	}
-	if g.PlayerCash[playerNum] < corpValue*amount {
+	total := corpValue * amount
+	if g.PlayerCash[playerNum] < total {
 		return errors.New(fmt.Sprintf("That would cost $%d, you only have $%d",
-			corpValue*amount, g.PlayerCash[playerNum]))
+			total, g.PlayerCash[playerNum]))
 	}
-	g.PlayerCash[playerNum] -= corpValue * amount
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} bought {{b}}%d{{_b}} shares in {{b}}%s{{_b}} for {{b}}$%d{{_b}} ({{b}}$%d{{_b}} per share)`,
+		g.RenderPlayer(playerNum), amount, RenderCorp(corp), total, corpValue)))
+	g.PlayerCash[playerNum] -= total
 	g.BankShares[corp] -= amount
 	g.PlayerShares[playerNum][corp] += amount
 	g.BoughtShares += amount
@@ -649,8 +719,15 @@ func (g *Game) FoundCorp(playerNum, corp int) error {
 			CorpNames[corp]))
 	}
 	g.SetAreaOnBoard(g.PlayedTile, corp)
+	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} founded {{b}}%s{{_b}} at {{b}}%s{{_b}} (size {{b}}%d{{_b}})`,
+		g.RenderPlayer(playerNum), RenderCorp(corp), TileText(g.PlayedTile),
+		g.CorpSize(corp))))
 	if g.BankShares[corp] > 0 {
 		// Free share for founder
+		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`{{b}}%s{{_b}} received a free founder share in {{b}}%s{{_b}}`,
+			g.RenderPlayer(playerNum), RenderCorp(corp))))
 		g.BankShares[corp] -= 1
 		g.PlayerShares[playerNum][corp] += 1
 	}
@@ -707,6 +784,8 @@ func (g *Game) NextPlayer() {
 	if g.FinalTurn {
 		g.GameEnded = true
 		// Pay out remaining corps on the board
+		g.Log = g.Log.Add(log.NewPublicMessage(
+			"{{b}}It is the end of the game, now paying shareholder bonuses and selling all shares for active corporations.{{_b}}"))
 		for _, corp := range Corps() {
 			if g.CorpSize(corp) > 0 {
 				g.PayShareholderBonuses(corp)
@@ -718,6 +797,13 @@ func (g *Game) NextPlayer() {
 				}
 			}
 		}
+		buf := bytes.NewBufferString(fmt.Sprintf(
+			"Final player cash is as follows:"))
+		for playerNum, _ := range g.Players {
+			buf.WriteString(fmt.Sprintf("\n{{b}}%s{{_b}}: {{b}}$%d{{_b}}",
+				g.RenderPlayer(playerNum), g.PlayerCash[playerNum]))
+		}
+		g.Log = g.Log.Add(log.NewPublicMessage(buf.String()))
 	} else {
 		// Draw tiles if needed
 		g.DiscardUnplayableTiles(g.CurrentPlayer)
@@ -737,11 +823,19 @@ func (g *Game) NextPlayer() {
 
 func (g *Game) DiscardUnplayableTiles(playerNum int) {
 	newHand := g.PlayerTiles[playerNum]
+	discarded := []string{}
 	for _, tRaw := range g.PlayerTiles[playerNum] {
 		t := tRaw.(Tile)
 		if g.IsJoiningSafeCorps(t) {
 			newHand, _ = newHand.Remove(t, -1)
+			discarded = append(discarded, fmt.Sprintf("{{b}}%s{{_b}}",
+				TileText(t)))
 		}
+	}
+	if len(discarded) > 0 {
+		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`{{b}}%s{{_b}} discarded %s and drew replacement tiles`,
+			g.RenderPlayer(playerNum), render.CommaList(discarded))))
 	}
 	g.PlayerTiles[playerNum] = newHand
 }
@@ -879,8 +973,7 @@ func (g *Game) TileAt(t Tile) int {
 }
 
 func (g *Game) CanEnd(playerNum int) bool {
-	if g.FinalTurn || g.IsFinished() || g.CurrentPlayer != playerNum ||
-		g.TurnPhase != TURN_PHASE_PLAY_TILE {
+	if g.FinalTurn || g.IsFinished() || g.CurrentPlayer != playerNum {
 		return false
 	}
 	allSafe := true
@@ -894,6 +987,27 @@ func (g *Game) CanEnd(playerNum int) bool {
 		allSafe = allSafe && (size == 0 || size >= CORP_SAFE_SIZE)
 	}
 	return oneActive && allSafe
+}
+
+func (g *Game) RenderPlayer(playerNum int) string {
+	return render.PlayerName(playerNum, g.Players[playerNum])
+}
+
+func RenderInCorpColour(corp int, text string) string {
+	return fmt.Sprintf(`{{c "%s"}}%s{{_c}}`, CorpColours[corp], text)
+}
+
+func RenderCorp(corp int) string {
+	return RenderInCorpColour(corp, CorpNames[corp])
+}
+
+func RenderCorpShort(corp int) string {
+	return RenderInCorpColour(corp, CorpShortNames[corp])
+}
+
+func RenderCorpWithShort(corp int) string {
+	return RenderInCorpColour(corp, fmt.Sprintf("%s (%s)", CorpNames[corp],
+		CorpShortNames[corp]))
 }
 
 func IsValidLocation(t Tile) bool {
@@ -1011,12 +1125,16 @@ func Tiles() card.Deck {
 	return d
 }
 
-func CorpFromShortName(shortName string) (int, error) {
+func FindCorp(search string) (int, error) {
+	search = strings.ToLower(search)
 	for _, corp := range Corps() {
-		if strings.ToLower(shortName) == strings.ToLower(CorpShortNames[corp]) {
+		if search == strings.ToLower(CorpNames[corp]) {
+			return corp, nil
+		}
+		if search == strings.ToLower(CorpShortNames[corp]) {
 			return corp, nil
 		}
 	}
 	return 0, errors.New(fmt.Sprintf(
-		"Could not find a corporation with the short name %s", shortName))
+		"Could not find a corporation with the name %s", search))
 }

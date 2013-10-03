@@ -49,3 +49,27 @@ Twenty` {
 		t.Fatal("Output wasn't correct, got:", output)
 	}
 }
+
+func TestCommaList(t *testing.T) {
+	var expected, actual string
+	expected = "cheese"
+	actual = CommaList([]string{"cheese"})
+	if actual != expected {
+		t.Fatal("Expected", expected, "got", actual)
+	}
+	expected = "cheese and burger"
+	actual = CommaList([]string{"cheese", "burger"})
+	if actual != expected {
+		t.Fatal("Expected", expected, "got", actual)
+	}
+	expected = "fart, cheese and burger"
+	actual = CommaList([]string{"fart", "cheese", "burger"})
+	if actual != expected {
+		t.Fatal("Expected", expected, "got", actual)
+	}
+	expected = "bogs, fart, cheese and burger"
+	actual = CommaList([]string{"bogs", "fart", "cheese", "burger"})
+	if actual != expected {
+		t.Fatal("Expected", expected, "got", actual)
+	}
+}

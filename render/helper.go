@@ -94,3 +94,16 @@ func Table(cells [][]string, rowPadding, colPadding int) (string, error) {
 	}
 	return buf.String(), nil
 }
+
+func CommaList(list []string) string {
+	if len(list) == 0 {
+		return ""
+	}
+	if len(list) == 1 {
+		return list[0]
+	}
+	if len(list) == 2 {
+		return list[0] + " and " + list[1]
+	}
+	return list[0] + ", " + CommaList(list[1:])
+}

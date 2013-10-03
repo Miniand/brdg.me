@@ -32,7 +32,7 @@ func (c BuyCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	corp, err := CorpFromShortName(args[2])
+	corp, err := FindCorp(args[2])
 	if err != nil {
 		return "", err
 	}
@@ -40,5 +40,5 @@ func (c BuyCommand) Call(player string, context interface{},
 }
 
 func (c BuyCommand) Usage(player string, context interface{}) string {
-	return `{{b}}buy # ##{{_b}} to buy a certain number of shares in a corp.  Eg. {{b}}buy 3 wo{{_b}}`
+	return `{{b}}buy # ##{{_b}} to buy a certain number of shares in a corp.  Eg. {{b}}buy 3 worldwide{{_b}} or {{b}}buy 3 wo{{_b}}`
 }
