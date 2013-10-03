@@ -6,6 +6,7 @@ cd $(dirname $0)/../..
 TEST_DIRS=(
 	"command"
 	"game"
+	"game/acquire"
 	"game/card"
 	"game/farkle"
 	"game/liars_dice"
