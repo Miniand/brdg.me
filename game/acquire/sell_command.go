@@ -34,7 +34,7 @@ func (c SellCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	return "", g.SellShares(playerNum, g.MergerFromCorp, amount)
+	return "", g.SellSharesAction(playerNum, g.MergerFromCorp, amount)
 }
 
 func (c SellCommand) Usage(player string, context interface{}) string {

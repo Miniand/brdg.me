@@ -466,33 +466,14 @@ func (g *Game) PlayerCanAffordShares(playerNum int) bool {
 	return false
 }
 
-func (g *Game) ChooseMerger(at Tile, from, into int) error {
-	found := false
-	for _, merger := range g.PotentialMergers(at) {
-		if merger[0] == from && merger[1] == into {
-			found = true
-		}
-	}
-	if !found {
-		return errors.New(fmt.Sprintf(
-			"A merger from %s into %s is not available at the moment",
-			CorpShortNames[from], CorpShortNames[into]))
-	}
-	g.TurnPhase = TURN_PHASE_MERGER
-	g.MergerCurrentPlayer = g.CurrentPlayer
-	g.MergerFromCorp = from
-	g.MergerIntoCorp = into
-	if g.Board[at.Row][at.Column] <= TILE_UNINCORPORATED {
-		g.Board[at.Row][at.Column] = TILE_UNINCORPORATED
-		g.SetAreaOnBoard(at, into)
-	}
+func (g *Game) PayShareholderBonuses(corp int) {
 	// Shareholder bonuses
 	majors := []int{}
 	majorCount := 0
 	minors := []int{}
 	minorCount := 0
 	for pNum, _ := range g.Players {
-		count := g.PlayerShares[pNum][from]
+		count := g.PlayerShares[pNum][corp]
 		if count > 0 {
 			if count > majorCount {
 				// Shuffle down
@@ -514,8 +495,8 @@ func (g *Game) ChooseMerger(at Tile, from, into int) error {
 			}
 		}
 	}
-	majorBonus := float64(g.Corp1stBonus(from))
-	minorBonus := float64(g.Corp2ndBonus(from))
+	majorBonus := float64(g.Corp1stBonus(corp))
+	minorBonus := float64(g.Corp2ndBonus(corp))
 	if len(majors) > 1 || len(minors) == 0 {
 		majorBonus += minorBonus
 	}
@@ -532,16 +513,49 @@ func (g *Game) ChooseMerger(at Tile, from, into int) error {
 			g.PlayerCash[pNum] += aveMinorBonus
 		}
 	}
+}
+
+func (g *Game) ChooseMerger(at Tile, from, into int) error {
+	found := false
+	for _, merger := range g.PotentialMergers(at) {
+		if merger[0] == from && merger[1] == into {
+			found = true
+		}
+	}
+	if !found {
+		return errors.New(fmt.Sprintf(
+			"A merger from %s into %s is not available at the moment",
+			CorpShortNames[from], CorpShortNames[into]))
+	}
+	g.TurnPhase = TURN_PHASE_MERGER
+	g.MergerCurrentPlayer = g.CurrentPlayer
+	g.MergerFromCorp = from
+	g.MergerIntoCorp = into
+	if g.Board[at.Row][at.Column] <= TILE_UNINCORPORATED {
+		g.Board[at.Row][at.Column] = TILE_UNINCORPORATED
+		g.SetAreaOnBoard(at, into)
+	}
+	g.PayShareholderBonuses(from)
 	return nil
 }
 
-func (g *Game) SellShares(playerNum, corp, amount int) error {
+func (g *Game) SellSharesAction(playerNum, corp, amount int) error {
 	if g.TurnPhase != TURN_PHASE_MERGER || g.MergerCurrentPlayer != playerNum {
 		return errors.New("It's not your turn to sell shares")
 	}
 	if corp != g.MergerFromCorp {
 		return errors.New("You can't sell shares in that corp")
 	}
+	if err := g.SellShares(playerNum, corp, amount); err != nil {
+		return err
+	}
+	if g.PlayerShares[playerNum][corp] == 0 {
+		g.NextMergerPhasePlayer()
+	}
+	return nil
+}
+
+func (g *Game) SellShares(playerNum, corp, amount int) error {
 	if amount > g.PlayerShares[playerNum][corp] {
 		return errors.New(fmt.Sprintf(`You only have %d shares`,
 			g.PlayerShares[playerNum][corp]))
@@ -549,9 +563,6 @@ func (g *Game) SellShares(playerNum, corp, amount int) error {
 	g.PlayerCash[playerNum] += g.CorpValue(corp) * amount
 	g.PlayerShares[playerNum][corp] -= amount
 	g.BankShares[corp] += amount
-	if g.PlayerShares[playerNum][corp] == 0 {
-		g.NextMergerPhasePlayer()
-	}
 	return nil
 }
 
@@ -695,6 +706,18 @@ func (g *Game) NextMergerPhasePlayer() {
 func (g *Game) NextPlayer() {
 	if g.FinalTurn {
 		g.GameEnded = true
+		// Pay out remaining corps on the board
+		for _, corp := range Corps() {
+			if g.CorpSize(corp) > 0 {
+				g.PayShareholderBonuses(corp)
+				for playerNum, _ := range g.Players {
+					if g.PlayerShares[playerNum][corp] > 0 {
+						g.SellShares(playerNum, corp,
+							g.PlayerShares[playerNum][corp])
+					}
+				}
+			}
+		}
 	} else {
 		// Draw tiles if needed
 		g.DiscardUnplayableTiles(g.CurrentPlayer)
