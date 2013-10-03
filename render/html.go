@@ -48,6 +48,6 @@ func HtmlColours() map[string]string {
 		"blue":    "rgb(0,0,187)",
 		"magenta": "rgb(187,0,187)",
 		"cyan":    "rgb(0,187,187)",
-		"gray":    "rgb(187,187,187)",
+		"gray":    "rgb(128,128,128)",
 	}
 }
