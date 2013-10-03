@@ -400,9 +400,7 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 			TileText(t)))
 	}
 	// Check if it's creating a new corp but there's none left
-	adjacentCorps := g.AdjacentCorps(t)
-	if len(adjacentCorps) == 0 && g.AdjacentToUnincorporated(t) &&
-		len(g.InactiveCorps()) == 0 {
+	if g.WouldFoundCorp(t) && len(g.InactiveCorps()) == 0 {
 		return errors.New(fmt.Sprintf(
 			"You are not allowed to play %s as there are no corporations available to found",
 			TileText(t)))
@@ -412,6 +410,7 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 	g.PlayerTiles[playerNum] = newPlayerTiles
 	g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
 	// Check for special actions based on adjacent tiles
+	adjacentCorps := g.AdjacentCorps(t)
 	if len(adjacentCorps) > 1 {
 		// We have a merger
 		potentialMergers := g.PotentialMergers(t)
@@ -431,6 +430,16 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 		g.BuySharesPhase()
 	}
 	return nil
+}
+
+func (g *Game) IsValidPlay(t Tile) bool {
+	return !g.IsJoiningSafeCorps(t) && !(g.WouldFoundCorp(t) &&
+		len(g.InactiveCorps()) == 0)
+}
+
+func (g *Game) WouldFoundCorp(t Tile) bool {
+	adjacentCorps := g.AdjacentCorps(t)
+	return len(adjacentCorps) == 0 && g.AdjacentToUnincorporated(t)
 }
 
 func (g *Game) BuySharesPhase() {
@@ -692,6 +701,14 @@ func (g *Game) NextPlayer() {
 		g.DrawTiles(g.CurrentPlayer)
 		g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
 		g.TurnPhase = TURN_PHASE_PLAY_TILE
+		// If player can't play any tiles, go to buy phase
+		for _, tRaw := range g.PlayerTiles[g.CurrentPlayer] {
+			if g.IsValidPlay(tRaw.(Tile)) {
+				return
+			}
+		}
+		// No valid plays, skip to buy phase
+		g.BuySharesPhase()
 	}
 }
 
