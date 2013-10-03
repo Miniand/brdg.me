@@ -3,7 +3,6 @@ package acquire
 import (
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
-	"strconv"
 )
 
 type KeepCommand struct{}
@@ -19,22 +18,17 @@ func (c KeepCommand) CanCall(player string, context interface{}) bool {
 		return false
 	}
 	return !g.IsFinished() && g.MergerCurrentPlayer == playerNum &&
-		g.TurnPhase == TURN_PHASE_MERGER &&
-		g.PlayerShares[playerNum][g.MergerFromCorp] > 0
+		g.TurnPhase == TURN_PHASE_MERGER
 }
 
 func (c KeepCommand) Call(player string, context interface{},
 	args []string) (string, error) {
-	amount, err := strconv.Atoi(args[1])
-	if err != nil {
-		return "", err
-	}
 	g := context.(*Game)
 	playerNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
-	return "", g.SellShares(playerNum, g.MergerFromCorp, amount)
+	return "", g.KeepShares(playerNum)
 }
 
 func (c KeepCommand) Usage(player string, context interface{}) string {

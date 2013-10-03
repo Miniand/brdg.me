@@ -148,6 +148,7 @@ func (g *Game) Commands() []command.Command {
 		MergeCommand{},
 		SellCommand{},
 		TradeCommand{},
+		KeepCommand{},
 		BuyCommand{},
 		DoneCommand{},
 		FoundCommand{},
@@ -382,6 +383,7 @@ func (g *Game) Corp2ndBonus(corp int) int {
 }
 
 func (g *Game) PlayTile(playerNum int, t Tile) error {
+	// VALIDATE
 	if g.IsFinished() || g.CurrentPlayer != playerNum ||
 		g.TurnPhase != TURN_PHASE_PLAY_TILE {
 		return errors.New("You are not allowed to play a tile at the moment")
@@ -397,40 +399,37 @@ func (g *Game) PlayTile(playerNum int, t Tile) error {
 			"You are not allowed to play %s as it would join two safe corporations",
 			TileText(t)))
 	}
-	// Check for special actions based on adjacent tiles
+	// Check if it's creating a new corp but there's none left
 	adjacentCorps := g.AdjacentCorps(t)
+	if len(adjacentCorps) == 0 && g.AdjacentToUnincorporated(t) &&
+		len(g.InactiveCorps()) == 0 {
+		return errors.New(fmt.Sprintf(
+			"You are not allowed to play %s as there are no corporations available to found",
+			TileText(t)))
+	}
+	// Remove the tile from the player's hand and place it
+	g.PlayedTile = t
+	g.PlayerTiles[playerNum] = newPlayerTiles
+	g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
+	// Check for special actions based on adjacent tiles
 	if len(adjacentCorps) > 1 {
 		// We have a merger
 		potentialMergers := g.PotentialMergers(t)
 		if len(potentialMergers) > 1 {
-			g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
 			g.TurnPhase = TURN_PHASE_MERGER_CHOOSE
 		} else {
 			g.ChooseMerger(t, potentialMergers[0][0], potentialMergers[0][1])
 		}
 	} else if len(adjacentCorps) == 1 {
 		// Extending an existing corp
-		g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
 		g.SetAreaOnBoard(t, adjacentCorps[0])
 		g.BuySharesPhase()
 	} else if g.AdjacentToUnincorporated(t) {
-		// We have a new corp
-		if len(g.InactiveCorps()) == 0 {
-			return errors.New(fmt.Sprintf(
-				"You are not allowed to play %s as there are no corporations available to found",
-				TileText(t)))
-		}
-		g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
 		g.TurnPhase = TURN_PHASE_FOUND_CORP
 	} else {
 		// Nothing adjacent
-		g.Board[t.Row][t.Column] = TILE_UNINCORPORATED
 		g.BuySharesPhase()
 	}
-
-	// Remove the tile from the player's hand
-	g.PlayedTile = t
-	g.PlayerTiles[playerNum] = newPlayerTiles
 	return nil
 }
 
@@ -474,7 +473,7 @@ func (g *Game) ChooseMerger(at Tile, from, into int) error {
 	g.MergerCurrentPlayer = g.CurrentPlayer
 	g.MergerFromCorp = from
 	g.MergerIntoCorp = into
-	if g.Board[at.Row][at.Column] == TILE_EMPTY {
+	if g.Board[at.Row][at.Column] <= TILE_UNINCORPORATED {
 		g.Board[at.Row][at.Column] = TILE_UNINCORPORATED
 		g.SetAreaOnBoard(at, into)
 	}
@@ -564,6 +563,10 @@ func (g *Game) TradeShares(playerNum, from, into, amount int) error {
 	if amount > g.PlayerShares[playerNum][from] {
 		return errors.New(fmt.Sprintf(`You only have %d shares`,
 			g.PlayerShares[playerNum][from]))
+	}
+	if amount/2 > g.BankShares[into] {
+		return errors.New(fmt.Sprintf(`The bank only has %d left in %s`,
+			g.BankShares[into], CorpNames[into]))
 	}
 	g.PlayerShares[playerNum][from] -= amount
 	g.BankShares[from] += amount
@@ -685,15 +688,34 @@ func (g *Game) NextPlayer() {
 		g.GameEnded = true
 	} else {
 		// Draw tiles if needed
-		drawNum := INIT_TILES - len(g.PlayerTiles[g.CurrentPlayer])
-		if drawNum > 0 {
-			var drawnTiles card.Deck
-			drawnTiles, g.BankTiles = g.BankTiles.PopN(drawNum)
-			g.PlayerTiles[g.CurrentPlayer] =
-				g.PlayerTiles[g.CurrentPlayer].PushMany(drawnTiles)
-		}
+		g.DiscardUnplayableTiles(g.CurrentPlayer)
+		g.DrawTiles(g.CurrentPlayer)
 		g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
 		g.TurnPhase = TURN_PHASE_PLAY_TILE
+	}
+}
+
+func (g *Game) DiscardUnplayableTiles(playerNum int) {
+	newHand := g.PlayerTiles[playerNum]
+	for _, tRaw := range g.PlayerTiles[playerNum] {
+		t := tRaw.(Tile)
+		if g.IsJoiningSafeCorps(t) {
+			newHand, _ = newHand.Remove(t, -1)
+		}
+	}
+	g.PlayerTiles[playerNum] = newHand
+}
+
+func (g *Game) DrawTiles(playerNum int) {
+	drawNum := INIT_TILES - len(g.PlayerTiles[playerNum])
+	if drawNum > len(g.BankTiles) {
+		drawNum = len(g.BankTiles)
+	}
+	if drawNum > 0 {
+		var drawnTiles card.Deck
+		drawnTiles, g.BankTiles = g.BankTiles.PopN(drawNum)
+		g.PlayerTiles[playerNum] =
+			g.PlayerTiles[playerNum].PushMany(drawnTiles)
 	}
 }
 

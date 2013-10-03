@@ -548,7 +548,8 @@ func TestMergeCommand(t *testing.T) {
 `, t)
 	// Prepare environment
 	g.CurrentPlayer = 0
-	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
+	tile := Tile{BOARD_ROW_G, BOARD_COL_6}
+	g.PlayerTiles[0] = g.PlayerTiles[0].Push(tile)
 	if _, err := command.CallInCommands("Mick", g, "play 6g",
 		g.Commands()); err != nil {
 		t.Fatal(err)
@@ -557,6 +558,9 @@ func TestMergeCommand(t *testing.T) {
 		"merge %s into %s", CorpShortNames[4], CorpShortNames[2]),
 		g.Commands()); err != nil {
 		t.Fatal(err)
+	}
+	if g.TileAt(tile) != 2 {
+		t.Fatal("Expected tile to now be 2, got", g.TileAt(tile))
 	}
 }
 
@@ -951,5 +955,25 @@ func TestCanEnd(t *testing.T) {
 `, t)
 	if !g.CanEnd(0) {
 		t.Fatal()
+	}
+}
+
+func TestDrawingTiles(t *testing.T) {
+	g := &Game{}
+	if err := g.Start([]string{"Mick", "Steve", "BJ"}); err != nil {
+		t.Fatal(err)
+	}
+	g.CurrentPlayer = 0
+	for len(g.BankTiles) > 0 {
+		t.Log("Popping a tile")
+		_, g.PlayerTiles[0] = g.PlayerTiles[0].Pop()
+		if len(g.PlayerTiles[0]) != INIT_TILES-1 {
+			t.Fatal("Incorrect after pop")
+		}
+		t.Log("Drawing a tile")
+		g.DrawTiles(0)
+		if len(g.PlayerTiles[0]) != INIT_TILES {
+			t.Fatal("Incorrect after draw")
+		}
 	}
 }

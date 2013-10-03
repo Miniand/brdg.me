@@ -6,7 +6,7 @@ import (
 )
 
 var NO_COMMAND_FOUND = errors.New(
-	"We couldn't find any commands in the text you sent, please make sure your commands are at the top")
+	`Invalid command, please make sure your commands are at the top, and please check the "You can:" section to see a list of available commands`)
 
 // Command is a regexp based command parser, providing an interface for
 // authorisation and instructions.
