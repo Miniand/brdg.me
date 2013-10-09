@@ -292,7 +292,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 				Column: c,
 			}
 			if _, n := g.PlayerTiles[pNum].Remove(t, 1); n > 0 {
-				cellOutput = fmt.Sprintf("{{b}}%s{{_b}}", TileText(t))
+				cellOutput = fmt.Sprintf(`{{c "gray"}}{{b}}%s{{_b}}{{_c}}`,
+					TileText(t))
 			}
 			row = append(row, cellOutput)
 		}
