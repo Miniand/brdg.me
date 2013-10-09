@@ -14,7 +14,7 @@ func TestPlayerColour(t *testing.T) {
 }
 
 func TestPlayerName(t *testing.T) {
-	if PlayerName(1, "bob") != `{{b}}{{c "red"}}bob{{_c}}{{_b}}` {
+	if PlayerName(1, "bob") != `{{b}}{{c "red"}}• bob{{_c}}{{_b}}` {
 		t.Fatal("bob didn't render bold and red")
 	}
 }
