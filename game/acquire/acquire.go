@@ -258,9 +258,9 @@ func (g *Game) RenderTile(t Tile) (output string) {
 	val := g.Board[t.Row][t.Column]
 	switch val {
 	case TILE_EMPTY:
-		output = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, TileText(t))
+		output = `{{c "gray"}}--{{_c}}`
 	case TILE_UNINCORPORATED:
-		output = `{{b}}{{c "gray"}}::{{_c}}{{_b}}`
+		output = `{{c "gray"}}##{{_c}}`
 	default:
 		output = fmt.Sprintf(`{{b}}%s{{_b}}`, RenderCorpShort(val))
 	}
@@ -287,11 +287,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		for _, c := range Cols() {
 			cellOutput := g.RenderTile(Tile{r, c})
 			// We embolden the tile if the player has it in their hand
-			if _, n := g.PlayerTiles[pNum].Remove(Tile{
+			t := Tile{
 				Row:    r,
 				Column: c,
-			}, 1); n > 0 {
-				cellOutput = fmt.Sprintf("{{b}}%s{{_b}}", cellOutput)
+			}
+			if _, n := g.PlayerTiles[pNum].Remove(t, 1); n > 0 {
+				cellOutput = fmt.Sprintf("{{b}}%s{{_b}}", TileText(t))
 			}
 			row = append(row, cellOutput)
 		}
@@ -319,10 +320,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			"{{b}}Corporation{{_b}}",
 			"{{b}}Size{{_b}}",
 			"{{b}}Value{{_b}}",
-			"{{b}}You own{{_b}}",
-			"{{b}}Remaining{{_b}}",
-			"{{b}}1st bonus{{_b}}",
-			"{{b}}2nd bonus{{_b}}",
+			"{{b}}Shares{{_b}}",
+			"{{b}}Major{{_b}}",
+			"{{b}}Minor{{_b}}",
 		},
 	}
 	for _, c := range Corps() {
@@ -330,8 +330,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			fmt.Sprintf(`{{b}}%s{{_b}}`, RenderCorpWithShort(c)),
 			fmt.Sprintf("%d", g.CorpSize(c)),
 			fmt.Sprintf("$%d", g.CorpValue(c)),
-			fmt.Sprintf("%d shares", g.PlayerShares[pNum][c]),
-			fmt.Sprintf("%d shares", g.BankShares[c]),
+			fmt.Sprintf("%d left", g.BankShares[c]),
 			fmt.Sprintf("$%d", g.Corp1stBonus(c)),
 			fmt.Sprintf("$%d", g.Corp2ndBonus(c)),
 		})
@@ -342,25 +341,34 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	output.WriteString("\n\n")
 	output.WriteString(corpOutput)
-	if g.IsFinished() {
-		// Player table
-		cells = [][]string{
-			[]string{
-				"{{b}}Player{{_b}}",
-			},
-		}
-		for pNum, p := range g.Players {
-			cells = append(cells, []string{
-				fmt.Sprintf("{{b}}%s{{_b}}", render.PlayerName(pNum, p)),
-			})
-		}
-		playerOutput, err := render.Table(cells, 0, 2)
-		if err != nil {
-			return "", err
-		}
-		output.WriteString("\n\n")
-		output.WriteString(playerOutput)
+	// Player table
+	playerHeadings := []string{
+		"{{b}}Player{{_b}}",
+		"{{b}}Cash{{_b}}",
 	}
+	for _, corp := range Corps() {
+		playerHeadings = append(playerHeadings, fmt.Sprintf(
+			"{{b}}%s{{_b}}", RenderCorpShort(corp)))
+	}
+	cells = [][]string{
+		playerHeadings,
+	}
+	for pNum, p := range g.Players {
+		row := []string{
+			fmt.Sprintf("{{b}}%s{{_b}}", render.PlayerName(pNum, p)),
+			fmt.Sprintf("$%d", g.PlayerCash[pNum]),
+		}
+		for _, corp := range Corps() {
+			row = append(row, fmt.Sprintf("%d", g.PlayerShares[pNum][corp]))
+		}
+		cells = append(cells, row)
+	}
+	playerOutput, err := render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	output.WriteString("\n\n")
+	output.WriteString(playerOutput)
 	g.Log = g.Log.MarkReadFor(player)
 	return output.String(), nil
 }
