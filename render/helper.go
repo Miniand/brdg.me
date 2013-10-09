@@ -21,9 +21,14 @@ func PlayerColour(playerNum int) string {
 	return colours[playerNum%len(colours)]
 }
 
+func TrimPlayerName(player string) string {
+	return fmt.Sprintf("• %.12s", strings.Split(
+		strings.TrimSpace(player), "@")[0])
+}
+
 func PlayerName(playerNum int, player string) string {
 	return fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`, PlayerColour(playerNum),
-		player)
+		TrimPlayerName(player))
 }
 
 func PlayerNameInPlayers(player string, players []string) string {
