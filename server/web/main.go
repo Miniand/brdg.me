@@ -20,6 +20,16 @@ func main() {
 	}
 }
 
+func Title() string {
+	return " _             _                        \n" +
+		"| |__  _ __ __| | __ _   _ __ ___   ___ \n" +
+		"| '_ \\| '__/ _` |/ _` | | '_ ` _ \\ / _ \\\n" +
+		"| |_) | | | (_| | (_| |_| | | | | |  __/\n" +
+		"|_.__/|_|  \\__,_|\\__, (_)_| |_| |_|\\___|\n" +
+		"                 |___/"
+}
+
 func RootHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to brdg.me!  Send an email to play@brdg.me to start playing board games over email!")
+	fmt.Fprintf(w, "<html><head><style>"+Style+"</style></head><body><header><h1>"+Title()+"\n\n"+
+		"Play board games online via web and email</h1></header></body></html>")
 }
