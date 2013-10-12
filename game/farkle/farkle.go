@@ -43,6 +43,10 @@ func (g *Game) Identifier() string {
 	return "farkle"
 }
 
+func (g *Game) GameLog() *log.Log {
+	return &g.Log
+}
+
 func (g *Game) Encode() ([]byte, error) {
 	buf := bytes.NewBuffer([]byte{})
 	encoder := gob.NewEncoder(buf)
@@ -111,7 +115,6 @@ func (g *Game) Start(players []string) error {
 	if len(players) < 2 {
 		return errors.New("Farkle requires at least two players")
 	}
-	g.Log = log.NewLog()
 	g.Scores = map[int]int{}
 	g.Players = players
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -19,7 +20,7 @@ type Game struct {
 	CentreChips     int
 	RemainingCards  []int
 	CurrentlyMoving string
-	PlayerLogs      map[string][]string
+	Log             log.Log
 }
 
 func (g *Game) Commands() []command.Command {
@@ -37,6 +38,10 @@ func (g *Game) Identifier() string {
 	return "no_thanks"
 }
 
+func (g *Game) GameLog() *log.Log {
+	return &g.Log
+}
+
 func (g *Game) Encode() ([]byte, error) {
 	return json.Marshal(g)
 }
@@ -47,9 +52,10 @@ func (g *Game) Decode(data []byte) error {
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf := bytes.NewBufferString("")
-	if len(g.PlayerLogs[player]) > 0 {
-		buf.WriteString("{{b}}Since your last turn{{_b}}\n")
-		buf.WriteString(strings.Join(g.PlayerLogs[player], "\n"))
+	newMessages := g.Log.NewMessagesFor(player)
+	if len(newMessages) > 0 {
+		buf.WriteString("{{b}}Since last time:{{_b}}\n")
+		buf.WriteString(log.RenderMessages(newMessages))
 		buf.WriteString("\n\n")
 	}
 	if !g.IsFinished() {
@@ -132,7 +138,6 @@ func (g *Game) Start(players []string) error {
 	g.InitCards()
 	g.InitPlayerChips()
 	g.InitPlayerHands()
-	g.InitPlayerLogs()
 	g.CurrentlyMoving = g.Players[r.Int()%len(g.Players)]
 	return nil
 }
@@ -224,9 +229,10 @@ func (g *Game) Pass(player string) error {
 	}
 	g.PlayerChips[player]--
 	g.CentreChips++
-	g.AddPlayerLog(player + ` passed on the {{b}}{{c "blue"}}` +
-		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}}.")
-	g.PlayerLogs[player] = []string{}
+	g.Log.Add(log.NewPublicMessage(player + ` passed on the {{b}}{{c "blue"}}` +
+		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}}."))
+	g.Log.Add(log.NewPublicMessage(player + ` passed on the {{b}}{{c "blue"}}` +
+		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}}."))
 	return g.NextPlayer()
 }
 
@@ -235,15 +241,14 @@ func (g *Game) Take(player string) error {
 	if err != nil {
 		return err
 	}
-	g.AddPlayerLog(player + ` took the {{b}}{{c "blue"}}` +
+	g.Log.Add(log.NewPublicMessage(player + ` took the {{b}}{{c "blue"}}` +
 		strconv.Itoa(g.PeekTopCard()) + `{{_c}}{{_b}} and {{b}}{{c "green"}}` +
-		strconv.Itoa(g.CentreChips) + "{{_c}}{{_b}} chips.")
+		strconv.Itoa(g.CentreChips) + "{{_c}}{{_b}} chips."))
 	g.PlayerHands[player] = append(g.PlayerHands[player], g.PopTopCard())
-	g.AddPlayerLog(player + ` drew {{b}}{{c "blue"}}` +
-		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}} as the new card.")
+	g.Log.Add(log.NewPublicMessage(player + ` drew {{b}}{{c "blue"}}` +
+		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}} as the new card."))
 	g.PlayerChips[player] += g.CentreChips
 	g.CentreChips = 0
-	g.PlayerLogs[player] = []string{}
 	return nil
 }
 
@@ -315,23 +320,6 @@ func (g *Game) PlayerHandScore(player string) int {
 
 func (g *Game) FinalPlayerScore(player string) int {
 	return g.PlayerHandScore(player) - g.PlayerChips[player]
-}
-
-func (g *Game) InitPlayerLogs() {
-	g.PlayerLogs = map[string][]string{}
-	for _, p := range g.Players {
-		g.ClearPlayerLog(p)
-	}
-}
-
-func (g *Game) AddPlayerLog(msg string) {
-	for _, p := range g.Players {
-		g.PlayerLogs[p] = append(g.PlayerLogs[p], msg)
-	}
-}
-
-func (g *Game) ClearPlayerLog(player string) {
-	g.PlayerLogs[player] = []string{}
 }
 
 func (g *Game) BotPlay(player string) error {

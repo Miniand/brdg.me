@@ -43,6 +43,10 @@ func (g *Game) Identifier() string {
 	return "liars_dice"
 }
 
+func (g *Game) GameLog() *log.Log {
+	return &g.Log
+}
+
 func (g *Game) Encode() ([]byte, error) {
 	buf := bytes.NewBuffer([]byte{})
 	encoder := gob.NewEncoder(buf)
@@ -106,7 +110,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 }
 
 func (g *Game) Start(players []string) error {
-	g.Log = log.NewLog()
 	// Set players
 	if len(players) < 2 || len(players) > 6 {
 		return errors.New("Liar's Dice must be between 2 and 6 players")

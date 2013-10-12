@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/log"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -31,6 +32,7 @@ type Game struct {
 	// Tracks which players are ready for the next round before starting the
 	// next round, to give players a chance to see the board after a round
 	ReadyPlayers [2]bool
+	Log          log.Log
 }
 
 // The board consists of two players hands, a discard hand, and a draw pile
@@ -89,6 +91,10 @@ func (g *Game) Start(players []string) error {
 	return nil
 }
 
+func (g *Game) GameLog() *log.Log {
+	return &g.Log
+}
+
 // Shuffle cards and deal hands, set the start player, set the turn phase etc
 func (g *Game) InitRound() error {
 	g.Board.DrawPile = g.AllCards().Shuffle()
@@ -112,9 +118,9 @@ func (g *Game) PlayerFromString(player string) (int, error) {
 // Takes a string like b6, rx, y10 and turns it into a Card object
 func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
 	suitnum := 0
-	val:=0
+	val := 0
 	var err error
-		fmt.Println("val")
+	fmt.Println("val")
 	fmt.Println(val)
 	if len(cardString) < 2 {
 		return card.SuitRankCard{}, errors.New("not lengthy enough (heyoooo!)")
@@ -127,7 +133,7 @@ func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
 	fmt.Println("suit")
 	fmt.Println(suit)
 	if cardString[1:] == "x" {
-		val=0
+		val = 0
 	} else {
 		val, err = strconv.Atoi(cardString[1:])
 		if err != nil {
@@ -328,7 +334,7 @@ func (g *Game) TakeCard(player int, suit int) error {
 	//if removeCount==0{
 	//	return errors.New ("did not have card in hand")
 	//}
-		g.PlayerReady(player)
+	g.PlayerReady(player)
 	if g.CurrentlyMoving == 1 {
 		g.CurrentlyMoving = 0
 	} else {

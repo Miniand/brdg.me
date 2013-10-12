@@ -157,6 +157,10 @@ func (g *Game) Commands() []command.Command {
 	}
 }
 
+func (g *Game) GameLog() *log.Log {
+	return &g.Log
+}
+
 func RegisterGobTypes() {
 	gob.Register(Tile{})
 }
@@ -180,7 +184,6 @@ func (g *Game) Start(players []string) error {
 	if len(players) < 2 || len(players) > 6 {
 		return errors.New("Acquire is between 2 and 6 players")
 	}
-	g.Log = log.NewLog()
 	g.Players = players
 	// Initialise board
 	g.Board = map[int]map[int]int{}

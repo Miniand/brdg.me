@@ -5,6 +5,7 @@ import (
 	"github.com/Miniand/brdg.me/game/acquire"
 	"github.com/Miniand/brdg.me/game/farkle"
 	"github.com/Miniand/brdg.me/game/liars_dice"
+	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/game/lost_cities"
 	"github.com/Miniand/brdg.me/game/no_thanks"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
@@ -23,6 +24,7 @@ type Playable interface {
 	IsFinished() bool
 	Winners() []string
 	WhoseTurn() []string
+	GameLog() *log.Log
 }
 
 type Eliminator interface {

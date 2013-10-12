@@ -5,7 +5,7 @@ import (
 )
 
 func TestSortedMessages(t *testing.T) {
-	l := NewLog()
+	l := Log{}
 	m1 := NewPublicMessage("Test 1")
 	m2 := NewPublicMessage("Test 2")
 	m2.Time -= 100000
@@ -17,7 +17,7 @@ func TestSortedMessages(t *testing.T) {
 }
 
 func TestPublicMessages(t *testing.T) {
-	l := NewLog()
+	l := Log{}
 	m1 := NewPublicMessage("Test 1")
 	m2 := NewPrivateMessage("Test 2", []string{"Bob"})
 	l = l.Add(m1).Add(m2)
@@ -31,7 +31,7 @@ func TestPublicMessages(t *testing.T) {
 }
 
 func TestMessagesFor(t *testing.T) {
-	l := NewLog()
+	l := Log{}
 	m1 := NewPublicMessage("Test 1")
 	m2 := NewPrivateMessage("Test 2", []string{"Bob"})
 	l = l.Add(m1).Add(m2)
@@ -42,7 +42,7 @@ func TestMessagesFor(t *testing.T) {
 }
 
 func TestNewMessagesFor(t *testing.T) {
-	l := NewLog()
+	l := Log{}
 	m1 := NewPublicMessage("Test 1")
 	m2 := NewPrivateMessage("Test 2", []string{"Bob"})
 	m2.Time += 1
@@ -51,6 +51,7 @@ func TestNewMessagesFor(t *testing.T) {
 	if len(messages) != 2 {
 		t.Fatal("Did not get all messages when not yet read")
 	}
+	l.LastReadTimeFor = map[string]int64{}
 	l.LastReadTimeFor["Bob"] = m1.Time
 	messages = l.NewMessagesFor("Bob")
 	if len(messages) != 1 {

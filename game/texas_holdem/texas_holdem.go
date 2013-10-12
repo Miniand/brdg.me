@@ -54,11 +54,14 @@ func RenderCashFixedWidth(amount int) string {
 	return output
 }
 
+func (g *Game) GameLog() *log.Log {
+	return &g.Log
+}
+
 func (g *Game) Start(players []string) error {
 	if len(players) < 2 || len(players) > 9 {
 		return errors.New("Texas hold 'em is limited to 2 - 9 players")
 	}
-	g.Log = log.NewLog()
 	g.Players = players
 	g.PlayerHands = make([]card.Deck, len(g.Players))
 	g.PlayerMoney = make([]int, len(g.Players))

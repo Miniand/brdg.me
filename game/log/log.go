@@ -11,12 +11,6 @@ type Log struct {
 	LastReadTimeFor map[string]int64
 }
 
-func NewLog() Log {
-	return Log{
-		LastReadTimeFor: map[string]int64{},
-	}
-}
-
 func (l Log) SortedMessages() []Message {
 	sort.Sort(l)
 	return l.Messages
@@ -44,6 +38,9 @@ func (l Log) MessagesFor(player string) []Message {
 
 func (l Log) NewMessagesFor(player string) []Message {
 	messages := []Message{}
+	if l.LastReadTimeFor == nil {
+		l.LastReadTimeFor = map[string]int64{}
+	}
 	for _, m := range l.MessagesFor(player) {
 		if l.LastReadTimeFor[player] == 0 || l.LastReadTimeFor[player] < m.Time {
 			messages = append(messages, m)
@@ -53,6 +50,9 @@ func (l Log) NewMessagesFor(player string) []Message {
 }
 
 func (l Log) MarkReadFor(player string) Log {
+	if l.LastReadTimeFor == nil {
+		l.LastReadTimeFor = map[string]int64{}
+	}
 	l.LastReadTimeFor[player] = time.Now().UnixNano()
 	return l
 }
