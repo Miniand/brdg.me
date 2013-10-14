@@ -13,6 +13,8 @@ func Router() *mux.Router {
 		router.HandleFunc("/", controller.Root).Name("root")
 		router.HandleFunc("/game", controller.GameIndex).Name("gameIndex")
 		router.HandleFunc("/game/{id}", controller.GameShow).Name("gameShow")
+		router.HandleFunc("/game/new/{identifier}", controller.GameNew).Name(
+			"gameNew")
 	}
 	return router
 }

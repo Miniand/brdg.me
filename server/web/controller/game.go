@@ -14,3 +14,8 @@ func GameShow(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	fmt.Fprintf(w, "Game: "+vars["id"])
 }
+
+func GameNew(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	fmt.Fprintf(w, "New game: "+vars["identifier"])
+}
