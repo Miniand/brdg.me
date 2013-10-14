@@ -15,11 +15,12 @@ func init() {
 }
 
 func Parse(name string, text string) *template.Template {
-	if tmpl.Lookup(name) == nil {
+	t := tmpl.Lookup(name)
+	if t == nil {
 		var err error
-		if tmpl, err = tmpl.New(name).Parse(text); err != nil {
+		if t, err = tmpl.New(name).Parse(text); err != nil {
 			panic(err.Error())
 		}
 	}
-	return tmpl
+	return t
 }

@@ -1,21 +1,28 @@
 package controller
 
 import (
-	"fmt"
+	"github.com/Miniand/brdg.me/game"
+	view "github.com/Miniand/brdg.me/server/web/view/game"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func GameIndex(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Game index")
+	view.Index(w)
 }
 
 func GameShow(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	fmt.Fprintf(w, "Game: "+vars["id"])
+	view.Show(w)
 }
 
 func GameNew(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fmt.Fprintf(w, "New game: "+vars["identifier"])
+	g := game.RawCollection()[vars["identifier"]]
+	if g == nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	view.New(w, view.NewScope{
+		Game: g,
+	})
 }
