@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/server/model"
 	view "github.com/Miniand/brdg.me/server/web/view/game"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -12,7 +13,15 @@ func GameIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func GameShow(w http.ResponseWriter, r *http.Request) {
-	view.Show(w)
+	g := game.RawCollection()["acquire"]
+	g.Start([]string{"Mick", "Steve"})
+	gm, err := model.GameToGameModel(g)
+	if err != nil {
+		panic(err.Error())
+	}
+	view.Show(w, view.ShowScope{
+		GameModel: gm,
+	})
 }
 
 func GameNew(w http.ResponseWriter, r *http.Request) {

@@ -103,6 +103,16 @@ header .header-end {
 .active-game-player {
 	text-align: center;
 }
+
+.game-output-container {
+	text-align: center;
+}
+
+.game-output {
+	text-align: left;
+	display: inline-block;
+	white-space: pre-wrap;
+}
 </style>
 <title>brdg.me - {{.}}</title>
 <body>
