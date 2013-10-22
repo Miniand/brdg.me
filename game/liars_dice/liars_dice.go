@@ -75,13 +75,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf := bytes.NewBufferString("")
-	// Log
-	newMessages := g.Log.NewMessagesFor(player)
-	if len(newMessages) > 0 {
-		buf.WriteString("{{b}}Since last time:{{_b}}\n")
-		buf.WriteString(log.RenderMessages(newMessages))
-		buf.WriteString("\n\n")
-	}
 	currentBidText := `{{c "gray"}}first bid{{_c}}`
 	if g.BidQuantity != 0 {
 		currentBidText = RenderBid(g.BidQuantity, g.BidValue)
@@ -105,7 +98,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf.WriteString(table)
-	g.Log = g.Log.MarkReadFor(player)
 	return buf.String(), nil
 }
 

@@ -20,18 +20,19 @@ type ShowScope struct {
 }
 
 var showTmpl = `{{template "header" "Game"}}
-<div class="pure-g-r">
-	<div class="pure-u-1-2 game-output-container">
-		<h2 class="game-output-heading">Game</h2>
-		<div class="game-output">{{.Output}}</div>
+<div class="game-show">
+	<div class="pure-g-r game-show">
+		<div class="pure-u-1-2 game-output-container">
+			<h2 class="game-output-heading">Game</h2>
+			<div class="game-output">{{.Output}}</div>
+		</div>
+		<div class="pure-u-1-2 game-log-container">
+			<h2 class="game-log-heading">Log</h2>
+			<div class="game-log">{{.Log}}</div>
+		</div>
 	</div>
-	<div class="pure-u-1-2 game-log-container">
-		<h2 class="game-log-heading">Log</h2>
-		<div class="game-log">{{.Log}}</div>
-	</div>
-	<div class="pure-u-1-4 pure-hidden-phone"></div>
-	<div class="pure-u-1-2 game-input-container">
-		<h2 class="game-input-heading">Input</h2>
+	<div class="game-input-container">
+		<h2 class="game-input-heading">You can:</h2>
 		<div class="game-input-available-commands">{{.AvailableCommands}}</div>
 		<form class="game-input">
 			<input type="text" class="game-input-command" />
@@ -39,7 +40,14 @@ var showTmpl = `{{template "header" "Game"}}
 		</form>
 	</div>
 </div>
-{{template "footer"}}`
+{{template "footer"}}
+<script>
+function logScrollToBottom() {
+	var lc = document.querySelector(".game-log");
+	lc.scrollTop = lc.scrollHeight;	
+}
+logScrollToBottom();
+</script>`
 
 func Show(wr io.Writer, scope ShowScope) {
 	var err error

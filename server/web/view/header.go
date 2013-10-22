@@ -90,6 +90,11 @@ header .header-end {
 	background-color: silver;
 }
 
+.game-show {
+	margin: 0 auto;
+	max-width: 80em;
+}
+
 .active-game-name {
 	text-align: center;
 }
@@ -110,6 +115,13 @@ header .header-end {
 
 .game-log-container {
 	text-align: center;
+}
+
+.game-log {
+	text-align: left;
+	white-space: pre-wrap;
+	max-height: 30em;
+	overflow-y: auto;
 }
 
 .game-log-heading {

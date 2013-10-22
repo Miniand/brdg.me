@@ -66,12 +66,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf := bytes.NewBufferString("")
-	newMessages := g.Log.NewMessagesFor(player)
-	if len(newMessages) > 0 {
-		buf.WriteString("{{b}}Since last time:{{_b}}\n")
-		buf.WriteString(log.RenderMessages(newMessages))
-		buf.WriteString("\n\n")
-	}
 	cells := [][]string{}
 	if playerNum == g.Player {
 		cells = append(cells,
@@ -107,7 +101,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf.WriteString(t)
-	g.Log = g.Log.MarkReadFor(player)
 	return buf.String(), nil
 }
 

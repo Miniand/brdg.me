@@ -13,7 +13,11 @@ func GameIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func GameShow(w http.ResponseWriter, r *http.Request) {
-	g := game.RawCollection()["acquire"]
+	vars := mux.Vars(r)
+	g := game.RawCollection()[vars["id"]]
+	if g == nil {
+		g = game.RawCollection()["acquire"]
+	}
 	g.Start([]string{"Mick", "Steve"})
 	gm, err := model.GameToGameModel(g)
 	if err != nil {

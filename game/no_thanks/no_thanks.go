@@ -52,12 +52,6 @@ func (g *Game) Decode(data []byte) error {
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf := bytes.NewBufferString("")
-	newMessages := g.Log.NewMessagesFor(player)
-	if len(newMessages) > 0 {
-		buf.WriteString("{{b}}Since last time:{{_b}}\n")
-		buf.WriteString(log.RenderMessages(newMessages))
-		buf.WriteString("\n\n")
-	}
 	if !g.IsFinished() {
 		buf.WriteString(`{{b}}Current card:  {{c "blue"}}`)
 		buf.WriteString(strconv.Itoa(g.PeekTopCard()))

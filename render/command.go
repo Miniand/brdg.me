@@ -1,15 +1,14 @@
 package render
 
 import (
-	"bytes"
+	"fmt"
+	"strings"
 )
 
 func CommandUsages(usages []string) string {
-	buf := bytes.NewBufferString("{{b}}You can:{{_b}}")
+	rendered := []string{}
 	for _, usage := range usages {
-		buf.WriteByte('\n')
-		buf.WriteString(" * ")
-		buf.WriteString(usage)
+		rendered = append(rendered, fmt.Sprintf(" * %s", usage))
 	}
-	return buf.String()
+	return strings.Join(rendered, "\n")
 }
