@@ -4,14 +4,8 @@ var headerTmpl = `<html>
 <head>
 <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.3.0/pure-min.css">
 <style type="text/css">
-html,
-button,
-input,
-select,
-textarea,
-.pure-g,
+body,
 .pure-g [class *= "pure-u"],
-.pure-g-r,
 .pure-g-r [class *= "pure-u"] {
     font-family: monospace;
 }
@@ -112,6 +106,37 @@ header .header-end {
 	text-align: left;
 	display: inline-block;
 	white-space: pre-wrap;
+}
+
+.game-log-container {
+	text-align: center;
+}
+
+.game-log-heading {
+	text-align: center;
+}
+
+.game-log {
+	white-space: pre-wrap;	
+}
+
+.game-input-container {
+	text-align: center;
+}
+
+.game-input-available-commands {
+	display: inline-block;
+	text-align: left;
+	margin-bottom: 1em;
+	white-space: pre-wrap;	
+}
+
+.game-input-command {
+	width: 70%;
+}
+
+.game-input-submit {
+	width: 20%;
 }
 </style>
 <title>brdg.me - {{.}}</title>
