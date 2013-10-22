@@ -92,7 +92,7 @@ header .header-end {
 
 .game-show {
 	margin: 0 auto;
-	max-width: 80em;
+	max-width: 100em;
 }
 
 .active-game-name {
@@ -111,6 +111,7 @@ header .header-end {
 	text-align: left;
 	display: inline-block;
 	white-space: pre-wrap;
+	font-size: 1.3em;
 }
 
 .game-log-container {
@@ -120,7 +121,7 @@ header .header-end {
 .game-log {
 	text-align: left;
 	white-space: pre-wrap;
-	max-height: 30em;
+	max-height: 50em;
 	overflow-y: auto;
 }
 
