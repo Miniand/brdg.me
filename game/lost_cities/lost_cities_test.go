@@ -334,7 +334,7 @@ func TestExpeditionScores(t *testing.T) {
 			Rank: 7,
 		},
 	}
-	expectedScore = 94
+	expectedScore = 14
 	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
 
 	// Min score
@@ -391,7 +391,7 @@ func TestExpeditionScores(t *testing.T) {
 			Rank: 10,
 		},
 	}
-	expectedScore = 236
+	expectedScore = 156
 	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
 }
 func ensureExpeditionMatchesExpectedScore(t *testing.T, expedition card.Deck,
