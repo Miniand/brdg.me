@@ -3,12 +3,11 @@ package model
 import (
 	"errors"
 	"github.com/Miniand/brdg.me/game"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	r "github.com/dancannon/gorethink"
 )
 
 type GameModel struct {
-	Id         interface{} "_id"
+	Id         string `gorethink:"id,omitempty"`
 	PlayerList []string
 	Winners    []string
 	IsFinished bool
@@ -17,22 +16,25 @@ type GameModel struct {
 	State      []byte
 }
 
-func GameCollection(session *mgo.Session) *mgo.Collection {
-	return session.DB(DatabaseName()).C("games")
+func GameTable() r.RqlTerm {
+	return r.Table("games")
 }
 
-func LoadGame(id interface{}) (*GameModel, error) {
+func LoadGame(id string) (*GameModel, error) {
 	session, err := Connect()
 	if err != nil {
 		return nil, err
 	}
 	defer session.Close()
-	m := &GameModel{}
-	err = GameCollection(session).FindId(id).One(m)
-	if m.Id == nil {
-		m = nil
+	row, err := GameTable().Get(id).RunRow(session)
+	if err != nil {
+		return nil, err
 	}
-	return m, err
+	m := &GameModel{}
+	if err := row.Scan(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func SaveGame(g game.Playable) (*GameModel, error) {
@@ -44,7 +46,7 @@ func SaveGame(g game.Playable) (*GameModel, error) {
 	return gm, err
 }
 
-func UpdateGame(id interface{}, g game.Playable) (*GameModel, error) {
+func UpdateGame(id string, g game.Playable) (*GameModel, error) {
 	gm, err := GameToGameModel(g)
 	if err != nil {
 		return nil, err
@@ -68,7 +70,6 @@ func GameToGameModel(g game.Playable) (*GameModel, error) {
 		State:      state,
 	}
 	return gm, nil
-	return nil, nil
 }
 
 func (gm *GameModel) ToGame() (game.Playable, error) {
@@ -81,17 +82,23 @@ func (gm *GameModel) ToGame() (game.Playable, error) {
 }
 
 func (gm *GameModel) Save() error {
+	var rqlTerm r.RqlTerm
 	session, err := Connect()
 	if err != nil {
 		return err
 	}
 	defer session.Close()
-	if gm.Id == nil {
-		gm.Id = bson.NewObjectId()
+	if gm.Id == "" {
+		rqlTerm = GameTable().Insert(gm)
+	} else {
+		rqlTerm = GameTable().Get(gm.Id).Update(gm)
 	}
-	_, err = GameCollection(session).UpsertId(gm.Id, gm)
+	res, err := rqlTerm.RunWrite(session)
 	if err != nil {
 		return err
+	}
+	if gm.Id == "" {
+		gm.Id = res.GeneratedKeys[0]
 	}
 	return nil
 }
