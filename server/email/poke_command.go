@@ -9,7 +9,7 @@ import (
 )
 
 type PokeCommand struct {
-	gameId interface{}
+	gameId string
 }
 
 func (pc PokeCommand) Parse(input string) []string {
@@ -41,7 +41,7 @@ func (pc PokeCommand) Call(player string, context interface{},
 		return "", errors.New("The game is already finished")
 	}
 	whoseTurn := g.WhoseTurn()
-	if pc.gameId != nil {
+	if pc.gameId != "" {
 		CommunicateGameTo(pc.gameId, g, whoseTurn, fmt.Sprintf(
 			"%s wants to remind you it's your turn!",
 			render.PlayerNameInPlayers(player, g.PlayerList())), false)

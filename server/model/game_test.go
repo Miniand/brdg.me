@@ -8,7 +8,7 @@ import (
 func TestGameSavingAndLoading(t *testing.T) {
 	if modelTestShouldRun() {
 		cleanTestingDatabase()
-		g, err := game.Collection()["tic_tac_toe"]([]string{"Mick", "Steve"})
+		g, err := game.Collection()["acquire"]([]string{"Mick", "Steve", "BJ"})
 		if err != nil {
 			t.Error(err)
 			return
@@ -34,7 +34,8 @@ func TestGameSavingAndLoading(t *testing.T) {
 			return
 		}
 		pl := loadedG.PlayerList()
-		if len(pl) != 2 || pl[0] != "Mick" || pl[1] != "Steve" {
+		if len(pl) != 3 || pl[0] != "Mick" || pl[1] != "Steve" ||
+			pl[2] != "BJ" {
 			t.Error("Players in loaded game don't match original")
 			return
 		}

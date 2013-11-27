@@ -5,7 +5,7 @@ import (
 )
 
 func modelTestShouldRun() bool {
-	return os.Getenv("IGNORE_DB") == ""
+	return os.Getenv("TEST_DB") != ""
 }
 
 func cleanTestingDatabase() {

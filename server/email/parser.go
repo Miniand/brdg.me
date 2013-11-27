@@ -8,7 +8,6 @@ import (
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/model"
-	"labix.org/v2/mgo/bson"
 	"regexp"
 	"strings"
 )
@@ -35,7 +34,7 @@ func ParseBody(body string) string {
 func HandleCommandText(player, gameId string, commandText string) error {
 	unsubscribed, err := UserIsUnsubscribed(player)
 	if (err == nil && unsubscribed) || gameId == "" {
-		commands := Commands(nil)
+		commands := Commands("")
 		output, err := command.CallInCommands(player, nil, commandText, commands)
 		if err != nil {
 			// Print help
@@ -60,7 +59,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 		}
 	} else {
 		var initialEliminated []string
-		gm, err := model.LoadGame(bson.ObjectIdHex(gameId))
+		gm, err := model.LoadGame(gameId)
 		if err != nil {
 			return err
 		}
@@ -91,7 +90,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 			commErrs = append(commErrs, commErr.Error())
 		}
 		if err != command.NO_COMMAND_FOUND {
-			_, err := model.UpdateGame(bson.ObjectIdHex(gameId), g)
+			_, err := model.UpdateGame(gameId, g)
 			if err != nil {
 				return err
 			}
@@ -111,7 +110,7 @@ func HandleCommandText(player, gameId string, commandText string) error {
 				}
 			}
 			// Update again to handle saves during render, ie for logger
-			_, err = model.UpdateGame(bson.ObjectIdHex(gameId), g)
+			_, err = model.UpdateGame(gameId, g)
 			if err != nil {
 				return err
 			}
@@ -140,7 +139,7 @@ func FindNewStringsInSlice(oldSlice, newSlice []string) (newStrings []string) {
 	return
 }
 
-func CommunicateGameTo(id interface{}, g game.Playable, to []string,
+func CommunicateGameTo(id string, g game.Playable, to []string,
 	header string, initial bool) error {
 	if header != "" {
 		header += "\n\n"
@@ -177,9 +176,9 @@ func CommunicateGameTo(id interface{}, g game.Playable, to []string,
 			pHeader += "\n\n" + render.CommandUsages(usages)
 		}
 		body := pHeader + "\n\n" + rawOutput
-		subject := fmt.Sprintf("%s (%s)", g.Name(), id.(bson.ObjectId).Hex())
+		subject := fmt.Sprintf("%s (%s)", g.Name(), id)
 		extraHeaders := []string{}
-		messageId := id.(bson.ObjectId).Hex() + "@brdg.me"
+		messageId := id + "@brdg.me"
 		if initial {
 			// We create the base Message-ID
 			extraHeaders = append(extraHeaders,

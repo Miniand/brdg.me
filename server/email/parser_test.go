@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
-	"labix.org/v2/mgo/bson"
 	"testing"
 )
 
@@ -49,7 +48,7 @@ func TestTexasHoldemRaiseBelowMin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	commands := append(g.Commands(), Commands(bson.NewObjectId())...)
+	commands := append(g.Commands(), Commands("")...)
 	_, err = command.CallInCommands(g.WhoseTurn()[0], g, "raise 1", commands)
 	if err == nil || err.Error() == "" {
 		t.Fatal("Did not get an error!")
