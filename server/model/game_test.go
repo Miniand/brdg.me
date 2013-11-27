@@ -23,6 +23,7 @@ func TestGameSavingAndLoading(t *testing.T) {
 			t.Error(err)
 			return
 		}
+		t.Logf("%#v", loadedGm)
 		loadedG, err := loadedGm.ToGame()
 		if err != nil {
 			t.Error(err)

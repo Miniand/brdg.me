@@ -1,31 +1,31 @@
 package model
 
 import (
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	r "github.com/dancannon/gorethink"
 )
 
 type UserModel struct {
-	Id           interface{} "_id"
+	Id           string `gorethink:"id,omitempty"`
 	Email        string
 	Unsubscribed bool
 }
 
-func UserCollection(session *mgo.Session) *mgo.Collection {
-	return session.DB(DatabaseName()).C("users")
+func UserTable() r.RqlTerm {
+	return r.Table("users")
 }
 
-func LoadUser(id interface{}) (*UserModel, error) {
+func LoadUser(id string) (*UserModel, error) {
 	session, err := Connect()
 	if err != nil {
 		return nil, err
 	}
 	defer session.Close()
-	m := &UserModel{}
-	err = UserCollection(session).FindId(id).One(m)
-	if m.Id == nil {
-		m = nil
+	row, err := UserTable().Get(id).RunRow(session)
+	if err != nil {
+		return nil, err
 	}
+	m := &UserModel{}
+	err = row.Scan(m)
 	return m, err
 }
 
@@ -35,28 +35,38 @@ func FirstUserByEmail(email string) (*UserModel, error) {
 		return nil, err
 	}
 	defer session.Close()
-	m := &UserModel{}
-	err = UserCollection(session).Find(bson.M{
-		"email": email,
-	}).One(m)
-	if err == mgo.ErrNotFound {
+	row, err := UserTable().Filter(map[string]interface{}{
+		"Email": email,
+	}).RunRow(session)
+	if err != nil {
+		return nil, err
+	}
+	if row.IsNil() {
 		return nil, nil
 	}
+	m := &UserModel{}
+	err = row.Scan(m)
 	return m, err
 }
 
 func (um *UserModel) Save() error {
+	var rqlTerm r.RqlTerm
 	session, err := Connect()
 	if err != nil {
 		return err
 	}
 	defer session.Close()
-	if um.Id == nil {
-		um.Id = bson.NewObjectId()
+	if um.Id == "" {
+		rqlTerm = UserTable().Insert(um)
+	} else {
+		rqlTerm = UserTable().Get(um.Id).Update(um)
 	}
-	_, err = UserCollection(session).UpsertId(um.Id, um)
+	res, err := rqlTerm.RunWrite(session)
 	if err != nil {
 		return err
+	}
+	if um.Id == "" {
+		um.Id = res.GeneratedKeys[0]
 	}
 	return nil
 }
