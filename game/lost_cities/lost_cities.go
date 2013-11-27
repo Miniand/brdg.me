@@ -399,5 +399,29 @@ func (g *Game) CurrentRoundPlayerScore(player int) int {
 // focus on values, the rest of the game logic can ensure the deck is of the
 // right suit.
 func ScoreExpedition(hand card.Deck) int {
-	return 0
+	//if hand!=null{
+	fmt.Println(hand)	
+	fmt.Println("array length:")
+	fmt.Println(len(hand))
+	total:=0
+	if len(hand)!=0{
+		total=-20
+	}
+
+	investments:=0
+	//times by number of investments+1
+	for count := 0; count < len(hand); count++ {
+		fmt.Println(hand[count].(card.SuitRankCard).Rank)
+		if (hand[count].(card.SuitRankCard).Rank)==0{
+			investments++
+		}else{
+			total=total+hand[count].(card.SuitRankCard).Rank
+		}
+
+	}
+	total=total*(investments+1)
+	if len(hand) >= 8{
+	total=total+20
+}
+	return total
 }
