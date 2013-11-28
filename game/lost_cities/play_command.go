@@ -3,7 +3,7 @@ package lost_cities
 import (
 	"errors"
 	"github.com/Miniand/brdg.me/command"
-	"fmt"
+	// "fmt"
 )
 
 type PlayCommand struct{}
@@ -14,8 +14,8 @@ func (d PlayCommand) Parse(input string) []string {
 
 func (d PlayCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	fmt.Println(g.TurnPhase)
-	fmt.Println(g.Players[g.CurrentlyMoving])
+	// fmt.Println(g.TurnPhase)
+	// fmt.Println(g.Players[g.CurrentlyMoving])
 	return g.Players[g.CurrentlyMoving] == player &&
 		g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
 	//return true

@@ -3,6 +3,7 @@ package lost_cities
 import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
@@ -19,148 +20,285 @@ func mockGame(t *testing.T) *Game {
 	game.CurrentlyMoving = 0
 	// Set Mick's hand
 	game.Board.PlayerHands[0] = card.Deck{
-		card.SuitRankCard{
-			Suit: SUIT_BLUE,
-			Rank: 6,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_BLUE,
-			Rank: 8,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_RED,
-			Rank: 4,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_RED,
-			Rank: 5,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_YELLOW,
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_YELLOW,
-			Rank: 3,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_GREEN,
-			Rank: 2,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_WHITE,
-			Rank: 10,
-		},
+		card.SuitRankCard{SUIT_BLUE, 6},
+		card.SuitRankCard{SUIT_BLUE, 8},
+		card.SuitRankCard{SUIT_RED, 4},
+		card.SuitRankCard{SUIT_RED, 5},
+		card.SuitRankCard{SUIT_YELLOW, 0},
+		card.SuitRankCard{SUIT_YELLOW, 3},
+		card.SuitRankCard{SUIT_GREEN, 2},
+		card.SuitRankCard{SUIT_WHITE, 10},
 	}
 	// Set Steve's hand
 	game.Board.PlayerHands[1] = card.Deck{
-		card.SuitRankCard{
-			Suit: SUIT_BLUE,
-			Rank: 7,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_BLUE,
-			Rank: 9,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_RED,
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_RED,
-			Rank: 10,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_YELLOW,
-			Rank: 4,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_YELLOW,
-			Rank: 7,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_GREEN,
-			Rank: 4,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_WHITE,
-			Rank: 8,
-		},
+		card.SuitRankCard{SUIT_BLUE, 7},
+		card.SuitRankCard{SUIT_BLUE, 9},
+		card.SuitRankCard{SUIT_RED, 0},
+		card.SuitRankCard{SUIT_RED, 10},
+		card.SuitRankCard{SUIT_YELLOW, 4},
+		card.SuitRankCard{SUIT_YELLOW, 7},
+		card.SuitRankCard{SUIT_GREEN, 4},
+		card.SuitRankCard{SUIT_WHITE, 8},
 	}
 	// Just set the draw pile to have a couple of cards so we can finish the
 	// round quickly for testing.
 	game.Board.DrawPile = card.Deck{
-		card.SuitRankCard{
-			Suit: SUIT_WHITE,
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_WHITE,
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Suit: SUIT_WHITE,
-			Rank: 0,
-		},
+		card.SuitRankCard{SUIT_WHITE, 0},
+		card.SuitRankCard{SUIT_WHITE, 0},
+		card.SuitRankCard{SUIT_WHITE, 0},
 	}
 	return game
 }
 
-func TestPlayFullGame(t *testing.T) {
+func TestStartOfGame(t *testing.T) {
 	game := mockGame(t)
-	//t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
-	//t.Logf(" \n")
-	if game.IsEndOfRound() || game.IsFinished() {
-		t.Fatal("Why is it the end of the round if we've just started?")
+
+	Convey("Given the game has just started", t, func() {
+		Convey("It should not be the end of the round", func() {
+			So(game.IsEndOfRound(), ShouldBeFalse)
+		})
+		Convey("It should not be the end of the game", func() {
+			So(game.IsFinished(), ShouldBeFalse)
+		})
+		Convey("The turn phase should be playing or discarding", func() {
+			So(game.TurnPhase, ShouldEqual, TURN_PHASE_PLAY_OR_DISCARD)
+		})
+	})
+}
+
+func TestDiscardCard(t *testing.T) {
+	game := mockGame(t)
+
+	Convey("Given Steve tries to discard when it's Mick's turn", t, func() {
+		_, err := command.CallInCommands("Steve", game, "discard r5",
+			game.Commands())
+		Convey("It should error", func() {
+			So(err, ShouldNotBeNil)
+		})
+	})
+	Convey("Given Mick discards his red 5", t, func() {
+		_, err := command.CallInCommands("Mick", game, "discard r5",
+			game.Commands())
+		Convey("It should not error", func() {
+			So(err, ShouldBeNil)
+		})
+		c := card.SuitRankCard{SUIT_RED, 5}
+		Convey("It should take the card from Mick's hand", func() {
+			So(len(game.Board.PlayerHands[0]), ShouldEqual, 7)
+			So(game.Board.PlayerHands[0].Contains(c), ShouldEqual, 0)
+		})
+		Convey("It should put the card into the red discard pile", func() {
+			So(len(game.Board.DiscardPiles[SUIT_RED]), ShouldEqual, 1)
+			So(game.Board.DiscardPiles[SUIT_RED].Contains(c), ShouldEqual, 1)
+		})
+		Convey("It should change turn phase to draw", func() {
+			So(game.TurnPhase, ShouldEqual, TURN_PHASE_DRAW)
+		})
+	})
+}
+
+func TestPlayCard(t *testing.T) {
+	game := mockGame(t)
+
+	Convey("Given Mick plays his red 5", t, func() {
+		_, err := command.CallInCommands("Mick", game, "play r5",
+			game.Commands())
+		Convey("It should not error", func() {
+			So(err, ShouldBeNil)
+		})
+		c := card.SuitRankCard{SUIT_RED, 5}
+		Convey("It should take the card from Mick's hand", func() {
+			So(len(game.Board.PlayerHands[0]), ShouldEqual, 7)
+			So(game.Board.PlayerHands[0].Contains(c), ShouldEqual, 0)
+		})
+		Convey("It should put the card into the Mick's red pile", func() {
+			So(len(game.Board.PlayerExpeditions[0][SUIT_RED]), ShouldEqual, 1)
+			So(game.Board.PlayerExpeditions[0][SUIT_RED].Contains(c),
+				ShouldEqual, 1)
+		})
+		Convey("It should change turn phase to draw", func() {
+			So(game.TurnPhase, ShouldEqual, TURN_PHASE_DRAW)
+		})
+	})
+}
+
+func TestPlaySecondInvestmentCard(t *testing.T) {
+	game := mockGame(t)
+
+	// Customise Mick's hand to give extra investment cards
+	game.Board.PlayerHands[0] = card.Deck{
+		card.SuitRankCard{SUIT_RED, 0},
+		card.SuitRankCard{SUIT_RED, 0},
+		card.SuitRankCard{SUIT_RED, 0},
+		card.SuitRankCard{SUIT_RED, 4},
+		card.SuitRankCard{SUIT_RED, 5},
+		card.SuitRankCard{SUIT_YELLOW, 0},
+		card.SuitRankCard{SUIT_YELLOW, 3},
+		card.SuitRankCard{SUIT_WHITE, 10},
 	}
 
-	// MICK FIRST TURN
-	// Play or discard
+	Convey("Given Mick already has a red investment in his red expedition", t,
+		func() {
+			game.Board.PlayerExpeditions[0][SUIT_RED] = card.Deck{
+				card.SuitRankCard{
+					Suit: SUIT_RED,
+					Rank: 0,
+				},
+			}
+			Convey("Given Mick tries to play a red investment", func() {
+				_, err := command.CallInCommands("Mick", game, "play rx",
+					game.Commands())
+				Convey("It should not error", func() {
+					So(err, ShouldBeNil)
+				})
+			})
+		})
+}
 
-	if game.TurnPhase != TURN_PHASE_PLAY_OR_DISCARD {
-		t.Fatal("The turn phase isn't for the player to play or discard")
-	}
-	// Mick discards red 5
-	_, err := command.CallInCommands("Mick", game, "discard r5", game.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	// Let's check to make sure it actually happened
-	if len(game.Board.PlayerHands[0]) != 7 {
-		t.Fatal("Red 5 wasn't removed from Mick's hand when he tried to discard it")
-	}
-	if len(game.Board.DiscardPiles[SUIT_RED]) != 1 {
-		t.Fatal("The red discard pile doesn't have any cards in it")
-	}
-	firstRed := game.Board.DiscardPiles[SUIT_RED][0].(card.SuitRankCard)
-	if firstRed.Suit != SUIT_RED && firstRed.Rank != 5 {
-		t.Fatal("Red 5 wasn't discard onto the red discard pile")
+func TestPlayLowerCard(t *testing.T) {
+	game := mockGame(t)
+
+	// Customise Mick's hand to give extra investment cards
+	game.Board.PlayerHands[0] = card.Deck{
+		card.SuitRankCard{SUIT_RED, 0},
+		card.SuitRankCard{SUIT_RED, 0},
+		card.SuitRankCard{SUIT_RED, 0},
+		card.SuitRankCard{SUIT_RED, 4},
+		card.SuitRankCard{SUIT_RED, 5},
+		card.SuitRankCard{SUIT_YELLOW, 0},
+		card.SuitRankCard{SUIT_YELLOW, 3},
+		card.SuitRankCard{SUIT_WHITE, 10},
 	}
 
-	// MICK FIRST TURN
-	// Draw
+	Convey("Given Mick already has red 3 in his red expedition", t, func() {
+		game.Board.PlayerExpeditions[0][SUIT_RED] = card.Deck{
+			card.SuitRankCard{
+				Suit: SUIT_RED,
+				Rank: 3,
+			},
+		}
+		Convey("Given Mick tries to play a red investment", func() {
+			_, err := command.CallInCommands("Mick", game, "play rx",
+				game.Commands())
+			Convey("It should error", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
 
-	if game.TurnPhase != TURN_PHASE_DRAW {
-		t.Fatal("The turn phase didn't change to DRAW")
-	}
-	// Steve tries to butt in, but he shouldn't be allowed cos it's not his
-	// turn!
-	_, err = command.CallInCommands("Steve", game, "draw", game.Commands())
-	if err == nil {
-		t.Fatal(
-			"Steve was allowed to draw a card even though it wasn't his turn!")
-	}
-	// Mick draws from the draw pile
-	_, err = command.CallInCommands("Mick", game, "draw", game.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(game.Board.PlayerHands[0]) != 8 {
-		t.Fatal("Mick's hand isn't 8 cards after drawing")
-	}
-	if len(game.Board.DrawPile) != 2 {
-		t.Fatal("The draw pile didn't reduce by one after drawing")
-	}
+func TestPlayCardNotInHand(t *testing.T) {
+	game := mockGame(t)
+
+	Convey("Given Mick does not have red 10", t, func() {
+		Convey("Given Mick tries to play red 10", func() {
+			_, err := command.CallInCommands("Mick", game, "play r10",
+				game.Commands())
+			Convey("It should error", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestDrawCard(t *testing.T) {
+	game := mockGame(t)
+
+	Convey("Given Mick discards a card", t, func() {
+		_, err := command.CallInCommands("Mick", game, "discard r5",
+			game.Commands())
+		Convey("It should not error", func() {
+			So(err, ShouldBeNil)
+		})
+		Convey("It should now be draw phase", func() {
+			So(game.TurnPhase, ShouldEqual, TURN_PHASE_DRAW)
+		})
+	})
+	Convey("Given Mick draws from the draw pile", t, func() {
+		topCard, _ := game.Board.DrawPile.Pop()
+		initialHandCount := game.Board.PlayerHands[0].Contains(topCard)
+		initialDrawCount := game.Board.DrawPile.Contains(topCard)
+		_, err := command.CallInCommands("Mick", game, "draw",
+			game.Commands())
+		Convey("It should not error", func() {
+			So(err, ShouldBeNil)
+		})
+		Convey("Mick should have 8 cards again", func() {
+			So(len(game.Board.PlayerHands[0]), ShouldEqual, 8)
+		})
+		Convey("Mick's hand should have the top card of the deck", func() {
+			So(game.Board.PlayerHands[0].Contains(topCard), ShouldEqual,
+				initialHandCount+1)
+		})
+		Convey("The deck should no longer have the top card", func() {
+			So(game.Board.DrawPile.Contains(topCard), ShouldEqual,
+				initialDrawCount-1)
+		})
+		Convey("It should be Steve's turn", func() {
+			So(game.CurrentlyMoving, ShouldEqual, 1)
+		})
+		Convey("It should be the play or discard phase", func() {
+			So(game.TurnPhase, ShouldEqual, TURN_PHASE_PLAY_OR_DISCARD)
+		})
+	})
+}
+
+func TestTakeCard(t *testing.T) {
+	Convey("Given a game", t, func() {
+		t.Log("Making a game!")
+		game := mockGame(t)
+		c := card.SuitRankCard{SUIT_RED, 9}
+
+		Convey("When Mick discards a card", func() {
+			_, err := command.CallInCommands("Mick", game, "discard y3",
+				game.Commands())
+			Convey("It should not error", func() {
+				So(err, ShouldBeNil)
+			})
+			Convey("It should now be draw phase", func() {
+				So(game.TurnPhase, ShouldEqual, TURN_PHASE_DRAW)
+			})
+		})
+		Convey("When Mick tries to take from the blue discard pile", func() {
+			_, err := command.CallInCommands("Mick", game, "take b",
+				game.Commands())
+			Convey("It should error", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+		Convey("When there is a red 9 in the discard pile", func() {
+			t.Log("setting the discard pile!")
+			game.Board.DiscardPiles[SUIT_RED] = card.Deck{c}
+			Convey("When Mick tries to take from the red discard pile", func() {
+				t.Log("Drawing the card!")
+				_, err := command.CallInCommands("Mick", game, "take r",
+					game.Commands())
+				t.Log(game.Board.PlayerHands[0].Contains(c))
+				Convey("It should not error", func() {
+					So(err, ShouldBeNil)
+				})
+				Convey("The red 9 should be removed from the red discard pile",
+					func() {
+						So(game.Board.DiscardPiles[SUIT_RED].Contains(c),
+							ShouldEqual, 0)
+					})
+				Convey("The red 9 should be in Mick's hand", func() {
+					So(game.Board.PlayerHands[0].Contains(c), ShouldEqual, 1)
+
+				})
+				Convey("It should be Steve's turn", func() {
+					So(game.CurrentlyMoving, ShouldEqual, 1)
+				})
+				Convey("It should be the play or discard phase", func() {
+					So(game.TurnPhase, ShouldEqual, TURN_PHASE_PLAY_OR_DISCARD)
+				})
+			})
+		})
+	})
+}
+
+func testPlayFullGame(t *testing.T) {
+	game := mockGame(t)
 
 	// STEVE FIRST TURN
 	// Play or discard
@@ -173,7 +311,7 @@ func TestPlayFullGame(t *testing.T) {
 		t.Fatal("The turn phase isn't to play or discard")
 	}
 	// Try to draw first and make sure we aren't allowed
-	_, err = command.CallInCommands("Steve", game, "draw", game.Commands())
+	_, err := command.CallInCommands("Steve", game, "draw", game.Commands())
 	if err == nil {
 		t.Fatal("The game let Steve draw, he hasn't played yet!")
 	}
@@ -227,182 +365,180 @@ func TestPlayFullGame(t *testing.T) {
 }
 
 func TestExpeditionScores(t *testing.T) {
-	var (
-		expedition    card.Deck
-		expectedScore int
-	)
+	Convey("Given an empty expedition", t, func() {
+		expedition := card.Deck{}
+		Convey("Score should be 0", func() {
+			So(ScoreExpedition(expedition), ShouldEqual, 0)
+		})
+	})
 
-	// Empty expedition should be 0, -20 is not applied
-	expedition = card.Deck{}
-	expectedScore = 0
-	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
-
-	// But if we've got a card, -20 is applied.  This test also tests multiplier
-	expedition = card.Deck{
-		card.SuitRankCard{
-			Rank: 0,
-		},
-	}
-	expectedScore = -40
-	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
-
-	// Try a hand without a multiplier but only value cards
-	expedition = card.Deck{
-		card.SuitRankCard{
-			Rank: 3,
-		},
-		card.SuitRankCard{
-			Rank: 5,
-		},
-		card.SuitRankCard{
-			Rank: 7,
-		},
-	}
-	expectedScore = -5
-	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
-
-	// Try a hand with both
-	expedition = card.Deck{
-		card.SuitRankCard{
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Rank: 5,
-		},
-		card.SuitRankCard{
-			Rank: 7,
-		},
-		card.SuitRankCard{
-			Rank: 10,
-		},
-	}
-	expectedScore = 4
-	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
-
-	// Check that the 20 point bonus is applied for 8 cards after multiplier is
-	// applied
-	expedition = card.Deck{
-		card.SuitRankCard{
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Rank: 2,
-		},
-		card.SuitRankCard{
-			Rank: 3,
-		},
-		card.SuitRankCard{
-			Rank: 4,
-		},
-		card.SuitRankCard{
-			Rank: 5,
-		},
-		card.SuitRankCard{
-			Rank: 6,
-		},
-		card.SuitRankCard{
-			Rank: 7,
-		},
-		card.SuitRankCard{
-			Rank: 10,
-		},
-	}
-	expectedScore = 54
-	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
-
-	// But make sure there is no 20 point bonus for only 7 cards!
-	expedition = card.Deck{
-		card.SuitRankCard{
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Rank: 2,
-		},
-		card.SuitRankCard{
-			Rank: 3,
-		},
-		card.SuitRankCard{
-			Rank: 4,
-		},
-		card.SuitRankCard{
-			Rank: 5,
-		},
-		card.SuitRankCard{
-			Rank: 6,
-		},
-		card.SuitRankCard{
-			Rank: 7,
-		},
-	}
-	expectedScore = 14
-	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
-
-	// Min score
-	expedition = card.Deck{
-		card.SuitRankCard{
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Rank: 0,
-		},
-	}
-	expectedScore = -80
-	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
-
-	// Max score, including 20 point bonus after multiplier
-	expedition = card.Deck{
-		card.SuitRankCard{
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Rank: 0,
-		},
-		card.SuitRankCard{
-			Rank: 2,
-		},
-		card.SuitRankCard{
-			Rank: 3,
-		},
-		card.SuitRankCard{
-			Rank: 4,
-		},
-		card.SuitRankCard{
-			Rank: 5,
-		},
-		card.SuitRankCard{
-			Rank: 6,
-		},
-		card.SuitRankCard{
-			Rank: 7,
-		},
-		card.SuitRankCard{
-			Rank: 8,
-		},
-		card.SuitRankCard{
-			Rank: 9,
-		},
-		card.SuitRankCard{
-			Rank: 10,
-		},
-	}
-	expectedScore = 156
-	ensureExpeditionMatchesExpectedScore(t, expedition, expectedScore)
-}
-func ensureExpeditionMatchesExpectedScore(t *testing.T, expedition card.Deck,
-	expectedScore int) {
-	actualScore := ScoreExpedition(expedition)
-	if ScoreExpedition(expedition) != expectedScore {
-		ranks := []int{} // We build raw ranks to make output easier to read
-		for _, c := range expedition {
-			ranks = append(ranks, c.(card.SuitRankCard).Rank)
+	Convey("Given an expedition of X", t, func() {
+		expedition := card.Deck{
+			card.SuitRankCard{
+				Rank: 0,
+			},
 		}
-		t.Fatalf("Score for expedition %v was expected to be %d, but got %d",
-			ranks, expectedScore, actualScore)
-	}
+		Convey("Score should be -40", func() {
+			So(ScoreExpedition(expedition), ShouldEqual, -40)
+		})
+	})
+
+	Convey("Given an expedition of 3, 4, 5", t, func() {
+		expedition := card.Deck{
+			card.SuitRankCard{
+				Rank: 3,
+			},
+			card.SuitRankCard{
+				Rank: 5,
+			},
+			card.SuitRankCard{
+				Rank: 7,
+			},
+		}
+		Convey("Score should be -5", func() {
+			So(ScoreExpedition(expedition), ShouldEqual, -5)
+		})
+	})
+
+	Convey("Given an expedition of X, 5, 7, 10", t, func() {
+		expedition := card.Deck{
+			card.SuitRankCard{
+				Rank: 0,
+			},
+			card.SuitRankCard{
+				Rank: 5,
+			},
+			card.SuitRankCard{
+				Rank: 7,
+			},
+			card.SuitRankCard{
+				Rank: 10,
+			},
+		}
+		Convey("Score should be 4", func() {
+			So(ScoreExpedition(expedition), ShouldEqual, 4)
+		})
+	})
+
+	Convey("Given an expedition of X, 2, 3, 4, 5, 6, 7, 10", t, func() {
+		expedition := card.Deck{
+			card.SuitRankCard{
+				Rank: 0,
+			},
+			card.SuitRankCard{
+				Rank: 2,
+			},
+			card.SuitRankCard{
+				Rank: 3,
+			},
+			card.SuitRankCard{
+				Rank: 4,
+			},
+			card.SuitRankCard{
+				Rank: 5,
+			},
+			card.SuitRankCard{
+				Rank: 6,
+			},
+			card.SuitRankCard{
+				Rank: 7,
+			},
+			card.SuitRankCard{
+				Rank: 10,
+			},
+		}
+		Convey("Score should be 54", func() {
+			So(ScoreExpedition(expedition), ShouldEqual, 54)
+		})
+	})
+
+	Convey("Given an expedition of X, 2, 3, 4, 5, 6, 7", t, func() {
+		expedition := card.Deck{
+			card.SuitRankCard{
+				Rank: 0,
+			},
+			card.SuitRankCard{
+				Rank: 2,
+			},
+			card.SuitRankCard{
+				Rank: 3,
+			},
+			card.SuitRankCard{
+				Rank: 4,
+			},
+			card.SuitRankCard{
+				Rank: 5,
+			},
+			card.SuitRankCard{
+				Rank: 6,
+			},
+			card.SuitRankCard{
+				Rank: 7,
+			},
+		}
+		Convey("Score should be 14", func() {
+			So(ScoreExpedition(expedition), ShouldEqual, 14)
+		})
+	})
+
+	Convey("Given the minimum score expedition of X, X, X", t, func() {
+		expedition := card.Deck{
+			card.SuitRankCard{
+				Rank: 0,
+			},
+			card.SuitRankCard{
+				Rank: 0,
+			},
+			card.SuitRankCard{
+				Rank: 0,
+			},
+		}
+		Convey("Score should be -80", func() {
+			So(ScoreExpedition(expedition), ShouldEqual, -80)
+		})
+	})
+
+	Convey("Given the maximum score expedition of X, X, X and 2-10", t, func() {
+		expedition := card.Deck{
+			card.SuitRankCard{
+				Rank: 0,
+			},
+			card.SuitRankCard{
+				Rank: 0,
+			},
+			card.SuitRankCard{
+				Rank: 0,
+			},
+			card.SuitRankCard{
+				Rank: 2,
+			},
+			card.SuitRankCard{
+				Rank: 3,
+			},
+			card.SuitRankCard{
+				Rank: 4,
+			},
+			card.SuitRankCard{
+				Rank: 5,
+			},
+			card.SuitRankCard{
+				Rank: 6,
+			},
+			card.SuitRankCard{
+				Rank: 7,
+			},
+			card.SuitRankCard{
+				Rank: 8,
+			},
+			card.SuitRankCard{
+				Rank: 9,
+			},
+			card.SuitRankCard{
+				Rank: 10,
+			},
+		}
+		Convey("Score should be 156", func() {
+			So(ScoreExpedition(expedition), ShouldEqual, 156)
+		})
+	})
 }

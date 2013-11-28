@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"fmt"
+	// "fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
@@ -120,18 +120,18 @@ func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
 	suitnum := 0
 	val := 0
 	var err error
-	fmt.Println("val")
-	fmt.Println(val)
+	// fmt.Println("val")
+	// fmt.Println(val)
 	if len(cardString) < 2 {
 		return card.SuitRankCard{}, errors.New("not lengthy enough (heyoooo!)")
 	}
-	fmt.Println("cardstring:")
-	fmt.Println(cardString)
-	fmt.Println("cardstring 1::")
-	fmt.Println(cardString[1:])
+	// fmt.Println("cardstring:")
+	// fmt.Println(cardString)
+	// fmt.Println("cardstring 1::")
+	// fmt.Println(cardString[1:])
 	suit := strings.ToLower(cardString[0:1])
-	fmt.Println("suit")
-	fmt.Println(suit)
+	// fmt.Println("suit")
+	// fmt.Println(suit)
 	if cardString[1:] == "x" {
 		val = 0
 	} else {
@@ -139,11 +139,11 @@ func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
 		if err != nil {
 			return card.SuitRankCard{}, err
 		}
-		fmt.Println("val")
-		fmt.Println(val)
+		// fmt.Println("val")
+		// fmt.Println(val)
 	}
-	fmt.Println("val now")
-	fmt.Println(val)
+	// fmt.Println("val now")
+	// fmt.Println(val)
 	switch suit {
 	case "r":
 		suitnum = SUIT_RED
@@ -313,15 +313,18 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 // player's turn, and that the discard stack has cards in it.  Return an error
 // if any of these don't pass.
 func (g *Game) TakeCard(player int, suit int) error {
-	fmt.Println("gonna take a card")
-	fmt.Println(suit)
+	// fmt.Println("gonna take a card")
+	// fmt.Println(suit)
+	if len(g.Board.DiscardPiles[suit]) == 0 {
+		return errors.New("There are no cards in that discard pile")
+	}
 
 	var drawnCard card.Card
 	drawnCard, g.Board.DiscardPiles[suit] = g.Board.DiscardPiles[suit].Pop()
-	fmt.Println(drawnCard)
+	// fmt.Println(drawnCard)
 
 	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard)
-	fmt.Println(g.Board.PlayerHands[player])
+	// fmt.Println(g.Board.PlayerHands[player])
 	//fmt.Println(c.Suit)
 	//fmt.Println("in PlayCard c.Rank")
 	//fmt.Println(c.Rank)
@@ -400,28 +403,28 @@ func (g *Game) CurrentRoundPlayerScore(player int) int {
 // right suit.
 func ScoreExpedition(hand card.Deck) int {
 	//if hand!=null{
-	fmt.Println(hand)	
-	fmt.Println("array length:")
-	fmt.Println(len(hand))
-	total:=0
-	if len(hand)!=0{
-		total=-20
+	// fmt.Println(hand)
+	// fmt.Println("array length:")
+	// fmt.Println(len(hand))
+	total := 0
+	if len(hand) != 0 {
+		total = -20
 	}
 
-	investments:=0
+	investments := 0
 	//times by number of investments+1
 	for count := 0; count < len(hand); count++ {
-		fmt.Println(hand[count].(card.SuitRankCard).Rank)
-		if (hand[count].(card.SuitRankCard).Rank)==0{
+		// fmt.Println(hand[count].(card.SuitRankCard).Rank)
+		if (hand[count].(card.SuitRankCard).Rank) == 0 {
 			investments++
-		}else{
-			total=total+hand[count].(card.SuitRankCard).Rank
+		} else {
+			total = total + hand[count].(card.SuitRankCard).Rank
 		}
 
 	}
-	total=total*(investments+1)
-	if len(hand) >= 8{
-	total=total+20
-}
+	total = total * (investments + 1)
+	if len(hand) >= 8 {
+		total = total + 20
+	}
 	return total
 }
