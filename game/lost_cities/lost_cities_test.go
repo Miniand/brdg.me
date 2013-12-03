@@ -301,71 +301,117 @@ func TestTakeCard(t *testing.T) {
 	})
 }
 
-func testPlayFullGame(t *testing.T) {
+func TestEndOfRound(t *testing.T) {
 	game := mockGame(t)
-
-	// STEVE FIRST TURN
-	// Play or discard
-
-	// Make sure the turn changed to Steve
-	if game.CurrentlyMoving != 1 {
-		t.Fatal("Turn didn't change to Steve since Mick finished playing")
-	}
-	if game.TurnPhase != TURN_PHASE_PLAY_OR_DISCARD {
-		t.Fatal("The turn phase isn't to play or discard")
-	}
-	// Try to draw first and make sure we aren't allowed
-	_, err := command.CallInCommands("Steve", game, "draw", game.Commands())
-	if err == nil {
-		t.Fatal("The game let Steve draw, he hasn't played yet!")
-	}
-	//t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
-	//t.Logf(" \n")
-	// Play a blue 9 and check it actually happened
-	_, err = command.CallInCommands("Steve", game, "play B9", game.Commands())
-	if err != nil {
+	if _, err := command.CallInCommands("Mick", game, "discard y3",
+		game.Commands()); err != nil {
 		t.Fatal(err)
 	}
-	// t.Logf("%#v\n", game.Board.PlayerExpeditions[1])
-	// t.Logf(" \n")
-	if len(game.Board.PlayerExpeditions[1][SUIT_BLUE]) != 1 ||
-		game.Board.PlayerExpeditions[1][SUIT_BLUE][0].(card.SuitRankCard).Rank != 9 {
-		t.Fatal("We couldn't find the blue 9 in Steve's blue player expedition")
-	}
-	if len(game.Board.PlayerHands[1]) != 7 {
-		t.Fatal("Steve's hand wasn't reduced to 7")
-	}
+	Convey("Given there is one card left in the draw pile", t, func() {
+		game := cloneGame(game)
+		game.Board.DrawPile, _ = game.Board.DrawPile.PopN(1)
+		Convey("It should not be the end of the round", func() {
+			So(game.IsEndOfRound(), ShouldBeFalse)
+		})
+		Convey("When Mick draws a card", func() {
+			game := cloneGame(game)
+			_, err := command.CallInCommands("Mick", game, "draw",
+				game.Commands())
+			Convey("It should not error", func() {
+				So(err, ShouldBeNil)
+			})
+			Convey("It should be the end of the round", func() {
+				So(game.IsEndOfRound(), ShouldBeTrue)
+			})
+			Convey("It should not be the end of the game", func() {
+				So(game.IsFinished(), ShouldBeFalse)
+			})
+		})
+	})
+}
 
-	// STEVE FIRST TURN
-	// Draw
-
-	// Steve will draw from the red discard pile instead of the draw pile
-	_, err = command.CallInCommands("Steve", game, "take r", game.Commands())
-	if err != nil {
+func TestReadyForNextRound(t *testing.T) {
+	game := mockGame(t)
+	game.Board.DrawPile, _ = game.Board.DrawPile.PopN(1)
+	if _, err := command.CallInCommands("Mick", game, "discard y3",
+		game.Commands()); err != nil {
 		t.Fatal(err)
 	}
-	// Make sure Steve actually took it
-	if len(game.Board.DiscardPiles[SUIT_RED]) != 0 {
-		t.Fatal("The red discard pile isn't empty after Steve drew from it")
-	}
-	if len(game.Board.PlayerHands[1]) != 8 {
-		t.Fatal("Steve's hand isn't 8 after taking a red card")
-	}
-	takenCard := game.Board.PlayerHands[1][7].(card.SuitRankCard)
-	if takenCard.Suit != SUIT_RED || takenCard.Rank != 5 {
-		t.Fatal("The card Steve took into his hand wasn't red 5")
-	}
-
-	// MICK SECOND TURN
-	// Play or discard
-
-	// Mick will play the yellow investment card he has
-	_, err = command.CallInCommands("Mick", game, "play yx", game.Commands())
-	if err != nil {
+	if _, err := command.CallInCommands("Mick", game, "draw",
+		game.Commands()); err != nil {
 		t.Fatal(err)
 	}
-
-	// More to come!
+	Convey("Given that it is the end of a round", t, func() {
+		Convey("Mick should not be ready", func() {
+			So(game.ReadyPlayers[0], ShouldBeFalse)
+		})
+		Convey("Steve should not be ready", func() {
+			So(game.ReadyPlayers[1], ShouldBeFalse)
+		})
+		Convey("It should be both of the player's turns simultaneously", func() {
+			whose := game.WhoseTurn()
+			So(len(whose), ShouldEqual, 2)
+			So(whose, ShouldContain, "Mick")
+			So(whose, ShouldContain, "Steve")
+		})
+		Convey("When Mick says he is ready", func() {
+			game := cloneGame(game)
+			_, err := command.CallInCommands("Mick", game, "ready",
+				game.Commands())
+			Convey("It should not error", func() {
+				So(err, ShouldBeNil)
+			})
+			Convey("Mick should be ready", func() {
+				So(game.ReadyPlayers[0], ShouldBeTrue)
+			})
+			Convey("Steve should not be ready", func() {
+				So(game.ReadyPlayers[1], ShouldBeFalse)
+			})
+			Convey("Round should still be 0", func() {
+				So(game.Round, ShouldEqual, 0)
+			})
+			Convey("It should still be the end of the round", func() {
+				So(game.IsEndOfRound(), ShouldBeTrue)
+			})
+		})
+		Convey("When Steve says he is ready", func() {
+			game := cloneGame(game)
+			_, err := command.CallInCommands("Steve", game, "ready",
+				game.Commands())
+			Convey("It should not error", func() {
+				So(err, ShouldBeNil)
+			})
+			Convey("Steve should be ready", func() {
+				So(game.ReadyPlayers[1], ShouldBeTrue)
+			})
+			Convey("Mick should not be ready", func() {
+				So(game.ReadyPlayers[0], ShouldBeFalse)
+			})
+			Convey("Round should still be 0", func() {
+				So(game.Round, ShouldEqual, 0)
+			})
+			Convey("It should still be the end of the round", func() {
+				So(game.IsEndOfRound(), ShouldBeTrue)
+			})
+			Convey("When Mick also says he is ready", func() {
+				game := cloneGame(game)
+				_, err := command.CallInCommands("Mick", game, "ready",
+					game.Commands())
+				Convey("It should not error", func() {
+					So(err, ShouldBeNil)
+				})
+				Convey("It should not be the end of the round", func() {
+					So(game.IsEndOfRound(), ShouldBeFalse)
+				})
+				Convey("Round should have become 1", func() {
+					So(game.Round, ShouldEqual, 1)
+				})
+				Convey("It should no longer be the end of the round", func() {
+					So(game.IsEndOfRound(), ShouldBeFalse)
+				})
+			})
+		})
+	})
 }
 
 func TestExpeditionScores(t *testing.T) {
