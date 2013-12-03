@@ -29,10 +29,7 @@ type Game struct {
 	// Round scores are a multidimensional array, by two players then by three
 	// rounds
 	RoundScores [2][3]int
-	// Tracks which players are ready for the next round before starting the
-	// next round, to give players a chance to see the board after a round
-	ReadyPlayers [2]bool
-	Log          log.Log
+	Log         log.Log
 }
 
 // The board consists of two players hands, a discard hand, and a draw pile
@@ -173,7 +170,6 @@ func (g *Game) Commands() []command.Command {
 		PlayCommand{},
 		DrawCommand{},
 		TakeCommand{},
-		ReadyCommand{},
 	}
 }
 
@@ -219,11 +215,6 @@ func (g *Game) PlayerList() []string {
 	return g.Players
 }
 
-// Check that it's the end of the round, that there are no more draw cards left
-func (g *Game) IsEndOfRound() bool {
-	return false
-}
-
 // Check that it's the end of the third round
 func (g *Game) IsFinished() bool {
 	return false
@@ -233,8 +224,7 @@ func (g *Game) Winners() []string {
 	return []string{}
 }
 
-// Whose turn it is right now, if it's the end of the round this should return
-// all players that haven't marked themselves as ready
+// Whose turn it is right now
 func (g *Game) WhoseTurn() []string {
 	return []string{g.Players[g.CurrentlyMoving]}
 }
@@ -337,7 +327,6 @@ func (g *Game) TakeCard(player int, suit int) error {
 	//if removeCount==0{
 	//	return errors.New ("did not have card in hand")
 	//}
-	g.PlayerReady(player)
 	if g.CurrentlyMoving == 1 {
 		g.CurrentlyMoving = 0
 	} else {
@@ -357,7 +346,6 @@ func (g *Game) DrawCard(player int) error {
 	drawnCard, g.Board.DrawPile = g.Board.DrawPile.Pop()
 	// Then put it into the player's hand
 	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard)
-	g.PlayerReady(player)
 	if g.CurrentlyMoving == 1 {
 		g.CurrentlyMoving = 0
 	} else {
@@ -380,15 +368,6 @@ func (g *Game) DiscardCard(player int, c card.SuitRankCard) error {
 	g.TurnPhase = 1
 
 	//fmt.Println("I get to here")
-	return nil
-}
-
-// Mark a player as ready for the next round, gives them a chance to see the
-// board and scores after the round has ended.  Check that it is actually the
-// end of the round and that it isn't the last round already, returning an error
-// if either of those fail.  If the player is the last person to be ready, call
-// InitRound to start a new round.
-func (g *Game) PlayerReady(player int) error {
 	return nil
 }
 

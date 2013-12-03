@@ -66,9 +66,6 @@ func TestStartOfGame(t *testing.T) {
 	game := mockGame(t)
 
 	Convey("Given the game has just started", t, func() {
-		Convey("It should not be the end of the round", func() {
-			So(game.IsEndOfRound(), ShouldBeFalse)
-		})
 		Convey("It should not be the end of the game", func() {
 			So(game.IsFinished(), ShouldBeFalse)
 		})
@@ -310,104 +307,34 @@ func TestEndOfRound(t *testing.T) {
 	Convey("Given there is one card left in the draw pile", t, func() {
 		game := cloneGame(game)
 		game.Board.DrawPile, _ = game.Board.DrawPile.PopN(1)
-		Convey("It should not be the end of the round", func() {
-			So(game.IsEndOfRound(), ShouldBeFalse)
-		})
-		Convey("When Mick draws a card", func() {
-			game := cloneGame(game)
-			_, err := command.CallInCommands("Mick", game, "draw",
-				game.Commands())
-			Convey("It should not error", func() {
-				So(err, ShouldBeNil)
-			})
-			Convey("It should be the end of the round", func() {
-				So(game.IsEndOfRound(), ShouldBeTrue)
-			})
-			Convey("It should not be the end of the game", func() {
-				So(game.IsFinished(), ShouldBeFalse)
-			})
-		})
-	})
-}
-
-func TestReadyForNextRound(t *testing.T) {
-	game := mockGame(t)
-	game.Board.DrawPile, _ = game.Board.DrawPile.PopN(1)
-	if _, err := command.CallInCommands("Mick", game, "discard y3",
-		game.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", game, "draw",
-		game.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	Convey("Given that it is the end of a round", t, func() {
-		Convey("Mick should not be ready", func() {
-			So(game.ReadyPlayers[0], ShouldBeFalse)
-		})
-		Convey("Steve should not be ready", func() {
-			So(game.ReadyPlayers[1], ShouldBeFalse)
-		})
-		Convey("It should be both of the player's turns simultaneously", func() {
-			whose := game.WhoseTurn()
-			So(len(whose), ShouldEqual, 2)
-			So(whose, ShouldContain, "Mick")
-			So(whose, ShouldContain, "Steve")
-		})
-		Convey("When Mick says he is ready", func() {
-			game := cloneGame(game)
-			_, err := command.CallInCommands("Mick", game, "ready",
-				game.Commands())
-			Convey("It should not error", func() {
-				So(err, ShouldBeNil)
-			})
-			Convey("Mick should be ready", func() {
-				So(game.ReadyPlayers[0], ShouldBeTrue)
-			})
-			Convey("Steve should not be ready", func() {
-				So(game.ReadyPlayers[1], ShouldBeFalse)
-			})
-			Convey("Round should still be 0", func() {
-				So(game.Round, ShouldEqual, 0)
-			})
-			Convey("It should still be the end of the round", func() {
-				So(game.IsEndOfRound(), ShouldBeTrue)
-			})
-		})
-		Convey("When Steve says he is ready", func() {
-			game := cloneGame(game)
-			_, err := command.CallInCommands("Steve", game, "ready",
-				game.Commands())
-			Convey("It should not error", func() {
-				So(err, ShouldBeNil)
-			})
-			Convey("Steve should be ready", func() {
-				So(game.ReadyPlayers[1], ShouldBeTrue)
-			})
-			Convey("Mick should not be ready", func() {
-				So(game.ReadyPlayers[0], ShouldBeFalse)
-			})
-			Convey("Round should still be 0", func() {
-				So(game.Round, ShouldEqual, 0)
-			})
-			Convey("It should still be the end of the round", func() {
-				So(game.IsEndOfRound(), ShouldBeTrue)
-			})
-			Convey("When Mick also says he is ready", func() {
+		Convey("Given it is round 0", func() {
+			Convey("When Mick draws a card", func() {
 				game := cloneGame(game)
-				_, err := command.CallInCommands("Mick", game, "ready",
+				_, err := command.CallInCommands("Mick", game, "draw",
 					game.Commands())
 				Convey("It should not error", func() {
 					So(err, ShouldBeNil)
 				})
-				Convey("It should not be the end of the round", func() {
-					So(game.IsEndOfRound(), ShouldBeFalse)
-				})
-				Convey("Round should have become 1", func() {
+				Convey("It should be round 1", func() {
 					So(game.Round, ShouldEqual, 1)
 				})
-				Convey("It should no longer be the end of the round", func() {
-					So(game.IsEndOfRound(), ShouldBeFalse)
+				Convey("It should not be the end of the game", func() {
+					So(game.IsFinished(), ShouldBeFalse)
+				})
+			})
+		})
+		Convey("Given it is round 2", func() {
+			game := cloneGame(game)
+			game.Round = 2
+			Convey("When Mick draws a card", func() {
+				game := cloneGame(game)
+				_, err := command.CallInCommands("Mick", game, "draw",
+					game.Commands())
+				Convey("It should not error", func() {
+					So(err, ShouldBeNil)
+				})
+				Convey("It should be the end of the game", func() {
+					So(game.IsFinished(), ShouldBeTrue)
 				})
 			})
 		})
