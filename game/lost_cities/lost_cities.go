@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	// "fmt"
+	//"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
@@ -217,6 +217,9 @@ func (g *Game) PlayerList() []string {
 
 // Check that it's the end of the third round
 func (g *Game) IsFinished() bool {
+	if g.Round==3{
+			return true
+		}
 	return false
 }
 
@@ -284,6 +287,14 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
 	//fmt.Println(" \n")
 
+//len(g.Board.PlayerExpeditions[player][c.Suit])-1
+if len(g.Board.PlayerExpeditions[player][c.Suit])>0{
+	if c.Rank < g.Board.PlayerExpeditions[player][c.Suit][len(g.Board.PlayerExpeditions[player][c.Suit])-1].(card.SuitRankCard).Rank {
+		return errors.New("too low!")
+	}
+}
+	
+
 	g.Board.PlayerExpeditions[player][c.Suit] = g.Board.PlayerExpeditions[player][c.Suit].Push(c)
 
 	g.Board.PlayerHands[player], removeCount = g.Board.PlayerHands[player].Remove(c, 1)
@@ -333,6 +344,7 @@ func (g *Game) TakeCard(player int, suit int) error {
 		g.CurrentlyMoving = 1
 	}
 	g.TurnPhase = 0
+
 	return nil
 
 }
@@ -352,6 +364,10 @@ func (g *Game) DrawCard(player int) error {
 		g.CurrentlyMoving = 1
 	}
 	g.TurnPhase = 0
+	if len(g.Board.DrawPile) == 0 {
+		g.Round = g.Round+1
+		
+	}
 	return nil
 }
 
