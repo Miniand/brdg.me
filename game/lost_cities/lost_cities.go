@@ -201,14 +201,48 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	return "", nil
+	output := bytes.NewBufferString("")
+	output.WriteString("player:\n")
+	output.WriteString(player+"\n")
+	val, err := g.PlayerFromString(player)
+	if err != nil {
+		return"",err
+	}
+	output.WriteString("your hand:\n")
+	for count:=0;count<len(g.Board.PlayerHands[val]);count++{
+
+		output.WriteString(g.RenderCard(g.Board.PlayerHands[val][count].(card.SuitRankCard))+"\n")
+
+		
+	}
+	output.WriteString("your expeditions:\n")
+	for suits:=0;suits<5;suits++{
+		for count:=0;count<len(g.Board.PlayerExpeditions[val][suits]);count++{
+			output.WriteString(g.RenderCard(g.Board.PlayerExpeditions[val][suits][count].(card.SuitRankCard))+"\n")
+
+		}	
+	}
+opp:=0
+if val==0{
+	opp=1
+}
+output.WriteString("the other dude's expeditions:\n")
+	for suits:=0;suits<5;suits++{
+		for count:=0;count<len(g.Board.PlayerExpeditions[opp][suits]);count++{
+			output.WriteString(g.RenderCard(g.Board.PlayerExpeditions[opp][suits][count].(card.SuitRankCard))+"\n")
+
+		}	
+	}
+	return output.String(), nil
+	
 }
 
 func (g *Game) RenderCard(card card.SuitRankCard) string {
 	// @todo Actually do output from card suit and value.  Maybe make sure
 	// there's a trailing space if the card value isn't 10, to make sure
 	// everything lines up nicely.
-	return `{{c "` + CardColours[card.Suit] + `"}}R5{{_c}}`
+	//return `{{c "` + CardColours[card.Suit] + `"}}R5{{_c}}`
+	return  CardColours[card.Suit]+" "+strconv.Itoa(card.Rank)
 }
 
 func (g *Game) PlayerList() []string {
