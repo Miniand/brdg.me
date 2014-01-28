@@ -233,6 +233,13 @@ output.WriteString("the other dude's expeditions:\n")
 
 		}	
 	}
+	output.WriteString("the discard piles:\n")
+	for suits:=0;suits<5;suits++{
+		for count:=0;count<len(g.Board.DiscardPiles[suits]);count++{
+			output.WriteString(g.RenderCard(g.Board.DiscardPiles[suits][count].(card.SuitRankCard))+"\n")
+
+		}	
+	}
 	return output.String(), nil
 	
 }
