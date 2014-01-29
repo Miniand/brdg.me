@@ -13,9 +13,9 @@ func (d TakeCommand) Parse(input string) []string {
 }
 
 func (d TakeCommand) CanCall(player string, context interface{}) bool {
-	//g := context.(*Game)
-	//return g.Players[g.CurrentlyMoving] == player &&
-	//	g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
+	g := context.(*Game)
+	return g.Players[g.CurrentlyMoving] == player &&
+	g.TurnPhase == TURN_PHASE_DRAW && !g.IsFinished()
 	return true
 }
 
