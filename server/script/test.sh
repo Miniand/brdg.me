@@ -11,6 +11,7 @@ TEST_DIRS=(
 	"game/farkle"
 	"game/liars_dice"
 	"game/log"
+	"game/lost_cities"
 	"game/poker"
 	"game/no_thanks"
 	"game/tic_tac_toe"

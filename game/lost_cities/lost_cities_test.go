@@ -519,3 +519,15 @@ func TestExpeditionScores(t *testing.T) {
 		})
 	})
 }
+
+func TestCannotTakeCardWhenNotTurn(t *testing.T) {
+	game := mockGame(t)
+	if _, err := command.CallInCommands("Mick", game, "discard y3",
+		game.Commands()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := command.CallInCommands("Steve", game, "take y",
+		game.Commands()); err == nil {
+		t.Fatal("It allowed Steve to take a turn when it wasn't his turn")
+	}
+}
