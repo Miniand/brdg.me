@@ -207,10 +207,15 @@ func TestPlayCardNotInHand(t *testing.T) {
 	Convey("Given Mick does not have red 10", t, func() {
 		Convey("Given Mick tries to play red 10", func() {
 			game := cloneGame(game)
+			expLen := len(game.Board.PlayerExpeditions[0][SUIT_RED])
 			_, err := command.CallInCommands("Mick", game, "play r10",
 				game.Commands())
 			Convey("It should error", func() {
 				So(err, ShouldNotBeNil)
+			})
+			Convey("It should not add the card to the expedition", func() {
+				So(len(game.Board.PlayerExpeditions[0][SUIT_RED]), ShouldEqual,
+					expLen)
 			})
 		})
 	})
