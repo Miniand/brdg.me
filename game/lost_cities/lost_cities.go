@@ -336,7 +336,7 @@ if len(g.Board.PlayerExpeditions[player][c.Suit])>0{
 }
 	
 
-	g.Board.PlayerExpeditions[player][c.Suit] = g.Board.PlayerExpeditions[player][c.Suit].Push(c)
+	
 
 	g.Board.PlayerHands[player], removeCount = g.Board.PlayerHands[player].Remove(c, 1)
 
@@ -346,7 +346,7 @@ if len(g.Board.PlayerExpeditions[player][c.Suit])>0{
 	if removeCount == 0 {
 		return errors.New("did not have card in hand")
 	}
-
+g.Board.PlayerExpeditions[player][c.Suit] = g.Board.PlayerExpeditions[player][c.Suit].Push(c)
 	g.TurnPhase = 1
 	return nil
 }
