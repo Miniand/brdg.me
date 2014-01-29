@@ -20,7 +20,7 @@ func ParseFrom(from string) string {
 
 // Search for a BSON objectid to match to a game (length 24 hex string)
 func ParseSubject(subject string) string {
-	reg := regexp.MustCompile("\\b[a-f0-9]{24}\\b")
+	reg := regexp.MustCompile("\\b[a-f0-9]{8}-([a-f0-9]{4}-){3}.{12}\\b")
 	return reg.FindString(subject)
 }
 

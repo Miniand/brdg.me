@@ -23,8 +23,8 @@ func TestParseFrom(t *testing.T) {
 }
 
 func TestParseSubject(t *testing.T) {
-	if ParseSubject("blah blah egg 2847fbac9506adcd4587edbc art moo") !=
-		"2847fbac9506adcd4587edbc" {
+	if ParseSubject("blah blah egg 52a7c891-e74d-463e-a47e-5c712a3dd439 art moo") !=
+		"52a7c891-e74d-463e-a47e-5c712a3dd439" {
 		t.Error("Unable to find objectid in subject")
 	}
 }
