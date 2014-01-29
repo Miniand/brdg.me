@@ -95,9 +95,9 @@ func (g *Game) GameLog() *log.Log {
 // Shuffle cards and deal hands, set the start player, set the turn phase etc
 func (g *Game) InitRound() error {
 	g.Board.DrawPile = g.AllCards().Shuffle()
-	g.Board.PlayerHands[0], g.Board.DrawPile = g.Board.DrawPile.PopN(5)
+	g.Board.PlayerHands[0], g.Board.DrawPile = g.Board.DrawPile.PopN(8)
 	g.Board.PlayerHands[0] = g.Board.PlayerHands[0].Sort()
-	g.Board.PlayerHands[1], g.Board.DrawPile = g.Board.DrawPile.PopN(5)
+	g.Board.PlayerHands[1], g.Board.DrawPile = g.Board.DrawPile.PopN(8)
 	g.Board.PlayerHands[1] = g.Board.PlayerHands[1].Sort()
 	return nil
 }
