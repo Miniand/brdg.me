@@ -248,7 +248,7 @@ func (g *Game) RenderCard(card card.SuitRankCard) string {
 	// @todo Actually do output from card suit and value.  Maybe make sure
 	// there's a trailing space if the card value isn't 10, to make sure
 	// everything lines up nicely.
-	//return `{{c "` + CardColours[card.Suit] + `"}}R5{{_c}}`
+	return `{{c "` + CardColours[card.Suit] + `"}}`+strconv.Itoa(card.Rank)+`{{_c}}`
 	return  CardColours[card.Suit]+" "+strconv.Itoa(card.Rank)
 }
 
