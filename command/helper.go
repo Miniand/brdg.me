@@ -26,7 +26,7 @@ func ParseNamedCommandRangeArgs(name string, minArgs int, maxArgs int,
 		}
 		repeater = fmt.Sprintf("{%s,%s}", repeaterMin, repeaterMax)
 	}
-	return regexp.MustCompile(fmt.Sprintf(`(?im)[^\S\r\n]*%s(`+ARGUMENT_REGEXP+
+	return regexp.MustCompile(fmt.Sprintf(`(?im)^[^\S\r\n]*%s(`+ARGUMENT_REGEXP+
 		`%s)[^\S\r\n]*$`, name, repeater)).FindStringSubmatch(input)
 }
 
@@ -42,7 +42,7 @@ func ParseNamedCommand(name string, input string) []string {
 
 // Parses using provided regexp, replacing spaces with non-newline space matchers
 func ParseRegexp(reg, input string) []string {
-	return regexp.MustCompile(fmt.Sprintf(`(?im)[^\S\r\n]*%s[^\S\r\n]*$`,
+	return regexp.MustCompile(fmt.Sprintf(`(?im)^[^\S\r\n]*%s[^\S\r\n]*$`,
 		regexp.MustCompile(`\bARG\b`).ReplaceAllString(
 			regexp.MustCompile(`\s+?`).ReplaceAllString(reg, `[^\S\r\n]+`),
 			`\b[^\s]+\b`))).

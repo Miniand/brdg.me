@@ -32,7 +32,7 @@ func TestParseNamedCommandRangeArgs(t *testing.T) {
 }
 
 func TestParseRegexp(t *testing.T) {
-	result := ParseRegexp(`buy (\d+) (ARG)`, " buy   	5  oranges   ")
+	result := ParseRegexp(`buy (\d+) (ARG)`, " \n buy   	5  oranges   ")
 	if result == nil {
 		t.Fatal("Could not match to input")
 	}
@@ -44,5 +44,9 @@ func TestParseRegexp(t *testing.T) {
 	}
 	if result[2] != "oranges" {
 		t.Fatal("Expected arg 2 to be oranges, got", result[2])
+	}
+	result = ParseRegexp(`buy (\d+) (ARG)`, " \n > * buy    5    oranges")
+	if result != nil {
+		t.Fatal("Still matched to input even though there were symbols in front")
 	}
 }
