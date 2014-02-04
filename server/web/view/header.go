@@ -153,6 +153,54 @@ header .header-end {
 }
 </style>
 <title>brdg.me - {{.}}</title>
+</head>
+<script src="https://login.persona.org/include.js"></script>
+<script>
+var loggedInUser = "{{loggedInUser}}";
+if (loggedInUser === "") {
+	loggedInUser = null;
+}
+navigator.id.watch({
+	loggedInUser: loggedInUser,
+	onlogin: function(assertion) {
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/session/sign-in", true);
+
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == 4) {
+				if (xhr.status == 200) {
+					// reload page to reflect new login state
+					window.location.reload();
+				} else {
+					navigator.id.logout();
+				}
+			}
+		};
+
+		var fd = new FormData();
+		fd.append("assertion", assertion)
+
+		xhr.send(fd);
+	},
+	onlogout: function() {
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/session/sign-out", true);
+
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == 4) {
+				if (xhr.status == 200) {
+					// reload page to reflect new login state
+					window.location.reload();
+				} else {
+					navigator.id.logout();
+				}
+			}
+		};
+
+		xhr.send();
+	}
+});
+</script>
 <body>
 <header>
 	<div class="logo"><a href="/">{{template "title"}}</a></div>
@@ -181,7 +229,11 @@ header .header-end {
 		</a>
 	</div>
 	<div class="account">
-		<a href="/sign-in">Sign in / register</a>
+		{{if loggedInUser}}
+		<a href="javascript:navigator.id.logout()">Sign out</a>
+		{{else}}
+		<a href="javascript:navigator.id.request()">Sign in</a>
+		{{end}}
 	</div>
 	<div class="header-end"></div>
 </header>`

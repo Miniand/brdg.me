@@ -6,5 +6,6 @@ import (
 )
 
 func Root(w http.ResponseWriter, r *http.Request) {
+	view.LoggedInUser = GetEmail(r)
 	view.Root(w)
 }

@@ -6,6 +6,17 @@ import (
 
 var tmpl *template.Template
 
+var funcs = template.FuncMap{
+	"loggedInUser": func() interface{} {
+		if LoggedInUser == "" {
+			return nil
+		}
+		return LoggedInUser
+	},
+}
+
+var LoggedInUser = ""
+
 func init() {
 	tmpl = template.New("")
 	// Layout stuff
@@ -17,10 +28,7 @@ func init() {
 func Parse(name string, text string) *template.Template {
 	t := tmpl.Lookup(name)
 	if t == nil {
-		var err error
-		if t, err = tmpl.New(name).Parse(text); err != nil {
-			panic(err.Error())
-		}
+		t = template.Must(tmpl.New(name).Funcs(funcs).Parse(text))
 	}
 	return t
 }
