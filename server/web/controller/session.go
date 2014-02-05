@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/Miniand/brdg.me/server/web/config"
 	"github.com/gorilla/securecookie"
 	"github.com/sauerbraten/persona"
 	"net/http"
@@ -16,7 +17,7 @@ var secCookie *securecookie.SecureCookie = securecookie.New(
 func SessionSignIn(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 
-	response, err := persona.VerifyAssertion("http://localhost:9998/",
+	response, err := persona.VerifyAssertion(config.Get(config.SERVER_ADDRESS),
 		r.FormValue("assertion"))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
