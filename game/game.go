@@ -7,6 +7,7 @@ import (
 	"github.com/Miniand/brdg.me/game/liars_dice"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/game/lost_cities"
+	"github.com/Miniand/brdg.me/game/modern_art"
 	"github.com/Miniand/brdg.me/game/no_thanks"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
 	"github.com/Miniand/brdg.me/game/tic_tac_toe"
@@ -43,6 +44,7 @@ func gameList() []Playable {
 		&farkle.Game{},
 		&liars_dice.Game{},
 		&lost_cities.Game{},
+		&modern_art.Game{},
 		&no_thanks.Game{},
 		&texas_holdem.Game{},
 		&tic_tac_toe.Game{},
