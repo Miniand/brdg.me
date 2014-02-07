@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/model"
 	"regexp"
@@ -169,6 +170,14 @@ func CommunicateGameTo(id string, g game.Playable, to []string,
 			commErrs = append(commErrs, err.Error())
 			continue
 		}
+		// Add log to header if needed
+		messages := g.GameLog().NewMessagesFor(p)
+		if len(messages) > 0 {
+			pHeader += "\n\n{{b}}Since last time{{_b}}:\n" +
+				log.RenderMessages(messages)
+		}
+		g.GameLog().MarkReadFor(p)
+		// Add usages to header if needed
 		commands := append(g.Commands(), Commands(id)...)
 		usages := command.CommandUsages(p, g,
 			command.AvailableCommands(p, g, commands))
