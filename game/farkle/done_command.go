@@ -32,7 +32,7 @@ func (dc DoneCommand) Call(player string, context interface{},
 	if g.IsFinished() {
 		return "", errors.New("The game is already finished")
 	}
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s took %d points, now on %d",
 		render.PlayerName(g.Player, g.Players[g.Player]),
 		g.TurnScore, g.Scores[g.Player]+g.TurnScore)))

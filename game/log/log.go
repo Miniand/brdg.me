@@ -11,12 +11,19 @@ type Log struct {
 	LastReadTimeFor map[string]int64
 }
 
-func (l Log) SortedMessages() []Message {
+func New() *Log {
+	return &Log{
+		Messages:        []Message{},
+		LastReadTimeFor: map[string]int64{},
+	}
+}
+
+func (l *Log) SortedMessages() []Message {
 	sort.Sort(l)
 	return l.Messages
 }
 
-func (l Log) PublicMessages() []Message {
+func (l *Log) PublicMessages() []Message {
 	messages := []Message{}
 	for _, m := range l.SortedMessages() {
 		if !m.Private {
@@ -26,7 +33,7 @@ func (l Log) PublicMessages() []Message {
 	return messages
 }
 
-func (l Log) MessagesFor(player string) []Message {
+func (l *Log) MessagesFor(player string) []Message {
 	messages := []Message{}
 	for _, m := range l.SortedMessages() {
 		if m.CanRead(player) {
@@ -36,7 +43,7 @@ func (l Log) MessagesFor(player string) []Message {
 	return messages
 }
 
-func (l Log) NewMessagesFor(player string) []Message {
+func (l *Log) NewMessagesFor(player string) []Message {
 	messages := []Message{}
 	if l.LastReadTimeFor == nil {
 		l.LastReadTimeFor = map[string]int64{}
@@ -49,30 +56,25 @@ func (l Log) NewMessagesFor(player string) []Message {
 	return messages
 }
 
-func (l Log) MarkReadFor(player string) Log {
+func (l *Log) MarkReadFor(player string) {
 	if l.LastReadTimeFor == nil {
 		l.LastReadTimeFor = map[string]int64{}
 	}
 	l.LastReadTimeFor[player] = time.Now().UnixNano()
-	return l
 }
 
-func (l Log) Len() int {
+func (l *Log) Len() int {
 	return len(l.Messages)
 }
 
-func (l Log) Less(i, j int) bool {
+func (l *Log) Less(i, j int) bool {
 	return l.Messages[i].Time < l.Messages[j].Time
 }
 
-func (l Log) Swap(i, j int) {
+func (l *Log) Swap(i, j int) {
 	l.Messages[i], l.Messages[j] = l.Messages[j], l.Messages[i]
 }
 
-func (l Log) Add(message Message) Log {
-	newM := make([]Message, len(l.Messages)+1)
-	copy(newM, l.Messages)
-	newM[len(l.Messages)] = message
-	l.Messages = newM
-	return l
+func (l *Log) Add(message Message) {
+	l.Messages = append(l.Messages, message)
 }

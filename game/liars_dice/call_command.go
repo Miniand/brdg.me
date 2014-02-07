@@ -71,7 +71,7 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 	if err != nil {
 		return "", err
 	}
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`%s called the bid of %d %s by %s
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`%s called the bid of %d %s by %s
 Everyone revealed the following dice:
 %s
 %s`, callPlayerName, g.BidQuantity, die.Render(g.BidValue), bidPlayerName,

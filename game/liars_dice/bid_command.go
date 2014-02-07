@@ -48,7 +48,7 @@ func (c BidCommand) Call(player string, context interface{}, args []string) (
 	g.BidQuantity = quantity
 	g.BidValue = value
 	g.BidPlayer = g.CurrentPlayer
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s %s %s",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s %s %s",
 		render.PlayerNameInPlayers(player, g.Players), verb,
 		RenderBid(g.BidQuantity, g.BidValue))))
 	g.CurrentPlayer = g.NextActivePlayer(g.CurrentPlayer)

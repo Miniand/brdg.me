@@ -58,7 +58,7 @@ func (tc TakeCommand) Call(player string, context interface{},
 	g.TurnScore += score
 	g.TakenThisRoll = true
 	g.RemainingDice = remaining
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s took %s for %d points",
 		render.PlayerName(g.Player, g.Players[g.Player]),
 		RenderDice(take), score)))

@@ -28,7 +28,7 @@ type Game struct {
 	PlayerHands              []card.Deck
 	CommunityCards           card.Deck
 	Deck                     card.Deck
-	Log                      log.Log
+	Log                      *log.Log
 	PlayerMoney              []int
 	Bets                     []int
 	FoldedPlayers            []bool
@@ -55,7 +55,7 @@ func RenderCashFixedWidth(amount int) string {
 }
 
 func (g *Game) GameLog() *log.Log {
-	return &g.Log
+	return g.Log
 }
 
 func (g *Game) Start(players []string) error {
@@ -63,6 +63,7 @@ func (g *Game) Start(players []string) error {
 		return errors.New("Texas hold 'em is limited to 2 - 9 players")
 	}
 	g.Players = players
+	g.Log = log.New()
 	g.PlayerHands = make([]card.Deck, len(g.Players))
 	g.PlayerMoney = make([]int, len(g.Players))
 	for i, _ := range g.Players {
@@ -92,14 +93,14 @@ func (g *Game) NewHand() {
 	if g.HandsSinceBlindsIncrease >= HANDS_PER_BLINDS_INCREASE {
 		g.HandsSinceBlindsIncrease = 0
 		g.MinimumBet *= 2
-		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"Minimum bet increased to %s", RenderCash(g.MinimumBet))))
 	} else {
 		g.HandsSinceBlindsIncrease += 1
 	}
 	// Set a new active dealer
 	g.CurrentDealer = g.NextActivePlayerNumFrom(g.CurrentDealer)
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s is the new dealer",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s is the new dealer",
 		g.RenderPlayerName(g.CurrentDealer))))
 	// Blinds
 	if numActivePlayers == 2 {
@@ -110,12 +111,12 @@ func (g *Game) NewHand() {
 		smallBlindPlayer = g.NextActivePlayerNumFrom(g.CurrentDealer)
 	}
 	amount := g.BetUpTo(smallBlindPlayer, g.MinimumBet/2)
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s posted a small blind of %s", g.RenderPlayerName(smallBlindPlayer),
 		RenderCash(amount))))
 	bigBlindPlayer = g.NextActivePlayerNumFrom(smallBlindPlayer)
 	amount = g.BetUpTo(bigBlindPlayer, g.MinimumBet)
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s posted a big blind of %s", g.RenderPlayerName(bigBlindPlayer),
 		RenderCash(amount))))
 	// Shuffle and deal two cards to each player
@@ -249,7 +250,7 @@ func (g *Game) Check(playerNum int) error {
 	if g.CurrentBet() > g.Bets[playerNum] {
 		return errors.New("Cannot check because you are below the bet")
 	}
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s checked",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s checked",
 		g.RenderPlayerName(playerNum))))
 	g.NextPlayer()
 	return nil
@@ -259,13 +260,13 @@ func (g *Game) Fold(playerNum int) error {
 	if g.IsFinished() || g.CurrentPlayer != playerNum {
 		return errors.New("Not your turn")
 	}
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s folded",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s folded",
 		g.RenderPlayerName(playerNum))))
 	g.FoldedPlayers[playerNum] = true
 	if len(g.ActivePlayers()) == 1 {
 		// Everyone folded
 		for activePlayerNum, _ := range g.ActivePlayers() {
-			g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 				"%s took %s", g.RenderPlayerName(activePlayerNum),
 				RenderCash(g.Pot()))))
 			g.PlayerMoney[activePlayerNum] += g.Pot()
@@ -294,7 +295,7 @@ func (g *Game) Call(playerNum int) error {
 	if err != nil {
 		return err
 	}
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s called",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s called",
 		g.RenderPlayerName(playerNum))))
 	g.NextPlayer()
 	return nil
@@ -314,7 +315,7 @@ func (g *Game) Raise(playerNum int, amount int) error {
 	if err != nil {
 		return err
 	}
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s raised by %s",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s raised by %s",
 		g.RenderPlayerName(playerNum), RenderCash(amount))))
 	g.NextPlayer()
 	return nil
@@ -329,7 +330,7 @@ func (g *Game) AllIn(playerNum int) error {
 	if err != nil {
 		return err
 	}
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s went all in with %s",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s went all in with %s",
 		g.RenderPlayerName(playerNum), RenderCash(amount))))
 	g.NextPlayer()
 	return nil
@@ -389,21 +390,21 @@ func (g *Game) NextPhase() {
 
 func (g *Game) Flop() {
 	g.NewCommunityCards(3)
-	g.Log = g.Log.Add(log.NewPublicMessage("Flop cards are {{b}}" +
+	g.Log.Add(log.NewPublicMessage("Flop cards are {{b}}" +
 		strings.Join(RenderCards(g.CommunityCards), " ") + "{{_b}}"))
 	g.NewBettingRound()
 }
 
 func (g *Game) Turn() {
 	g.NewCommunityCards(1)
-	g.Log = g.Log.Add(log.NewPublicMessage("Turn card is {{b}}" +
+	g.Log.Add(log.NewPublicMessage("Turn card is {{b}}" +
 		g.CommunityCards[3].(card.SuitRankCard).RenderStandard52() + "{{_b}}"))
 	g.NewBettingRound()
 }
 
 func (g *Game) River() {
 	g.NewCommunityCards(1)
-	g.Log = g.Log.Add(log.NewPublicMessage("River card is {{b}}" +
+	g.Log.Add(log.NewPublicMessage("River card is {{b}}" +
 		g.CommunityCards[4].(card.SuitRankCard).RenderStandard52() + "{{_b}}"))
 	g.NewBettingRound()
 }
@@ -467,7 +468,7 @@ func (g *Game) Showdown() {
 			}
 		}
 	}
-	g.Log = g.Log.Add(log.NewPublicMessage(buf.String()))
+	g.Log.Add(log.NewPublicMessage(buf.String()))
 	if !g.IsFinished() {
 		g.NewHand()
 	}

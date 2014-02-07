@@ -24,7 +24,7 @@ type Game struct {
 	TurnScore     int
 	RemainingDice []int
 	TakenThisRoll bool
-	Log           log.Log
+	Log           *log.Log
 }
 
 func (g *Game) Commands() []command.Command {
@@ -44,7 +44,7 @@ func (g *Game) Identifier() string {
 }
 
 func (g *Game) GameLog() *log.Log {
-	return &g.Log
+	return g.Log
 }
 
 func (g *Game) Encode() ([]byte, error) {
@@ -108,6 +108,7 @@ func (g *Game) Start(players []string) error {
 	if len(players) < 2 {
 		return errors.New("Farkle requires at least two players")
 	}
+	g.Log = log.New()
 	g.Scores = map[int]int{}
 	g.Players = players
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -118,7 +119,7 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) StartTurn() {
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("It is now %s's turn",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("It is now %s's turn",
 		render.PlayerName(g.Player, g.Players[g.Player]))))
 	g.TurnScore = 0
 	g.TakenThisRoll = false
@@ -177,12 +178,12 @@ func (g *Game) Roll(n int) {
 		g.RemainingDice[i] = r.Int()%6 + 1
 	}
 	sort.IntSlice(g.RemainingDice).Sort()
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s rolled %s",
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s rolled %s",
 		render.PlayerName(g.Player, g.Players[g.Player]),
 		RenderDice(g.RemainingDice))))
 	if len(AvailableScores(g.RemainingDice)) == 0 {
 		// No dice!
-		g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"%s rolled no scoring dice and lost %d points!",
 			render.PlayerName(g.Player, g.Players[g.Player]),
 			g.TurnScore)))
