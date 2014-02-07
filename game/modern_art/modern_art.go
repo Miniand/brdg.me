@@ -10,12 +10,18 @@ import (
 )
 
 const (
-	INITIAL_MONEY   = 100
+	INITIAL_MONEY = 100
+
+	STATE_PLAY_CARD = iota
+	STATE_ADD_DOUBLE
+	STATE_AUCTION
+
 	SUIT_LITE_METAL = iota
 	SUIT_YOKO
 	SUIT_CHRISTINE_P
 	SUIT_KARL_GLITTER
 	SUIT_KRYPTO
+
 	RANK_OPEN = iota
 	RANK_FIXED_PRICE
 	RANK_SEALED
@@ -54,10 +60,18 @@ var suits = []int{
 
 var suitNames = map[int]string{
 	SUIT_LITE_METAL:   "Lite Metal",
-	SUIT_YOKO:         "Lite Metal",
-	SUIT_CHRISTINE_P:  "Lite Metal",
-	SUIT_KARL_GLITTER: "Lite Metal",
-	SUIT_KRYPTO:       "Lite Metal",
+	SUIT_YOKO:         "Yoko",
+	SUIT_CHRISTINE_P:  "Christine P",
+	SUIT_KARL_GLITTER: "Karl Glitter",
+	SUIT_KRYPTO:       "Krypto",
+}
+
+var suitCodes = map[int]string{
+	SUIT_LITE_METAL:   "LM",
+	SUIT_YOKO:         "YO",
+	SUIT_CHRISTINE_P:  "CP",
+	SUIT_KARL_GLITTER: "KG",
+	SUIT_KRYPTO:       "KR",
 }
 
 var ranks = []int{
@@ -74,6 +88,14 @@ var rankNames = map[int]string{
 	RANK_SEALED:      "Sealed",
 	RANK_DOUBLE:      "Double",
 	RANK_ONCE_AROUND: "Once Around",
+}
+
+var rankCodes = map[int]string{
+	RANK_OPEN:        "OP",
+	RANK_FIXED_PRICE: "FP",
+	RANK_SEALED:      "SL",
+	RANK_DOUBLE:      "DB",
+	RANK_ONCE_AROUND: "OA",
 }
 
 var cardDistribution = map[int]map[int]int{
@@ -115,16 +137,22 @@ var cardDistribution = map[int]map[int]int{
 }
 
 type Game struct {
-	Players     []string
-	PlayerMoney map[int]int
-	PlayerHands map[int]card.Deck
-	Round       int
-	Deck        card.Deck
-	Log         *log.Log
+	Players       []string
+	PlayerMoney   map[int]int
+	PlayerHands   map[int]card.Deck
+	State         int
+	Round         int
+	Deck          card.Deck
+	Log           *log.Log
+	CurrentPlayer int
+	ValueBoard    map[int]map[int]int
+	Finished      bool
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		PlayCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -182,8 +210,17 @@ func (g *Game) StartRound() {
 	}
 	for i, _ := range g.Players {
 		cards, remaining := g.Deck.PopN(numCards)
-		g.PlayerHands[i].PushMany(cards)
+		g.PlayerHands[i] = g.PlayerHands[i].PushMany(cards)
 		g.Deck = remaining
+	}
+}
+
+func (g *Game) EndRound() {
+	if g.Round == 3 {
+		g.Finished = true
+	} else {
+		g.Round += 1
+		g.StartRound()
 	}
 }
 
@@ -192,19 +229,33 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.Finished
 }
 
 func (g *Game) Winners() []string {
+	if g.IsFinished() {
+		return []string{}
+	}
 	return []string{}
 }
 
 func (g *Game) WhoseTurn() []string {
+	if g.IsFinished() {
+		return []string{}
+	}
 	return []string{}
 }
 
 func (g *Game) GameLog() *log.Log {
 	return g.Log
+}
+
+func (g *Game) ParseCardString(s string) (card.SuitRankCard, error) {
+	return card.SuitRankCard{}, nil
+}
+
+func (g *Game) PlayCard(player, cardNum int) error {
+	return nil
 }
 
 func Deck() card.Deck {

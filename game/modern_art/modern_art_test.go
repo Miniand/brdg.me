@@ -82,7 +82,22 @@ func TestDeck(t *testing.T) {
 }
 
 func TestStart(t *testing.T) {
-	Convey("Game should start", t, func() {
-		mockGame(t)
+	Convey("Given a new game", t, func() {
+		g := mockGame(t)
+		Convey("It should have given each player 9 cards for 4 players", func() {
+			So(len(g.PlayerHands[0]), ShouldEqual, 9)
+			So(len(g.PlayerHands[1]), ShouldEqual, 9)
+			So(len(g.PlayerHands[2]), ShouldEqual, 9)
+			So(len(g.PlayerHands[3]), ShouldEqual, 9)
+		})
+		Convey("It should have left 34 cards in the deck", func() {
+			So(len(g.Deck), ShouldEqual, 34)
+		})
+		Convey("It should have given $100 to each player", func() {
+			So(g.PlayerMoney[0], ShouldEqual, 100)
+			So(g.PlayerMoney[1], ShouldEqual, 100)
+			So(g.PlayerMoney[2], ShouldEqual, 100)
+			So(g.PlayerMoney[3], ShouldEqual, 100)
+		})
 	})
 }
