@@ -14,7 +14,7 @@ type Game struct {
 	CurrentlyMoving string
 	StartPlayer     string
 	Board           [3][3]int // 0 = empty cell, 1 = first player, 2 = second player
-	Log             log.Log
+	Log             *log.Log
 }
 
 // Create a new game for specified players.  We return a pointer to make sure it
@@ -26,13 +26,14 @@ func (g *Game) Start(players []string) error {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	startPlayer := players[r.Int()%2]
 	g.Players = players
+	g.Log = log.New()
 	g.StartPlayer = startPlayer
 	g.CurrentlyMoving = startPlayer
 	return nil
 }
 
 func (g *Game) GameLog() *log.Log {
-	return &g.Log
+	return g.Log
 }
 
 func (g *Game) Commands() []command.Command {

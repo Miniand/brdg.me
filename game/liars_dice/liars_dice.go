@@ -25,7 +25,7 @@ type Game struct {
 	BidQuantity   int
 	BidValue      int
 	BidPlayer     int
-	Log           log.Log
+	Log           *log.Log
 }
 
 func (g *Game) Commands() []command.Command {
@@ -44,7 +44,7 @@ func (g *Game) Identifier() string {
 }
 
 func (g *Game) GameLog() *log.Log {
-	return &g.Log
+	return g.Log
 }
 
 func (g *Game) Encode() ([]byte, error) {
@@ -107,6 +107,7 @@ func (g *Game) Start(players []string) error {
 		return errors.New("Liar's Dice must be between 2 and 6 players")
 	}
 	g.Players = players
+	g.Log = log.New()
 	// Set a random first player
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	g.CurrentPlayer = r.Int() % len(g.Players)

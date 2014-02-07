@@ -25,7 +25,7 @@ func (c EndCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
 	g.FinalTurn = true
-	g.Log = g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`{{b}}%s{{_b}} triggered the end of the game at the end of their turn`,
 		g.RenderPlayer(g.CurrentPlayer))))
 	return "", nil

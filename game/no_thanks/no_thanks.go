@@ -20,7 +20,7 @@ type Game struct {
 	CentreChips     int
 	RemainingCards  []int
 	CurrentlyMoving string
-	Log             log.Log
+	Log             *log.Log
 }
 
 func (g *Game) Commands() []command.Command {
@@ -39,7 +39,7 @@ func (g *Game) Identifier() string {
 }
 
 func (g *Game) GameLog() *log.Log {
-	return &g.Log
+	return g.Log
 }
 
 func (g *Game) Encode() ([]byte, error) {
@@ -129,6 +129,7 @@ func (g *Game) Start(players []string) error {
 	}
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	g.Players = players
+	g.Log = log.New()
 	g.InitCards()
 	g.InitPlayerChips()
 	g.InitPlayerHands()
