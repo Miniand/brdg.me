@@ -11,17 +11,20 @@ import (
 
 const (
 	INITIAL_MONEY = 100
-
+)
+const (
 	STATE_PLAY_CARD = iota
 	STATE_ADD_DOUBLE
 	STATE_AUCTION
-
+)
+const (
 	SUIT_LITE_METAL = iota
 	SUIT_YOKO
 	SUIT_CHRISTINE_P
 	SUIT_KARL_GLITTER
 	SUIT_KRYPTO
-
+)
+const (
 	RANK_OPEN = iota
 	RANK_FIXED_PRICE
 	RANK_SEALED
@@ -137,21 +140,27 @@ var cardDistribution = map[int]map[int]int{
 }
 
 type Game struct {
-	Players       []string
-	PlayerMoney   map[int]int
-	PlayerHands   map[int]card.Deck
-	State         int
-	Round         int
-	Deck          card.Deck
-	Log           *log.Log
-	CurrentPlayer int
-	ValueBoard    map[int]map[int]int
-	Finished      bool
+	Players             []string
+	PlayerMoney         map[int]int
+	PlayerHands         map[int]card.Deck
+	PlayerPurchases     map[int]card.Deck
+	State               int
+	Round               int
+	Deck                card.Deck
+	Log                 *log.Log
+	CurrentPlayer       int
+	ValueBoard          map[int]map[int]int
+	Finished            bool
+	CurrentlyAuctioning card.Deck
+	Bids                map[int]int
 }
 
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		PlayCommand{},
+		AddCommand{},
+		BidCommand{},
+		PassCommand{},
 	}
 }
 
@@ -197,6 +206,7 @@ func (g *Game) Start(players []string) error {
 		g.PlayerMoney[i] = INITIAL_MONEY
 		g.PlayerHands[i] = card.Deck{}
 	}
+	g.CurrentlyAuctioning = card.Deck{}
 	g.Deck = Deck().Shuffle()
 	g.Log = &log.Log{}
 	g.StartRound()
@@ -209,6 +219,7 @@ func (g *Game) StartRound() {
 		return
 	}
 	for i, _ := range g.Players {
+		g.PlayerPurchases = map[int]card.Deck{}
 		cards, remaining := g.Deck.PopN(numCards)
 		g.PlayerHands[i] = g.PlayerHands[i].PushMany(cards)
 		g.Deck = remaining
@@ -243,7 +254,36 @@ func (g *Game) WhoseTurn() []string {
 	if g.IsFinished() {
 		return []string{}
 	}
+	switch g.State {
+	case STATE_PLAY_CARD:
+		return []string{g.Players[g.CurrentPlayer]}
+	case STATE_AUCTION:
+		switch g.CurrentlyAuctioning[0].(card.SuitRankCard).Rank {
+		case RANK_OPEN:
+			players := []string{}
+			highestBidder, _ := g.HighestBidder()
+			for pNum, p := range g.Players {
+				if bid, ok := g.Bids[pNum]; pNum != highestBidder &&
+					(!ok || bid > 0) {
+					players = append(players, p)
+				}
+			}
+			return players
+		}
+	}
 	return []string{}
+}
+
+func (g *Game) HighestBidder() (player, bid int) {
+	bid = -1
+	for i := g.CurrentPlayer; i < g.CurrentPlayer+len(g.Players); i++ {
+		p := i % len(g.Players)
+		if g.Bids[p] > bid {
+			player = p
+			bid = g.Bids[p]
+		}
+	}
+	return
 }
 
 func (g *Game) GameLog() *log.Log {
@@ -254,8 +294,108 @@ func (g *Game) ParseCardString(s string) (card.SuitRankCard, error) {
 	return card.SuitRankCard{}, nil
 }
 
-func (g *Game) PlayCard(player, cardNum int) error {
+func (g *Game) NextPlayer() {
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+}
+
+func (g *Game) CanPlay(player string) bool {
+	return !g.IsFinished() && g.IsPlayersTurnStr(player) &&
+		g.State == STATE_PLAY_CARD
+}
+
+func (g *Game) CanPass(player string) bool {
+	return !g.IsFinished() && g.IsPlayersTurnStr(player) &&
+		g.State == STATE_AUCTION
+}
+
+func (g *Game) CanBid(player string) bool {
+	return !g.IsFinished() && g.IsPlayersTurnStr(player) &&
+		g.State == STATE_AUCTION
+}
+
+func (g *Game) CanAdd(player string) bool {
+	return !g.IsFinished() && g.IsPlayersTurnStr(player) &&
+		g.State == STATE_AUCTION && len(g.CurrentlyAuctioning) == 1 &&
+		g.CurrentlyAuctioning[0].(card.SuitRankCard).Rank == RANK_DOUBLE
+}
+
+func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
+	if !g.CanPlay(g.Players[player]) {
+		return errors.New("You're not able to play a card at the moment")
+	}
+	remaining, removed := g.PlayerHands[player].Remove(c, 1)
+	if removed != 1 {
+		return errors.New("You do not have that card in your hand")
+	}
+	g.PlayerHands[player] = remaining
+	g.CurrentlyAuctioning = card.Deck{c}
+	g.Bids = map[int]int{}
+	if c.Rank == RANK_DOUBLE {
+		g.State = STATE_ADD_DOUBLE
+	} else {
+		g.State = STATE_AUCTION
+	}
 	return nil
+}
+
+func (g *Game) Pass(player int) error {
+	if !g.CanPass(g.Players[player]) {
+		return errors.New("You're not able to pass at the moment")
+	}
+	switch g.CurrentlyAuctioning[len(g.CurrentlyAuctioning)-1].(card.SuitRankCard).Rank {
+	case RANK_OPEN:
+		g.Bids[player] = 0
+		if len(g.WhoseTurn()) == 0 {
+			highestBidder, highestBid := g.HighestBidder()
+			g.PlayerMoney[highestBidder] -= highestBid
+			g.PlayerPurchases[highestBidder] = g.PlayerPurchases[highestBidder].
+				PushMany(g.CurrentlyAuctioning)
+			g.State = STATE_PLAY_CARD
+			g.NextPlayer()
+		}
+	}
+	return nil
+}
+
+func (g *Game) Bid(player, amount int) error {
+	if !g.CanBid(g.Players[player]) {
+		return errors.New("You're not able to bid at the moment")
+	}
+	g.Bids[player] = amount
+	return nil
+}
+
+func (g *Game) AddCard(player int, c card.SuitRankCard) error {
+	if !g.CanAdd(g.Players[player]) {
+		return errors.New("You're not able to add a card at the moment")
+	}
+	return nil
+}
+
+func (g *Game) PlayerFromString(s string) (int, error) {
+	for i, p := range g.Players {
+		if p == s {
+			return i, nil
+		}
+	}
+	return 0, errors.New("Could not find player")
+}
+
+func (g *Game) IsPlayersTurn(player int) bool {
+	for _, p := range g.WhoseTurn() {
+		if p == g.Players[player] {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Game) IsPlayersTurnStr(player string) bool {
+	p, err := g.PlayerFromString(player)
+	if err != nil {
+		return false
+	}
+	return g.IsPlayersTurn(p)
 }
 
 func Deck() card.Deck {
@@ -268,4 +408,9 @@ func Deck() card.Deck {
 		}
 	}
 	return d
+}
+
+func ParseCard(s string) (card.SuitRankCard, error) {
+
+	return card.SuitRankCard{}, nil
 }

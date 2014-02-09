@@ -3,20 +3,21 @@ package modern_art
 import (
 	"errors"
 	"github.com/Miniand/brdg.me/command"
+	"strconv"
 )
 
-type PlayCommand struct{}
+type BidCommand struct{}
 
-func (pc PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
+func (bc BidCommand) Parse(input string) []string {
+	return command.ParseNamedCommandNArgs("bid", 1, input)
 }
 
-func (pc PlayCommand) CanCall(player string, context interface{}) bool {
+func (bc BidCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	return g.CanPlay(player)
+	return g.CanBid(player)
 }
 
-func (pc PlayCommand) Call(player string, context interface{},
+func (bc BidCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
 	a := command.ExtractNamedCommandArgs(args)
@@ -27,13 +28,13 @@ func (pc PlayCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	c, err := ParseCard(a[0])
+	bid, err := strconv.Atoi(a[0])
 	if err != nil {
 		return "", err
 	}
-	return "", g.PlayCard(playerNum, c)
+	return "", g.Bid(playerNum, bid)
 }
 
-func (pc PlayCommand) Usage(player string, context interface{}) string {
+func (bc BidCommand) Usage(player string, context interface{}) string {
 	return "{{b}}play #{{_b}} to play a card, eg. {{b}}play 2{{_b}}"
 }

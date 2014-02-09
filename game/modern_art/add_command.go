@@ -5,18 +5,18 @@ import (
 	"github.com/Miniand/brdg.me/command"
 )
 
-type PlayCommand struct{}
+type AddCommand struct{}
 
-func (pc PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
+func (ac AddCommand) Parse(input string) []string {
+	return command.ParseNamedCommandNArgs("add", 1, input)
 }
 
-func (pc PlayCommand) CanCall(player string, context interface{}) bool {
+func (ac AddCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	return g.CanPlay(player)
+	return g.CanAdd(player)
 }
 
-func (pc PlayCommand) Call(player string, context interface{},
+func (ac AddCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
 	a := command.ExtractNamedCommandArgs(args)
@@ -31,9 +31,9 @@ func (pc PlayCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	return "", g.PlayCard(playerNum, c)
+	return "", g.AddCard(playerNum, c)
 }
 
-func (pc PlayCommand) Usage(player string, context interface{}) string {
+func (ac AddCommand) Usage(player string, context interface{}) string {
 	return "{{b}}play #{{_b}} to play a card, eg. {{b}}play 2{{_b}}"
 }

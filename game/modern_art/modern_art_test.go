@@ -1,12 +1,33 @@
 package modern_art
 
 import (
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
+const (
+	MICK = iota
+	STEVE
+	BJ
+	ELVA
+)
+
+var playerNames = map[int]string{
+	MICK:  "Mick",
+	STEVE: "Steve",
+	BJ:    "BJ",
+	ELVA:  "Elva",
+}
+
 func mockGame(t *testing.T) *Game {
-	players := []string{"Mick", "Steve", "BJ", "Elva"}
+	players := []string{
+		playerNames[MICK],
+		playerNames[STEVE],
+		playerNames[BJ],
+		playerNames[ELVA],
+	}
 	game := &Game{}
 	err := game.Start(players)
 	if err != nil {
@@ -98,6 +119,119 @@ func TestStart(t *testing.T) {
 			So(g.PlayerMoney[1], ShouldEqual, 100)
 			So(g.PlayerMoney[2], ShouldEqual, 100)
 			So(g.PlayerMoney[3], ShouldEqual, 100)
+		})
+	})
+}
+
+func TestOpenAuction(t *testing.T) {
+	Convey("Given a new game", t, func() {
+		g := mockGame(t)
+		Convey("Given BJ has a Lite Metal Open Auction card", func() {
+			g := cloneGame(g)
+			g.CurrentPlayer = BJ
+			g.PlayerHands[BJ] = g.PlayerHands[BJ].Push(card.SuitRankCard{
+				SUIT_LITE_METAL, RANK_OPEN})
+			Convey("Given BJ plays the Lite Metal Open Auction card", func() {
+				g := cloneGame(g)
+				_, err := command.CallInCommands(playerNames[BJ], g,
+					"play lmop", g.Commands())
+				So(err, ShouldBeNil)
+				So(g.State, ShouldEqual, STATE_AUCTION)
+				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
+				Convey("Given Steve bids", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[STEVE], g,
+						"bid 10", g.Commands())
+					So(err, ShouldBeNil)
+					So(g.State, ShouldEqual, STATE_AUCTION)
+					Convey("Given the other players all pass", func() {
+						g := cloneGame(g)
+						_, err := command.CallInCommands(playerNames[MICK], g,
+							"pass", g.Commands())
+						So(err, ShouldBeNil)
+						_, err = command.CallInCommands(playerNames[BJ], g,
+							"pass", g.Commands())
+						So(err, ShouldBeNil)
+						_, err = command.CallInCommands(playerNames[ELVA], g,
+							"pass", g.Commands())
+						So(err, ShouldBeNil)
+						Convey("It should give the card to Steve and go to the next player", func() {
+							So(g.State, ShouldEqual, STATE_PLAY_CARD)
+							So(g.CurrentPlayer, ShouldEqual, ELVA)
+							So(len(g.PlayerPurchases[STEVE]), ShouldEqual, 1)
+							So(g.PlayerMoney[STEVE], ShouldEqual, 90)
+						})
+					})
+				})
+				Convey("Given nobody bids", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[MICK], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[STEVE], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[ELVA], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("It should give BJ the card for nothing", func() {
+						So(g.State, ShouldEqual, STATE_PLAY_CARD)
+						So(g.CurrentPlayer, ShouldEqual, ELVA)
+						So(len(g.PlayerPurchases[BJ]), ShouldEqual, 1)
+						So(g.PlayerMoney[BJ], ShouldEqual, 100)
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestFixedPriceAuction(t *testing.T) {
+	Convey("Given a new game", t, func() {
+		g := mockGame(t)
+		Convey("Given Elva has a Christine P Fixed Price Auction card", func() {
+			g := cloneGame(g)
+			g.CurrentPlayer = ELVA
+			g.PlayerHands[ELVA] = g.PlayerHands[ELVA].Push(card.SuitRankCard{
+				SUIT_LITE_METAL, RANK_OPEN})
+			Convey("Given ELVA plays the Christine P Fixed Price Auction card", func() {
+				g := cloneGame(g)
+				_, err := command.CallInCommands(playerNames[ELVA], g,
+					"play cpfp", g.Commands())
+				So(err, ShouldBeNil)
+				So(g.State, ShouldEqual, STATE_AUCTION)
+				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
+				Convey("Given Mick passes and Steve buys", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[STEVE], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					So(g.State, ShouldEqual, STATE_AUCTION)
+					_, err = command.CallInCommands(playerNames[MICK], g,
+						"buy", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("Mick should receive the card for the given price", func() {
+					})
+				})
+				Convey("Given nobody bids", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[MICK], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[STEVE], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[BJ], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("It should give the card to Elva for the given price", func() {
+						So(g.State, ShouldEqual, STATE_PLAY_CARD)
+						So(g.CurrentPlayer, ShouldEqual, MICK)
+						So(len(g.PlayerPurchases[ELVA]), ShouldEqual, 1)
+						So(g.PlayerMoney[ELVA], ShouldEqual, 100)
+					})
+				})
+			})
 		})
 	})
 }
