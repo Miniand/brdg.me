@@ -12,6 +12,7 @@ TEST_DIRS=(
 	"game/liars_dice"
 	"game/log"
 	"game/lost_cities"
+	"game/modern_art"
 	"game/poker"
 	"game/no_thanks"
 	"game/tic_tac_toe"
