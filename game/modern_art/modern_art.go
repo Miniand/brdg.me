@@ -7,6 +7,7 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
+	"strings"
 )
 
 const (
@@ -158,8 +159,10 @@ type Game struct {
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		PlayCommand{},
+		PriceCommand{},
 		AddCommand{},
 		BidCommand{},
+		BuyCommand{},
 		PassCommand{},
 	}
 }
@@ -258,7 +261,7 @@ func (g *Game) WhoseTurn() []string {
 	case STATE_PLAY_CARD:
 		return []string{g.Players[g.CurrentPlayer]}
 	case STATE_AUCTION:
-		switch g.CurrentlyAuctioning[0].(card.SuitRankCard).Rank {
+		switch g.AuctionType() {
 		case RANK_OPEN:
 			players := []string{}
 			highestBidder, _ := g.HighestBidder()
@@ -269,6 +272,13 @@ func (g *Game) WhoseTurn() []string {
 				}
 			}
 			return players
+		case RANK_FIXED_PRICE:
+			for i := 0; i < len(g.Players); i++ {
+				p := (i + g.CurrentPlayer) % len(g.Players)
+				if _, ok := g.Bids[p]; !ok {
+					return []string{g.Players[p]}
+				}
+			}
 		}
 	}
 	return []string{}
@@ -304,19 +314,73 @@ func (g *Game) CanPlay(player string) bool {
 }
 
 func (g *Game) CanPass(player string) bool {
-	return !g.IsFinished() && g.IsPlayersTurnStr(player) &&
-		g.State == STATE_AUCTION
+	if g.IsAuction() {
+		switch g.AuctionType() {
+		case RANK_OPEN:
+			return g.IsPlayersTurnStr(player)
+		case RANK_FIXED_PRICE:
+			return player != g.Players[g.CurrentPlayer] &&
+				g.IsPlayersTurnStr(player)
+		}
+	}
+	return false
 }
 
 func (g *Game) CanBid(player string) bool {
-	return !g.IsFinished() && g.IsPlayersTurnStr(player) &&
-		g.State == STATE_AUCTION
+	return g.IsPlayersTurnStr(player) && g.State == STATE_AUCTION
 }
 
 func (g *Game) CanAdd(player string) bool {
-	return !g.IsFinished() && g.IsPlayersTurnStr(player) &&
-		g.State == STATE_AUCTION && len(g.CurrentlyAuctioning) == 1 &&
+	return g.IsPlayersTurnStr(player) && g.State == STATE_AUCTION &&
+		len(g.CurrentlyAuctioning) == 1 &&
 		g.CurrentlyAuctioning[0].(card.SuitRankCard).Rank == RANK_DOUBLE
+}
+
+func (g *Game) CanBuy(player string) bool {
+	return g.IsAuction() && g.AuctionType() == RANK_FIXED_PRICE &&
+		g.IsPlayersTurnStr(player) && g.Players[g.CurrentPlayer] != player
+}
+
+func (g *Game) CanSetPrice(player string) bool {
+	return g.IsAuction() && g.AuctionType() == RANK_FIXED_PRICE &&
+		g.IsPlayersTurnStr(player) && g.Players[g.CurrentPlayer] == player
+}
+
+func (g *Game) IsAuction() bool {
+	return g.State == STATE_AUCTION
+}
+
+func (g *Game) AuctionType() int {
+	if !g.IsAuction() || len(g.CurrentlyAuctioning) == 0 {
+		return -1
+	}
+	return g.CurrentlyAuctioning[len(g.CurrentlyAuctioning)-1].(card.SuitRankCard).Rank
+}
+
+func (g *Game) SetPrice(player, price int) error {
+	if !g.CanSetPrice(g.Players[player]) {
+		return errors.New("You're not able to set the price at the moment")
+	}
+	if price <= 0 {
+		return errors.New("The price you set must be higher than 0")
+	}
+	if price > g.PlayerMoney[player] {
+		return errors.New("You can't set the price higher than your current money")
+	}
+	g.Bids[player] = price
+	return nil
+}
+
+func (g *Game) Buy(player int) error {
+	if !g.CanBuy(g.Players[player]) {
+		return errors.New("You're not able to buy the card at the moment")
+	}
+	price := g.Bids[g.CurrentPlayer]
+	if price > g.PlayerMoney[player] {
+		return errors.New("You don't have enough money to buy the card")
+	}
+	g.SettleAuction(player, price)
+	return nil
 }
 
 func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
@@ -338,20 +402,30 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	return nil
 }
 
+func (g *Game) SettleAuction(winner, price int) {
+	g.PlayerMoney[winner] -= price
+	g.PlayerPurchases[winner] = g.PlayerPurchases[winner].
+		PushMany(g.CurrentlyAuctioning)
+	if winner != g.CurrentPlayer {
+		g.PlayerMoney[g.CurrentPlayer] += price
+	}
+	g.State = STATE_PLAY_CARD
+	g.NextPlayer()
+}
+
 func (g *Game) Pass(player int) error {
 	if !g.CanPass(g.Players[player]) {
 		return errors.New("You're not able to pass at the moment")
 	}
-	switch g.CurrentlyAuctioning[len(g.CurrentlyAuctioning)-1].(card.SuitRankCard).Rank {
+	g.Bids[player] = 0
+	switch g.AuctionType() {
 	case RANK_OPEN:
-		g.Bids[player] = 0
 		if len(g.WhoseTurn()) == 0 {
-			highestBidder, highestBid := g.HighestBidder()
-			g.PlayerMoney[highestBidder] -= highestBid
-			g.PlayerPurchases[highestBidder] = g.PlayerPurchases[highestBidder].
-				PushMany(g.CurrentlyAuctioning)
-			g.State = STATE_PLAY_CARD
-			g.NextPlayer()
+			g.SettleAuction(g.HighestBidder())
+		}
+	case RANK_FIXED_PRICE:
+		if len(g.Bids) == len(g.Players) {
+			g.SettleAuction(g.CurrentPlayer, g.Bids[g.CurrentPlayer])
 		}
 	}
 	return nil
@@ -411,6 +485,32 @@ func Deck() card.Deck {
 }
 
 func ParseCard(s string) (card.SuitRankCard, error) {
-
-	return card.SuitRankCard{}, nil
+	raw := strings.ToUpper(strings.TrimSpace(s))
+	c := card.SuitRankCard{}
+	found := false
+	for code, prefix := range suitCodes {
+		upperPrefix := strings.ToUpper(prefix)
+		if strings.HasPrefix(raw, upperPrefix) {
+			found = true
+			c.Suit = code
+			raw = strings.TrimPrefix(raw, upperPrefix)
+			break
+		}
+	}
+	if !found {
+		return c, errors.New("Could not find the artist in card code")
+	}
+	for code, suffix := range rankCodes {
+		upperSuffix := strings.ToUpper(suffix)
+		if strings.HasSuffix(raw, upperSuffix) {
+			found = true
+			c.Rank = code
+			raw = strings.TrimSuffix(raw, upperSuffix)
+			break
+		}
+	}
+	if !found {
+		return c, errors.New("Could not find the auction type in card code")
+	}
+	return c, nil
 }

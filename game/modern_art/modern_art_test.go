@@ -160,6 +160,7 @@ func TestOpenAuction(t *testing.T) {
 							So(g.CurrentPlayer, ShouldEqual, ELVA)
 							So(len(g.PlayerPurchases[STEVE]), ShouldEqual, 1)
 							So(g.PlayerMoney[STEVE], ShouldEqual, 90)
+							So(g.PlayerMoney[BJ], ShouldEqual, 110)
 						})
 					})
 				})
@@ -193,24 +194,32 @@ func TestFixedPriceAuction(t *testing.T) {
 			g := cloneGame(g)
 			g.CurrentPlayer = ELVA
 			g.PlayerHands[ELVA] = g.PlayerHands[ELVA].Push(card.SuitRankCard{
-				SUIT_LITE_METAL, RANK_OPEN})
-			Convey("Given ELVA plays the Christine P Fixed Price Auction card", func() {
+				SUIT_CHRISTINE_P, RANK_FIXED_PRICE})
+			Convey("Given Elva plays the Christine P Fixed Price Auction card and sets the price at 15", func() {
 				g := cloneGame(g)
 				_, err := command.CallInCommands(playerNames[ELVA], g,
 					"play cpfp", g.Commands())
 				So(err, ShouldBeNil)
 				So(g.State, ShouldEqual, STATE_AUCTION)
 				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
+				_, err = command.CallInCommands(playerNames[ELVA], g,
+					"price 15", g.Commands())
+				So(err, ShouldBeNil)
 				Convey("Given Mick passes and Steve buys", func() {
 					g := cloneGame(g)
-					_, err := command.CallInCommands(playerNames[STEVE], g,
+					_, err := command.CallInCommands(playerNames[MICK], g,
 						"pass", g.Commands())
 					So(err, ShouldBeNil)
 					So(g.State, ShouldEqual, STATE_AUCTION)
-					_, err = command.CallInCommands(playerNames[MICK], g,
+					_, err = command.CallInCommands(playerNames[STEVE], g,
 						"buy", g.Commands())
 					So(err, ShouldBeNil)
-					Convey("Mick should receive the card for the given price", func() {
+					Convey("Steve should receive the card for the given price", func() {
+						So(g.State, ShouldEqual, STATE_PLAY_CARD)
+						So(g.CurrentPlayer, ShouldEqual, MICK)
+						So(len(g.PlayerPurchases[STEVE]), ShouldEqual, 1)
+						So(g.PlayerMoney[STEVE], ShouldEqual, 85)
+						So(g.PlayerMoney[ELVA], ShouldEqual, 115)
 					})
 				})
 				Convey("Given nobody bids", func() {
@@ -228,7 +237,7 @@ func TestFixedPriceAuction(t *testing.T) {
 						So(g.State, ShouldEqual, STATE_PLAY_CARD)
 						So(g.CurrentPlayer, ShouldEqual, MICK)
 						So(len(g.PlayerPurchases[ELVA]), ShouldEqual, 1)
-						So(g.PlayerMoney[ELVA], ShouldEqual, 100)
+						So(g.PlayerMoney[ELVA], ShouldEqual, 85)
 					})
 				})
 			})
