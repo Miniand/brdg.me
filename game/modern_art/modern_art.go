@@ -279,6 +279,19 @@ func (g *Game) WhoseTurn() []string {
 					return []string{g.Players[p]}
 				}
 			}
+		case RANK_ONCE_AROUND:
+			// Find the first person without a bid after current player
+			highestBid := 0
+			for i := 0; i < len(g.Players); i++ {
+				p := (1 + i + g.CurrentPlayer) % len(g.Players)
+				bid, ok := g.Bids[p]
+				if ok && bid > highestBid {
+					highestBid = bid
+				}
+				if !ok && !(highestBid == 0 && p == g.CurrentPlayer) {
+					return []string{g.Players[p]}
+				}
+			}
 		case RANK_SEALED:
 			players := []string{}
 			for pNum, p := range g.Players {
@@ -324,7 +337,7 @@ func (g *Game) CanPlay(player string) bool {
 func (g *Game) CanPass(player string) bool {
 	if g.IsAuction() {
 		switch g.AuctionType() {
-		case RANK_OPEN, RANK_SEALED, RANK_DOUBLE:
+		case RANK_OPEN, RANK_SEALED, RANK_DOUBLE, RANK_ONCE_AROUND:
 			return g.IsPlayersTurnStr(player)
 		case RANK_FIXED_PRICE:
 			return player != g.Players[g.CurrentPlayer] &&
@@ -337,7 +350,7 @@ func (g *Game) CanPass(player string) bool {
 func (g *Game) CanBid(player string) bool {
 	if g.IsAuction() {
 		switch g.AuctionType() {
-		case RANK_OPEN, RANK_SEALED:
+		case RANK_OPEN, RANK_SEALED, RANK_ONCE_AROUND:
 			return g.IsPlayersTurnStr(player)
 		}
 	}
@@ -437,13 +450,13 @@ func (g *Game) Pass(player int) error {
 	}
 	g.Bids[player] = 0
 	switch g.AuctionType() {
-	case RANK_OPEN, RANK_SEALED:
-		if len(g.WhoseTurn()) == 0 {
-			g.SettleAuction(g.HighestBidder())
-		}
 	case RANK_FIXED_PRICE:
 		if len(g.Bids) == len(g.Players) {
 			g.SettleAuction(g.CurrentPlayer, g.Bids[g.CurrentPlayer])
+		}
+	default:
+		if len(g.WhoseTurn()) == 0 {
+			g.SettleAuction(g.HighestBidder())
 		}
 	}
 	return nil
@@ -454,11 +467,8 @@ func (g *Game) Bid(player, amount int) error {
 		return errors.New("You're not able to bid at the moment")
 	}
 	g.Bids[player] = amount
-	switch g.AuctionType() {
-	case RANK_SEALED:
-		if len(g.WhoseTurn()) == 0 {
-			g.SettleAuction(g.HighestBidder())
-		}
+	if len(g.WhoseTurn()) == 0 {
+		g.SettleAuction(g.HighestBidder())
 	}
 	return nil
 }

@@ -372,3 +372,65 @@ func TestDoubleAuction(t *testing.T) {
 		})
 	})
 }
+
+func TestOnceAroundAuction(t *testing.T) {
+	Convey("Given a new game", t, func() {
+		g := mockGame(t)
+		Convey("Given Mick has a Yoko Once Around Auction card", func() {
+			g := cloneGame(g)
+			g.CurrentPlayer = MICK
+			g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(card.SuitRankCard{
+				SUIT_YOKO, RANK_ONCE_AROUND})
+			Convey("Given Mick plays the Yoko Once Around Auction card", func() {
+				g := cloneGame(g)
+				_, err := command.CallInCommands(playerNames[MICK], g,
+					"play yooa", g.Commands())
+				So(err, ShouldBeNil)
+				So(g.State, ShouldEqual, STATE_AUCTION)
+				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
+				Convey("Given some bids", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[STEVE], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[BJ], g,
+						"bid 5", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[ELVA], g,
+						"bid 7", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[MICK], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("It should give the card to Elva", func() {
+						g := cloneGame(g)
+						So(g.State, ShouldEqual, STATE_PLAY_CARD)
+						So(g.CurrentPlayer, ShouldEqual, STEVE)
+						So(len(g.PlayerPurchases[ELVA]), ShouldEqual, 1)
+						So(g.PlayerMoney[MICK], ShouldEqual, 107)
+						So(g.PlayerMoney[ELVA], ShouldEqual, 93)
+					})
+				})
+				Convey("Given everyone passes", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[STEVE], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[BJ], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[ELVA], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("It should give the card to Mick for free", func() {
+						g := cloneGame(g)
+						So(g.State, ShouldEqual, STATE_PLAY_CARD)
+						So(g.CurrentPlayer, ShouldEqual, STEVE)
+						So(len(g.PlayerPurchases[MICK]), ShouldEqual, 1)
+						So(g.PlayerMoney[MICK], ShouldEqual, 100)
+					})
+				})
+			})
+		})
+	})
+}
