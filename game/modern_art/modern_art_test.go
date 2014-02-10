@@ -244,3 +244,66 @@ func TestFixedPriceAuction(t *testing.T) {
 		})
 	})
 }
+
+func TestSealedAuction(t *testing.T) {
+	Convey("Given a new game", t, func() {
+		g := mockGame(t)
+		Convey("Given Elva has a Krypto Sealed Auction card", func() {
+			g := cloneGame(g)
+			g.CurrentPlayer = ELVA
+			g.PlayerHands[ELVA] = g.PlayerHands[ELVA].Push(card.SuitRankCard{
+				SUIT_KRYPTO, RANK_SEALED})
+			Convey("Given Elva plays the Krypto Sealed Auction card", func() {
+				g := cloneGame(g)
+				_, err := command.CallInCommands(playerNames[ELVA], g,
+					"play krsl", g.Commands())
+				So(err, ShouldBeNil)
+				So(g.State, ShouldEqual, STATE_AUCTION)
+				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
+				Convey("Given everyone bids different amounts", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[MICK], g,
+						"bid 4", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[STEVE], g,
+						"bid 5", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[BJ], g,
+						"bid 3", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[ELVA], g,
+						"bid 1", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("Steve should receive the card for the given price", func() {
+						So(g.State, ShouldEqual, STATE_PLAY_CARD)
+						So(g.CurrentPlayer, ShouldEqual, MICK)
+						So(len(g.PlayerPurchases[STEVE]), ShouldEqual, 1)
+						So(g.PlayerMoney[STEVE], ShouldEqual, 95)
+						So(g.PlayerMoney[ELVA], ShouldEqual, 105)
+					})
+				})
+				Convey("Given nobody bids", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[MICK], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[STEVE], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[ELVA], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[BJ], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("It should give the card to Elva for free", func() {
+						So(g.State, ShouldEqual, STATE_PLAY_CARD)
+						So(g.CurrentPlayer, ShouldEqual, MICK)
+						So(len(g.PlayerPurchases[ELVA]), ShouldEqual, 1)
+						So(g.PlayerMoney[ELVA], ShouldEqual, 100)
+					})
+				})
+			})
+		})
+	})
+}

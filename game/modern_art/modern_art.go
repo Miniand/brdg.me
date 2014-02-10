@@ -279,6 +279,14 @@ func (g *Game) WhoseTurn() []string {
 					return []string{g.Players[p]}
 				}
 			}
+		case RANK_SEALED:
+			players := []string{}
+			for pNum, p := range g.Players {
+				if _, ok := g.Bids[pNum]; !ok {
+					players = append(players, p)
+				}
+			}
+			return players
 		}
 	}
 	return []string{}
@@ -316,7 +324,7 @@ func (g *Game) CanPlay(player string) bool {
 func (g *Game) CanPass(player string) bool {
 	if g.IsAuction() {
 		switch g.AuctionType() {
-		case RANK_OPEN:
+		case RANK_OPEN, RANK_SEALED:
 			return g.IsPlayersTurnStr(player)
 		case RANK_FIXED_PRICE:
 			return player != g.Players[g.CurrentPlayer] &&
@@ -327,7 +335,13 @@ func (g *Game) CanPass(player string) bool {
 }
 
 func (g *Game) CanBid(player string) bool {
-	return g.IsPlayersTurnStr(player) && g.State == STATE_AUCTION
+	if g.IsAuction() {
+		switch g.AuctionType() {
+		case RANK_OPEN, RANK_SEALED:
+			return g.IsPlayersTurnStr(player)
+		}
+	}
+	return false
 }
 
 func (g *Game) CanAdd(player string) bool {
@@ -419,7 +433,7 @@ func (g *Game) Pass(player int) error {
 	}
 	g.Bids[player] = 0
 	switch g.AuctionType() {
-	case RANK_OPEN:
+	case RANK_OPEN, RANK_SEALED:
 		if len(g.WhoseTurn()) == 0 {
 			g.SettleAuction(g.HighestBidder())
 		}
@@ -436,6 +450,12 @@ func (g *Game) Bid(player, amount int) error {
 		return errors.New("You're not able to bid at the moment")
 	}
 	g.Bids[player] = amount
+	switch g.AuctionType() {
+	case RANK_SEALED:
+		if len(g.WhoseTurn()) == 0 {
+			g.SettleAuction(g.HighestBidder())
+		}
+	}
 	return nil
 }
 
