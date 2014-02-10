@@ -149,7 +149,7 @@ type Game struct {
 	Deck                card.Deck
 	Log                 *log.Log
 	CurrentPlayer       int
-	ValueBoard          map[int]map[int]int
+	ValueBoard          []map[int]int
 	Finished            bool
 	CurrentlyAuctioning card.Deck
 	Bids                map[int]int
@@ -197,6 +197,31 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	return "", nil
 }
 
+func (g *Game) SuitCardsOnTable(suit int) int {
+	count := 0
+	for pNum, _ := range g.Players {
+		for _, c := range g.PlayerPurchases[pNum] {
+			if c.(card.SuitRankCard).Suit == suit {
+				count += 1
+			}
+		}
+	}
+	for _, c := range g.CurrentlyAuctioning {
+		if c.(card.SuitRankCard).Suit == suit {
+			count += 1
+		}
+	}
+	return count
+}
+
+func (g *Game) SuitValue(suit int) int {
+	value := 0
+	for _, values := range g.ValueBoard {
+		value += values[suit]
+	}
+	return value
+}
+
 func (g *Game) Start(players []string) error {
 	if len(players) < 3 || len(players) > 5 {
 		return errors.New("Modern Art requires between 3 and 5 players")
@@ -208,6 +233,7 @@ func (g *Game) Start(players []string) error {
 		g.PlayerMoney[i] = INITIAL_MONEY
 		g.PlayerHands[i] = card.Deck{}
 	}
+	g.ValueBoard = []map[int]int{}
 	g.CurrentlyAuctioning = card.Deck{}
 	g.Deck = Deck().Shuffle()
 	g.Log = &log.Log{}
@@ -216,6 +242,7 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) StartRound() {
+	g.State = STATE_PLAY_CARD
 	numCards := roundCards[len(g.Players)][g.Round]
 	if numCards <= 0 {
 		return
@@ -229,6 +256,33 @@ func (g *Game) StartRound() {
 }
 
 func (g *Game) EndRound() {
+	// Add values to artists
+	g.CurrentlyAuctioning = card.Deck{}
+	values := map[int]int{}
+	scored := map[int]bool{}
+	counts := map[int]int{}
+	for _, s := range suits {
+		counts[s] = g.SuitCardsOnTable(s)
+	}
+	for _, v := range []int{30, 20, 10} {
+		highest := -1
+		highestCount := -1
+		for _, s := range suits {
+			if !scored[s] && counts[s] > highestCount {
+				highest = s
+				highestCount = counts[s]
+			}
+		}
+		scored[highest] = true
+		values[highest] = v
+	}
+	g.ValueBoard = append(g.ValueBoard, values)
+	// Pay out purchased cards
+	for pNum, _ := range g.Players {
+		for _, c := range g.PlayerPurchases[pNum] {
+			g.PlayerMoney[pNum] += g.SuitValue(c.(card.SuitRankCard).Suit)
+		}
+	}
 	if g.Round == 3 {
 		g.Finished = true
 	} else {
@@ -247,7 +301,18 @@ func (g *Game) IsFinished() bool {
 
 func (g *Game) Winners() []string {
 	if g.IsFinished() {
-		return []string{}
+		highestMoney := -1
+		highest := []string{}
+		for pNum, p := range g.Players {
+			if g.PlayerMoney[pNum] > highestMoney {
+				highestMoney = g.PlayerMoney[pNum]
+				highest = []string{}
+			}
+			if g.PlayerMoney[pNum] == highestMoney {
+				highest = append(highest, p)
+			}
+		}
+		return highest
 	}
 	return []string{}
 }
@@ -430,6 +495,9 @@ func (g *Game) AddCardToAuction(player int, c card.SuitRankCard) error {
 	g.CurrentlyAuctioning = g.CurrentlyAuctioning.Push(c)
 	g.Bids = map[int]int{}
 	g.State = STATE_AUCTION
+	if g.SuitCardsOnTable(c.Suit) >= 5 {
+		g.EndRound()
+	}
 	return nil
 }
 

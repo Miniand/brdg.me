@@ -434,3 +434,102 @@ func TestOnceAroundAuction(t *testing.T) {
 		})
 	})
 }
+
+func TestEndOfRound(t *testing.T) {
+	Convey("Given a new game", t, func() {
+		g := mockGame(t)
+		Convey("Given there are already 3 Lite Metal on the board", func() {
+			g := cloneGame(g)
+			g.PlayerPurchases[MICK] = card.Deck{
+				card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+				card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+			}
+			g.PlayerPurchases[STEVE] = card.Deck{
+				card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+			}
+			Convey("Given Mick plays a Lite Metal Double Auction", func() {
+				g := cloneGame(g)
+				g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(
+					card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE})
+				_, err := command.CallInCommands(playerNames[MICK], g,
+					"play lmdb", g.Commands())
+				So(err, ShouldBeNil)
+				Convey("It should be the same round", func() {
+					g := cloneGame(g)
+					So(g.Round, ShouldEqual, 0)
+				})
+				Convey("Given Mick adds another Lite Metal", func() {
+					g := cloneGame(g)
+					g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(
+						card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN})
+					_, err := command.CallInCommands(playerNames[MICK], g,
+						"add lmop", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("It should be the next round and values should be added to artists", func() {
+						g := cloneGame(g)
+						So(g.Round, ShouldEqual, 1)
+						So(g.SuitValue(SUIT_LITE_METAL), ShouldEqual, 30)
+						So(g.PlayerMoney[MICK], ShouldEqual, 160)
+						So(g.PlayerMoney[STEVE], ShouldEqual, 130)
+						So(g.PlayerMoney[BJ], ShouldEqual, 100)
+						So(g.PlayerMoney[ELVA], ShouldEqual, 100)
+					})
+				})
+			})
+		})
+		Convey("Given there are already 4 Lite Metal on the board", func() {
+			g := cloneGame(g)
+			g.PlayerPurchases[MICK] = card.Deck{
+				card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+				card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+			}
+			g.PlayerPurchases[STEVE] = card.Deck{
+				card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+			}
+			g.PlayerPurchases[BJ] = card.Deck{
+				card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+			}
+			Convey("Given Mick adds another Lite Metal", func() {
+				g := cloneGame(g)
+				g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(
+					card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN})
+				_, err := command.CallInCommands(playerNames[MICK], g,
+					"play lmop", g.Commands())
+				So(err, ShouldBeNil)
+				Convey("It should be the next round and values should be added to artists", func() {
+					g := cloneGame(g)
+					So(g.Round, ShouldEqual, 1)
+					So(g.SuitValue(SUIT_LITE_METAL), ShouldEqual, 30)
+					So(g.PlayerMoney[MICK], ShouldEqual, 160)
+					So(g.PlayerMoney[STEVE], ShouldEqual, 130)
+					So(g.PlayerMoney[BJ], ShouldEqual, 130)
+					So(g.PlayerMoney[ELVA], ShouldEqual, 100)
+				})
+			})
+			Convey("Given it is the final round", func() {
+				g := cloneGame(g)
+				g.Round = 3
+				Convey("Given Mick adds another Lite Metal", func() {
+					g := cloneGame(g)
+					g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(
+						card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN})
+					_, err := command.CallInCommands(playerNames[MICK], g,
+						"play lmop", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("It should be the end of the game and values should be added to artists", func() {
+						g := cloneGame(g)
+						So(g.IsFinished(), ShouldBeTrue)
+						So(g.SuitValue(SUIT_LITE_METAL), ShouldEqual, 30)
+						So(g.PlayerMoney[MICK], ShouldEqual, 160)
+						So(g.PlayerMoney[STEVE], ShouldEqual, 130)
+						So(g.PlayerMoney[BJ], ShouldEqual, 130)
+						So(g.PlayerMoney[ELVA], ShouldEqual, 100)
+						winners := g.Winners()
+						So(len(winners), ShouldEqual, 1)
+						So(winners[0], ShouldEqual, playerNames[MICK])
+					})
+				})
+			})
+		})
+	})
+}
