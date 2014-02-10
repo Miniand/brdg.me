@@ -307,3 +307,68 @@ func TestSealedAuction(t *testing.T) {
 		})
 	})
 }
+
+func TestDoubleAuction(t *testing.T) {
+	Convey("Given a new game", t, func() {
+		g := mockGame(t)
+		Convey("Given Elva has a Karl Glitter Double Auction card and Steve has a Karl Glitter Sealed Auction card", func() {
+			g := cloneGame(g)
+			g.CurrentPlayer = ELVA
+			g.PlayerHands[ELVA] = g.PlayerHands[ELVA].Push(card.SuitRankCard{
+				SUIT_KARL_GLITTER, RANK_DOUBLE}).Push(card.SuitRankCard{
+				SUIT_KARL_GLITTER, RANK_SEALED})
+			g.PlayerHands[STEVE] = g.PlayerHands[STEVE].Push(card.SuitRankCard{
+				SUIT_KARL_GLITTER, RANK_SEALED})
+			Convey("Given Elva plays the Karl Glitter Double Auction card", func() {
+				g := cloneGame(g)
+				_, err := command.CallInCommands(playerNames[ELVA], g,
+					"play kgdb", g.Commands())
+				So(err, ShouldBeNil)
+				So(g.State, ShouldEqual, STATE_AUCTION)
+				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
+				Convey("Given Elva passes, Mick passes and Steve plays his KG Sealed", func() {
+					g := cloneGame(g)
+					_, err := command.CallInCommands(playerNames[ELVA], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[MICK], g,
+						"pass", g.Commands())
+					So(err, ShouldBeNil)
+					_, err = command.CallInCommands(playerNames[STEVE], g,
+						"add kgsl", g.Commands())
+					So(err, ShouldBeNil)
+					Convey("It should start a new sealed auction with Steve as the auctioneer", func() {
+						g := cloneGame(g)
+						So(g.CurrentPlayer, ShouldEqual, STEVE)
+						So(len(g.CurrentlyAuctioning), ShouldEqual, 2)
+						So(g.IsAuction(), ShouldBeTrue)
+						So(g.AuctionType(), ShouldEqual, RANK_SEALED)
+						Convey("Given everyone bids different amounts", func() {
+							g := cloneGame(g)
+							_, err := command.CallInCommands(playerNames[MICK], g,
+								"bid 8", g.Commands())
+							So(err, ShouldBeNil)
+							_, err = command.CallInCommands(playerNames[STEVE], g,
+								"bid 5", g.Commands())
+							So(err, ShouldBeNil)
+							_, err = command.CallInCommands(playerNames[BJ], g,
+								"bid 3", g.Commands())
+							So(err, ShouldBeNil)
+							_, err = command.CallInCommands(playerNames[ELVA], g,
+								"bid 1", g.Commands())
+							So(err, ShouldBeNil)
+							Convey("Mick should receive both the cards for the given price", func() {
+								So(g.State, ShouldEqual, STATE_PLAY_CARD)
+								So(g.CurrentPlayer, ShouldEqual, BJ)
+								So(len(g.PlayerPurchases[MICK]), ShouldEqual, 2)
+								So(g.PlayerMoney[MICK], ShouldEqual, 92)
+								So(g.PlayerMoney[STEVE], ShouldEqual, 108)
+								So(g.PlayerMoney[ELVA], ShouldEqual, 100)
+							})
+						})
+					})
+				})
+			})
+		})
+	})
+}

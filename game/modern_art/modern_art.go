@@ -15,7 +15,6 @@ const (
 )
 const (
 	STATE_PLAY_CARD = iota
-	STATE_ADD_DOUBLE
 	STATE_AUCTION
 )
 const (
@@ -272,7 +271,8 @@ func (g *Game) WhoseTurn() []string {
 				}
 			}
 			return players
-		case RANK_FIXED_PRICE:
+		case RANK_FIXED_PRICE, RANK_DOUBLE:
+			// Find the first person without a bid including current player
 			for i := 0; i < len(g.Players); i++ {
 				p := (i + g.CurrentPlayer) % len(g.Players)
 				if _, ok := g.Bids[p]; !ok {
@@ -324,7 +324,7 @@ func (g *Game) CanPlay(player string) bool {
 func (g *Game) CanPass(player string) bool {
 	if g.IsAuction() {
 		switch g.AuctionType() {
-		case RANK_OPEN, RANK_SEALED:
+		case RANK_OPEN, RANK_SEALED, RANK_DOUBLE:
 			return g.IsPlayersTurnStr(player)
 		case RANK_FIXED_PRICE:
 			return player != g.Players[g.CurrentPlayer] &&
@@ -345,9 +345,8 @@ func (g *Game) CanBid(player string) bool {
 }
 
 func (g *Game) CanAdd(player string) bool {
-	return g.IsPlayersTurnStr(player) && g.State == STATE_AUCTION &&
-		len(g.CurrentlyAuctioning) == 1 &&
-		g.CurrentlyAuctioning[0].(card.SuitRankCard).Rank == RANK_DOUBLE
+	return g.IsAuction() && g.AuctionType() == RANK_DOUBLE &&
+		g.IsPlayersTurnStr(player)
 }
 
 func (g *Game) CanBuy(player string) bool {
@@ -365,10 +364,14 @@ func (g *Game) IsAuction() bool {
 }
 
 func (g *Game) AuctionType() int {
+	return g.AuctionCard().Rank
+}
+
+func (g *Game) AuctionCard() card.SuitRankCard {
 	if !g.IsAuction() || len(g.CurrentlyAuctioning) == 0 {
-		return -1
+		return card.SuitRankCard{}
 	}
-	return g.CurrentlyAuctioning[len(g.CurrentlyAuctioning)-1].(card.SuitRankCard).Rank
+	return g.CurrentlyAuctioning[len(g.CurrentlyAuctioning)-1].(card.SuitRankCard)
 }
 
 func (g *Game) SetPrice(player, price int) error {
@@ -401,18 +404,19 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	if !g.CanPlay(g.Players[player]) {
 		return errors.New("You're not able to play a card at the moment")
 	}
+	g.CurrentlyAuctioning = card.Deck{}
+	return g.AddCardToAuction(player, c)
+}
+
+func (g *Game) AddCardToAuction(player int, c card.SuitRankCard) error {
 	remaining, removed := g.PlayerHands[player].Remove(c, 1)
 	if removed != 1 {
 		return errors.New("You do not have that card in your hand")
 	}
 	g.PlayerHands[player] = remaining
-	g.CurrentlyAuctioning = card.Deck{c}
+	g.CurrentlyAuctioning = g.CurrentlyAuctioning.Push(c)
 	g.Bids = map[int]int{}
-	if c.Rank == RANK_DOUBLE {
-		g.State = STATE_ADD_DOUBLE
-	} else {
-		g.State = STATE_AUCTION
-	}
+	g.State = STATE_AUCTION
 	return nil
 }
 
@@ -463,6 +467,14 @@ func (g *Game) AddCard(player int, c card.SuitRankCard) error {
 	if !g.CanAdd(g.Players[player]) {
 		return errors.New("You're not able to add a card at the moment")
 	}
+	if g.AuctionCard().Suit != c.Suit {
+		return errors.New("The artist of the card must match the existing one")
+	}
+	err := g.AddCardToAuction(player, c)
+	if err != nil {
+		return err
+	}
+	g.CurrentPlayer = player
 	return nil
 }
 
