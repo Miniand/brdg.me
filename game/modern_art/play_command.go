@@ -21,7 +21,7 @@ func (pc PlayCommand) Call(player string, context interface{},
 	g := context.(*Game)
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {
-		return "", errors.New("You must the number of a card to play, such as 2")
+		return "", errors.New("You must the number of a card to play, such as lmop")
 	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
@@ -35,5 +35,5 @@ func (pc PlayCommand) Call(player string, context interface{},
 }
 
 func (pc PlayCommand) Usage(player string, context interface{}) string {
-	return "{{b}}play #{{_b}} to play a card, eg. {{b}}play 2{{_b}}"
+	return "{{b}}play ####{{_b}} to play a card using the card code, eg. {{b}}play lmop{{_b}}"
 }

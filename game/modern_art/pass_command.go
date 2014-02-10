@@ -26,5 +26,5 @@ func (pc PassCommand) Call(player string, context interface{},
 }
 
 func (pc PassCommand) Usage(player string, context interface{}) string {
-	return "{{b}}play #{{_b}} to play a card, eg. {{b}}play 2{{_b}}"
+	return "{{b}}pass{{_b}} to pass"
 }

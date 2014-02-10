@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 	"io/ioutil"
 	"os"
@@ -50,11 +51,13 @@ func main() {
 }
 
 func RenderForPlayer(g game.Playable, p string) (string, error) {
+	logOutput := "\n\n{{b}}Since last time:{{_b}}:\n" +
+		log.RenderMessages(g.GameLog().NewMessagesFor(p))
 	rawOutput, err := g.RenderForPlayer(p)
 	if err != nil {
 		return "", err
 	}
-	return render.RenderTerminal(rawOutput)
+	return render.RenderTerminal(logOutput + "\n\n" + rawOutput)
 }
 
 func NewAction(args []string) error {

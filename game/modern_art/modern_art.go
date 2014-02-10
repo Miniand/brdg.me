@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 	"strings"
 )
 
@@ -70,11 +72,19 @@ var suitNames = map[int]string{
 }
 
 var suitCodes = map[int]string{
-	SUIT_LITE_METAL:   "LM",
-	SUIT_YOKO:         "YO",
-	SUIT_CHRISTINE_P:  "CP",
-	SUIT_KARL_GLITTER: "KG",
-	SUIT_KRYPTO:       "KR",
+	SUIT_LITE_METAL:   "lm",
+	SUIT_YOKO:         "yo",
+	SUIT_CHRISTINE_P:  "cp",
+	SUIT_KARL_GLITTER: "kg",
+	SUIT_KRYPTO:       "kr",
+}
+
+var suitColours = map[int]string{
+	SUIT_LITE_METAL:   "yellow",
+	SUIT_YOKO:         "green",
+	SUIT_CHRISTINE_P:  "red",
+	SUIT_KARL_GLITTER: "blue",
+	SUIT_KRYPTO:       "magenta",
 }
 
 var ranks = []int{
@@ -94,11 +104,11 @@ var rankNames = map[int]string{
 }
 
 var rankCodes = map[int]string{
-	RANK_OPEN:        "OP",
-	RANK_FIXED_PRICE: "FP",
-	RANK_SEALED:      "SL",
-	RANK_DOUBLE:      "DB",
-	RANK_ONCE_AROUND: "OA",
+	RANK_OPEN:        "op",
+	RANK_FIXED_PRICE: "fp",
+	RANK_SEALED:      "sl",
+	RANK_DOUBLE:      "db",
+	RANK_ONCE_AROUND: "oa",
 }
 
 var cardDistribution = map[int]map[int]int{
@@ -194,7 +204,91 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	return "", nil
+	pNum, err := g.PlayerFromString(player)
+	if err != nil {
+		return "", err
+	}
+	output := bytes.Buffer{}
+	// Auction specific
+	if g.IsAuction() {
+		output.WriteString(fmt.Sprintf("{{b}}Currently auctioning:{{_b}} %s\n",
+			RenderCardNames(g.CurrentlyAuctioning)))
+		if g.AuctionType() != RANK_SEALED {
+			bidder, bid := g.HighestBidder()
+			output.WriteString(fmt.Sprintf("{{b}}Current bid:{{_b}} %s by %s\n",
+				RenderMoney(bid), render.PlayerName(bidder, g.Players[bidder])))
+		}
+		output.WriteString("\n")
+	}
+	// Player money
+	output.WriteString(fmt.Sprintf("{{b}}Your money:{{_b}} %s\n\n",
+		RenderMoney(g.PlayerMoney[pNum])))
+	// Player cards
+	output.WriteString("{{b}}Your cards:{{_b}}\n")
+	for _, c := range g.PlayerHands[pNum] {
+		output.WriteString(fmt.Sprintf("%s\n",
+			RenderCardNameCode(c.(card.SuitRankCard))))
+	}
+	output.WriteString("\n")
+	// Players
+	cells := [][]string{
+		[]string{
+			"{{b}}Players{{_b}}",
+			"{{b}}Purchases{{_b}}",
+		},
+	}
+	for opNum, oPlayer := range g.Players {
+		cards := []string{}
+		if len(g.PlayerPurchases[opNum]) > 0 {
+			for _, c := range g.PlayerPurchases[opNum] {
+				src := c.(card.SuitRankCard)
+				cards = append(cards, RenderCardCode(src))
+			}
+		} else {
+			cards = append(cards, `{{c "gray"}}None{{_c}}`)
+		}
+		cells = append(cells, []string{
+			render.PlayerName(opNum, oPlayer),
+			strings.Join(cards, " "),
+		})
+	}
+	table, err := render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	output.WriteString(table)
+	output.WriteString("\n\n")
+	// Artists
+	cells = [][]string{
+		[]string{
+			"{{b}}Artist{{_b}}",
+			"{{b}}R1{{_b}}",
+			"{{b}}R2{{_b}}",
+			"{{b}}R3{{_b}}",
+			"{{b}}R4{{_b}}",
+			"{{b}}Total{{_b}}",
+		},
+	}
+	for _, s := range suits {
+		row := []string{
+			RenderSuit(s),
+		}
+		for i := 0; i < 4; i++ {
+			if len(g.ValueBoard) > i {
+				row = append(row, RenderMoney(g.ValueBoard[i][s]))
+			} else {
+				row = append(row, ".")
+			}
+		}
+		row = append(row, RenderMoney(g.SuitValue(s)))
+		cells = append(cells, row)
+	}
+	table, err = render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	output.WriteString(table)
+	return output.String(), nil
 }
 
 func (g *Game) SuitCardsOnTable(suit int) int {
@@ -244,18 +338,23 @@ func (g *Game) Start(players []string) error {
 func (g *Game) StartRound() {
 	g.State = STATE_PLAY_CARD
 	numCards := roundCards[len(g.Players)][g.Round]
-	if numCards <= 0 {
-		return
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("Start of round %d", g.Round+1)))
+	if numCards > 0 {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"Dealing %d cards to each player", numCards)))
 	}
 	for i, _ := range g.Players {
 		g.PlayerPurchases = map[int]card.Deck{}
-		cards, remaining := g.Deck.PopN(numCards)
-		g.PlayerHands[i] = g.PlayerHands[i].PushMany(cards)
-		g.Deck = remaining
+		if numCards > 0 {
+			cards, remaining := g.Deck.PopN(numCards)
+			g.PlayerHands[i] = g.PlayerHands[i].PushMany(cards).Sort()
+			g.Deck = remaining
+		}
 	}
 }
 
 func (g *Game) EndRound() {
+	g.Log.Add(log.NewPublicMessage("{{b}}It is the end of the round{{_b}}"))
 	// Add values to artists
 	g.CurrentlyAuctioning = card.Deck{}
 	values := map[int]int{}
@@ -275,18 +374,38 @@ func (g *Game) EndRound() {
 		}
 		scored[highest] = true
 		values[highest] = v
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"Adding %s to the value of %s (%d cards)",
+			RenderMoney(v), RenderSuit(highest),
+			RenderMoney(g.SuitValue(highest)), highestCount)))
 	}
 	g.ValueBoard = append(g.ValueBoard, values)
 	// Pay out purchased cards
-	for pNum, _ := range g.Players {
+	for pNum, p := range g.Players {
+		pTotal := 0
 		for _, c := range g.PlayerPurchases[pNum] {
-			g.PlayerMoney[pNum] += g.SuitValue(c.(card.SuitRankCard).Suit)
+			pTotal += g.SuitValue(c.(card.SuitRankCard).Suit)
 		}
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"Paying %s %s for selling all their cards",
+			render.PlayerName(pNum, p), RenderMoney(pTotal))))
+		g.PlayerMoney[pNum] += pTotal
 	}
 	if g.Round == 3 {
+		moneyTable := [][]string{}
+		for pNum, p := range g.Players {
+			moneyTable = append(moneyTable, []string{
+				render.PlayerName(pNum, p),
+				RenderMoney(g.PlayerMoney[pNum]),
+			})
+		}
+		table, _ := render.Table(moneyTable, 0, 1)
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"{{b}}End of the game, final player money:{{_b}}\n%s", table)))
 		g.Finished = true
 	} else {
 		g.Round += 1
+		g.NextPlayer()
 		g.StartRound()
 	}
 }
@@ -446,10 +565,40 @@ func (g *Game) AuctionType() int {
 }
 
 func (g *Game) AuctionCard() card.SuitRankCard {
-	if !g.IsAuction() || len(g.CurrentlyAuctioning) == 0 {
+	if len(g.CurrentlyAuctioning) == 0 {
 		return card.SuitRankCard{}
 	}
 	return g.CurrentlyAuctioning[len(g.CurrentlyAuctioning)-1].(card.SuitRankCard)
+}
+
+func RenderCardNameCode(c card.SuitRankCard) string {
+	return RenderInSuit(c.Suit, fmt.Sprintf("(%s) %s",
+		CardCode(c), CardName(c)))
+}
+
+func RenderCardName(c card.SuitRankCard) string {
+	return RenderInSuit(c.Suit, CardName(c))
+}
+
+func RenderCardCode(c card.SuitRankCard) string {
+	return RenderInSuit(c.Suit, CardCode(c))
+}
+
+func RenderSuit(suit int) string {
+	return RenderInSuit(suit, suitNames[suit])
+}
+
+func RenderInSuit(suit int, s string) string {
+	return fmt.Sprintf(`{{b}}{{c "%s"}}%s{{_c}}{{_b}}`,
+		suitColours[suit], s)
+}
+
+func CardName(c card.SuitRankCard) string {
+	return fmt.Sprintf("%s - %s", suitNames[c.Suit], rankNames[c.Rank])
+}
+
+func CardCode(c card.SuitRankCard) string {
+	return fmt.Sprintf("%s%s", suitCodes[c.Suit], rankCodes[c.Rank])
 }
 
 func (g *Game) SetPrice(player, price int) error {
@@ -486,11 +635,18 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	return g.AddCardToAuction(player, c)
 }
 
+func RenderMoney(amount int) string {
+	return fmt.Sprintf(`{{b}}{{c "green"}}$%d{{_c}}{{_b}}`, amount)
+}
+
 func (g *Game) AddCardToAuction(player int, c card.SuitRankCard) error {
 	remaining, removed := g.PlayerHands[player].Remove(c, 1)
 	if removed != 1 {
 		return errors.New("You do not have that card in your hand")
 	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s played %s",
+		render.PlayerName(player, g.Players[player]),
+		RenderCardName(c))))
 	g.PlayerHands[player] = remaining
 	g.CurrentlyAuctioning = g.CurrentlyAuctioning.Push(c)
 	g.Bids = map[int]int{}
@@ -501,14 +657,28 @@ func (g *Game) AddCardToAuction(player int, c card.SuitRankCard) error {
 	return nil
 }
 
+func RenderCardNames(d card.Deck) string {
+	cardStrings := []string{}
+	for _, c := range d {
+		cardStrings = append(cardStrings,
+			RenderCardName(c.(card.SuitRankCard)))
+	}
+	return strings.Join(cardStrings, " and ")
+}
+
 func (g *Game) SettleAuction(winner, price int) {
 	g.PlayerMoney[winner] -= price
 	g.PlayerPurchases[winner] = g.PlayerPurchases[winner].
-		PushMany(g.CurrentlyAuctioning)
+		PushMany(g.CurrentlyAuctioning).Sort()
+	paidTo := "the bank"
 	if winner != g.CurrentPlayer {
 		g.PlayerMoney[g.CurrentPlayer] += price
+		paidTo = render.PlayerName(g.CurrentPlayer, g.Players[g.CurrentPlayer])
 	}
 	g.State = STATE_PLAY_CARD
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s bought %s, paying %s to %s",
+		render.PlayerName(winner, g.Players[winner]),
+		RenderCardNames(g.CurrentlyAuctioning), RenderMoney(price), paidTo)))
 	g.NextPlayer()
 }
 
@@ -517,6 +687,10 @@ func (g *Game) Pass(player int) error {
 		return errors.New("You're not able to pass at the moment")
 	}
 	g.Bids[player] = 0
+	if g.AuctionType() != RANK_SEALED {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s passed",
+			render.PlayerName(player, g.Players[player]))))
+	}
 	switch g.AuctionType() {
 	case RANK_FIXED_PRICE:
 		if len(g.Bids) == len(g.Players) {
@@ -534,7 +708,23 @@ func (g *Game) Bid(player, amount int) error {
 	if !g.CanBid(g.Players[player]) {
 		return errors.New("You're not able to bid at the moment")
 	}
+	if amount > g.PlayerMoney[player] {
+		return fmt.Errorf(
+			"You must not bid higher than the money you have, which is $%d",
+			g.PlayerMoney[player])
+	}
+	if g.AuctionType() != RANK_SEALED {
+		_, highestBid := g.HighestBidder()
+		if amount <= highestBid {
+			return fmt.Errorf("You must bid higher than $%d", highestBid)
+		}
+	}
 	g.Bids[player] = amount
+	if g.AuctionType() != RANK_SEALED {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s bid %s",
+			render.PlayerName(player, g.Players[player]),
+			RenderMoney(amount))))
+	}
 	if len(g.WhoseTurn()) == 0 {
 		g.SettleAuction(g.HighestBidder())
 	}
@@ -547,6 +737,9 @@ func (g *Game) AddCard(player int, c card.SuitRankCard) error {
 	}
 	if g.AuctionCard().Suit != c.Suit {
 		return errors.New("The artist of the card must match the existing one")
+	}
+	if c.Rank == RANK_DOUBLE {
+		return errors.New("You are not allowed to add a second double auction")
 	}
 	err := g.AddCardToAuction(player, c)
 	if err != nil {

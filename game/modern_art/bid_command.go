@@ -22,7 +22,7 @@ func (bc BidCommand) Call(player string, context interface{},
 	g := context.(*Game)
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {
-		return "", errors.New("You must the number of a card to play, such as 2")
+		return "", errors.New("You must specify the amount to bid")
 	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
@@ -36,5 +36,5 @@ func (bc BidCommand) Call(player string, context interface{},
 }
 
 func (bc BidCommand) Usage(player string, context interface{}) string {
-	return "{{b}}play #{{_b}} to play a card, eg. {{b}}play 2{{_b}}"
+	return "{{b}}bid #{{_b}} to bid an amount in the auction, eg. {{b}}bid 10{{_b}}"
 }
