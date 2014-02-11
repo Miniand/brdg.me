@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/acquire"
+	"github.com/Miniand/brdg.me/game/battleship"
 	"github.com/Miniand/brdg.me/game/farkle"
 	"github.com/Miniand/brdg.me/game/liars_dice"
 	"github.com/Miniand/brdg.me/game/log"
@@ -41,6 +42,7 @@ type Botter interface {
 func gameList() []Playable {
 	return []Playable{
 		&acquire.Game{},
+		&battleship.Game{},
 		&farkle.Game{},
 		&liars_dice.Game{},
 		&lost_cities.Game{},

@@ -27,7 +27,7 @@ func (sc ShootCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	y, x, err := ParseLocation(a[1])
+	y, x, err := ParseLocation(a[0])
 	if err != nil {
 		return "", err
 	}
