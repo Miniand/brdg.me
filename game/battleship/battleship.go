@@ -367,7 +367,7 @@ func (g *Game) Shoot(player, y, x int) error {
 	default:
 		ship := g.Boards[OtherPlayer(player)][y][x]
 		g.Boards[OtherPlayer(player)][y][x] = LOCATION_HIT
-		if g.PlayerShipHitsRemaining(player, ship) == 0 {
+		if g.PlayerShipHitsRemaining(OtherPlayer(player), ship) == 0 {
 			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 				"{{b}}%s shot at %s and sunk a %s!{{_b}}",
 				g.RenderPlayerName(player), LocationName(y, x),
