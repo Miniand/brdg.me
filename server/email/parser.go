@@ -32,7 +32,8 @@ func ParseBody(body string) string {
 }
 
 // Run commands on the game, email relevant people and handle action issues
-func HandleCommandText(player, gameId string, commandText string) error {
+func HandleCommandText(player, gameId, commandText string) error {
+	fmt.Printf("%s (%s) %s\n", player, gameId, commandText)
 	unsubscribed, err := UserIsUnsubscribed(player)
 	if (err == nil && unsubscribed) || gameId == "" {
 		commands := Commands("")

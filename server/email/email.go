@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/Miniand/brdg.me/render"
@@ -115,6 +116,8 @@ func GetPlainEmailBodyReader(r io.Reader, contentType string,
 	switch contentTransferEncoding {
 	case "quoted-printable":
 		body = DecodeQuotedPrintable(body)
+	case "base64":
+		body = DecodeBase64(body)
 	}
 	return body, foundContentType, nil
 }
@@ -130,6 +133,11 @@ func DecodeQuotedPrintable(body string) string {
 			}
 			return string(b)
 		})
+}
+
+func DecodeBase64(s string) string {
+	output, _ := base64.StdEncoding.DecodeString(s)
+	return string(output)
 }
 
 func FromAddr() string {
