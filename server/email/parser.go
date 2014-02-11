@@ -95,16 +95,28 @@ func HandleCommandText(player, gameId string, commandText string) error {
 			if err != nil {
 				return err
 			}
-			// Email any players who now have a turn
-			commErr = CommunicateGameTo(gm.Id, g,
-				WhoseTurnNow(g, initialWhoseTurn), "", false)
+			// Email any players who now have a turn, or for ones who still have
+			// a turn but there are new logs
+			whoseTurnNow, remaining := WhoseTurnNow(g, initialWhoseTurn)
+			commErr = CommunicateGameTo(gm.Id, g, whoseTurnNow, "", false)
+			if commErr != nil {
+				commErrs = append(commErrs, commErr.Error())
+			}
+			whoseTurnNewLogs := []string{}
+			for _, p := range remaining {
+				if len(g.GameLog().NewMessagesFor(p)) > 0 {
+					whoseTurnNewLogs = append(whoseTurnNewLogs, p)
+				}
+			}
+			commErr = CommunicateGameTo(gm.Id, g, whoseTurnNewLogs, "", false)
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
 			// Email any players who were eliminated this turn
 			if isEliminator {
-				commErr = CommunicateGameTo(gm.Id, g, FindNewStringsInSlice(
-					initialEliminated, eliminator.EliminatedPlayerList()),
+				newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
+					eliminator.EliminatedPlayerList())
+				commErr = CommunicateGameTo(gm.Id, g, newlyEliminated,
 					"You have been eliminated from the game.", false)
 				if commErr != nil {
 					commErrs = append(commErrs, commErr.Error())
@@ -123,11 +135,13 @@ func HandleCommandText(player, gameId string, commandText string) error {
 	return nil
 }
 
-func WhoseTurnNow(g game.Playable, initialWhoseTurn []string) []string {
+func WhoseTurnNow(g game.Playable, initialWhoseTurn []string) ([]string,
+	[]string) {
 	return FindNewStringsInSlice(initialWhoseTurn, g.WhoseTurn())
 }
 
-func FindNewStringsInSlice(oldSlice, newSlice []string) (newStrings []string) {
+func FindNewStringsInSlice(oldSlice, newSlice []string) (newStrings,
+	remaining []string) {
 	oldSliceMap := map[string]bool{}
 	for _, s := range oldSlice {
 		oldSliceMap[s] = true
@@ -135,6 +149,8 @@ func FindNewStringsInSlice(oldSlice, newSlice []string) (newStrings []string) {
 	for _, s := range newSlice {
 		if !oldSliceMap[s] {
 			newStrings = append(newStrings, s)
+		} else {
+			remaining = append(remaining, s)
 		}
 	}
 	return
