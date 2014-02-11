@@ -375,7 +375,7 @@ func (g *Game) Shoot(player, y, x int) error {
 		} else {
 			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 				"%s shot at %s and hit a ship", g.RenderPlayerName(player),
-				LocationName(y, x), shipNames[ship])))
+				LocationName(y, x))))
 		}
 	}
 	g.NextPlayer()
