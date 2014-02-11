@@ -189,7 +189,7 @@ func CommunicateGameTo(id string, g game.Playable, to []string,
 		// Add log to header if needed
 		messages := g.GameLog().NewMessagesFor(p)
 		if len(messages) > 0 {
-			pHeader += "\n\n{{b}}Since last time:{{_b}}:\n" +
+			pHeader += "\n\n{{b}}Since last time:{{_b}}\n" +
 				log.RenderMessages(messages)
 		}
 		g.GameLog().MarkReadFor(p)
