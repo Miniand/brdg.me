@@ -1,6 +1,7 @@
 package route
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"github.com/Miniand/brdg.me/server/web/controller"
 	"github.com/gorilla/mux"
 )
@@ -20,6 +21,7 @@ func Router() *mux.Router {
 		router.HandleFunc("/game/{id}", controller.GameShow).Name("gameShow")
 		router.HandleFunc("/game/new/{identifier}", controller.GameNew).Name(
 			"gameNew")
+		router.Handle("/ws", websocket.Handler(controller.Ws))
 	}
 	return router
 }

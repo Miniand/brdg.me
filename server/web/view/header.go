@@ -156,6 +156,11 @@ header .header-end {
 </head>
 <script src="https://login.persona.org/include.js"></script>
 <script>
+function getCookie(name) {
+	var value = "; " + document.cookie;
+	var parts = value.split("; " + name + "=");
+	if (parts.length == 2) return parts.pop().split(";").shift();
+}
 var loggedInUser = "{{loggedInUser}}";
 if (loggedInUser === "") {
 	loggedInUser = null;
@@ -200,6 +205,20 @@ navigator.id.watch({
 		xhr.send();
 	}
 });
+var session = getCookie('session');
+if (session) {
+	var ws = new WebSocket("ws://" + window.location.host + "/ws");
+	ws.onopen = function() {
+		ws.send(session);
+	};
+	ws.onmessage = function(event) {
+		console.log(event.data);
+	};
+	ws.onclose = function() {
+		alert("Your connection to the server has dropped, please refresh the page");
+	};
+	window.ws = ws;
+}
 </script>
 <body>
 <header>
