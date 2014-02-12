@@ -376,8 +376,7 @@ func (g *Game) EndRound() {
 		values[highest] = v
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"Adding %s to the value of %s (%d cards)",
-			RenderMoney(v), RenderSuit(highest),
-			RenderMoney(g.SuitValue(highest)), highestCount)))
+			RenderMoney(v), RenderSuit(highest), highestCount)))
 	}
 	g.ValueBoard = append(g.ValueBoard, values)
 	// Pay out purchased cards
