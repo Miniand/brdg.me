@@ -59,11 +59,10 @@ func setSessionCookie(w http.ResponseWriter, email string, expires int64) error 
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session",
-		Value:    encoded,
-		Path:     "/",
-		HttpOnly: true,
-		Expires:  time.Now().Add(time.Hour * 336), // session is valid for 2 weeks
+		Name:    "session",
+		Value:   encoded,
+		Path:    "/",
+		Expires: time.Now().Add(time.Hour * 336), // session is valid for 2 weeks
 	})
 
 	return nil
@@ -72,10 +71,9 @@ func setSessionCookie(w http.ResponseWriter, email string, expires int64) error 
 // overwrites the secure session cookie
 func revokeSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session", // same cookie name → overwrites session cookie
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   -1, // browser deletes this cookie immediatly
+		Name:   "session", // same cookie name → overwrites session cookie
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1, // browser deletes this cookie immediatly
 	})
 }
