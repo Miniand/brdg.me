@@ -57,7 +57,7 @@ func Show(wr io.Writer, scope ShowScope) {
 		panic(err.Error())
 	}
 	// Output
-	rawOutput, err := scope.Game.RenderForPlayer("Mick")
+	rawOutput, err := scope.Game.RenderForPlayer(view.LoggedInUser)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -67,7 +67,8 @@ func Show(wr io.Writer, scope ShowScope) {
 	}
 	scope.Output = template.HTML(output)
 	// Log
-	rawLog := log.RenderMessages(scope.Game.GameLog().MessagesFor("Mick"))
+	rawLog := log.RenderMessages(scope.Game.GameLog().MessagesFor(
+		view.LoggedInUser))
 	logOutput, err := render.RenderHtml(rawLog)
 	if err != nil {
 		panic(err.Error())
@@ -75,8 +76,8 @@ func Show(wr io.Writer, scope ShowScope) {
 	scope.Log = template.HTML(logOutput)
 	// Available commands
 	rawCommands := render.CommandUsages(command.CommandUsages(
-		"Mick", scope.Game, command.AvailableCommands(
-			"Mick", scope.Game, scope.Game.Commands())))
+		view.LoggedInUser, scope.Game, command.AvailableCommands(
+			view.LoggedInUser, scope.Game, scope.Game.Commands())))
 	commandOutput, err := render.RenderHtml(rawCommands)
 	if err != nil {
 		panic(err.Error())

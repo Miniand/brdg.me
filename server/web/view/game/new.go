@@ -7,11 +7,23 @@ import (
 )
 
 type NewScope struct {
-	Game game.Playable
+	Game    game.Playable
+	Players []string
 }
 
 var newTmpl = `{{template "header" "New game"}}
-Game {{.Game.Name}}
+<h1>New game of {{.Game.Name}}</h1>
+<h2>Players</h2>
+<form method="POST" action="/game">
+	<input type="hidden" name="identifier" value="{{.Game.Identifier}}" />
+	{{loggedInUser}}
+	{{range .Players}}
+		<input name="players[]" value="{{.}}" />
+	{{end}}
+	<input name="players[]" />
+	<input type="button" onclick="$(this).before($('<input/>').attr('name', 'players[]'))" value="Add" />
+	<input type="submit" value="Start game!" />
+</form>
 {{template "footer"}}`
 
 func New(wr io.Writer, scope NewScope) {

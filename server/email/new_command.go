@@ -3,13 +3,10 @@ package email
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/server/model"
-	"math/rand"
 	"regexp"
 	"strings"
-	"time"
 )
 
 type NewCommand struct{}
@@ -33,37 +30,10 @@ func (nc NewCommand) Call(player string, context interface{},
 	if len(args) < 2 {
 		errors.New("Could not find game name and email addresses")
 	}
-	gType := game.Collection()[args[1]]
-	if gType == nil {
-		return "", errors.New(fmt.Sprintf(
-			`Sorry, could not find a game called "%s", please see below for available game IDs`,
-			args[1]))
-	}
+	g := game.RawCollection()[args[1]]
 	players := append([]string{player}, regexp.MustCompile(`\s+`).Split(
 		strings.TrimSpace(args[2]), -1)...)
-	// Unique players
-	playerMap := map[string]bool{}
-	for _, p := range players {
-		playerMap[p] = true
-	}
-	uniquePlayers := []string{}
-	for p, _ := range playerMap {
-		uniquePlayers = append(uniquePlayers, p)
-	}
-	// Shuffle players
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	l := len(uniquePlayers)
-	perm := r.Perm(l)
-	shuffledPlayers := make([]string, l)
-	for i := 0; i < l; i++ {
-		shuffledPlayers[i] = uniquePlayers[perm[i]]
-	}
-	// Start game
-	g, err := gType(shuffledPlayers)
-	if err != nil {
-		return "", err
-	}
-	gm, err := model.SaveGame(g)
+	gm, err := model.StartNewGame(g, players)
 	if err != nil {
 		return "", err
 	}

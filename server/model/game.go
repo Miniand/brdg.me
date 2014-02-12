@@ -4,6 +4,8 @@ import (
 	"errors"
 	"github.com/Miniand/brdg.me/game"
 	r "github.com/dancannon/gorethink"
+	"math/rand"
+	"time"
 )
 
 type GameModel struct {
@@ -54,6 +56,32 @@ func UpdateGame(id string, g game.Playable) (*GameModel, error) {
 	gm.Id = id
 	err = gm.Save()
 	return gm, err
+}
+
+func StartNewGame(g game.Playable, players []string) (*GameModel, error) {
+	// Unique players
+	playerMap := map[string]bool{}
+	for _, p := range players {
+		playerMap[p] = true
+	}
+	uniquePlayers := []string{}
+	for p, _ := range playerMap {
+		uniquePlayers = append(uniquePlayers, p)
+	}
+	// Shuffle players
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	l := len(uniquePlayers)
+	perm := r.Perm(l)
+	shuffledPlayers := make([]string, l)
+	for i := 0; i < l; i++ {
+		shuffledPlayers[i] = uniquePlayers[perm[i]]
+	}
+	// Start game
+	if err := g.Start(shuffledPlayers); err != nil {
+		return nil, err
+	}
+	// Save game
+	return SaveGame(g)
 }
 
 func GameToGameModel(g game.Playable) (*GameModel, error) {

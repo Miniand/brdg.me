@@ -11,16 +11,21 @@ var router *mux.Router
 func Router() *mux.Router {
 	if router == nil {
 		router = mux.NewRouter()
-		router.HandleFunc("/", controller.Root).Name("root")
+		router.HandleFunc("/", controller.Root).Methods("GET").Name("root")
 		router.HandleFunc("/session/sign-in", controller.SessionSignIn).
 			Methods("POST").Name("sessionSignIn")
 		router.HandleFunc("/session/sign-out", controller.SessionSignOut).
 			Methods("POST").Name("sessionSignOut")
-		router.HandleFunc("/", controller.Root).Name("sessionSignOut")
-		router.HandleFunc("/game", controller.GameIndex).Name("gameIndex")
-		router.HandleFunc("/game/{id}", controller.GameShow).Name("gameShow")
-		router.HandleFunc("/game/new/{identifier}", controller.GameNew).Name(
-			"gameNew")
+		router.HandleFunc("/", controller.Root).Methods("GET").
+			Name("sessionSignOut")
+		router.HandleFunc("/game", controller.GameIndex).Methods("GET").
+			Name("gameIndex")
+		router.HandleFunc("/game", controller.GameCreate).Methods("POST").
+			Name("gameCreate")
+		router.HandleFunc("/game/{id}", controller.GameShow).Methods("GET").
+			Name("gameShow")
+		router.HandleFunc("/game/new/{identifier}", controller.GameNew).
+			Methods("GET").Name("gameNew")
 		router.Handle("/ws", websocket.Handler(controller.Ws))
 	}
 	return router

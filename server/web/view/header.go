@@ -155,6 +155,7 @@ header .header-end {
 <title>brdg.me - {{.}}</title>
 </head>
 <script src="https://login.persona.org/include.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 <script>
 function getCookie(name) {
 	var value = "; " + document.cookie;
