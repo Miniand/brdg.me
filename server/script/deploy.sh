@@ -14,19 +14,12 @@ cd $(dirname $0)
 ./test.sh
 
 # Build and deploy files
-cd ../email
+cd ../main
 go get
 go build
-ssh $DEPLOY_ADDRESS service brdg.me-email stop
-scp email $DEPLOY_ADDRESS:/usr/bin/brdg.me-email
-ssh $DEPLOY_ADDRESS service brdg.me-email start
-rm email
-cd ../web
-go get
-go build
-ssh $DEPLOY_ADDRESS service brdg.me-web stop
-scp web $DEPLOY_ADDRESS:/usr/bin/brdg.me-web
-ssh $DEPLOY_ADDRESS service brdg.me-web start
-rm web
+ssh $DEPLOY_ADDRESS "if pgrep brdg.me; then service brdg.me stop; fi"
+scp main $DEPLOY_ADDRESS:/usr/bin/brdg.me
+ssh $DEPLOY_ADDRESS service brdg.me start
+rm main
 
 echo "Deploy complete"

@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"github.com/Miniand/brdg.me/server/web/config"
@@ -7,12 +7,9 @@ import (
 	"net/http"
 )
 
-func main() {
+func Run() error {
 	http.Handle("/", route.Router())
 	addr := config.Get(config.SERVER_ADDRESS)
 	log.Print("Running web server on " + addr)
-	err := http.ListenAndServe(addr, nil)
-	if err != nil {
-		panic(err.Error())
-	}
+	return http.ListenAndServe(addr, nil)
 }

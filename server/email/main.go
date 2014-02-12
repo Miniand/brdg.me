@@ -1,4 +1,4 @@
-package main
+package email
 
 import (
 	"log"
@@ -28,14 +28,11 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 	}
 }
 
-func main() {
+func Run() error {
 	addr := os.Getenv("BRDGME_EMAIL_SERVER_ADDRESS")
 	if addr == "" {
 		addr = ":9999"
 	}
 	log.Println("Running incoming email server on " + addr)
-	err := http.ListenAndServe(addr, &InboundEmailHandler{})
-	if err != nil {
-		panic(err.Error())
-	}
+	return http.ListenAndServe(addr, &InboundEmailHandler{})
 }

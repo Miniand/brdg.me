@@ -1,4 +1,4 @@
-package main
+package email
 
 import (
 	"github.com/Miniand/brdg.me/command"
