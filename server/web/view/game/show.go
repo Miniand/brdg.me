@@ -34,7 +34,7 @@ var showTmpl = `{{template "header" "Game"}}
 	<div class="game-input-container">
 		<h2 class="game-input-heading">You can:</h2>
 		<div class="game-input-available-commands">{{.AvailableCommands}}</div>
-		<form class="game-input">
+		<form class="game-input" onsubmit="var i = $('.game-input-command');ws.send('{{.GameModel.Id}};'+i.val());i.val('');return false;">
 			<input type="text" class="game-input-command" />
 			<input type="submit" class="game-input-submit" value="Send command" />
 		</form>

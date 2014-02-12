@@ -121,7 +121,7 @@ header .header-end {
 .game-log {
 	text-align: left;
 	white-space: pre-wrap;
-	max-height: 50em;
+	max-height: 30em;
 	overflow-y: auto;
 }
 
@@ -161,6 +161,37 @@ function getCookie(name) {
 	var value = "; " + document.cookie;
 	var parts = value.split("; " + name + "=");
 	if (parts.length == 2) return parts.pop().split(";").shift();
+}
+wsHandlers = [
+	function(event) {
+		console.log(event.data);
+	},
+	function(event) {
+		var pieces = event.data.split(";");
+		if (pieces.length > 1) {
+			var command = pieces.shift();
+			var arg = pieces.join(";");
+			switch (command) {
+			case "out":
+			case "err":
+				alert(arg);
+				break;
+			case "gameOutput":
+				$(".game-output").html(arg);
+				break;
+			case "log":
+				var container = $(".game-log");
+				container.html(arg);
+				container[0].scrollTop = container[0].scrollHeight;
+				break;
+			case "commands":
+				$(".game-input-available-commands").html(arg);
+				break;
+			}
+		}
+	}];
+function registerMessageHandler(handler) {
+	wsHandlers.push(handler);
 }
 var loggedInUser = "{{loggedInUser}}";
 if (loggedInUser === "") {
@@ -213,7 +244,9 @@ if (session) {
 		ws.send(session);
 	};
 	ws.onmessage = function(event) {
-		console.log(event.data);
+		$.each(wsHandlers, function(key, handler) {
+			handler(event);
+		});
 	};
 	ws.onclose = function() {
 		alert("Your connection to the server has dropped, please refresh the page");
