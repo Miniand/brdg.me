@@ -3,10 +3,11 @@ package render
 import (
 	"bytes"
 	"fmt"
-	"github.com/Miniand/brdg.me/game/grid"
-	"github.com/Miniand/brdg.me/game/grid/hex"
 	"math"
 	"strings"
+
+	"github.com/Miniand/brdg.me/game/grid"
+	"github.com/Miniand/brdg.me/game/grid/hex"
 )
 
 const (
@@ -35,6 +36,7 @@ func RenderHexGrid(g hex.Grid, size int) string {
 		g.Tile(lower) == nil {
 		return ""
 	}
+	fmt.Printf("%+v %+v\n", lower, upper)
 	// FROM
 	// If 0, -1
 	// If -1, -5

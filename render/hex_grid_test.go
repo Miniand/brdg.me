@@ -2,9 +2,10 @@ package render
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/Miniand/brdg.me/game/grid"
 	"github.com/Miniand/brdg.me/game/grid/hex"
-	"testing"
 )
 
 type T struct {
@@ -21,10 +22,23 @@ func (t T) Colour() string {
 func (t T) ColourPriority() int {
 	return t.colourPriority
 }
+func prefixPeriods(in string) string {
+	return regexp.MustCompile("(?m)^").ReplaceAllString(in, ".")
+}
 
-func TestHexGrid(t *testing.T) {
+func ExampleHexGrid() {
 	g := hex.Grid{}
-	// g.SetTile(grid.Loc{-3, -4}, T{"fart", "blue", 0})
+	g.SetTile(grid.Loc{2, 1}, T{"egg", "blue", 0})
 	g.SetTile(grid.Loc{0, 0}, T{"fart", "red", 0})
-	fmt.Println(RenderHexGrid(g, 2))
+	fmt.Println(prefixPeriods(RenderHexGrid(g, 2)))
+	// Output:
+	// .  _____
+	// . /     \
+	// ./ fart  \
+	// .\       /
+	// . \_____/        _____
+	// .               /     \
+	// .              /  egg  \
+	// .              \       /
+	// .               \_____/
 }
