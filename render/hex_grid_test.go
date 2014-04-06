@@ -26,19 +26,20 @@ func prefixPeriods(in string) string {
 	return regexp.MustCompile("(?m)^").ReplaceAllString(in, ".")
 }
 
-func ExampleHexGrid() {
+func _ExampleHexGrid() {
 	g := hex.Grid{}
 	g.SetTile(grid.Loc{2, 1}, T{"egg", "blue", 0})
-	g.SetTile(grid.Loc{0, 0}, T{"fart", "red", 0})
+	g.SetTile(grid.Loc{2, 0}, T{"fart", "red", 0})
+	g.SetTile(grid.Loc{3, 0}, T{"bacon", "green", 0})
 	fmt.Println(prefixPeriods(RenderHexGrid(g, 2)))
 	// Output:
 	// .  _____
 	// . /     \
-	// ./ fart  \
+	// ./ fart  \_____
+	// .\       /     \
+	// . \_____/ bacon \
+	// . /     \       /
+	// ./  egg  \_____/
 	// .\       /
-	// . \_____/        _____
-	// .               /     \
-	// .              /  egg  \
-	// .              \       /
-	// .               \_____/
+	// . \_____/
 }
