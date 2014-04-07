@@ -40,6 +40,10 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	g.Board.SetTile(grid.Loc{1, 0}, &Tile{TILE_QUEEN_BEE, 1})
 	g.Board.SetTile(grid.Loc{1, 1}, &Tile{TILE_GRASSHOPPER, 0})
 	g.Board.SetTile(grid.Loc{0, 1}, &Tile{TILE_SPIDER, 1})
+	g.Board.SetTile(grid.Loc{2, 2}, &Tile{TILE_SOLDIER_ANT, 1})
+	g.Board.SetTile(grid.Loc{2, 3}, &Tile{TILE_SPIDER, 0})
+	g.Board.SetTile(grid.Loc{-2, -1}, &Tile{TILE_BEETLE, 1})
+	g.updateEmptyTiles()
 	return render.RenderHexGrid(g.Board, 2), nil
 }
 
@@ -65,6 +69,26 @@ func (g *Game) Name() string {
 
 func (g *Game) Identifier() string {
 	return "hive"
+}
+
+func (g *Game) updateEmptyTiles() {
+	// Clear current empties
+	g.Board.Each(func(l grid.Loc, tile interface{}) {
+		if _, ok := tile.(*EmptyTile); ok {
+			g.Board.SetTile(l, nil)
+		}
+	})
+	// Set new empties
+	g.Board.Each(func(l grid.Loc, tile interface{}) {
+		if _, ok := tile.(*EmptyTile); ok {
+			return
+		}
+		for _, nLoc := range g.Board.Neighbours(l) {
+			if g.Board.Tile(nLoc) == nil {
+				g.Board.SetTile(nLoc, &EmptyTile{})
+			}
+		}
+	})
 }
 
 // Encode to a string

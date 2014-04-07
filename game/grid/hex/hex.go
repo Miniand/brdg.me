@@ -19,6 +19,8 @@ package hex
 //                \_____/
 
 import (
+	"reflect"
+
 	"github.com/Miniand/brdg.me/game/grid"
 )
 
@@ -69,7 +71,43 @@ func (g Grid) Tile(l grid.Loc) interface{} {
 }
 
 func (g Grid) Find(tile interface{}) (grid.Loc, bool) {
+	locs := g.Locs()
+	for {
+		l, ok := <-locs
+		if !ok {
+			break
+		}
+		if reflect.DeepEqual(g.Tile(l), tile) {
+			return l, true
+		}
+	}
 	return grid.Loc{}, false
+}
+
+func (g Grid) Each(cb func(l grid.Loc, tile interface{})) {
+	locs := g.Locs()
+	for {
+		l, ok := <-locs
+		if !ok {
+			break
+		}
+		cb(l, g.Tile(l))
+	}
+}
+
+func (g Grid) Locs() chan grid.Loc {
+	locs := make(chan grid.Loc)
+	go func() {
+		defer close(locs)
+		for y, row := range g {
+			for x, tile := range row {
+				if tile != nil {
+					locs <- grid.Loc{x, y}
+				}
+			}
+		}
+	}()
+	return locs
 }
 
 func (g Grid) Neighbours(l grid.Loc) []grid.Loc {

@@ -8,6 +8,8 @@ type Gridder interface {
 	SetTile(l Loc, tile interface{})
 	Tile(l Loc) interface{}
 	Find(tile interface{}) (at Loc, ok bool)
+	Locs() chan Loc
+	Each(loc Loc, tile interface{})
 	Neighbours(l Loc) []Loc
 	Neighbour(l Loc, dir int) Loc
 	Bounds() (lower, upper Loc)

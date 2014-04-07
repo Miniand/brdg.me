@@ -39,3 +39,13 @@ func (t *Tile) Colour() string {
 func (t *Tile) Message() string {
 	return tileShortNames[t.Type]
 }
+
+type EmptyTile struct{}
+
+func (t *EmptyTile) Colour() string {
+	return "gray"
+}
+
+func (t *EmptyTile) ColourPriority() int {
+	return -1
+}

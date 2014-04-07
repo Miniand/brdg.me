@@ -1,8 +1,10 @@
 package hex
 
 import (
-	"github.com/Miniand/brdg.me/game/grid"
+	"reflect"
 	"testing"
+
+	"github.com/Miniand/brdg.me/game/grid"
 )
 
 func TestSetTile(t *testing.T) {
@@ -50,5 +52,23 @@ func TestBounds(t *testing.T) {
 	lower, upper := hex.Bounds()
 	if lower.X != -6 || lower.Y != -7 || upper.X != 8 || upper.Y != 9 {
 		t.Fatalf("Bounds did not match, got: %#v %#v", lower, upper)
+	}
+}
+
+func TestFind(t *testing.T) {
+	hex := Grid{}
+	hex.SetTile(grid.Loc{-4, 6}, "moo")
+	hex.SetTile(grid.Loc{-3, 6}, "bag")
+	hex.SetTile(grid.Loc{-2, 6}, "mazomba")
+	found, ok := hex.Find("bag")
+	if !ok {
+		t.Fatal("Could not find bag")
+	}
+	if !reflect.DeepEqual(found, grid.Loc{-3, 6}) {
+		t.Fatal("Could not find at -3, 6")
+	}
+	_, ok = hex.Find("should not exist")
+	if ok {
+		t.Fatal("Found something that should not exist")
 	}
 }
