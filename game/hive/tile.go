@@ -49,3 +49,19 @@ func (t *EmptyTile) Colour() string {
 func (t *EmptyTile) ColourPriority() int {
 	return -1
 }
+
+func PlayerTiles(player int) []*Tile {
+	return []*Tile{
+		&Tile{TILE_QUEEN_BEE, player},
+		&Tile{TILE_BEETLE, player},
+		&Tile{TILE_BEETLE, player},
+		&Tile{TILE_GRASSHOPPER, player},
+		&Tile{TILE_GRASSHOPPER, player},
+		&Tile{TILE_GRASSHOPPER, player},
+		&Tile{TILE_SPIDER, player},
+		&Tile{TILE_SPIDER, player},
+		&Tile{TILE_SOLDIER_ANT, player},
+		&Tile{TILE_SOLDIER_ANT, player},
+		&Tile{TILE_SOLDIER_ANT, player},
+	}
+}

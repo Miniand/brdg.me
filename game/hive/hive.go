@@ -13,10 +13,11 @@ import (
 )
 
 type Game struct {
-	Players       []string
-	Log           *log.Log
-	Board         hex.Grid
-	CurrentPlayer int
+	Players        []string
+	Log            *log.Log
+	Board          hex.Grid
+	RemainingTiles map[int][]*Tile
+	CurrentPlayer  int
 }
 
 func (g *Game) Start(players []string) error {
@@ -26,6 +27,10 @@ func (g *Game) Start(players []string) error {
 	g.Players = players
 	g.Log = log.New()
 	g.Board = hex.Grid{}
+	g.RemainingTiles = map[int][]*Tile{}
+	for pNum, _ := range g.Players {
+		g.RemainingTiles[pNum] = PlayerTiles(pNum)
+	}
 	return nil
 }
 
@@ -38,6 +43,7 @@ func (g *Game) Commands() []command.Command {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
+	buf := bytes.Buffer{}
 	g.Board.SetTile(grid.Loc{0, 0}, &Tile{TILE_BEETLE, 0})
 	g.Board.SetTile(grid.Loc{1, 0}, &Tile{TILE_QUEEN_BEE, 1})
 	g.Board.SetTile(grid.Loc{1, 1}, &Tile{TILE_GRASSHOPPER, 0})
@@ -46,7 +52,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	g.Board.SetTile(grid.Loc{2, 3}, &Tile{TILE_SPIDER, 0})
 	g.Board.SetTile(grid.Loc{-2, -1}, &Tile{TILE_BEETLE, 1})
 	g.updateEmptyTiles()
-	return render.RenderHexGrid(g.Board, 2), nil
+	buf.WriteString(render.RenderHexGrid(g.Board, 2))
+	return buf.String(), nil
 }
 
 func (g *Game) PlayerList() []string {
