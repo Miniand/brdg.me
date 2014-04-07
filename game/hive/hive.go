@@ -13,9 +13,10 @@ import (
 )
 
 type Game struct {
-	Players []string
-	Log     *log.Log
-	Board   hex.Grid
+	Players       []string
+	Log           *log.Log
+	Board         hex.Grid
+	CurrentPlayer int
 }
 
 func (g *Game) Start(players []string) error {
@@ -56,6 +57,18 @@ func (g *Game) Winners() []string {
 	return []string{}
 }
 
+func (g *Game) IsOpeningPlay() (openingPlay bool) {
+	openingPlay = true
+	g.Board.Each(func(l grid.Loc, tile interface{}) bool {
+		if _, ok := tile.(*Tile); ok {
+			openingPlay = false
+			return false
+		}
+		return true
+	})
+	return openingPlay
+}
+
 func (g *Game) IsFinished() bool {
 	return false
 }
@@ -81,17 +94,21 @@ func (g *Game) updateEmptyTiles() {
 		return true
 	})
 	// Set new empties
-	g.Board.Each(func(l grid.Loc, tile interface{}) bool {
-		if _, ok := tile.(*EmptyTile); ok {
-			return true
-		}
-		for _, nLoc := range g.Board.Neighbours(l) {
-			if g.Board.Tile(nLoc) == nil {
-				g.Board.SetTile(nLoc, &EmptyTile{})
+	if g.IsOpeningPlay() {
+		g.Board.SetTile(grid.Loc{0, 0}, &EmptyTile{})
+	} else {
+		g.Board.Each(func(l grid.Loc, tile interface{}) bool {
+			if _, ok := tile.(*EmptyTile); ok {
+				return true
 			}
-		}
-		return true
-	})
+			for _, nLoc := range g.Board.Neighbours(l) {
+				if g.Board.Tile(nLoc) == nil {
+					g.Board.SetTile(nLoc, &EmptyTile{})
+				}
+			}
+			return true
+		})
+	}
 }
 
 func RegisterGobTypes() {
@@ -112,4 +129,13 @@ func (g *Game) Decode(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	decoder := gob.NewDecoder(buf)
 	return decoder.Decode(g)
+}
+
+func (g *Game) PlayerNum(player string) (int, error) {
+	for pNum, p := range g.Players {
+		if p == player {
+			return pNum, nil
+		}
+	}
+	return 0, errors.New("Could not find player by that name")
 }
