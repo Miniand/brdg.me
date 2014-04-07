@@ -45,10 +45,7 @@ func RenderHexGrid(g hex.Grid, size int) string {
 	offsetHeight := Height(size)
 	offsetWidth := OffsetWidth(size)
 	fullWidth := Width(size)
-	g.Each(func(l grid.Loc, t interface{}) {
-		if t == nil {
-			return
-		}
+	g.Each(func(l grid.Loc, t interface{}) bool {
 		// Initialise vars
 		drawX := l.X * offsetWidth
 		drawY := l.Y*offsetHeight + size*(l.X&1)
@@ -139,6 +136,7 @@ func RenderHexGrid(g hex.Grid, size int) string {
 					fmt.Sprintf(`{{c "%s"}}\{{_c}}`, colour))
 			}
 		}
+		return true
 	})
 	return c.Render()
 }

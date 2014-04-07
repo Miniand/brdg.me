@@ -1,7 +1,8 @@
 package hive
 
 import (
-	"encoding/json"
+	"bytes"
+	"encoding/gob"
 	"errors"
 
 	"github.com/Miniand/brdg.me/command"
@@ -73,30 +74,42 @@ func (g *Game) Identifier() string {
 
 func (g *Game) updateEmptyTiles() {
 	// Clear current empties
-	g.Board.Each(func(l grid.Loc, tile interface{}) {
+	g.Board.Each(func(l grid.Loc, tile interface{}) bool {
 		if _, ok := tile.(*EmptyTile); ok {
 			g.Board.SetTile(l, nil)
 		}
+		return true
 	})
 	// Set new empties
-	g.Board.Each(func(l grid.Loc, tile interface{}) {
+	g.Board.Each(func(l grid.Loc, tile interface{}) bool {
 		if _, ok := tile.(*EmptyTile); ok {
-			return
+			return true
 		}
 		for _, nLoc := range g.Board.Neighbours(l) {
 			if g.Board.Tile(nLoc) == nil {
 				g.Board.SetTile(nLoc, &EmptyTile{})
 			}
 		}
+		return true
 	})
 }
 
-// Encode to a string
-func (g *Game) Encode() ([]byte, error) {
-	return json.Marshal(g)
+func RegisterGobTypes() {
+	gob.Register(Tile{})
+	gob.Register(EmptyTile{})
 }
 
-// Decode from a string
+func (g *Game) Encode() ([]byte, error) {
+	RegisterGobTypes()
+	buf := bytes.NewBuffer([]byte{})
+	encoder := gob.NewEncoder(buf)
+	err := encoder.Encode(g)
+	return buf.Bytes(), err
+}
+
 func (g *Game) Decode(data []byte) error {
-	return json.Unmarshal(data, g)
+	RegisterGobTypes()
+	buf := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(buf)
+	return decoder.Decode(g)
 }

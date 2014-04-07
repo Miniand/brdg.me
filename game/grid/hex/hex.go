@@ -70,44 +70,29 @@ func (g Grid) Tile(l grid.Loc) interface{} {
 	return nil
 }
 
-func (g Grid) Find(tile interface{}) (grid.Loc, bool) {
-	locs := g.Locs()
-	for {
-		l, ok := <-locs
-		if !ok {
-			break
+func (g Grid) Find(tile interface{}) (l grid.Loc, found bool) {
+	g.Each(func(l2 grid.Loc, tile2 interface{}) bool {
+		if reflect.DeepEqual(tile, tile2) {
+			l = l2
+			found = true
+			return false
 		}
-		if reflect.DeepEqual(g.Tile(l), tile) {
-			return l, true
-		}
-	}
-	return grid.Loc{}, false
+		return true
+	})
+	return
 }
 
-func (g Grid) Each(cb func(l grid.Loc, tile interface{})) {
-	locs := g.Locs()
-	for {
-		l, ok := <-locs
-		if !ok {
-			break
-		}
-		cb(l, g.Tile(l))
-	}
-}
-
-func (g Grid) Locs() chan grid.Loc {
-	locs := make(chan grid.Loc)
-	go func() {
-		defer close(locs)
-		for y, row := range g {
-			for x, tile := range row {
-				if tile != nil {
-					locs <- grid.Loc{x, y}
-				}
+func (g Grid) Each(cb func(l grid.Loc, tile interface{}) bool) {
+	for y, row := range g {
+		for x, t := range row {
+			if t == nil {
+				continue
+			}
+			if !cb(grid.Loc{x, y}, t) {
+				break
 			}
 		}
-	}()
-	return locs
+	}
 }
 
 func (g Grid) Neighbours(l grid.Loc) []grid.Loc {
