@@ -74,6 +74,14 @@ var CardColours = map[int]string{
 	SUIT_YELLOW: "yellow",
 }
 
+var SuitShortNames = map[int]string{
+  SUIT_RED: "R",
+  SUIT_GREEN:  "G",
+  SUIT_BLUE:   "B",
+  SUIT_WHITE:  "W",
+  SUIT_YELLOW: "Y",
+}
+
 func (g *Game) Start(players []string) error {
 	if len(players) != 2 {
 		return errors.New("Lost Cities requires 2 spieler")
@@ -235,8 +243,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	output.WriteString("the discard piles:\n")
 	for suits := 0; suits < 5; suits++ {
-		for count := 0; count < len(g.Board.DiscardPiles[suits]); count++ {
-			output.WriteString(g.RenderCard(g.Board.DiscardPiles[suits][count].(card.SuitRankCard)) + "\n")
+		if len(g.Board.DiscardPiles[suits])>0 {
+			output.WriteString(g.RenderCard(g.Board.DiscardPiles[suits][len(g.Board.DiscardPiles[suits])-1].(card.SuitRankCard)) + "\n")
 
 		}
 	}
@@ -248,7 +256,7 @@ func (g *Game) RenderCard(card card.SuitRankCard) string {
 	// @todo Actually do output from card suit and value.  Maybe make sure
 	// there's a trailing space if the card value isn't 10, to make sure
 	// everything lines up nicely.
-	return `{{c "` + CardColours[card.Suit] + `"}}` + strconv.Itoa(card.Rank) + `{{_c}}`
+	return `{{c "` + CardColours[card.Suit] + `"}}` + strconv.Itoa(card.Rank) + `{{_c}}` + `: ` + SuitShortNames[card.Suit] + strconv.Itoa(card.Rank)
 	return CardColours[card.Suit] + " " + strconv.Itoa(card.Rank)
 }
 
