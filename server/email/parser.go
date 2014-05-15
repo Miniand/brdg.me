@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/model"
-	"regexp"
-	"strings"
 )
 
 // Search for an email address
@@ -69,6 +70,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if err != nil {
 			return err
 		}
+		alreadyFinished := g.IsFinished()
 		commands := append(g.Commands(), Commands(gm.Id)...)
 		initialWhoseTurn := g.WhoseTurn()
 		eliminator, isEliminator := g.(game.Eliminator)
@@ -96,6 +98,9 @@ func HandleCommandText(player, gameId, commandText string) error {
 			if err != nil {
 				return err
 			}
+			// Keep track who we've communicated to for if it's the end of the
+			// game.
+			communicatedTo := []string{player}
 			// Email any players who now have a turn, or for ones who still have
 			// a turn but there are new logs
 			whoseTurnNow, remaining := WhoseTurnNow(g, initialWhoseTurn)
@@ -103,6 +108,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
+			communicatedTo = append(communicatedTo, whoseTurnNow...)
 			whoseTurnNewLogs := []string{}
 			for _, p := range remaining {
 				if len(g.GameLog().NewMessagesFor(p)) > 0 {
@@ -113,6 +119,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
+			communicatedTo = append(communicatedTo, whoseTurnNewLogs...)
 			// Email any players who were eliminated this turn
 			if isEliminator {
 				newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
@@ -122,7 +129,15 @@ func HandleCommandText(player, gameId, commandText string) error {
 				if commErr != nil {
 					commErrs = append(commErrs, commErr.Error())
 				}
+				communicatedTo = append(communicatedTo, newlyEliminated...)
 			}
+			// If it's the end of the game,
+			if !alreadyFinished && g.IsFinished() {
+				uncommunicated, _ := FindNewStringsInSlice(communicatedTo,
+					g.PlayerList())
+				commErr = CommunicateGameTo(gm.Id, g, uncommunicated, "", false)
+			}
+
 			// Update again to handle saves during render, ie for logger
 			_, err = model.UpdateGame(gameId, g)
 			if err != nil {
