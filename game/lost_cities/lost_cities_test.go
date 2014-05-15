@@ -1,10 +1,11 @@
 package lost_cities
 
 import (
+	"testing"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
 )
 
 // Build a game by hand for testing purposes.  Each player has a full hand, half

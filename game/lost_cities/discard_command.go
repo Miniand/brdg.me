@@ -2,6 +2,7 @@ package lost_cities
 
 import (
 	"errors"
+
 	"github.com/Miniand/brdg.me/command"
 )
 

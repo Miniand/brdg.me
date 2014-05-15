@@ -5,13 +5,14 @@ import (
 	"encoding/gob"
 	"errors"
 	//"fmt"
-	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game/card"
-	"github.com/Miniand/brdg.me/game/log"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type Game struct {
@@ -75,11 +76,11 @@ var CardColours = map[int]string{
 }
 
 var SuitShortNames = map[int]string{
-  SUIT_RED: "R",
-  SUIT_GREEN:  "G",
-  SUIT_BLUE:   "B",
-  SUIT_WHITE:  "W",
-  SUIT_YELLOW: "Y",
+	SUIT_RED:    "R",
+	SUIT_GREEN:  "G",
+	SUIT_BLUE:   "B",
+	SUIT_WHITE:  "W",
+	SUIT_YELLOW: "Y",
 }
 
 func (g *Game) Start(players []string) error {
@@ -243,7 +244,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	output.WriteString("the discard piles:\n")
 	for suits := 0; suits < 5; suits++ {
-		if len(g.Board.DiscardPiles[suits])>0 {
+		if len(g.Board.DiscardPiles[suits]) > 0 {
 			output.WriteString(g.RenderCard(g.Board.DiscardPiles[suits][len(g.Board.DiscardPiles[suits])-1].(card.SuitRankCard)) + "\n")
 
 		}
