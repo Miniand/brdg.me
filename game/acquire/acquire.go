@@ -5,14 +5,15 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game/card"
-	"github.com/Miniand/brdg.me/game/log"
-	"github.com/Miniand/brdg.me/render"
 	"math"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 const (
@@ -477,7 +478,7 @@ func (g *Game) WouldFoundCorp(t Tile) bool {
 }
 
 func (g *Game) BuySharesPhase() {
-	if g.PlayerCanAffordShares(g.CurrentPlayer) {
+	if g.PlayerCanAffordShares(g.CurrentPlayer) || g.CanEnd(g.CurrentPlayer) {
 		g.TurnPhase = TURN_PHASE_BUY_SHARES
 		g.BoughtShares = 0
 	} else {
