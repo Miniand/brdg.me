@@ -3,10 +3,11 @@ package tic_tac_toe
 import (
 	"encoding/json"
 	"errors"
-	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game/log"
 	"math/rand"
 	"time"
+
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type Game struct {
@@ -107,7 +108,7 @@ func (g *Game) Winner() string {
 		if g.Board[i][0] == g.Board[i][1] && g.Board[i][0] == g.Board[i][2] && g.Board[i][0] != 0 {
 			return g.Players[g.Board[i][0]-1]
 		} else if g.Board[0][i] == g.Board[1][i] && g.Board[0][i] == g.Board[2][i] && g.Board[0][i] != 0 {
-			return g.Players[g.Board[i][0]-1]
+			return g.Players[g.Board[0][i]-1]
 		}
 	}
 	if g.Board[0][0] == g.Board[1][1] && g.Board[0][0] == g.Board[2][2] && g.Board[0][0] != 0 {
