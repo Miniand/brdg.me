@@ -1,9 +1,10 @@
 package model
 
 import (
+	"os"
+
 	migrationDefinition "github.com/Miniand/brdg.me/server/model/migration"
 	r "github.com/dancannon/gorethink"
-	"os"
 )
 
 var initialised = false
@@ -32,9 +33,9 @@ func Connect() (*r.Session, error) {
 			return nil, err
 		}
 	}
-	return r.Connect(map[string]interface{}{
-		"address":  DatabaseAddr(),
-		"database": DatabaseName(),
+	return r.Connect(r.ConnectOpts{
+		Address:  DatabaseAddr(),
+		Database: DatabaseName(),
 	})
 }
 
