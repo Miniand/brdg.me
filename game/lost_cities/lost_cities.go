@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	//"fmt"
+	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -13,6 +13,7 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type Game struct {
@@ -31,6 +32,9 @@ type Game struct {
 	// rounds
 	RoundScores [2][3]int
 	Log         *log.Log
+	// LastDiscardedSuit has the suit of the last discarded card, to prevent
+	// a player taking the card they just discarded.
+	LastDiscardedSuit int
 }
 
 // The board consists of two players hands, a discard hand, and a draw pile
@@ -65,6 +69,11 @@ const (
 	SUIT_YELLOW
 )
 
+const (
+	DIR_ASC = iota
+	DIR_DESC
+)
+
 // Suit colours map to ansi colours
 // @see http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 var CardColours = map[int]string{
@@ -87,14 +96,12 @@ func (g *Game) Start(players []string) error {
 	if len(players) != 2 {
 		return errors.New("Lost Cities requires 2 spieler")
 	}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	g.Players = players
 	g.Log = log.New()
 	err := g.InitRound()
 	if err != nil {
 		return err
 	}
-	g.CurrentlyMoving = r.Int() % 2
 	return nil
 }
 
@@ -104,11 +111,22 @@ func (g *Game) GameLog() *log.Log {
 
 // Shuffle cards and deal hands, set the start player, set the turn phase etc
 func (g *Game) InitRound() error {
+	g.Board = Board{}
 	g.Board.DrawPile = g.AllCards().Shuffle()
 	g.Board.PlayerHands[0], g.Board.DrawPile = g.Board.DrawPile.PopN(8)
 	g.Board.PlayerHands[0] = g.Board.PlayerHands[0].Sort()
 	g.Board.PlayerHands[1], g.Board.DrawPile = g.Board.DrawPile.PopN(8)
 	g.Board.PlayerHands[1] = g.Board.PlayerHands[1].Sort()
+	p0s := g.PreviousRoundsPlayerScore(0)
+	p1s := g.PreviousRoundsPlayerScore(1)
+	if p0s > p1s {
+		g.CurrentlyMoving = 0
+	} else if p1s > p0s {
+		g.CurrentlyMoving = 1
+	} else {
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		g.CurrentlyMoving = r.Int() % 2
+	}
 	return nil
 }
 
@@ -122,62 +140,41 @@ func (g *Game) PlayerFromString(player string) (int, error) {
 	return 0, errors.New("Couldn't find player with name: " + player)
 }
 
-// Takes a string like b6, rx, y10 and turns it into a Card object
-func (g *Game) ParseCardString(cardString string) (card.SuitRankCard, error) {
-	suitnum := 0
-	val := 0
-	var err error
-	// fmt.Println("val")
-	// fmt.Println(val)
+// ParseCardString takes a string like b6, rx, y10 and turns it into a Card
+// object.
+func (g *Game) ParseCardString(cardString string) (c card.SuitRankCard, err error) {
 	if len(cardString) < 2 {
-		return card.SuitRankCard{}, errors.New("not lengthy enough (heyoooo!)")
+		err = errors.New("card string should be at least 2 characters long")
+		return
 	}
-	// fmt.Println("cardstring:")
-	// fmt.Println(cardString)
-	// fmt.Println("cardstring 1::")
-	// fmt.Println(cardString[1:])
-	suit := strings.ToLower(cardString[0:1])
-	// fmt.Println("suit")
-	// fmt.Println(suit)
-	if cardString[1:] == "x" {
-		val = 0
+	if strings.ToUpper(cardString[1:]) == "X" {
+		c.Rank = 0
 	} else {
-		val, err = strconv.Atoi(cardString[1:])
+		c.Rank, err = strconv.Atoi(cardString[1:])
 		if err != nil {
-			return card.SuitRankCard{}, err
+			return
 		}
-		// fmt.Println("val")
-		// fmt.Println(val)
 	}
-	// fmt.Println("val now")
-	// fmt.Println(val)
-	switch suit {
-	case "r":
-		suitnum = SUIT_RED
-	case "y":
-		suitnum = SUIT_YELLOW
-	case "b":
-		suitnum = SUIT_BLUE
-	case "w":
-		suitnum = SUIT_WHITE
-	case "g":
-		suitnum = SUIT_GREEN
-	default:
-		return card.SuitRankCard{}, errors.New("Could not parse suit")
+	suit := strings.ToUpper(cardString[:1])
+	c.Suit = -1
+	for s := SUIT_RED; s <= SUIT_YELLOW; s++ {
+		if suit == SuitShortNames[s] {
+			c.Suit = s
+			break
+		}
 	}
-
-	return card.SuitRankCard{
-		Suit: suitnum,
-		Rank: val,
-	}, nil
+	if c.Suit == -1 {
+		err = errors.New("could not parse suit")
+	}
+	return
 }
 
 // Defines which commands are available for Lost Cities, see the _command.go
 // files in this directory.
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
-		DiscardCommand{},
 		PlayCommand{},
+		DiscardCommand{},
 		DrawCommand{},
 		TakeCommand{},
 	}
@@ -210,55 +207,120 @@ func (g *Game) Decode(data []byte) error {
 	return decoder.Decode(g)
 }
 
+func (g *Game) PlayerExpeditionCells(pNum, dir int, title string) (cells [][]string) {
+	maxExpSize := 0
+	for s := SUIT_RED; s <= SUIT_YELLOW; s++ {
+		l := len(g.Board.PlayerExpeditions[pNum][s])
+		if l > maxExpSize {
+			maxExpSize = l
+		}
+	}
+	for i := 0; i < maxExpSize; i++ {
+		row := make([]string, SUIT_YELLOW+2)
+		header := ""
+		if i == 0 {
+			header = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, title)
+		}
+		row[0] = header
+		for s := SUIT_RED; s <= SUIT_YELLOW; s++ {
+			cell := ""
+			if len(g.Board.PlayerExpeditions[pNum][s]) > i {
+				cell = g.RenderCard(
+					g.Board.PlayerExpeditions[pNum][s][i].(card.SuitRankCard))
+			}
+			row[s+1] = cell
+		}
+		if dir == DIR_ASC {
+			cells = append(cells, row)
+		} else {
+			cells = append([][]string{row}, cells...)
+		}
+	}
+	return
+}
+
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	output := bytes.NewBufferString("")
-	output.WriteString("player:\n")
-	output.WriteString(player + "\n")
-	val, err := g.PlayerFromString(player)
+	pNum, err := g.PlayerFromString(player)
 	if err != nil {
 		return "", err
 	}
-	output.WriteString("your hand:\n")
-	for count := 0; count < len(g.Board.PlayerHands[val]); count++ {
-
-		output.WriteString(g.RenderCard(g.Board.PlayerHands[val][count].(card.SuitRankCard)) + "\n")
-
-	}
-	output.WriteString("your expeditions:\n")
-	for suits := 0; suits < 5; suits++ {
-		for count := 0; count < len(g.Board.PlayerExpeditions[val][suits]); count++ {
-			output.WriteString(g.RenderCard(g.Board.PlayerExpeditions[val][suits][count].(card.SuitRankCard)) + "\n")
-
+	// Board
+	cells := [][]string{}
+	// Opponent area
+	cells = append(cells, g.PlayerExpeditionCells((pNum+1)%2, DIR_DESC, "   Them ")...)
+	// Discard area
+	discard := make([]string, SUIT_YELLOW+2)
+	discard[0] = `{{c "gray"}}Discard {{_c}}`
+	for s := SUIT_RED; s <= SUIT_YELLOW; s++ {
+		var cell string
+		l := len(g.Board.DiscardPiles[s])
+		if l > 0 {
+			cell = g.RenderCard(g.Board.DiscardPiles[s][l-1].(card.SuitRankCard))
+		} else {
+			cell = fmt.Sprintf(`{{c "%s"}}--{{_c}}`, CardColours[s])
 		}
+		discard[s+1] = cell
 	}
-	opp := 0
-	if val == 0 {
-		opp = 1
+	cells = append(cells, []string{}, discard, []string{})
+	// Your area
+	cells = append(cells, g.PlayerExpeditionCells(pNum, DIR_ASC, "    You ")...)
+	table, err := render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
 	}
-	output.WriteString("the other dude's expeditions:\n")
-	for suits := 0; suits < 5; suits++ {
-		for count := 0; count < len(g.Board.PlayerExpeditions[opp][suits]); count++ {
-			output.WriteString(g.RenderCard(g.Board.PlayerExpeditions[opp][suits][count].(card.SuitRankCard)) + "\n")
-
+	output.WriteString(table)
+	output.WriteString("\n\n")
+	// Remaining draw cards
+	output.WriteString(fmt.Sprintf("{{b}}Draw cards:{{_b}} %d\n\n",
+		len(g.Board.DrawPile)))
+	// Your hand
+	output.WriteString("{{b}}Your hand:{{_b}}\n")
+	hand := []string{}
+	for _, c := range g.Board.PlayerHands[pNum] {
+		hand = append(hand, g.RenderCard(c.(card.SuitRankCard)))
+	}
+	output.WriteString(strings.Join(hand, " "))
+	output.WriteString("\n\n")
+	// Round scores
+	cells = [][]string{
+		[]string{
+			"{{b}}Player{{_b}}",
+			"{{b}}R1{{_b}}",
+			"{{b}}R2{{_b}}",
+			"{{b}}R3{{_b}}",
+			"{{b}}Tot{{_b}}",
+		},
+	}
+	for p := 0; p <= 1; p++ {
+		row := []string{
+			render.PlayerName(p, g.Players[p]),
 		}
-	}
-	output.WriteString("the discard piles:\n")
-	for suits := 0; suits < 5; suits++ {
-		if len(g.Board.DiscardPiles[suits]) > 0 {
-			output.WriteString(g.RenderCard(g.Board.DiscardPiles[suits][len(g.Board.DiscardPiles[suits])-1].(card.SuitRankCard)) + "\n")
-
+		for r := 0; r < 3; r++ {
+			score := ""
+			if g.Round > r {
+				score = strconv.Itoa(g.RoundScores[p][r])
+			}
+			row = append(row, score)
 		}
+		row = append(row, strconv.Itoa(g.PreviousRoundsPlayerScore(p)))
+		cells = append(cells, row)
 	}
+	table, err = render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	output.WriteString(table)
 	return output.String(), nil
-
 }
 
 func (g *Game) RenderCard(card card.SuitRankCard) string {
-	// @todo Actually do output from card suit and value.  Maybe make sure
-	// there's a trailing space if the card value isn't 10, to make sure
-	// everything lines up nicely.
-	return `{{c "` + CardColours[card.Suit] + `"}}` + strconv.Itoa(card.Rank) + `{{_c}}` + `: ` + SuitShortNames[card.Suit] + strconv.Itoa(card.Rank)
-	return CardColours[card.Suit] + " " + strconv.Itoa(card.Rank)
+	rank := strconv.Itoa(card.Rank)
+	if rank == "0" {
+		rank = "X"
+	}
+	return fmt.Sprintf(`{{c "%s"}}%s%s{{_c}}`, CardColours[card.Suit],
+		SuitShortNames[card.Suit], rank)
 }
 
 func (g *Game) PlayerList() []string {
@@ -267,14 +329,22 @@ func (g *Game) PlayerList() []string {
 
 // Check that it's the end of the third round
 func (g *Game) IsFinished() bool {
-	if g.Round == 3 {
-		return true
-	}
-	return false
+	return g.Round >= 3
 }
 
-func (g *Game) Winners() []string {
-	return []string{}
+func (g *Game) Winners() (winners []string) {
+	if !g.IsFinished() {
+		return
+	}
+	p0s := g.PreviousRoundsPlayerScore(0)
+	p1s := g.PreviousRoundsPlayerScore(1)
+	if p0s >= p1s {
+		winners = append(winners, g.Players[0])
+	}
+	if p1s >= p0s {
+		winners = append(winners, g.Players[1])
+	}
+	return
 }
 
 // Whose turn it is right now
@@ -322,7 +392,6 @@ func (g *Game) AllCards() card.Deck {
 		}
 	}
 	return deck
-
 }
 
 // Play a card from the hand into an expedition, checking that it is the
@@ -330,30 +399,19 @@ func (g *Game) AllCards() card.Deck {
 // to play the card.  Return an error if any of these don't pass.
 func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	removeCount := 0
-	//fmt.Println("in PlayCard c.Suit")
-	//fmt.Println(c.Suit)
-	//fmt.Println("in PlayCard c.Rank")
-	//fmt.Println(c.Rank)
-	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
-	//fmt.Println(" \n")
-
-	//len(g.Board.PlayerExpeditions[player][c.Suit])-1
-	if len(g.Board.PlayerExpeditions[player][c.Suit]) > 0 {
-		if c.Rank < g.Board.PlayerExpeditions[player][c.Suit][len(g.Board.PlayerExpeditions[player][c.Suit])-1].(card.SuitRankCard).Rank {
-			return errors.New("too low!")
-		}
+	l := len(g.Board.PlayerExpeditions[player][c.Suit])
+	if l > 0 && c.Rank <
+		g.Board.PlayerExpeditions[player][c.Suit][l-1].(card.SuitRankCard).Rank {
+		return errors.New("that card is too low to fit in the expedition")
 	}
-
 	g.Board.PlayerHands[player], removeCount = g.Board.PlayerHands[player].Remove(c, 1)
-
-	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
-	//fmt.Println(" \n")
-	//fmt.Println(g.Board.PlayerExpeditions[player][c.Suit][0])
 	if removeCount == 0 {
-		return errors.New("did not have card in hand")
+		return errors.New("you do not have that card in hand")
 	}
-	g.Board.PlayerExpeditions[player][c.Suit] = g.Board.PlayerExpeditions[player][c.Suit].Push(c)
+	g.Board.PlayerExpeditions[player][c.Suit] =
+		g.Board.PlayerExpeditions[player][c.Suit].Push(c)
 	g.TurnPhase = 1
+	g.LastDiscardedSuit = -1
 	return nil
 }
 
@@ -361,50 +419,32 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 // player's turn, and that the discard stack has cards in it.  Return an error
 // if any of these don't pass.
 func (g *Game) TakeCard(player int, suit int) error {
-	// fmt.Println("gonna take a card")
-	// fmt.Println(suit)
 	if len(g.Board.DiscardPiles[suit]) == 0 {
-		return errors.New("There are no cards in that discard pile")
+		return errors.New("there are no cards in that discard pile")
 	}
-
+	if suit == g.LastDiscardedSuit {
+		return errors.New("you can't take the card that you just discarded")
+	}
 	var drawnCard card.Card
 	drawnCard, g.Board.DiscardPiles[suit] = g.Board.DiscardPiles[suit].Pop()
-	// fmt.Println(drawnCard)
-
-	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard)
-	// fmt.Println(g.Board.PlayerHands[player])
-	//fmt.Println(c.Suit)
-	//fmt.Println("in PlayCard c.Rank")
-	//fmt.Println(c.Rank)
-
-	//g.Board.DiscardPiles[suit], removeCount = g.Board.PlayerHands[player].Remove(c, 1)
-
-	//fmt.Println("%#v\n", g.Board.PlayerExpeditions[1])
-	//fmt.Println(" \n")
-	//fmt.Println(g.Board.PlayerExpeditions[player][c.Suit][0])
-	//if removeCount==0{
-	//	return errors.New ("did not have card in hand")
-	//}
+	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard).Sort()
 	if g.CurrentlyMoving == 1 {
 		g.CurrentlyMoving = 0
 	} else {
 		g.CurrentlyMoving = 1
 	}
 	g.TurnPhase = 0
-
 	return nil
-
 }
 
 // Take a card from the draw pile into the hand, checking that it is the
 // player's turn and that there are cards in the stack.
 // Return an error if any of these don't pass.
 func (g *Game) DrawCard(player int) error {
-
 	var drawnCard card.Card
 	drawnCard, g.Board.DrawPile = g.Board.DrawPile.Pop()
 	// Then put it into the player's hand
-	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard)
+	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard).Sort()
 	if g.CurrentlyMoving == 1 {
 		g.CurrentlyMoving = 0
 	} else {
@@ -412,8 +452,13 @@ func (g *Game) DrawCard(player int) error {
 	}
 	g.TurnPhase = 0
 	if len(g.Board.DrawPile) == 0 {
+		for p, _ := range g.Players {
+			g.RoundScores[p][g.Round] = g.CurrentRoundPlayerScore(p)
+		}
 		g.Round = g.Round + 1
-
+		if g.Round < 3 {
+			g.InitRound()
+		}
 	}
 	return nil
 }
@@ -429,25 +474,31 @@ func (g *Game) DiscardCard(player int, c card.SuitRankCard) error {
 	}
 	g.Board.DiscardPiles[c.Suit] = g.Board.DiscardPiles[c.Suit].Push(c)
 	g.TurnPhase = 1
-
-	//fmt.Println("I get to here")
+	g.LastDiscardedSuit = c.Suit
 	return nil
+}
+
+func (g *Game) PreviousRoundsPlayerScore(player int) int {
+	sum := 0
+	for _, s := range g.RoundScores[player] {
+		sum += s
+	}
+	return sum
 }
 
 // Calculate the current score for this round for a player.
 func (g *Game) CurrentRoundPlayerScore(player int) int {
-	// @todo You want to be looking at g.Board.PlayerExpeditions[player][SUIT_RED] etc
-	return 0
+	score := 0
+	for s := SUIT_RED; s <= SUIT_YELLOW; s++ {
+		score += ScoreExpedition(g.Board.PlayerExpeditions[player][s])
+	}
+	return score
 }
 
 // Run through an expedition to calculate the score.  Ignore suits here, just
 // focus on values, the rest of the game logic can ensure the deck is of the
 // right suit.
 func ScoreExpedition(hand card.Deck) int {
-	//if hand!=null{
-	// fmt.Println(hand)
-	// fmt.Println("array length:")
-	// fmt.Println(len(hand))
 	total := 0
 	if len(hand) != 0 {
 		total = -20
@@ -456,13 +507,11 @@ func ScoreExpedition(hand card.Deck) int {
 	investments := 0
 	//times by number of investments+1
 	for count := 0; count < len(hand); count++ {
-		// fmt.Println(hand[count].(card.SuitRankCard).Rank)
 		if (hand[count].(card.SuitRankCard).Rank) == 0 {
 			investments++
 		} else {
 			total = total + hand[count].(card.SuitRankCard).Rank
 		}
-
 	}
 	total = total * (investments + 1)
 	if len(hand) >= 8 {
