@@ -127,6 +127,9 @@ func (g *Game) InitRound() error {
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
 		g.CurrentlyMoving = r.Int() % 2
 	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`{{b}}%s{{_b}} will start round %d`,
+		render.PlayerName(g.CurrentlyMoving, g.Players[g.CurrentlyMoving]),
+		g.Round+1)))
 	return nil
 }
 
@@ -137,7 +140,7 @@ func (g *Game) PlayerFromString(player string) (int, error) {
 			return key, nil
 		}
 	}
-	return 0, errors.New("Couldn't find player with name: " + player)
+	return 0, fmt.Errorf("couldn't find player with name %s", player)
 }
 
 // ParseCardString takes a string like b6, rx, y10 and turns it into a Card
@@ -412,6 +415,9 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 		g.Board.PlayerExpeditions[player][c.Suit].Push(c)
 	g.TurnPhase = 1
 	g.LastDiscardedSuit = -1
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} played {{b}}%s{{_b}}`,
+		render.PlayerName(player, g.Players[player]), g.RenderCard(c))))
 	return nil
 }
 
@@ -428,13 +434,17 @@ func (g *Game) TakeCard(player int, suit int) error {
 	var drawnCard card.Card
 	drawnCard, g.Board.DiscardPiles[suit] = g.Board.DiscardPiles[suit].Pop()
 	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard).Sort()
-	if g.CurrentlyMoving == 1 {
-		g.CurrentlyMoving = 0
-	} else {
-		g.CurrentlyMoving = 1
-	}
-	g.TurnPhase = 0
+	g.NextPlayer()
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} took {{b}}%s{{_b}}`,
+		render.PlayerName(player, g.Players[player]),
+		g.RenderCard(drawnCard.(card.SuitRankCard)))))
 	return nil
+}
+
+func (g *Game) NextPlayer() {
+	g.CurrentlyMoving = (g.CurrentlyMoving + 1) % 2
+	g.TurnPhase = TURN_PHASE_PLAY_OR_DISCARD
 }
 
 // Take a card from the draw pile into the hand, checking that it is the
@@ -445,22 +455,29 @@ func (g *Game) DrawCard(player int) error {
 	drawnCard, g.Board.DrawPile = g.Board.DrawPile.Pop()
 	// Then put it into the player's hand
 	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard).Sort()
-	if g.CurrentlyMoving == 1 {
-		g.CurrentlyMoving = 0
-	} else {
-		g.CurrentlyMoving = 1
-	}
-	g.TurnPhase = 0
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} drew a card, {{b}}%d{{_b}} remaining`,
+		render.PlayerName(player, g.Players[player]), len(g.Board.DrawPile))))
+	g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
+		`You drew {{b}}%s{{_b}}`, g.RenderCard(drawnCard.(card.SuitRankCard))),
+		[]string{g.Players[g.CurrentlyMoving]}))
+	g.NextPlayer()
 	if len(g.Board.DrawPile) == 0 {
-		for p, _ := range g.Players {
-			g.RoundScores[p][g.Round] = g.CurrentRoundPlayerScore(p)
-		}
-		g.Round = g.Round + 1
-		if g.Round < 3 {
-			g.InitRound()
-		}
+		g.EndRound()
 	}
 	return nil
+}
+
+func (g *Game) EndRound() {
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"{{b}}It is the end of round %d{{_b}}\n", g.Round+1)))
+	for p, _ := range g.Players {
+		g.RoundScores[p][g.Round] = g.CurrentRoundPlayerScore(p)
+	}
+	g.Round = g.Round + 1
+	if g.Round < 3 {
+		g.InitRound()
+	}
 }
 
 // Discard a card from the hand into a discard stack, checking that it is the
@@ -475,6 +492,9 @@ func (g *Game) DiscardCard(player int, c card.SuitRankCard) error {
 	g.Board.DiscardPiles[c.Suit] = g.Board.DiscardPiles[c.Suit].Push(c)
 	g.TurnPhase = 1
 	g.LastDiscardedSuit = c.Suit
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`{{b}}%s{{_b}} discarded {{b}}%s{{_b}}`,
+		render.PlayerName(player, g.Players[player]), g.RenderCard(c))))
 	return nil
 }
 
