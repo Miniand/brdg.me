@@ -322,8 +322,8 @@ func (g *Game) RenderCard(card card.SuitRankCard) string {
 	if rank == "0" {
 		rank = "X"
 	}
-	return fmt.Sprintf(`{{c "%s"}}%s%s{{_c}}`, CardColours[card.Suit],
-		SuitShortNames[card.Suit], rank)
+	return fmt.Sprintf(`{{b}}{{c "%s"}}%s%s{{_c}}{{_b}}`,
+		CardColours[card.Suit], SuitShortNames[card.Suit], rank)
 }
 
 func (g *Game) PlayerList() []string {
@@ -416,7 +416,7 @@ func (g *Game) PlayCard(player int, c card.SuitRankCard) error {
 	g.TurnPhase = 1
 	g.LastDiscardedSuit = -1
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`{{b}}%s{{_b}} played {{b}}%s{{_b}}`,
+		`{{b}}%s{{_b}} played %s`,
 		render.PlayerName(player, g.Players[player]), g.RenderCard(c))))
 	return nil
 }
@@ -436,7 +436,7 @@ func (g *Game) TakeCard(player int, suit int) error {
 	g.Board.PlayerHands[player] = g.Board.PlayerHands[player].Push(drawnCard).Sort()
 	g.NextPlayer()
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`{{b}}%s{{_b}} took {{b}}%s{{_b}}`,
+		`{{b}}%s{{_b}} took %s`,
 		render.PlayerName(player, g.Players[player]),
 		g.RenderCard(drawnCard.(card.SuitRankCard)))))
 	return nil
@@ -459,7 +459,7 @@ func (g *Game) DrawCard(player int) error {
 		`{{b}}%s{{_b}} drew a card, {{b}}%d{{_b}} remaining`,
 		render.PlayerName(player, g.Players[player]), len(g.Board.DrawPile))))
 	g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
-		`You drew {{b}}%s{{_b}}`, g.RenderCard(drawnCard.(card.SuitRankCard))),
+		`You drew %s`, g.RenderCard(drawnCard.(card.SuitRankCard))),
 		[]string{g.Players[g.CurrentlyMoving]}))
 	g.NextPlayer()
 	if len(g.Board.DrawPile) == 0 {
@@ -493,7 +493,7 @@ func (g *Game) DiscardCard(player int, c card.SuitRankCard) error {
 	g.TurnPhase = 1
 	g.LastDiscardedSuit = c.Suit
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`{{b}}%s{{_b}} discarded {{b}}%s{{_b}}`,
+		`{{b}}%s{{_b}} discarded %s`,
 		render.PlayerName(player, g.Players[player]), g.RenderCard(c))))
 	return nil
 }
