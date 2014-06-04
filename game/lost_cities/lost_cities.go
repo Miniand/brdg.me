@@ -360,7 +360,7 @@ func (g *Game) WhoseTurn() []string {
 func (g *Game) AllCards() card.Deck {
 	deck := card.Deck{}
 	var value int
-	for suit := SUIT_RED; suit < SUIT_YELLOW; suit++ {
+	for suit := SUIT_RED; suit <= SUIT_YELLOW; suit++ {
 		for y := 0; y < 12; y++ {
 			switch y {
 			case 0:
