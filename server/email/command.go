@@ -9,6 +9,9 @@ func Commands(gameId string) []command.Command {
 		PokeCommand{
 			gameId: gameId,
 		},
+		SayCommand{
+			gameId: gameId,
+		},
 		NewCommand{},
 		UnsubscribeCommand{},
 		SubscribeCommand{},
