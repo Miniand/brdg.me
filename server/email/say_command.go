@@ -20,18 +20,8 @@ func (sc SayCommand) Parse(input string) []string {
 }
 
 func (sc SayCommand) CanCall(player string, context interface{}) bool {
-	g, ok := context.(game.Playable)
-	if !ok || g.IsFinished() {
-		return false
-	}
-	waitingOn := g.WhoseTurn()
-	for _, p := range waitingOn {
-		if p == player {
-			// No point poking yourself!
-			return false
-		}
-	}
-	return true
+	_, ok := context.(game.Playable)
+	return ok
 }
 
 func (sc SayCommand) Call(player string, context interface{},
