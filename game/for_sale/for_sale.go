@@ -40,7 +40,11 @@ func (g *Game) Identifier() string {
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		BidCommand{},
+		PassCommand{},
+		PlayCommand{},
+	}
 }
 
 func (g *Game) Start(players []string) error {
@@ -60,6 +64,8 @@ func (g *Game) Start(players []string) error {
 		g.Hands[p] = card.Deck{}
 		g.Cheques[p] = card.Deck{}
 		g.Chips[p] = 15
+		g.Bids[p] = 0
+		g.FinishedBidding[p] = false
 	}
 	if len(players) == 3 {
 		g.Log.Add(log.NewPublicMessage(
@@ -235,6 +241,7 @@ func (g *Game) Pass(player int) error {
 	g.TakeFirstOpenCard(player)
 	halfBid := g.Bids[player] / 2
 	g.Chips[player] -= halfBid
+	g.FinishedBidding[player] = true
 	g.NextBidder()
 	return nil
 }
@@ -283,11 +290,18 @@ func (g *Game) TakeFirstOpenCard(player int) {
 }
 
 func (g *Game) NextBidder() {
-	if len(g.WhoseTurn()) == 1 {
+	remaining := 0
+	for _, b := range g.FinishedBidding {
+		if !b {
+			remaining += 1
+		}
+	}
+	if remaining == 1 {
 		// Last remaining player takes the last building for the full price.
 		player, amount := g.HighestBid()
 		g.TakeFirstOpenCard(player)
 		g.Chips[player] -= amount
+		g.BiddingPlayer = player
 		g.StartRound()
 		return
 	}
