@@ -4,5 +4,7 @@ import "testing"
 
 func TestStart(t *testing.T) {
 	g := &Game{}
-	g.Start([]string{"mick", "steve", "bj"})
+	if err := g.Start([]string{"mick", "steve", "bj"}); err != nil {
+		t.Fatal(err)
+	}
 }
