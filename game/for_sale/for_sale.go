@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
@@ -100,12 +101,16 @@ func (g *Game) StartBuyingRound() {
 	g.OpenCards, g.BuildingDeck = g.BuildingDeck.PopN(len(g.Players))
 	g.OpenCards = g.OpenCards.Sort()
 	g.ClearBids()
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`Drew new buildings: %s`,
+		strings.Join(RenderCards(g.OpenCards, RenderBuilding), " "))))
 }
 
 func (g *Game) StartSellingRound() {
 	g.OpenCards, g.ChequeDeck = g.ChequeDeck.PopN(len(g.Players))
 	g.OpenCards = g.OpenCards.Sort()
 	g.ClearBids()
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`Drew new cheques: %s`,
+		strings.Join(RenderCards(g.OpenCards, RenderBuilding), " "))))
 }
 
 func (g *Game) ClearBids() {
@@ -121,28 +126,34 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	output := bytes.NewBuffer([]byte{})
-	cells := [][]string{}
-	cells = append(cells, []string{
-		`Your chips:`,
-		fmt.Sprintf(`{{b}}%d{{_b}}`, g.Chips[p]),
-	})
-	buildingRow := []string{`Your buildings:`}
-	for _, b := range g.Hands[p] {
-		buildingRow = append(buildingRow,
-			RenderBuilding(b.(card.SuitRankCard).Rank))
+	switch g.CurrentPhase() {
+	case BuyingPhase:
+		output.WriteString(fmt.Sprintf("Buildings available: %s\n",
+			strings.Join(RenderCards(g.OpenCards, RenderBuilding), " ")))
+		currentBidText := `{{c "gray"}}none{{_c}}`
+		if highestPlayer, highestAmount := g.HighestBid(); highestAmount > 0 {
+			currentBidText = fmt.Sprintf(`{{b}}%d{{_b}} by %s`, highestAmount,
+				render.PlayerName(highestPlayer, g.Players[highestPlayer]))
+		}
+		output.WriteString(fmt.Sprintf("Current bid: %s\n", currentBidText))
+		remainingPlayers := []string{}
+		for remP, remPName := range g.Players {
+			if !g.FinishedBidding[remP] {
+				remainingPlayers = append(remainingPlayers,
+					render.PlayerName(remP, remPName))
+			}
+		}
+		output.WriteString(fmt.Sprintf("Remaining players: %s\n\n",
+			render.CommaList(remainingPlayers)))
+	case SellingPhase:
+		output.WriteString(fmt.Sprintf("Cheques available: %s\n\n",
+			strings.Join(RenderCards(g.OpenCards, RenderCheque), " ")))
 	}
-	cells = append(cells, buildingRow)
-	chequeRow := []string{`Your cheques:`}
-	for _, c := range g.Cheques[p] {
-		chequeRow = append(chequeRow,
-			RenderCheque(c.(card.SuitRankCard).Rank))
-	}
-	cells = append(cells, chequeRow)
-	table, err := render.Table(cells, 0, 1)
-	if err != nil {
-		return "", err
-	}
-	output.WriteString(table)
+	output.WriteString(fmt.Sprintf("Your chips: {{b}}%d{{_b}}\n", g.Chips[p]))
+	output.WriteString(fmt.Sprintf("Your buildings: %s\n",
+		strings.Join(RenderCards(g.Hands[p], RenderBuilding), " ")))
+	output.WriteString(fmt.Sprintf("Your cheques: %s\n",
+		strings.Join(RenderCards(g.Cheques[p], RenderCheque), " ")))
 	return output.String(), nil
 }
 
@@ -257,6 +268,8 @@ func (g *Game) Bid(player, amount int) error {
 		return fmt.Errorf("you must bid higher than %d", highest)
 	}
 	g.Bids[player] = amount
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s bid {{b}}%d{{_b}}",
+		render.PlayerName(player, g.Players[player]), amount)))
 	g.NextBidder()
 	return nil
 }
@@ -265,10 +278,14 @@ func (g *Game) Pass(player int) error {
 	if !g.CanBid(player) {
 		return errors.New("you are not able to pass at the moment")
 	}
-	g.TakeFirstOpenCard(player)
+	c := g.TakeFirstOpenCard(player)
 	halfBid := g.Bids[player] / 2
 	g.Chips[player] -= halfBid
 	g.FinishedBidding[player] = true
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s passed, paying {{b}}%d{{_b}} for %s",
+		render.PlayerName(player, g.Players[player]), halfBid,
+		RenderBuilding(c.Rank))))
 	g.NextBidder()
 	return nil
 }
@@ -301,19 +318,25 @@ func (g *Game) Play(player, building int) error {
 			})
 		}
 		for _, c := range played.Sort() {
-			cheque, g.OpenCards = g.OpenCards.Shift()
 			src := c.(card.SuitRankCard)
-			g.Cheques[src.Rank] = g.Cheques[src.Rank].Push(cheque)
+			p := src.Rank
+			cheque, g.OpenCards = g.OpenCards.Shift()
+			g.Cheques[p] = g.Cheques[p].Push(cheque)
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				`%s sold %s for %s`, render.PlayerName(p, g.Players[p]),
+				RenderBuilding(src.Suit),
+				RenderCheque(cheque.(card.SuitRankCard).Rank))))
 		}
 		g.StartRound()
 	}
 	return nil
 }
 
-func (g *Game) TakeFirstOpenCard(player int) {
+func (g *Game) TakeFirstOpenCard(player int) card.SuitRankCard {
 	var c card.Card
 	c, g.OpenCards = g.OpenCards.Shift()
 	g.Hands[player] = g.Hands[player].Push(c).Sort()
+	return c.(card.SuitRankCard)
 }
 
 func (g *Game) NextBidder() {
@@ -326,9 +349,13 @@ func (g *Game) NextBidder() {
 	if remaining == 1 {
 		// Last remaining player takes the last building for the full price.
 		player, amount := g.HighestBid()
-		g.TakeFirstOpenCard(player)
+		c := g.TakeFirstOpenCard(player)
 		g.Chips[player] -= amount
 		g.BiddingPlayer = player
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s is the last player, paying {{b}}%d{{_b}} for %s",
+			render.PlayerName(player, g.Players[player]), amount,
+			RenderBuilding(c.Rank))))
 		g.StartRound()
 		return
 	}
@@ -341,8 +368,9 @@ func (g *Game) NextBidder() {
 }
 
 func (g *Game) HighestBid() (player, amount int) {
+	amount = -1
 	for p, b := range g.Bids {
-		if b > amount {
+		if !g.FinishedBidding[p] && b > amount {
 			player = p
 			amount = b
 		}
@@ -380,4 +408,12 @@ func RenderBuilding(value int) string {
 
 func RenderCheque(value int) string {
 	return fmt.Sprintf(`{{b}}{{c "blue"}}%d{{_c}}{{_b}}`, value)
+}
+
+func RenderCards(deck card.Deck, renderer func(int) string) []string {
+	output := []string{}
+	for _, c := range deck {
+		output = append(output, renderer(c.(card.SuitRankCard).Rank))
+	}
+	return output
 }
