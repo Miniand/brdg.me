@@ -80,7 +80,8 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) CurrentPhase() int {
-	if len(g.ChequeDeck) >= 18 {
+	if len(g.BuildingDeck) > 0 ||
+		(len(g.OpenCards) > 0 && len(g.ChequeDeck) >= 18) {
 		return BuyingPhase
 	} else if len(g.ChequeDeck) > 0 || len(g.OpenCards) > 0 {
 		return SellingPhase
@@ -94,6 +95,19 @@ func (g *Game) StartRound() {
 		g.StartBuyingRound()
 	case SellingPhase:
 		g.StartSellingRound()
+	case GameFinished:
+		output := bytes.NewBufferString(
+			"{{b}}The game has finished!  The scores are:{{_b}}\n")
+		playerScores := [][]string{}
+		for pNum, p := range g.Players {
+			playerScores = append(playerScores, []string{
+				render.PlayerName(pNum, p),
+				fmt.Sprintf("{{b}}%d{{_b}}", g.DeckValue(g.Cheques[pNum])),
+			})
+		}
+		table, _ := render.Table(playerScores, 0, 1)
+		output.WriteString(table)
+		g.Log.Add(log.NewPublicMessage(output.String()))
 	}
 }
 
@@ -110,7 +124,7 @@ func (g *Game) StartSellingRound() {
 	g.OpenCards = g.OpenCards.Sort()
 	g.ClearBids()
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`Drew new cheques: %s`,
-		strings.Join(RenderCards(g.OpenCards, RenderBuilding), " "))))
+		strings.Join(RenderCards(g.OpenCards, RenderCheque), " "))))
 }
 
 func (g *Game) ClearBids() {
