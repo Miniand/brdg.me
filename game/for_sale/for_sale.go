@@ -9,6 +9,7 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 const (
@@ -115,7 +116,33 @@ func (g *Game) ClearBids() {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
+	p, err := g.ParsePlayer(player)
+	if err != nil {
+		return "", err
+	}
 	output := bytes.NewBuffer([]byte{})
+	cells := [][]string{}
+	cells = append(cells, []string{
+		`Your chips:`,
+		fmt.Sprintf(`{{b}}%d{{_b}}`, g.Chips[p]),
+	})
+	buildingRow := []string{`Your buildings:`}
+	for _, b := range g.Hands[p] {
+		buildingRow = append(buildingRow,
+			RenderBuilding(b.(card.SuitRankCard).Rank))
+	}
+	cells = append(cells, buildingRow)
+	chequeRow := []string{`Your cheques:`}
+	for _, c := range g.Cheques[p] {
+		chequeRow = append(chequeRow,
+			RenderCheque(c.(card.SuitRankCard).Rank))
+	}
+	cells = append(cells, chequeRow)
+	table, err := render.Table(cells, 0, 1)
+	if err != nil {
+		return "", err
+	}
+	output.WriteString(table)
 	return output.String(), nil
 }
 
@@ -345,4 +372,12 @@ func ChequeDeck() card.Deck {
 		d = d.Push(c)
 	}
 	return d
+}
+
+func RenderBuilding(value int) string {
+	return fmt.Sprintf(`{{b}}{{c "green"}}%d{{_c}}{{_b}}`, value)
+}
+
+func RenderCheque(value int) string {
+	return fmt.Sprintf(`{{b}}{{c "blue"}}%d{{_c}}{{_b}}`, value)
 }
