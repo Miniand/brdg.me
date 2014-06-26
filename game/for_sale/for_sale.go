@@ -150,6 +150,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 				render.PlayerName(highestPlayer, g.Players[highestPlayer]))
 		}
 		output.WriteString(fmt.Sprintf("Current bid: %s\n", currentBidText))
+		output.WriteString(fmt.Sprintf("Your bid: {{b}}%d{{_b}}\n",
+			g.Bids[p]))
 		remainingPlayers := []string{}
 		for remP, remPName := range g.Players {
 			if !g.FinishedBidding[remP] {
