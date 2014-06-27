@@ -61,3 +61,27 @@ func TestAdventure2Cards(t *testing.T) {
 		}
 	}
 }
+
+func TestAdventure3Cards(t *testing.T) {
+	cards := Adventure3Cards()
+	if len(cards) != 3 {
+		t.Fatal("There aren't 3 adventure 3 cards.")
+	}
+	for _, c := range cards {
+		if _, ok := c.(Adventurer); !ok {
+			t.Fatalf("Adventure card is not an Adventurer:\n\n%#v", c)
+		}
+	}
+}
+
+func TestAdventure4Cards(t *testing.T) {
+	cards := Adventure4Cards()
+	if len(cards) != 3 {
+		t.Fatal("There aren't 3 adventure 4 cards.")
+	}
+	for _, c := range cards {
+		if _, ok := c.(Adventurer); !ok {
+			t.Fatalf("Adventure card is not an Adventurer:\n\n%#v", c)
+		}
+	}
+}

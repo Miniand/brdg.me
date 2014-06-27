@@ -385,3 +385,19 @@ func Adventure2Cards() card.Deck {
 		AdventurePirateNest{},
 	}
 }
+
+func Adventure3Cards() card.Deck {
+	return card.Deck{
+		AdventureCouncilMeeting{},
+		AdventureEpidemic{},
+		AdventureEmergency{},
+	}
+}
+
+func Adventure4Cards() card.Deck {
+	return card.Deck{
+		AdventureReconstruction{},
+		AdventureMonument{},
+		AdventureWholesaleOrder2{},
+	}
+}
