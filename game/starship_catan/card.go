@@ -10,6 +10,7 @@ const (
 	ResourceOre
 	ResourceScience
 	ResourceTrade
+	ResourceAstro
 )
 
 type UnsortableCard struct{}

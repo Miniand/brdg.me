@@ -3,7 +3,8 @@ package starship_catan
 import "errors"
 
 type Game struct {
-	Players []string
+	Players      []string
+	PlayerBoards [2]*PlayerBoard
 }
 
 func (g *Game) Start(players []string) error {
