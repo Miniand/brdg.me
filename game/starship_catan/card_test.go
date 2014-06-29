@@ -85,3 +85,9 @@ func TestAdventure4Cards(t *testing.T) {
 		}
 	}
 }
+
+func TestShuffledAdventureCards(t *testing.T) {
+	if len(ShuffledAdventureCards()) != 12 {
+		t.Fatal("There aren't 12 adventure cards in the entire deck.")
+	}
+}

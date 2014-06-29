@@ -402,3 +402,10 @@ func Adventure4Cards() card.Deck {
 		AdventureWholesaleOrder2{},
 	}
 }
+
+func ShuffledAdventureCards() card.Deck {
+	return Adventure4Cards().Shuffle().
+		PushMany(Adventure3Cards().Shuffle()).
+		PushMany(Adventure2Cards().Shuffle()).
+		PushMany(Adventure1Cards().Shuffle())
+}
