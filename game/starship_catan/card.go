@@ -2,17 +2,6 @@ package starship_catan
 
 import "github.com/Miniand/brdg.me/game/card"
 
-const (
-	ResourceAny = iota
-	ResourceFood
-	ResourceFuel
-	ResourceCarbon
-	ResourceOre
-	ResourceScience
-	ResourceTrade
-	ResourceAstro
-)
-
 type UnsortableCard struct{}
 
 func (c UnsortableCard) Compare(other card.Comparer) (int, bool) {

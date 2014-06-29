@@ -4,10 +4,32 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
+)
+
+const (
+	ResourceAny = iota
+	ResourceFood
+	ResourceFuel
+	ResourceCarbon
+	ResourceOre
+	ResourceScience
+	ResourceTrade
+	ResourceAstro
+	ResourceColonyShip
+	ResourceTradeShip
+	ResourceBooster
+	ResourceCannon
+)
+
+const (
+	PhaseChooseModule = iota
+	PhaseChooseSector
+	PhaseTradeAndBuild
 )
 
 type Game struct {
@@ -15,6 +37,8 @@ type Game struct {
 	PlayerBoards   [2]*PlayerBoard
 	SectorCards    [4]card.Deck
 	AdventureCards card.Deck
+	Phase          int
+	CurrentPlayer  int
 	Log            *log.Log
 }
 
@@ -38,7 +62,9 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		ChooseModuleCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -85,9 +111,54 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+	players := []string{}
+	switch g.Phase {
+	case PhaseChooseModule:
+		for p, pName := range g.Players {
+			if len(g.PlayerBoards[p].Modules) == 0 {
+				players = append(players, pName)
+			}
+		}
+	default:
+		players = append(players, g.Players[g.CurrentPlayer])
+	}
+	return players
 }
 
 func (g *Game) GameLog() *log.Log {
 	return g.Log
+}
+
+func (g *Game) ParsePlayer(player string) (int, error) {
+	for pNum, p := range g.Players {
+		if p == player {
+			return pNum, nil
+		}
+	}
+	return 0, fmt.Errorf(`could not find player with the name %s`, player)
+}
+
+func (g *Game) CanChoose(player int) bool {
+	return g.Phase == PhaseChooseModule &&
+		len(g.PlayerBoards[player].Modules) == 0
+}
+
+func (g *Game) Choose(player int, module int) error {
+	if !g.CanChoose(player) {
+		return errors.New("you can't choose a module at the moment")
+	}
+	g.PlayerBoards[player].Modules[module] = 1
+	if len(g.WhoseTurn()) == 0 {
+		g.NewTurn()
+	}
+	return nil
+}
+
+func (g *Game) NextTurn() {
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % 2
+	g.NewTurn()
+}
+
+func (g *Game) NewTurn() {
+	g.Phase = PhaseChooseSector
 }
