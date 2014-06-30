@@ -3,7 +3,6 @@ package starship_catan
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -49,19 +48,13 @@ func ModuleDescription(module, player, level int) string {
 		return fmt.Sprintf(
 			"Buy %d resource(s) of your choice from your opponent for 2 Astro each", level)
 	case ModuleScience:
-		diceStr := "2 or 3"
-		if level == 1 {
-			diceStr = strconv.Itoa(3 - level)
-		}
 		return fmt.Sprintf(
-			"Produce a science point on a roll of a %s", diceStr)
+			"Produce a science point on a roll of a %s",
+			strings.Join(Itoas(ScienceModuleDice(level, player)), " or "))
 	case ModuleProduction:
-		diceStr := "2 or 3"
-		if level == 1 {
-			diceStr = strconv.Itoa(2 + level)
-		}
 		return fmt.Sprintf(
-			"Produce a trade good on a roll of a %s", diceStr)
+			"Produce a trade good on a roll of a %s",
+			strings.Join(Itoas(TradeModuleDice(level, player)), " or "))
 	}
 	return ""
 }
@@ -88,4 +81,26 @@ func ParseModule(input string) (int, error) {
 		}
 	}
 	return 0, errors.New("could not find a unique module for that input")
+}
+
+func ScienceModuleDice(level, player int) []int {
+	switch level {
+	case 0:
+		return []int{}
+	case 1:
+		return []int{3 - player}
+	default:
+		return []int{2, 3}
+	}
+}
+
+func TradeModuleDice(level, player int) []int {
+	switch level {
+	case 0:
+		return []int{}
+	case 1:
+		return []int{2 + player}
+	default:
+		return []int{2, 3}
+	}
 }

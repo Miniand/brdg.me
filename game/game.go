@@ -11,6 +11,7 @@ import (
 	"github.com/Miniand/brdg.me/game/lost_cities"
 	"github.com/Miniand/brdg.me/game/modern_art"
 	"github.com/Miniand/brdg.me/game/no_thanks"
+	"github.com/Miniand/brdg.me/game/starship_catan"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
 	"github.com/Miniand/brdg.me/game/tic_tac_toe"
 )
@@ -50,6 +51,7 @@ func gameList() []Playable {
 		&lost_cities.Game{},
 		&modern_art.Game{},
 		&no_thanks.Game{},
+		&starship_catan.Game{},
 		&texas_holdem.Game{},
 		&tic_tac_toe.Game{},
 	}

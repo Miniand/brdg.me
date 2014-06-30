@@ -5,10 +5,14 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"math/rand"
+	"strconv"
+	"time"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 const (
@@ -28,9 +32,12 @@ const (
 
 const (
 	PhaseChooseModule = iota
+	PhaseProduce
 	PhaseChooseSector
 	PhaseTradeAndBuild
 )
+
+var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type Game struct {
 	Players        []string
@@ -39,7 +46,9 @@ type Game struct {
 	AdventureCards card.Deck
 	Phase          int
 	CurrentPlayer  int
+	ProducePlayer  int
 	Log            *log.Log
+	YellowDice     int
 }
 
 func (g *Game) Start(players []string) error {
@@ -77,6 +86,13 @@ func (g *Game) Identifier() string {
 
 func RegisterGobTypes() {
 	gob.Register(PlayerBoard{})
+	gob.Register(ColonyCard{})
+	gob.Register(TradeCard{})
+	gob.Register(PirateCard{})
+	gob.Register(AdventurePlanetCard{})
+	for _, c := range ShuffledAdventureCards() {
+		gob.Register(c)
+	}
 }
 
 func (g *Game) Encode() ([]byte, error) {
@@ -161,4 +177,61 @@ func (g *Game) NextTurn() {
 
 func (g *Game) NewTurn() {
 	g.Phase = PhaseChooseSector
+	g.YellowDice = (r.Int() % 3) + 1
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s rolled a {{b}}%d{{_b}}, flight distance will be {{b}}%d{{_b}}`,
+		g.RenderName(g.CurrentPlayer), g.YellowDice, g.FlightDistance())))
+	g.Produce(g.CurrentPlayer)
+}
+
+func (g *Game) FlightDistance() int {
+	return g.YellowDice +
+		g.PlayerBoards[g.CurrentPlayer].Resources[ResourceBooster]
+}
+
+func (g *Game) RenderName(player int) string {
+	return render.PlayerName(player, g.Players[player])
+}
+
+func (g *Game) Produce(player int) {
+	g.Phase = PhaseProduce
+	g.ProducePlayer = player
+	if ContainsInt(g.YellowDice, TradeModuleDice(
+		g.PlayerBoards[g.ProducePlayer].Modules[ModuleTrade], g.ProducePlayer)) {
+		g.ProduceResource(g.ProducePlayer, ResourceTrade)
+	}
+}
+
+func (g *Game) ProduceResource(player, resource int) {
+	limit := 4
+	if resource != ResourceScience {
+		limit = 2 + g.PlayerBoards[player].Modules[ModuleLogistics]
+	}
+	if g.PlayerBoards[player].Resources[resource] < limit {
+	}
+}
+
+func (g *Game) NextProducePlayer() {
+	if g.ProducePlayer == g.CurrentPlayer {
+		g.Produce((g.ProducePlayer + 1) % 2)
+	} else {
+		g.Phase = PhaseChooseSector
+	}
+}
+
+func Itoas(in []int) []string {
+	out := make([]string, len(in))
+	for k, i := range in {
+		out[k] = strconv.Itoa(i)
+	}
+	return out
+}
+
+func ContainsInt(needle int, haystack []int) bool {
+	for _, i := range haystack {
+		if i == needle {
+			return true
+		}
+	}
+	return false
 }
