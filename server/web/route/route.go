@@ -27,6 +27,11 @@ func Router() *mux.Router {
 		router.HandleFunc("/game/new/{identifier}", controller.GameNew).
 			Methods("GET").Name("gameNew")
 		router.Handle("/ws", websocket.Handler(controller.Ws))
+		api := router.PathPrefix("/api/").Subrouter()
+		api.HandleFunc("/game", controller.ApiGameIndex).Methods("GET").
+			Name("apiGameIndex")
+		api.HandleFunc("/game/{id}", controller.ApiGameShow).Methods("GET").
+			Name("apiGameShow")
 	}
 	return router
 }
