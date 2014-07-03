@@ -10,7 +10,7 @@ type UserModel struct {
 	Unsubscribed bool
 }
 
-func UserTable() r.RqlTerm {
+func UserTable() r.Term {
 	return r.Table("users")
 }
 
@@ -20,12 +20,12 @@ func LoadUser(id string) (*UserModel, error) {
 		return nil, err
 	}
 	defer session.Close()
-	row, err := UserTable().Get(id).RunRow(session)
+	res, err := UserTable().Get(id).Run(session)
 	if err != nil {
 		return nil, err
 	}
 	m := &UserModel{}
-	err = row.Scan(m)
+	err = res.One(m)
 	return m, err
 }
 
@@ -35,22 +35,22 @@ func FirstUserByEmail(email string) (*UserModel, error) {
 		return nil, err
 	}
 	defer session.Close()
-	row, err := UserTable().Filter(map[string]interface{}{
+	res, err := UserTable().Filter(map[string]interface{}{
 		"Email": email,
-	}).RunRow(session)
+	}).Run(session)
 	if err != nil {
 		return nil, err
 	}
-	if row.IsNil() {
+	if res.IsNil() {
 		return nil, nil
 	}
 	m := &UserModel{}
-	err = row.Scan(m)
+	err = res.One(m)
 	return m, err
 }
 
 func (um *UserModel) Save() error {
-	var rqlTerm r.RqlTerm
+	var rqlTerm r.Term
 	session, err := Connect()
 	if err != nil {
 		return err
