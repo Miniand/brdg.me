@@ -78,7 +78,7 @@ func migrationHasRun(version string) (bool, error) {
 	}
 	res, err := r.Table("migrations").Filter(map[string]interface{}{
 		"version": version,
-	}).RunRow(session)
+	}).Run(session)
 	if err != nil {
 		return false, err
 	}

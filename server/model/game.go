@@ -2,10 +2,11 @@ package model
 
 import (
 	"errors"
-	"github.com/Miniand/brdg.me/game"
-	r "github.com/dancannon/gorethink"
 	"math/rand"
 	"time"
+
+	"github.com/Miniand/brdg.me/game"
+	r "github.com/dancannon/gorethink"
 )
 
 type GameModel struct {
@@ -18,7 +19,7 @@ type GameModel struct {
 	State      []byte
 }
 
-func GameTable() r.RqlTerm {
+func GameTable() r.Term {
 	return r.Table("games")
 }
 
@@ -28,15 +29,13 @@ func LoadGame(id string) (*GameModel, error) {
 		return nil, err
 	}
 	defer session.Close()
-	row, err := GameTable().Get(id).RunRow(session)
+	res, err := GameTable().Get(id).Run(session)
 	if err != nil {
 		return nil, err
 	}
 	m := &GameModel{}
-	if err := row.Scan(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	err = res.One(m)
+	return m, err
 }
 
 func SaveGame(g game.Playable) (*GameModel, error) {
@@ -110,7 +109,7 @@ func (gm *GameModel) ToGame() (game.Playable, error) {
 }
 
 func (gm *GameModel) Save() error {
-	var rqlTerm r.RqlTerm
+	var rqlTerm r.Term
 	session, err := Connect()
 	if err != nil {
 		return err
