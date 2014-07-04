@@ -38,6 +38,55 @@ func LoadGame(id string) (*GameModel, error) {
 	return m, err
 }
 
+func GamesForPlayer(player string) (*r.Cursor, error) {
+	session, err := Connect()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	res, err := GameTable().Filter(func(row r.Term) interface{} {
+		return row.Field("PlayerList").Contains(player)
+	}).Run(session)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func ActiveGamesForPlayer(player string) (*r.Cursor, error) {
+	session, err := Connect()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	res, err := GameTable().Filter(map[string]interface{}{
+		"IsFinished": false,
+	}).Filter(func(row r.Term) interface{} {
+		return row.Field("PlayerList").Contains(player)
+	}).Run(session)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func CurrentTurnGamesForPlayer(player string) (*r.Cursor, error) {
+	session, err := Connect()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	res, err := GameTable().Filter(map[string]interface{}{
+		"IsFinished": false,
+	}).Filter(func(row r.Term) interface{} {
+		return row.Field("WhoseTurn").Contains(player)
+	}).Run(session)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func SaveGame(g game.Playable) (*GameModel, error) {
 	gm, err := GameToGameModel(g)
 	if err != nil {
