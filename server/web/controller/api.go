@@ -6,6 +6,16 @@ import (
 	"github.com/Miniand/brdg.me/server/model"
 )
 
+func WriteCorsHeaders(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+}
+
+func ApiOptions(w http.ResponseWriter, r *http.Request) {
+	WriteCorsHeaders(w, r)
+}
+
 func ApiMustAuthenticate(w http.ResponseWriter, r *http.Request) (bool, *model.UserModel) {
 	authorizationToken, found := AuthorizationToken(r)
 	if !found {
