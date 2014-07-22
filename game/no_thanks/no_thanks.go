@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game/log"
+	"fmt"
 	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type Game struct {
@@ -75,34 +78,36 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString(strconv.Itoa(g.PlayerChips[player]))
 		buf.WriteString("{{_c}}\n\n")
 	}
-	longestPlayerName := 0
-	for _, p := range g.Players {
-		if len(p) > longestPlayerName {
-			longestPlayerName = len(p)
-		}
-	}
 	buf.WriteString("{{b}}Players{{_b}}\n")
-	for _, p := range g.Players {
-		buf.WriteString(`{{b}}`)
-		buf.WriteString(p)
-		buf.WriteString(":{{_b}}")
-		buf.WriteString(strings.Repeat(" ", longestPlayerName-len(p)+1))
+	header := []string{"{{b}}Players{{_b}}", "{{b}}Cards{{_b}}"}
+	if g.IsFinished() {
+		header = append(header, "{{b}}Score{{_b}}")
+	}
+	cells := [][]string{
+		header,
+	}
+	for pNum, p := range g.Players {
+		row := []string{
+			render.PlayerName(pNum, p),
+		}
 		if len(g.PlayerHands[p]) > 0 {
-			buf.WriteString(`{{c "blue"}}`)
-			buf.WriteString(g.RenderCardsForPlayer(p, g.PeekTopCard()))
-			buf.WriteString("{{_c}}")
+			row = append(row, fmt.Sprintf(`{{c "blue"}}%s{{_c}}`,
+				g.RenderCardsForPlayer(p, g.PeekTopCard())))
 		} else {
-			buf.WriteString(`{{c "gray"}}no cards{{_c}}`)
+			row = append(row, `{{c "gray"}}no cards{{_c}}`)
 		}
 		if g.IsFinished() {
-			buf.WriteString(`     ({{c "green"}}`)
-			buf.WriteString(strconv.Itoa(g.PlayerChips[p]))
-			buf.WriteString(`{{_c}} chips, {{c "magenta"}}`)
-			buf.WriteString(strconv.Itoa(g.FinalPlayerScore(p)))
-			buf.WriteString("{{_c}} points)")
+			row = append(row, fmt.Sprintf(
+				`{{b}}{{c "green"}}%d{{_c}}{{_b}} chips, {{b}}{{c "magenta"}}%s{{_c}}{{_b}} points`,
+				g.PlayerChips[p], g.FinalPlayerScore(p)))
 		}
-		buf.WriteString("\n")
+		cells = append(cells, row)
 	}
+	table, err := render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	buf.WriteString(table)
 	return buf.String(), nil
 }
 
@@ -224,10 +229,9 @@ func (g *Game) Pass(player string) error {
 	}
 	g.PlayerChips[player]--
 	g.CentreChips++
-	g.Log.Add(log.NewPublicMessage(player + ` passed on the {{b}}{{c "blue"}}` +
-		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}}."))
-	g.Log.Add(log.NewPublicMessage(player + ` passed on the {{b}}{{c "blue"}}` +
-		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}}."))
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s passed on the {{b}}{{c "blue"}}%d{{_c}}{{_b}}`,
+		player, g.PeekTopCard())))
 	return g.NextPlayer()
 }
 
@@ -236,12 +240,14 @@ func (g *Game) Take(player string) error {
 	if err != nil {
 		return err
 	}
-	g.Log.Add(log.NewPublicMessage(player + ` took the {{b}}{{c "blue"}}` +
-		strconv.Itoa(g.PeekTopCard()) + `{{_c}}{{_b}} and {{b}}{{c "green"}}` +
-		strconv.Itoa(g.CentreChips) + "{{_c}}{{_b}} chips."))
+	pName := render.PlayerNameInPlayers(player, g.Players)
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s took the {{b}}{{c "blue"}}%d{{_c}}{{_b}} and {{b}}{{c "green"}}%d{{_c}}{{_b}} chips`,
+		pName, g.PeekTopCard(), g.CentreChips)))
 	g.PlayerHands[player] = append(g.PlayerHands[player], g.PopTopCard())
-	g.Log.Add(log.NewPublicMessage(player + ` drew {{b}}{{c "blue"}}` +
-		strconv.Itoa(g.PeekTopCard()) + "{{_c}}{{_b}} as the new card."))
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s drew {{b}}{{c "blue"}}%d{{_c}}{{_b}} as the new card`,
+		pName, g.PeekTopCard())))
 	g.PlayerChips[player] += g.CentreChips
 	g.CentreChips = 0
 	return nil
