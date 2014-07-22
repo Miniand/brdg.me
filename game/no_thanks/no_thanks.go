@@ -78,7 +78,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString(strconv.Itoa(g.PlayerChips[player]))
 		buf.WriteString("{{_c}}\n\n")
 	}
-	buf.WriteString("{{b}}Players{{_b}}\n")
 	header := []string{"{{b}}Players{{_b}}", "{{b}}Cards{{_b}}"}
 	if g.IsFinished() {
 		header = append(header, "{{b}}Score{{_b}}")
@@ -98,7 +97,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		if g.IsFinished() {
 			row = append(row, fmt.Sprintf(
-				`{{b}}{{c "green"}}%d{{_c}}{{_b}} chips, {{b}}{{c "magenta"}}%s{{_c}}{{_b}} points`,
+				`{{b}}{{c "green"}}%d{{_c}}{{_b}} chips, {{b}}{{c "magenta"}}%d{{_c}}{{_b}} points`,
 				g.PlayerChips[p], g.FinalPlayerScore(p)))
 		}
 		cells = append(cells, row)
@@ -229,9 +228,10 @@ func (g *Game) Pass(player string) error {
 	}
 	g.PlayerChips[player]--
 	g.CentreChips++
+	pName := render.PlayerNameInPlayers(player, g.Players)
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`%s passed on the {{b}}{{c "blue"}}%d{{_c}}{{_b}}`,
-		player, g.PeekTopCard())))
+		pName, g.PeekTopCard())))
 	return g.NextPlayer()
 }
 
