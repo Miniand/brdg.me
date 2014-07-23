@@ -181,16 +181,11 @@ func (g *Game) AllCards() []int {
 
 func (g *Game) InitCards() {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	perm := r.Perm(33)
 	cardPool := g.AllCards()
-	picked := map[int]bool{}
 	g.RemainingCards = make([]int, 24)
 	for i := 0; i < 24; i++ {
-		c := cardPool[r.Int()%24]
-		for picked[c] {
-			c = cardPool[r.Int()%24]
-		}
-		picked[c] = true
-		g.RemainingCards[i] = c
+		g.RemainingCards[i] = cardPool[perm[i]]
 	}
 }
 
