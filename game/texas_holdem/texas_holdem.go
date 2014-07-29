@@ -5,14 +5,15 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"math/rand"
+	"strings"
+	"time"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/game/poker"
 	"github.com/Miniand/brdg.me/render"
-	"math/rand"
-	"strings"
-	"time"
 )
 
 const (
@@ -429,15 +430,17 @@ func (g *Game) Showdown() {
 					g.PlayerHands[playerNum].PushMany(g.CommunityCards))
 				handsTableRow := []string{g.RenderPlayerName(playerNum)}
 				handsTableRow = append(handsTableRow, strings.Join(
-					RenderCards(handResults[playerNum].Cards), " "))
+					RenderCards(g.PlayerHands[playerNum]), " "))
 				handsTableRow = append(handsTableRow,
 					handResults[playerNum].Name)
+				handsTableRow = append(handsTableRow, strings.Join(
+					RenderCards(handResults[playerNum].Cards), " "))
 				handsTable = append(handsTable, handsTableRow)
 			}
 		}
 		if len(handResults) > 1 {
 			// Multiple people for this pot, showdown
-			handsTableOutput, err := render.Table(handsTable, 0, 1)
+			handsTableOutput, err := render.Table(handsTable, 0, 2)
 			if err != nil {
 				panic(err.Error())
 			}

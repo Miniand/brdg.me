@@ -3,10 +3,11 @@ package email
 import (
 	"bytes"
 	"errors"
-	"github.com/Miniand/brdg.me/game"
-	"github.com/Miniand/brdg.me/server/model"
 	"regexp"
 	"strings"
+
+	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/server/model"
 )
 
 type NewCommand struct{}
@@ -32,7 +33,7 @@ func (nc NewCommand) Call(player string, context interface{},
 	}
 	g := game.RawCollection()[args[1]]
 	players := append([]string{player}, regexp.MustCompile(`\s+`).Split(
-		strings.TrimSpace(args[2]), -1)...)
+		strings.ToLower(strings.TrimSpace(args[2])), -1)...)
 	gm, err := model.StartNewGame(g, players)
 	if err != nil {
 		return "", err
