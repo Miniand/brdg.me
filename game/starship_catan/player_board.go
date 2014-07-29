@@ -32,20 +32,6 @@ func NewPlayerBoard(player int) *PlayerBoard {
 		Colonies:            card.Deck{},
 		TradingPosts:        card.Deck{},
 	}
-	if player == 0 {
-		pb.Colonies = pb.Colonies.Push(ColonyCard{
-			Name:      "blah",
-			Resource:  ResourceOre,
-			Dice:      1,
-			StartCard: true,
-		})
-	} else {
-		pb.Colonies = pb.Colonies.Push(ColonyCard{
-			Name:      "blah",
-			Resource:  ResourceOre,
-			Dice:      1,
-			StartCard: true,
-		})
-	}
+	pb.Colonies = pb.Colonies.Push(StartingCards()[player])
 	return pb
 }
