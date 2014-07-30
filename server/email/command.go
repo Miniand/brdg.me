@@ -13,6 +13,7 @@ func Commands(gameId string) []command.Command {
 			gameId: gameId,
 		},
 		NewCommand{},
+		RestartCommand{},
 		UnsubscribeCommand{},
 		SubscribeCommand{},
 	}

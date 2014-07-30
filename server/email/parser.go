@@ -17,7 +17,7 @@ import (
 // Search for an email address
 func ParseFrom(from string) string {
 	reg := regexp.MustCompile(EmailSearchRegexString())
-	return reg.FindString(from)
+	return strings.ToLower(reg.FindString(from))
 }
 
 // Search for a BSON objectid to match to a game (length 24 hex string)
