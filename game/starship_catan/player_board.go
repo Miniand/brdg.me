@@ -13,6 +13,7 @@ type PlayerBoard struct {
 	ColonyShips         int
 	FriendOfThePeople   bool
 	HeroOfThePeople     bool
+	LastSector          int
 }
 
 func NewPlayerBoard(player int) *PlayerBoard {

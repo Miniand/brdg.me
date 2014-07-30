@@ -28,7 +28,8 @@ var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 type Game struct {
 	Players          []string
 	PlayerBoards     [2]*PlayerBoard
-	SectorCards      [4]card.Deck
+	SectorCards      map[int]card.Deck
+	FlightCards      card.Deck
 	CurrentSector    int
 	VisitedCards     card.Deck
 	RemainingActions int
@@ -52,10 +53,11 @@ func (g *Game) Start(players []string) error {
 		NewPlayerBoard(1),
 	}
 	sectorCards := ShuffledSectorCards()
-	g.SectorCards = [4]card.Deck{}
-	for i := 0; i < 4; i++ {
+	g.SectorCards = map[int]card.Deck{}
+	for i := 1; i <= 4; i++ {
 		g.SectorCards[i], sectorCards = sectorCards.PopN(10)
 	}
+	g.FlightCards = card.Deck{}
 	g.AdventureCards = ShuffledAdventureCards()
 	g.Log = log.New()
 	return nil
