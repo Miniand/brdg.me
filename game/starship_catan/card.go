@@ -1,6 +1,13 @@
 package starship_catan
 
-import "github.com/Miniand/brdg.me/game/card"
+import (
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
+)
+
+type Commander interface {
+	Commands() []command.Command
+}
 
 type UnsortableCard struct{}
 

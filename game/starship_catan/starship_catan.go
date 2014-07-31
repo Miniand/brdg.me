@@ -29,6 +29,7 @@ type Game struct {
 	Players          []string
 	PlayerBoards     [2]*PlayerBoard
 	SectorCards      map[int]card.Deck
+	SectorDrawPile   card.Deck
 	FlightCards      card.Deck
 	CurrentSector    int
 	VisitedCards     card.Deck
@@ -57,6 +58,7 @@ func (g *Game) Start(players []string) error {
 	for i := 1; i <= 4; i++ {
 		g.SectorCards[i], sectorCards = sectorCards.PopN(10)
 	}
+	g.SectorDrawPile = sectorCards
 	g.FlightCards = card.Deck{}
 	g.AdventureCards = ShuffledAdventureCards()
 	g.Log = log.New()
@@ -64,10 +66,18 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{
+	commands := []command.Command{
 		ChooseCommand{},
 		GainCommand{},
+		SectorCommand{},
 	}
+	if len(g.FlightCards) > 0 {
+		c, _ := g.FlightCards.Pop()
+		if c, ok := c.(Commander); ok {
+			commands = append(commands, c.Commands()...)
+		}
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
@@ -83,6 +93,8 @@ func RegisterGobTypes() {
 	gob.Register(ColonyCard{})
 	gob.Register(TradeCard{})
 	gob.Register(PirateCard{})
+	gob.Register(MedianCard{})
+	gob.Register(EmptyCard{})
 	gob.Register(AdventurePlanetCard{})
 	for _, c := range ShuffledAdventureCards() {
 		gob.Register(c)
@@ -182,7 +194,102 @@ func (g *Game) Sector(player, sector int) error {
 	g.CurrentSector = sector
 	g.RemainingActions = 2 + g.PlayerBoards[player].Modules[ModuleCommand]
 	g.RemainingMoves = g.FlightDistance()
+	return g.NextSectorCard()
+}
+
+func (g *Game) NextSectorCard() error {
+	var nextCard card.Card
+	if g.Phase != PhaseFlight {
+		return errors.New("it isn't the flight phase at the moment")
+	}
+	if g.SectorCards[g.CurrentSector] == nil {
+		return fmt.Errorf("%d is not a valid sector number", g.CurrentSector)
+	}
+	if len(g.SectorCards[g.CurrentSector]) == 0 ||
+		len(g.FlightCards) >= g.FlightDistance() || g.RemainingActions == 0 {
+		return g.EndFlight()
+	}
+	nextCard, g.SectorCards[g.CurrentSector] =
+		g.SectorCards[g.CurrentSector].Pop()
+	g.FlightCards = g.FlightCards.Push(nextCard)
+	cardText := fmt.Sprintf("%#v", nextCard)
+	if nextCard, ok := nextCard.(fmt.Stringer); ok {
+		cardText = nextCard.String()
+	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`You have arrived at %s`, cardText)))
+	if _, ok := nextCard.(Commander); !ok {
+		g.Log.Add(log.NewPublicMessage(
+			"There is nothing you can do here, continuing flight"))
+		return g.NextSectorCard()
+	}
 	return nil
+}
+
+func (g *Game) EndFlight() error {
+	if g.Phase != PhaseFlight {
+		return errors.New("it isn't the flight phase at the moment")
+	}
+	if g.SectorCards[g.CurrentSector] == nil {
+		return fmt.Errorf("%d is not a valid sector number", g.CurrentSector)
+	}
+	g.Log.Add(log.NewPublicMessage("The flight has ended"))
+	g.SectorCards[g.CurrentSector] = g.SectorCards[g.CurrentSector].PushMany(
+		g.FlightCards).Shuffle()
+	g.FlightCards = card.Deck{}
+	g.Phase = PhaseTradeAndBuild
+	return nil
+}
+
+func (g *Game) CanFound(player int) bool {
+	if g.CurrentPlayer != player || g.Phase != PhaseFlight ||
+		len(g.FlightCards) == 0 ||
+		g.PlayerBoards[player].Resources[ResourceColonyShip] == 0 {
+		return false
+	}
+	c, _ := g.FlightCards.Pop()
+	_, ok := c.(ColonyCard)
+	return ok
+}
+
+func (g *Game) Found(player int) error {
+	var c card.Card
+
+	if !g.CanFound(player) {
+		return errors.New("you are not able to found a colony")
+	}
+	c, g.FlightCards = g.FlightCards.Pop()
+	colCard := c.(ColonyCard)
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s founded a colony on %s`, g.RenderName(player), colCard)))
+	g.PlayerBoards[player].Colonies = g.PlayerBoards[player].Colonies.Push(c)
+	if len(g.SectorDrawPile) > 0 {
+		c, g.SectorDrawPile = g.SectorDrawPile.Pop()
+		g.FlightCards = g.FlightCards.Push(c)
+		if cStr, ok := c.(fmt.Stringer); ok {
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				`The replacement card is %s`, cStr)))
+		}
+	} else {
+		g.Log.Add(log.NewPublicMessage("No replacement cards remain"))
+	}
+	g.RemainingActions -= 1
+	g.NextSectorCard()
+	return nil
+}
+
+func (g *Game) CanNext(player int) bool {
+	return g.CurrentPlayer == player && g.Phase == PhaseFlight
+}
+
+func (g *Game) Next(player int) error {
+	if !g.CanNext(player) {
+		return errors.New("you can't advance to the next card")
+	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s continued their flight without taking an action`,
+		g.RenderName(player))))
+	return g.NextSectorCard()
 }
 
 func (g *Game) NextTurn() {
