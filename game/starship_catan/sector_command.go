@@ -2,6 +2,7 @@ package starship_catan
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
@@ -39,5 +40,14 @@ func (c SectorCommand) Call(player string, context interface{},
 }
 
 func (c SectorCommand) Usage(player string, context interface{}) string {
-	return "{{b}}sector #{{_b}} to choose which sector to travel through, between 1 and 4.  Eg. {{b}}sector 3{{_b}}"
+	g := context.(*Game)
+	p, _ := g.ParsePlayer(player)
+	lastSectorMsg := ""
+	if g.PlayerBoards[p].LastSector != 0 {
+		lastSectorMsg = fmt.Sprintf(
+			`Your last sector was {{b}}sector %d{{_b}}.  `,
+			g.PlayerBoards[p].LastSector)
+	}
+	return fmt.Sprintf(
+		"{{b}}sector #{{_b}} to choose which sector to travel through, between 1 and 4.  %sEg. {{b}}sector 3{{_b}}", lastSectorMsg)
 }
