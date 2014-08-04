@@ -38,7 +38,7 @@ func (sc StealCommand) Call(player string, context interface{},
 	}
 	color, err := helper.MatchStringInStrings(a[1], []string{"blue", "red"})
 	if err != nil {
-		return "", errors.New(`you must specify "blue" or "red" after "take"`)
+		return "", errors.New(`you must specify "blue" or "red" after the player name`)
 	}
 	if len(a) == 3 {
 		n, err := strconv.Atoi(a[2])

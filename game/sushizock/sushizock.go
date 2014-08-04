@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
@@ -146,13 +147,39 @@ func (g *Game) Start(players []string) error {
 
 func (g *Game) StartTurn() {
 	g.RolledDice = RollDice(5)
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s rolled  {{b}}%s{{_b}}`, g.PlayerName(g.CurrentPlayer),
+		strings.Join(DiceStrings(g.RolledDice), "  "))))
 	g.KeptDice = []int{}
 	g.RemainingRolls = 2
 }
 
 func (g *Game) NextPlayer() {
+	if g.IsFinished() {
+		g.LogGameEnd()
+		return
+	}
 	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
 	g.StartTurn()
+}
+
+func (g *Game) LogGameEnd() {
+	buf := bytes.NewBuffer([]byte{})
+	buf.WriteString("{{b}}The game is now finished, scores are as follows:{{_b}}\n")
+	cells := [][]string{}
+	for pNum, _ := range g.Players {
+		cells = append(cells, []string{
+			g.PlayerName(pNum),
+			fmt.Sprintf("{{b}}%s{{_b}}", strings.Join(
+				append(append(Tiles{}, g.PlayerBlueTiles[pNum]...),
+					g.PlayerRedTiles[pNum]...).Strings(), " ")),
+			fmt.Sprintf("{{b}}%d points{{_b}}",
+				Score(g.PlayerBlueTiles[pNum], g.PlayerRedTiles[pNum])),
+		})
+	}
+	table, _ := render.Table(cells, 0, 2)
+	buf.WriteString(table)
+	g.Log.Add(log.NewPublicMessage(buf.String()))
 }
 
 func (g *Game) Dice() []int {
@@ -231,6 +258,8 @@ func (g *Game) TakeBlue(player int) error {
 		return errors.New("unable to take blue at the moment")
 	}
 	t, remaining := g.BlueTiles.Remove(g.DiceCounts()[DiceSushi] - 1)
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s took {{b}}%s{{_b}}`, g.PlayerName(player), t.String())))
 	g.PlayerBlueTiles[player] = append(g.PlayerBlueTiles[player], t)
 	g.BlueTiles = remaining
 	g.NextPlayer()
@@ -242,6 +271,8 @@ func (g *Game) TakeRed(player int) error {
 		return errors.New("unable to take red at the moment")
 	}
 	t, remaining := g.RedTiles.Remove(g.DiceCounts()[DiceBones] - 1)
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s took {{b}}%s{{_b}}`, g.PlayerName(player), t.String())))
 	g.PlayerRedTiles[player] = append(g.PlayerRedTiles[player], t)
 	g.RedTiles = remaining
 	g.NextPlayer()
@@ -275,13 +306,22 @@ func (g *Game) RollDice(player int, dice []int) error {
 	if len(rollMap) == len(g.RolledDice) {
 		return fmt.Errorf("you must keep at least one die")
 	}
+	rolled := []int{}
 	for i, d := range g.RolledDice {
 		if !rollMap[i] {
 			g.KeptDice = append(g.KeptDice, d)
+		} else {
+			rolled = append(rolled, d)
 		}
 	}
 	g.RolledDice = RollDice(len(rollMap))
 	g.RemainingRolls -= 1
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s rerolled  %s  and got  {{b}}%s{{_b}}\nDice are now  {{b}}%s{{_b}}",
+		g.PlayerName(player),
+		strings.Join(DiceStrings(rolled), "  "),
+		strings.Join(DiceStrings(g.RolledDice), "  "),
+		strings.Join(DiceStrings(g.Dice()), "  "))))
 	if g.RemainingRolls == 0 || len(g.RolledDice) == 1 {
 		g.KeptDice = append(g.KeptDice, g.RolledDice...)
 		g.RolledDice = []int{}
@@ -337,7 +377,7 @@ func (g *Game) CanStealRedN(player int) bool {
 
 func (g *Game) StealRed(player, targetPlayer int) error {
 	if !g.CanStealRed(player) {
-		return errors.New("can't steal at the moment")
+		return errors.New("can't steal a red tile at the moment")
 	}
 	if player == targetPlayer {
 		return errors.New("can't steal from yourself")
@@ -349,13 +389,14 @@ func (g *Game) StealRed(player, targetPlayer int) error {
 		len(g.PlayerRedTiles[targetPlayer]) - 1)
 	g.PlayerRedTiles[player] = append(g.PlayerRedTiles[player], t)
 	g.PlayerRedTiles[targetPlayer] = remaining
+	g.AddStealLog(player, targetPlayer, t)
 	g.NextPlayer()
 	return nil
 }
 
 func (g *Game) StealBlue(player, targetPlayer int) error {
 	if !g.CanStealBlue(player) {
-		return errors.New("can't steal at the moment")
+		return errors.New("can't steal a blue tile at the moment")
 	}
 	if player == targetPlayer {
 		return errors.New("can't steal from yourself")
@@ -367,13 +408,17 @@ func (g *Game) StealBlue(player, targetPlayer int) error {
 		len(g.PlayerBlueTiles[targetPlayer]) - 1)
 	g.PlayerBlueTiles[player] = append(g.PlayerBlueTiles[player], t)
 	g.PlayerBlueTiles[targetPlayer] = remaining
+	g.AddStealLog(player, targetPlayer, t)
 	g.NextPlayer()
 	return nil
 }
 
 func (g *Game) StealRedN(player, targetPlayer, n int) error {
+	if n == 1 {
+		return g.StealRed(player, targetPlayer)
+	}
 	if !g.CanStealRed(player) {
-		return errors.New("can't steal at the moment")
+		return errors.New("can't steal a hidden red tile at the moment")
 	}
 	if player == targetPlayer {
 		return errors.New("can't steal from yourself")
@@ -390,13 +435,17 @@ func (g *Game) StealRedN(player, targetPlayer, n int) error {
 	t, remaining := g.PlayerRedTiles[targetPlayer].Remove(index)
 	g.PlayerRedTiles[player] = append(g.PlayerRedTiles[player], t)
 	g.PlayerRedTiles[targetPlayer] = remaining
+	g.AddStealLog(player, targetPlayer, t)
 	g.NextPlayer()
 	return nil
 }
 
 func (g *Game) StealBlueN(player, targetPlayer, n int) error {
+	if n == 1 {
+		return g.StealBlue(player, targetPlayer)
+	}
 	if !g.CanStealBlue(player) {
-		return errors.New("can't steal at the moment")
+		return errors.New("can't steal a hidden blue tile at the moment")
 	}
 	if player == targetPlayer {
 		return errors.New("can't steal from yourself")
@@ -413,12 +462,54 @@ func (g *Game) StealBlueN(player, targetPlayer, n int) error {
 	t, remaining := g.PlayerBlueTiles[targetPlayer].Remove(index)
 	g.PlayerBlueTiles[player] = append(g.PlayerBlueTiles[player], t)
 	g.PlayerBlueTiles[targetPlayer] = remaining
+	g.AddStealLog(player, targetPlayer, t)
 	g.NextPlayer()
 	return nil
 }
 
+func (g *Game) AddStealLog(player, targetPlayer int, tile Tile) {
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s stole {{b}}%s{{_b}} from %s`,
+		g.PlayerName(player),
+		tile.String(),
+		g.PlayerName(targetPlayer))))
+}
+
 func (g *Game) TakeWorst() {
+	var (
+		t     Tile
+		index int
+	)
+	if len(g.RedTiles) > 0 {
+		for i, r := range g.RedTiles {
+			if i == 0 || r.Value < t.Value {
+				t = r
+				index = i
+			}
+		}
+		g.PlayerRedTiles[g.CurrentPlayer] =
+			append(g.PlayerRedTiles[g.CurrentPlayer], t)
+		_, g.RedTiles = g.RedTiles.Remove(index)
+	} else {
+		for i, b := range g.BlueTiles {
+			if i == 0 || b.Value < t.Value {
+				t = b
+				index = i
+			}
+		}
+		g.PlayerBlueTiles[g.CurrentPlayer] =
+			append(g.PlayerBlueTiles[g.CurrentPlayer], t)
+		_, g.BlueTiles = g.BlueTiles.Remove(index)
+	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s is forced to take {{b}}%s{{_b}}`,
+		g.PlayerName(g.CurrentPlayer),
+		t.String())))
 	g.NextPlayer()
+}
+
+func (g *Game) PlayerName(player int) string {
+	return render.PlayerName(player, g.Players[player])
 }
 
 func BoldStrings(strs []string) []string {
