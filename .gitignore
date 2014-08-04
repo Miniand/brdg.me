@@ -1,3 +1,4 @@
 .game
 rethinkdb_data
 tags
+*.swp
