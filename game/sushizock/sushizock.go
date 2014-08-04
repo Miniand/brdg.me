@@ -316,12 +316,12 @@ func (g *Game) RollDice(player int, dice []int) error {
 	}
 	g.RolledDice = RollDice(len(rollMap))
 	g.RemainingRolls -= 1
+	rolledStrs := append(BoldStrings(DiceStrings(g.RolledDice)),
+		DiceStrings(g.KeptDice)...)
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s rerolled  %s  and got  {{b}}%s{{_b}}\nDice are now  {{b}}%s{{_b}}",
+		"%s rolled  %s",
 		g.PlayerName(player),
-		strings.Join(DiceStrings(rolled), "  "),
-		strings.Join(DiceStrings(g.RolledDice), "  "),
-		strings.Join(DiceStrings(g.Dice()), "  "))))
+		strings.Join(rolledStrs, "  "))))
 	if g.RemainingRolls == 0 || len(g.RolledDice) == 1 {
 		g.KeptDice = append(g.KeptDice, g.RolledDice...)
 		g.RolledDice = []int{}

@@ -14,9 +14,9 @@ const (
 
 var DiceText = map[int]string{
 	DiceSushi:          `{{c "blue"}}Θ{{_c}}`,
-	DiceBlueChopsticks: `{{c "blue"}}‖{{_c}}`,
+	DiceBlueChopsticks: `{{c "blue"}}X{{_c}}`,
 	DiceBones:          `{{c "red"}}¥{{_c}}`,
-	DiceRedChopsticks:  `{{c "red"}}‖{{_c}}`,
+	DiceRedChopsticks:  `{{c "red"}}X{{_c}}`,
 }
 
 func RollDie() int {
