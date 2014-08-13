@@ -12,6 +12,15 @@ const (
 	DiceRedChopsticks
 )
 
+var DiceFaces = []int{
+	DiceSushi,
+	DiceSushi,
+	DiceBones,
+	DiceBones,
+	DiceBlueChopsticks,
+	DiceRedChopsticks,
+}
+
 var DiceText = map[int]string{
 	DiceSushi:          `{{c "blue"}}Θ{{_c}}`,
 	DiceBlueChopsticks: `{{c "blue"}}X{{_c}}`,
@@ -20,7 +29,8 @@ var DiceText = map[int]string{
 }
 
 func RollDie() int {
-	return rand.New(rand.NewSource(time.Now().UnixNano())).Int() % 4
+	return DiceFaces[rand.New(rand.NewSource(time.Now().UnixNano())).Int()%
+		len(DiceFaces)]
 }
 
 func RollDice(n int) []int {
