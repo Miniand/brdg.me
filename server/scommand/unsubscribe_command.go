@@ -1,23 +1,23 @@
-package email
+package scommand
 
 import (
 	"errors"
-	"github.com/Miniand/brdg.me/command"
+	comm "github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/server/model"
 )
 
 type UnsubscribeCommand struct{}
 
 func (uc UnsubscribeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("unsubscribe", 0, input)
+	return comm.ParseNamedCommandNArgs("unsubscribe", 0, input)
 }
 
 func (uc UnsubscribeCommand) CanCall(player string, context interface{}) bool {
-	unsubscribed, err := UserIsUnsubscribed(player)
+	u, err := model.FirstUserByEmail(player)
 	if err != nil {
 		return false
 	}
-	return !unsubscribed
+	return u == nil || !u.Unsubscribed
 }
 
 func (uc UnsubscribeCommand) Call(player string, context interface{},

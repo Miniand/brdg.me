@@ -1,11 +1,11 @@
-package email
+package scommand
 
 import (
-	"github.com/Miniand/brdg.me/command"
+	comm "github.com/Miniand/brdg.me/command"
 )
 
-func Commands(gameId string) []command.Command {
-	return []command.Command{
+func Commands(gameId string) []comm.Command {
+	return []comm.Command{
 		PokeCommand{
 			gameId: gameId,
 		},

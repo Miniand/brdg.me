@@ -1,29 +1,29 @@
-package email
+package scommand
 
 import (
 	"errors"
-	"github.com/Miniand/brdg.me/command"
+	comm "github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/server/model"
 )
 
 type SubscribeCommand struct{}
 
 func (sc SubscribeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("subscribe", 0, input)
+	return comm.ParseNamedCommandNArgs("subscribe", 0, input)
 }
 
 func (sc SubscribeCommand) CanCall(player string, context interface{}) bool {
-	unsubscribed, err := UserIsUnsubscribed(player)
-	if err != nil {
+	u, err := model.FirstUserByEmail(player)
+	if err != nil || u == nil {
 		return false
 	}
-	return unsubscribed
+	return u.Unsubscribed
 }
 
 func (sc SubscribeCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	u, err := model.FirstUserByEmail(player)
-	if err != nil {
+	if err != nil || u == nil {
 		return "", errors.New("Could not find you in the database")
 	}
 	if u == nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
+	sgame "github.com/Miniand/brdg.me/server/game"
 	"github.com/Miniand/brdg.me/server/model"
 	"github.com/Miniand/brdg.me/server/web/view"
 	gameView "github.com/Miniand/brdg.me/server/web/view/game"
@@ -187,5 +188,63 @@ func ApiGameCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	Json(http.StatusOK, map[string]interface{}{
 		"id": gm.Id,
+	}, w, r)
+}
+
+func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
+	loggedIn, authUser := ApiMustAuthenticate(w, r)
+	if !loggedIn {
+		return
+	}
+	vars := mux.Vars(r)
+	gm, err := model.LoadGame(vars["id"])
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	g, err := gm.ToGame()
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	if err := sgame.HandleCommandText(authUser.Email, gm.Id,
+		r.FormValue("command")); err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	gameOutput, err := g.RenderForPlayer(authUser.Email)
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	gameHtml, err := render.RenderHtml(gameOutput)
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	logHtml, err := render.RenderHtml(
+		log.RenderMessages(g.GameLog().MessagesFor(authUser.Email)))
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	commandHtml, err := render.RenderHtml(
+		render.CommandUsages(command.CommandUsages(
+			authUser.Email, g,
+			command.AvailableCommands(authUser.Email, g, g.Commands()))))
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	Json(http.StatusOK, map[string]interface{}{
+		"identifier": g.Identifier(),
+		"name":       g.Name(),
+		"isFinished": g.IsFinished(),
+		"whoseTurn":  g.WhoseTurn(),
+		"playerList": g.PlayerList(),
+		"winners":    g.Winners(),
+		"game":       gameHtml,
+		"log":        logHtml,
+		"commands":   commandHtml,
 	}, w, r)
 }

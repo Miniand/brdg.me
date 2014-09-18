@@ -1,43 +1,24 @@
-package email
+package game
 
 import (
 	"bytes"
 	"errors"
-	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
-	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
+	"github.com/Miniand/brdg.me/server/communicate"
+	"github.com/Miniand/brdg.me/server/email"
 	"github.com/Miniand/brdg.me/server/model"
+	"github.com/Miniand/brdg.me/server/scommand"
 )
-
-// Search for an email address
-func ParseFrom(from string) string {
-	reg := regexp.MustCompile(EmailSearchRegexString())
-	return strings.ToLower(reg.FindString(from))
-}
-
-// Search for a BSON objectid to match to a game (length 24 hex string)
-func ParseSubject(subject string) string {
-	reg := regexp.MustCompile("\\b[a-f0-9]{8}-([a-f0-9]{4}-){3}.{12}\\b")
-	return reg.FindString(subject)
-}
-
-// Find contiguous lines as commands until the first blank line
-func ParseBody(body string) string {
-	return strings.Replace(strings.Replace(body, "\r\n", "\n", -1),
-		"\r", "\n", -1)
-}
 
 // Run commands on the game, email relevant people and handle action issues
 func HandleCommandText(player, gameId, commandText string) error {
-	fmt.Printf("%s (%s) %s\n", player, gameId, commandText)
-	unsubscribed, err := UserIsUnsubscribed(player)
-	if (err == nil && unsubscribed) || gameId == "" {
-		commands := Commands("")
+	u, err := model.FirstUserByEmail(player)
+	if err != nil || u != nil && u.Unsubscribed || gameId == "" {
+		commands := scommand.Commands("")
 		output, err := command.CallInCommands(player, nil, commandText, commands)
 		if err != nil {
 			// Print help
@@ -54,7 +35,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			body.WriteString(render.CommandUsages(
 				command.CommandUsages(player, nil,
 					command.AvailableCommands(player, nil, commands))))
-			err = SendRichMail([]string{player}, "Welcome to brdg.me!",
+			err = email.SendRichMail([]string{player}, "Welcome to brdg.me!",
 				body.String(), []string{})
 			if err != nil {
 				return err
@@ -71,7 +52,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			return err
 		}
 		alreadyFinished := g.IsFinished()
-		commands := append(g.Commands(), Commands(gm.Id)...)
+		commands := append(g.Commands(), scommand.Commands(gm.Id)...)
 		initialWhoseTurn := g.WhoseTurn()
 		eliminator, isEliminator := g.(game.Eliminator)
 		if isEliminator {
@@ -89,7 +70,8 @@ func HandleCommandText(player, gameId, commandText string) error {
 			header += output
 		}
 		commErrs := []string{}
-		commErr := CommunicateGameTo(gm.Id, g, []string{player}, header, false)
+		commErr := communicate.Game(gm.Id, g, []string{player},
+			commands, header, false)
 		if commErr != nil {
 			commErrs = append(commErrs, commErr.Error())
 		}
@@ -101,10 +83,11 @@ func HandleCommandText(player, gameId, commandText string) error {
 			// Keep track who we've communicated to for if it's the end of the
 			// game.
 			communicatedTo := []string{player}
-			// Email any players who now have a turn, or for ones who still have
+			// EPlease credit me and link back to one of my sites (I prefer Tumblr) if you post my art elsewhere. mail any players who now have a turn, or for ones who still have
 			// a turn but there are new logs
 			whoseTurnNow, remaining := WhoseTurnNow(g, initialWhoseTurn)
-			commErr = CommunicateGameTo(gm.Id, g, whoseTurnNow, "", false)
+			commErr = communicate.Game(gm.Id, g, whoseTurnNow,
+				append(g.Commands(), scommand.Commands(gm.Id)...), "", false)
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
@@ -115,7 +98,9 @@ func HandleCommandText(player, gameId, commandText string) error {
 					whoseTurnNewLogs = append(whoseTurnNewLogs, p)
 				}
 			}
-			commErr = CommunicateGameTo(gm.Id, g, whoseTurnNewLogs, "", false)
+			commErr = communicate.Game(gm.Id, g, whoseTurnNewLogs,
+				append(g.Commands(), scommand.Commands(gm.Id)...),
+				"", false)
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
@@ -124,7 +109,8 @@ func HandleCommandText(player, gameId, commandText string) error {
 			if isEliminator {
 				newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
 					eliminator.EliminatedPlayerList())
-				commErr = CommunicateGameTo(gm.Id, g, newlyEliminated,
+				commErr = communicate.Game(gm.Id, g, newlyEliminated,
+					append(g.Commands(), scommand.Commands(gm.Id)...),
 					"You have been eliminated from the game.", false)
 				if commErr != nil {
 					commErrs = append(commErrs, commErr.Error())
@@ -135,7 +121,8 @@ func HandleCommandText(player, gameId, commandText string) error {
 			if !alreadyFinished && g.IsFinished() {
 				uncommunicated, _ := FindNewStringsInSlice(communicatedTo,
 					g.PlayerList())
-				commErr = CommunicateGameTo(gm.Id, g, uncommunicated, "", false)
+				commErr = communicate.Game(gm.Id, g, uncommunicated,
+					append(g.Commands(), scommand.Commands(gm.Id)...), "", false)
 			}
 
 			// Update again to handle saves during render, ie for logger
@@ -170,74 +157,4 @@ func FindNewStringsInSlice(oldSlice, newSlice []string) (newStrings,
 		}
 	}
 	return
-}
-
-func CommunicateGameTo(id string, g game.Playable, to []string,
-	header string, initial bool) error {
-	if header != "" {
-		header += "\n\n"
-	}
-	if g.IsFinished() {
-		winners := g.Winners()
-		header += "The game is over"
-		if len(winners) == 0 {
-			header += ", it was a draw!"
-		} else {
-			header += ", the winners were: " + strings.Join(
-				render.PlayerNamesInPlayers(winners, g.PlayerList()), ", ")
-		}
-	} else {
-		header += "Current turn: " + strings.Join(render.PlayerNamesInPlayers(
-			g.WhoseTurn(), g.PlayerList()), ", ")
-	}
-	commErrs := []string{}
-	for _, p := range to {
-		unsubscribed, err := UserIsUnsubscribed(p)
-		if err == nil && unsubscribed {
-			continue
-		}
-		pHeader := header
-		rawOutput, err := g.RenderForPlayer(p)
-		if err != nil {
-			commErrs = append(commErrs, err.Error())
-			continue
-		}
-		// Add log to header if needed
-		messages := g.GameLog().NewMessagesFor(p)
-		if len(messages) > 0 {
-			pHeader += "\n\n{{b}}Since last time:{{_b}}\n" +
-				log.RenderMessages(messages)
-		}
-		g.GameLog().MarkReadFor(p)
-		// Add usages to header if needed
-		commands := append(g.Commands(), Commands(id)...)
-		usages := command.CommandUsages(p, g,
-			command.AvailableCommands(p, g, commands))
-		if len(usages) > 0 {
-			pHeader += "\n\n{{b}}You can:{{_b}}\n" +
-				render.CommandUsages(usages)
-		}
-		body := pHeader + "\n\n" + rawOutput
-		subject := fmt.Sprintf("%s (%s)", g.Name(), id)
-		extraHeaders := []string{}
-		messageId := id + "@brdg.me"
-		if initial {
-			// We create the base Message-ID
-			extraHeaders = append(extraHeaders,
-				fmt.Sprintf("Message-Id: <%s>", messageId))
-		} else {
-			// We create a unique Message-ID and set the In-Reply-To to original
-			extraHeaders = append(extraHeaders,
-				fmt.Sprintf("In-Reply-To: <%s>", messageId))
-		}
-		err = SendRichMail([]string{p}, subject, body, extraHeaders)
-		if err != nil {
-			commErrs = append(commErrs, err.Error())
-			continue
-		}
-	}
-	if len(commErrs) > 0 {
-		return errors.New(strings.Join(commErrs, "\n"))
-	}
-	return nil
 }

@@ -1,4 +1,4 @@
-package email
+package scommand
 
 import (
 	"github.com/Miniand/brdg.me/command"

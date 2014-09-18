@@ -1,9 +1,11 @@
-package email
+package parser
 
 import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/Miniand/brdg.me/server/game"
 )
 
 type InboundEmailHandler struct{}
@@ -20,7 +22,7 @@ func (h *InboundEmailHandler) ServeHTTP(w http.ResponseWriter,
 	player := ParseFrom(msg.Header.Get("From"))
 	gameId := ParseSubject(msg.Header.Get("Subject"))
 	commandText := ParseBody(body)
-	err = HandleCommandText(player, gameId, commandText)
+	err = game.HandleCommandText(player, gameId, commandText)
 	if err != nil {
 		log.Println("Error handling commands: " + err.Error())
 		http.Error(w, "Error handling commands: "+err.Error(), 500)

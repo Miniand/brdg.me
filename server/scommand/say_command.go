@@ -1,4 +1,4 @@
-package email
+package scommand
 
 import (
 	"errors"
@@ -9,6 +9,7 @@ import (
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
+	"github.com/Miniand/brdg.me/server/communicate"
 )
 
 type SayCommand struct {
@@ -41,7 +42,9 @@ func (sc SayCommand) Call(player string, context interface{},
 				otherPlayers = append(otherPlayers, p)
 			}
 		}
-		CommunicateGameTo(sc.gameId, g, otherPlayers, "", false)
+		communicate.Game(sc.gameId, g, otherPlayers,
+			append(g.Commands(), Commands(sc.gameId)...),
+			"", false)
 	}
 	return "", nil
 }

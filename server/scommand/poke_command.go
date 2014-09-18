@@ -1,11 +1,12 @@
-package email
+package scommand
 
 import (
 	"errors"
 	"fmt"
-	"github.com/Miniand/brdg.me/command"
+	comm "github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/render"
+	"github.com/Miniand/brdg.me/server/communicate"
 )
 
 type PokeCommand struct {
@@ -13,7 +14,7 @@ type PokeCommand struct {
 }
 
 func (pc PokeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("poke", 0, input)
+	return comm.ParseNamedCommandNArgs("poke", 0, input)
 }
 
 func (pc PokeCommand) CanCall(player string, context interface{}) bool {
@@ -42,9 +43,11 @@ func (pc PokeCommand) Call(player string, context interface{},
 	}
 	whoseTurn := g.WhoseTurn()
 	if pc.gameId != "" {
-		CommunicateGameTo(pc.gameId, g, whoseTurn, fmt.Sprintf(
-			"%s wants to remind you it's your turn!",
-			render.PlayerNameInPlayers(player, g.PlayerList())), false)
+		communicate.Game(pc.gameId, g, whoseTurn,
+			append(g.Commands(), Commands(pc.gameId)...),
+			fmt.Sprintf(
+				"%s wants to remind you it's your turn!",
+				render.PlayerNameInPlayers(player, g.PlayerList())), false)
 	}
 	return "You poked the current turn players", nil
 }

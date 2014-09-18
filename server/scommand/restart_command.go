@@ -1,17 +1,17 @@
-package email
+package scommand
 
 import (
 	"errors"
 	"strings"
 
-	"github.com/Miniand/brdg.me/command"
+	comm "github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 )
 
 type RestartCommand struct{}
 
 func (rc RestartCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("restart", input)
+	return comm.ParseNamedCommand("restart", input)
 }
 
 func (rc RestartCommand) CanCall(player string, context interface{}) bool {

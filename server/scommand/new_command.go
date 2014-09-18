@@ -1,4 +1,4 @@
-package email
+package scommand
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/server/communicate"
 	"github.com/Miniand/brdg.me/server/model"
 )
 
@@ -19,8 +20,8 @@ func (nc NewCommand) Parse(input string) []string {
 }
 
 func (nc NewCommand) CanCall(player string, context interface{}) bool {
-	unsubscribed, err := UserIsUnsubscribed(player)
-	if err == nil && unsubscribed {
+	u, err := model.FirstUserByEmail(player)
+	if err != nil || u != nil && u.Unsubscribed {
 		return false
 	}
 	return context == nil || context.(game.Playable).IsFinished()
@@ -38,7 +39,8 @@ func (nc NewCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	return "", CommunicateGameTo(gm.Id, g, g.PlayerList(),
+	return "", communicate.Game(gm.Id, g, g.PlayerList(),
+		append(g.Commands(), Commands(gm.Id)...),
 		"You have been invited by "+player+" to play "+g.Name()+" by email!",
 		true)
 }

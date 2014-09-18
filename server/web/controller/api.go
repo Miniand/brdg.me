@@ -44,6 +44,10 @@ func ApiInternalServerError(text string, w http.ResponseWriter, r *http.Request)
 	return ApiError(http.StatusInternalServerError, text, w, r)
 }
 
+func ApiUnprocessableEntity(text string, w http.ResponseWriter, r *http.Request) error {
+	return ApiError(422, text, w, r)
+}
+
 func ApiError(status int, text string, w http.ResponseWriter, r *http.Request) error {
 	return Json(status, map[string]string{
 		"error": text,
