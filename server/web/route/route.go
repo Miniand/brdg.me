@@ -1,9 +1,9 @@
 package route
 
 import (
-	"code.google.com/p/go.net/websocket"
-	"github.com/Miniand/brdg.me/server/web/controller"
 	"github.com/gorilla/mux"
+
+	"github.com/Miniand/brdg.me/server/web/controller"
 )
 
 var router *mux.Router
@@ -26,7 +26,7 @@ func Router() *mux.Router {
 			Name("gameShow")
 		router.HandleFunc("/game/new/{identifier}", controller.GameNew).
 			Methods("GET").Name("gameNew")
-		router.Handle("/ws", websocket.Handler(controller.Ws))
+		router.HandleFunc("/ws", controller.Websocket)
 		api := router.PathPrefix("/api/").Subrouter()
 		api.HandleFunc("/{url:.*}", controller.ApiOptions).Methods("OPTIONS").
 			Name("apiOptions")

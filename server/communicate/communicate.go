@@ -14,5 +14,17 @@ func Game(
 	header string,
 	initial bool,
 ) error {
-	return email.SendGame(id, g, to, commands, header, initial)
+	failed := wsSendGameMulti(to, id, header, g)
+	if len(failed) == 0 {
+		return nil
+	}
+	emailTo := []string{}
+	for p, _ := range failed {
+		emailTo = append(emailTo, p)
+	}
+	return email.SendGame(id, g, emailTo, commands, header, initial)
+}
+
+func GameUpdate(id string, g game.Playable, to []string, text string) {
+	wsSendGameMulti(to, id, text, g)
 }

@@ -83,7 +83,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			// Keep track who we've communicated to for if it's the end of the
 			// game.
 			communicatedTo := []string{player}
-			// EPlease credit me and link back to one of my sites (I prefer Tumblr) if you post my art elsewhere. mail any players who now have a turn, or for ones who still have
+			// Email any players who now have a turn, or for ones who still have
 			// a turn but there are new logs
 			whoseTurnNow, remaining := WhoseTurnNow(g, initialWhoseTurn)
 			commErr = communicate.Game(gm.Id, g, whoseTurnNow,
@@ -117,12 +117,18 @@ func HandleCommandText(player, gameId, commandText string) error {
 				}
 				communicatedTo = append(communicatedTo, newlyEliminated...)
 			}
-			// If it's the end of the game,
-			if !alreadyFinished && g.IsFinished() {
-				uncommunicated, _ := FindNewStringsInSlice(communicatedTo,
-					g.PlayerList())
-				commErr = communicate.Game(gm.Id, g, uncommunicated,
-					append(g.Commands(), scommand.Commands(gm.Id)...), "", false)
+			uncommunicated, _ := FindNewStringsInSlice(communicatedTo,
+				g.PlayerList())
+			if len(uncommunicated) > 0 {
+				if !alreadyFinished && g.IsFinished() {
+					// If it's the end of the game and some people haven't been contacted
+					commErr = communicate.Game(gm.Id, g, uncommunicated,
+						append(g.Commands(), scommand.Commands(gm.Id)...), "", false)
+				} else {
+					// We send updates to all remaining players via websockets so
+					// they can update.
+					communicate.GameUpdate(gm.Id, g, uncommunicated, "")
+				}
 			}
 
 			// Update again to handle saves during render, ie for logger
