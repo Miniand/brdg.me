@@ -51,6 +51,8 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if err != nil {
 			return err
 		}
+		// Ensure game is saved at the end of command handling.
+		defer model.UpdateGame(gameId, g)
 		alreadyFinished := g.IsFinished()
 		commands := append(g.Commands(), scommand.Commands(gm.Id)...)
 		initialWhoseTurn := g.WhoseTurn()
@@ -129,12 +131,6 @@ func HandleCommandText(player, gameId, commandText string) error {
 					// they can update.
 					communicate.GameUpdate(gm.Id, g, uncommunicated, "")
 				}
-			}
-
-			// Update again to handle saves during render, ie for logger
-			_, err = model.UpdateGame(gameId, g)
-			if err != nil {
-				return err
 			}
 		}
 		if len(commErrs) > 0 {
