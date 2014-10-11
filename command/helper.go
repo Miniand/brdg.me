@@ -26,8 +26,9 @@ func ParseNamedCommandRangeArgs(name string, minArgs int, maxArgs int,
 		}
 		repeater = fmt.Sprintf("{%s,%s}", repeaterMin, repeaterMax)
 	}
-	return regexp.MustCompile(fmt.Sprintf(`(?im)^[^\S\r\n]*%s(`+ARGUMENT_REGEXP+
-		`%s)[^\S\r\n]*$`, name, repeater)).FindStringSubmatch(input)
+	return regexp.MustCompile(fmt.Sprintf(`(?im)\A[^\S\r\n]*%s(`+ARGUMENT_REGEXP+
+		`%s)[^\S\r\n]*$`, name, repeater)).FindStringSubmatch(
+		strings.TrimSpace(input))
 }
 
 // Parses a named command with a specific number of arguments.
