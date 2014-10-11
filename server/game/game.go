@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+	"sync"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
@@ -13,6 +14,8 @@ import (
 	"github.com/Miniand/brdg.me/server/model"
 	"github.com/Miniand/brdg.me/server/scommand"
 )
+
+var gameMut = map[string]*sync.Mutex{}
 
 // Run commands on the game, email relevant people and handle action issues
 func HandleCommandText(player, gameId, commandText string) error {
@@ -42,6 +45,12 @@ func HandleCommandText(player, gameId, commandText string) error {
 			}
 		}
 	} else {
+		// Ensure games are loaded, modified and saved only one at a time.
+		if gameMut[gameId] == nil {
+			gameMut[gameId] = &sync.Mutex{}
+		}
+		gameMut[gameId].Lock()
+		defer gameMut[gameId].Unlock()
 		var initialEliminated []string
 		gm, err := model.LoadGame(gameId)
 		if err != nil {
@@ -51,8 +60,9 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if err != nil {
 			return err
 		}
-		// Ensure game is saved at the end of command handling.
-		defer model.UpdateGame(gameId, g)
+		defer func() {
+			model.UpdateGame(gameId, g)
+		}()
 		alreadyFinished := g.IsFinished()
 		commands := append(g.Commands(), scommand.Commands(gm.Id)...)
 		initialWhoseTurn := g.WhoseTurn()
@@ -78,10 +88,6 @@ func HandleCommandText(player, gameId, commandText string) error {
 			commErrs = append(commErrs, commErr.Error())
 		}
 		if err != command.NO_COMMAND_FOUND {
-			_, err := model.UpdateGame(gameId, g)
-			if err != nil {
-				return err
-			}
 			// Keep track who we've communicated to for if it's the end of the
 			// game.
 			communicatedTo := []string{player}
