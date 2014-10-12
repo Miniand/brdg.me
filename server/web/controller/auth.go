@@ -67,8 +67,14 @@ func AuthRequest(w http.ResponseWriter, r *http.Request) {
 		ApiBadRequest("Error creating auth request token", w, r)
 		return
 	}
-	if err := email.SendMail([]string{emailAddr},
-		fmt.Sprintf(`Your brdg.me confirmation is %s`, user.AuthRequest)); err != nil {
+	if err := email.SendRichMail(
+		[]string{emailAddr},
+		`brdg.me log in confirmation`,
+		fmt.Sprintf(`Your brdg.me confirmation is <b>%s</b>
+
+This confirmation will expire in 30 minutes if not used.`, user.AuthRequest),
+		[]string{},
+	); err != nil {
 		ApiBadRequest("Error emailing auth request token", w, r)
 		return
 	}
