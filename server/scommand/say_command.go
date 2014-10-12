@@ -3,7 +3,6 @@ package scommand
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
@@ -18,7 +17,7 @@ type SayCommand struct {
 }
 
 func (sc SayCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("say", input)
+	return command.ParseRegexp(`say ([^\r\n]+)$`, input)
 }
 
 func (sc SayCommand) CanCall(player string, context interface{}) bool {
@@ -33,8 +32,7 @@ func (sc SayCommand) Call(player string, context interface{},
 		return "", errors.New("No game was passed in")
 	}
 	g.GameLog().Add(log.NewPublicMessage(fmt.Sprintf(`%s says: %s`,
-		render.PlayerNameInPlayers(player, g.PlayerList()),
-		strings.Join(args[1:], " "))))
+		render.PlayerNameInPlayers(player, g.PlayerList()), args[1])))
 	if g.IsFinished() && sc.gameModel != nil {
 		// Just send it out to everyone.
 		otherPlayers := []string{}
