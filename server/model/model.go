@@ -9,6 +9,12 @@ import (
 
 var initialised = false
 
+var migrations = []migration{
+	migration{"0001", migrationDefinition.CreateGames},
+	migration{"0002", migrationDefinition.CreateUsers},
+	migration{"0003", migrationDefinition.CreateAuthtokens},
+}
+
 func DatabaseName() string {
 	db := os.Getenv("BRDGME_DB_DATABASE")
 	if db != "" {
@@ -23,6 +29,10 @@ func DatabaseAddr() string {
 		addr = "localhost:28015"
 	}
 	return addr
+}
+
+func Db() r.Term {
+	return r.Db(DatabaseName())
 }
 
 func Connect() (*r.Session, error) {
@@ -42,11 +52,6 @@ func Connect() (*r.Session, error) {
 type migration struct {
 	Version string
 	Up      func(db string, session *r.Session) error
-}
-
-var migrations = []migration{
-	migration{"0001", migrationDefinition.CreateGames},
-	migration{"0002", migrationDefinition.CreateUsers},
 }
 
 func migrate() error {

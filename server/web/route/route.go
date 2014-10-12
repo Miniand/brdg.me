@@ -27,6 +27,10 @@ func Router() *mux.Router {
 		router.HandleFunc("/game/new/{identifier}", controller.GameNew).
 			Methods("GET").Name("gameNew")
 		router.HandleFunc("/ws", controller.Websocket)
+		router.HandleFunc("/auth/request", controller.AuthRequest).Methods("POST").
+			Name("authRequest")
+		router.HandleFunc("/auth/confirm", controller.AuthConfirm).Methods("POST").
+			Name("authConfirm")
 		api := router.PathPrefix("/api/").Subrouter()
 		api.HandleFunc("/{url:.*}", controller.ApiOptions).Methods("OPTIONS").
 			Name("apiOptions")

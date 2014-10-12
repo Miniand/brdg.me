@@ -19,8 +19,8 @@ var gameMut = map[string]*sync.Mutex{}
 
 // Run commands on the game, email relevant people and handle action issues
 func HandleCommandText(player, gameId, commandText string) error {
-	u, err := model.FirstUserByEmail(player)
-	if err != nil || u != nil && u.Unsubscribed || gameId == "" {
+	u, ok, err := model.FirstUserByEmail(player)
+	if err != nil || ok && u.Unsubscribed || gameId == "" {
 		commands := scommand.Commands(nil)
 		output, err := command.CallInCommands(player, nil, commandText, commands)
 		if err != nil {

@@ -20,8 +20,8 @@ func (nc NewCommand) Parse(input string) []string {
 }
 
 func (nc NewCommand) CanCall(player string, context interface{}) bool {
-	u, err := model.FirstUserByEmail(player)
-	if err != nil || u != nil && u.Unsubscribed {
+	u, ok, err := model.FirstUserByEmail(player)
+	if err != nil || ok && u.Unsubscribed {
 		return false
 	}
 	return context == nil || context.(game.Playable).IsFinished()

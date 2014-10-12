@@ -13,8 +13,8 @@ func (sc SubscribeCommand) Parse(input string) []string {
 }
 
 func (sc SubscribeCommand) CanCall(player string, context interface{}) bool {
-	u, err := model.FirstUserByEmail(player)
-	if err != nil || u == nil {
+	u, ok, err := model.FirstUserByEmail(player)
+	if err != nil || !ok {
 		return false
 	}
 	return u.Unsubscribed
@@ -22,8 +22,8 @@ func (sc SubscribeCommand) CanCall(player string, context interface{}) bool {
 
 func (sc SubscribeCommand) Call(player string, context interface{},
 	args []string) (string, error) {
-	u, err := model.FirstUserByEmail(player)
-	if err != nil || u == nil {
+	u, ok, err := model.FirstUserByEmail(player)
+	if err != nil || !ok {
 		return "", errors.New("Could not find you in the database")
 	}
 	if u == nil {

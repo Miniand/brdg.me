@@ -22,11 +22,11 @@ func TestUserSavingAndLoading(t *testing.T) {
 			t.Fatal("User doesn't have an ID")
 		}
 
-		newUm, err := FirstUserByEmail("fart@gmail.com")
+		newUm, ok, err := FirstUserByEmail("fart@gmail.com")
 		if err != nil {
 			t.Fatal(err)
 		}
-		if newUm == nil {
+		if !ok {
 			t.Fatal("Could not find user")
 		}
 		if newUm.Id != um.Id {

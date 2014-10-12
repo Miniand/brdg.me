@@ -38,8 +38,8 @@ func SendGame(
 	}
 	commErrs := []string{}
 	for _, p := range to {
-		u, err := model.FirstUserByEmail(p)
-		if err != nil || u != nil && u.Unsubscribed {
+		u, ok, err := model.FirstUserByEmail(p)
+		if err != nil || ok && u.Unsubscribed {
 			continue
 		}
 		pHeader := header
