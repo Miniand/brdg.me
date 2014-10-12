@@ -134,17 +134,9 @@ func StartNewGame(g game.Playable, players []string) (*GameModel, error) {
 }
 
 func GameToGameModel(g game.Playable) (*GameModel, error) {
-	state, err := g.Encode()
-	if err != nil {
+	gm := &GameModel{}
+	if err := gm.UpdateState(g); err != nil {
 		return nil, err
-	}
-	gm := &GameModel{
-		PlayerList: g.PlayerList(),
-		Winners:    g.Winners(),
-		IsFinished: g.IsFinished(),
-		WhoseTurn:  g.WhoseTurn(),
-		Type:       g.Identifier(),
-		State:      state,
 	}
 	return gm, nil
 }
@@ -156,6 +148,20 @@ func (gm *GameModel) ToGame() (game.Playable, error) {
 	}
 	err := g.Decode(gm.State)
 	return g, err
+}
+
+func (gm *GameModel) UpdateState(g game.Playable) error {
+	state, err := g.Encode()
+	if err != nil {
+		return err
+	}
+	gm.PlayerList = g.PlayerList()
+	gm.Winners = g.Winners()
+	gm.IsFinished = g.IsFinished()
+	gm.WhoseTurn = g.WhoseTurn()
+	gm.Type = g.Identifier()
+	gm.State = state
+	return nil
 }
 
 func (gm *GameModel) Save() error {

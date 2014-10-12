@@ -69,7 +69,9 @@ func HandleCommandText(player, gameId, commandText string) error {
 		}
 		exitedBeforeSave = false // Don't use previous deferred unlock.
 		defer func() {
-			model.UpdateGame(gameId, g)
+			if err := gm.UpdateState(g); err == nil {
+				gm.Save()
+			}
 			gameMut[gameId].Unlock()
 		}()
 		alreadyFinished := g.IsFinished()
