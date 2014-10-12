@@ -17,6 +17,7 @@ type GameModel struct {
 	WhoseTurn  []string
 	Type       string
 	State      []byte
+	Restarted  bool
 }
 
 func GameTable() r.Term {

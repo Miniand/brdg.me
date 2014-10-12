@@ -21,7 +21,7 @@ var gameMut = map[string]*sync.Mutex{}
 func HandleCommandText(player, gameId, commandText string) error {
 	u, err := model.FirstUserByEmail(player)
 	if err != nil || u != nil && u.Unsubscribed || gameId == "" {
-		commands := scommand.Commands("")
+		commands := scommand.Commands(nil)
 		output, err := command.CallInCommands(player, nil, commandText, commands)
 		if err != nil {
 			// Print help
@@ -50,7 +50,14 @@ func HandleCommandText(player, gameId, commandText string) error {
 			gameMut[gameId] = &sync.Mutex{}
 		}
 		gameMut[gameId].Lock()
-		defer gameMut[gameId].Unlock()
+		exitedBeforeSave := true
+		defer func() {
+			// This unlock logic will work until we defer for updating the
+			// game, after which we want to unlock the mutex after update.
+			if exitedBeforeSave {
+				gameMut[gameId].Unlock()
+			}
+		}()
 		var initialEliminated []string
 		gm, err := model.LoadGame(gameId)
 		if err != nil {
@@ -60,11 +67,13 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if err != nil {
 			return err
 		}
+		exitedBeforeSave = false // Don't use previous deferred unlock.
 		defer func() {
 			model.UpdateGame(gameId, g)
+			gameMut[gameId].Unlock()
 		}()
 		alreadyFinished := g.IsFinished()
-		commands := append(g.Commands(), scommand.Commands(gm.Id)...)
+		commands := append(g.Commands(), scommand.Commands(gm)...)
 		initialWhoseTurn := g.WhoseTurn()
 		eliminator, isEliminator := g.(game.Eliminator)
 		if isEliminator {
@@ -95,7 +104,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			// a turn but there are new logs
 			whoseTurnNow, remaining := WhoseTurnNow(g, initialWhoseTurn)
 			commErr = communicate.Game(gm.Id, g, whoseTurnNow,
-				append(g.Commands(), scommand.Commands(gm.Id)...), "", false)
+				append(g.Commands(), scommand.Commands(gm)...), "", false)
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
@@ -107,7 +116,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				}
 			}
 			commErr = communicate.Game(gm.Id, g, whoseTurnNewLogs,
-				append(g.Commands(), scommand.Commands(gm.Id)...),
+				append(g.Commands(), scommand.Commands(gm)...),
 				"", false)
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
@@ -118,7 +127,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
 					eliminator.EliminatedPlayerList())
 				commErr = communicate.Game(gm.Id, g, newlyEliminated,
-					append(g.Commands(), scommand.Commands(gm.Id)...),
+					append(g.Commands(), scommand.Commands(gm)...),
 					"You have been eliminated from the game.", false)
 				if commErr != nil {
 					commErrs = append(commErrs, commErr.Error())
@@ -131,7 +140,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				if !alreadyFinished && g.IsFinished() {
 					// If it's the end of the game and some people haven't been contacted
 					commErr = communicate.Game(gm.Id, g, uncommunicated,
-						append(g.Commands(), scommand.Commands(gm.Id)...), "", false)
+						append(g.Commands(), scommand.Commands(gm)...), "", false)
 				} else {
 					// We send updates to all remaining players via websockets so
 					// they can update.

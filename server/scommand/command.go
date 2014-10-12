@@ -2,18 +2,21 @@ package scommand
 
 import (
 	comm "github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/server/model"
 )
 
-func Commands(gameId string) []comm.Command {
+func Commands(gm *model.GameModel) []comm.Command {
 	return []comm.Command{
 		PokeCommand{
-			gameId: gameId,
+			gameModel: gm,
 		},
 		SayCommand{
-			gameId: gameId,
+			gameModel: gm,
 		},
 		NewCommand{},
-		RestartCommand{},
+		RestartCommand{
+			gameModel: gm,
+		},
 		UnsubscribeCommand{},
 		SubscribeCommand{},
 	}

@@ -1,13 +1,17 @@
 package model
 
 import (
+	"time"
+
 	r "github.com/dancannon/gorethink"
 )
 
 type UserModel struct {
-	Id           string `gorethink:"id,omitempty"`
-	Email        string
-	Unsubscribed bool
+	Id              string `gorethink:"id,omitempty"`
+	Email           string
+	Unsubscribed    bool
+	AuthRequest     string
+	AuthRequestedAt time.Time
 }
 
 func UserTable() r.Term {

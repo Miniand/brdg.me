@@ -10,10 +10,11 @@ import (
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/communicate"
+	"github.com/Miniand/brdg.me/server/model"
 )
 
 type SayCommand struct {
-	gameId string
+	gameModel *model.GameModel
 }
 
 func (sc SayCommand) Parse(input string) []string {
@@ -34,7 +35,7 @@ func (sc SayCommand) Call(player string, context interface{},
 	g.GameLog().Add(log.NewPublicMessage(fmt.Sprintf(`%s says: %s`,
 		render.PlayerNameInPlayers(player, g.PlayerList()),
 		strings.Join(args[1:], " "))))
-	if g.IsFinished() {
+	if g.IsFinished() && sc.gameModel != nil {
 		// Just send it out to everyone.
 		otherPlayers := []string{}
 		for _, p := range g.PlayerList() {
@@ -42,8 +43,8 @@ func (sc SayCommand) Call(player string, context interface{},
 				otherPlayers = append(otherPlayers, p)
 			}
 		}
-		communicate.Game(sc.gameId, g, otherPlayers,
-			append(g.Commands(), Commands(sc.gameId)...),
+		communicate.Game(sc.gameModel.Id, g, otherPlayers,
+			append(g.Commands(), Commands(sc.gameModel)...),
 			"", false)
 	}
 	return "", nil

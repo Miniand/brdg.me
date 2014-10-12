@@ -7,10 +7,11 @@ import (
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/communicate"
+	"github.com/Miniand/brdg.me/server/model"
 )
 
 type PokeCommand struct {
-	gameId string
+	gameModel *model.GameModel
 }
 
 func (pc PokeCommand) Parse(input string) []string {
@@ -42,9 +43,9 @@ func (pc PokeCommand) Call(player string, context interface{},
 		return "", errors.New("The game is already finished")
 	}
 	whoseTurn := g.WhoseTurn()
-	if pc.gameId != "" {
-		communicate.Game(pc.gameId, g, whoseTurn,
-			append(g.Commands(), Commands(pc.gameId)...),
+	if pc.gameModel != nil && pc.gameModel.Id != "" {
+		communicate.Game(pc.gameModel.Id, g, whoseTurn,
+			append(g.Commands(), Commands(pc.gameModel)...),
 			fmt.Sprintf(
 				"%s wants to remind you it's your turn!",
 				render.PlayerNameInPlayers(player, g.PlayerList())), false)
