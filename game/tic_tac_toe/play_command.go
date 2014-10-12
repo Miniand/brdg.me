@@ -4,12 +4,14 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+
+	"github.com/Miniand/brdg.me/command"
 )
 
 type PlayCommand struct{}
 
 func (c PlayCommand) Parse(input string) []string {
-	return regexp.MustCompile(`(?im)^\s*([a-i])\s*$`).FindStringSubmatch(input)
+	return command.ParseNamedCommandNArgs("play", 1, input)
 }
 
 func (c PlayCommand) CanCall(player string, context interface{}) bool {
@@ -21,12 +23,16 @@ func (c PlayCommand) CanCall(player string, context interface{}) bool {
 func (c PlayCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	action := strings.ToLower(args[1])
 	if g.CurrentlyMoving != player {
-		return "", errors.New("Not your turn")
+		return "", errors.New("not your turn")
 	}
+	a := command.ExtractNamedCommandArgs(args)
+	if len(a) == 0 {
+		return "", errors.New("you must specify a letter between a - i")
+	}
+	action := strings.ToLower(a[0])
 	if !regexp.MustCompile("^[abcdefghi]$").MatchString(action) {
-		return "", errors.New("Your action must be a letter between a - i")
+		return "", errors.New("you must specify a letter between a - i")
 	}
 	var x, y int
 	switch action {
@@ -67,5 +73,5 @@ func (c PlayCommand) Call(player string, context interface{},
 }
 
 func (c PlayCommand) Usage(player string, context interface{}) string {
-	return "Send a letter between {{b}}a - i{{_b}} to play in that square"
+	return "{{b}}play #{{_b}} to play in a square, eg. {{b}}play h{{_b}} to play in the bottom space"
 }

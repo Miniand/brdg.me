@@ -1,13 +1,17 @@
 package model
 
 import (
+	"time"
+
 	r "github.com/dancannon/gorethink"
 )
 
 type UserModel struct {
-	Id           string `gorethink:"id,omitempty"`
-	Email        string
-	Unsubscribed bool
+	Id              string `gorethink:"id,omitempty"`
+	Email           string
+	Unsubscribed    bool
+	AuthRequest     string
+	AuthRequestedAt time.Time
 }
 
 func UserTable() r.Term {
@@ -29,24 +33,24 @@ func LoadUser(id string) (*UserModel, error) {
 	return m, err
 }
 
-func FirstUserByEmail(email string) (*UserModel, error) {
+func FirstUserByEmail(email string) (*UserModel, bool, error) {
 	session, err := Connect()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	defer session.Close()
 	res, err := UserTable().Filter(map[string]interface{}{
 		"Email": email,
 	}).Run(session)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if res.IsNil() {
-		return nil, nil
+		return nil, false, nil
 	}
 	m := &UserModel{}
 	err = res.One(m)
-	return m, err
+	return m, err == nil, err
 }
 
 func (um *UserModel) Save() error {

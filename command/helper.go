@@ -26,8 +26,9 @@ func ParseNamedCommandRangeArgs(name string, minArgs int, maxArgs int,
 		}
 		repeater = fmt.Sprintf("{%s,%s}", repeaterMin, repeaterMax)
 	}
-	return regexp.MustCompile(fmt.Sprintf(`(?im)^[^\S\r\n]*%s(`+ARGUMENT_REGEXP+
-		`%s)[^\S\r\n]*$`, name, repeater)).FindStringSubmatch(input)
+	return regexp.MustCompile(fmt.Sprintf(`(?im)\A[^\S\r\n]*%s(`+ARGUMENT_REGEXP+
+		`%s)[^\S\r\n]*$`, name, repeater)).FindStringSubmatch(
+		strings.TrimSpace(input))
 }
 
 // Parses a named command with a specific number of arguments.
@@ -42,11 +43,11 @@ func ParseNamedCommand(name string, input string) []string {
 
 // Parses using provided regexp, replacing spaces with non-newline space matchers
 func ParseRegexp(reg, input string) []string {
-	return regexp.MustCompile(fmt.Sprintf(`(?im)^[^\S\r\n]*%s[^\S\r\n]*$`,
+	return regexp.MustCompile(fmt.Sprintf(`(?im)\A[^\S\r\n]*%s[^\S\r\n]*$`,
 		regexp.MustCompile(`\bARG\b`).ReplaceAllString(
 			regexp.MustCompile(`\s+?`).ReplaceAllString(reg, `[^\S\r\n]+`),
 			`\b[^\s]+\b`))).
-		FindStringSubmatch(input)
+		FindStringSubmatch(strings.TrimSpace(input))
 }
 
 // Extracts the actual arguments from the result of a ParseNamedCommand call
