@@ -78,6 +78,7 @@ This confirmation will expire in 30 minutes if not used.`, user.AuthRequest),
 		ApiBadRequest("Error emailing auth request token", w, r)
 		return
 	}
+	Json(http.StatusOK, "Email sent to address with confirmation code", w, r)
 }
 
 func AuthConfirm(w http.ResponseWriter, r *http.Request) {
