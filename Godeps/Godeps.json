@@ -1,15 +1,10 @@
 {
 	"ImportPath": "github.com/Miniand/brdg.me",
-	"GoVersion": "go1.3.1",
+	"GoVersion": "go1.3.3",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
-		{
-			"ImportPath": "code.google.com/p/go.net/websocket",
-			"Comment": "null-136",
-			"Rev": "28ff664507e453c4455b8c65e701bbe2b2ac980d"
-		},
 		{
 			"ImportPath": "code.google.com/p/goprotobuf/proto",
 			"Comment": "go.r60-152",
@@ -29,16 +24,12 @@
 			"Rev": "14cafe28513321476c73967a5a4f3454b6129c46"
 		},
 		{
-			"ImportPath": "github.com/gorilla/securecookie",
-			"Rev": "1b0c7f6e9ab3d7f500fd7d50c7ad835ff428139b"
+			"ImportPath": "github.com/gorilla/websocket",
+			"Rev": "87f6f6a22ebfbc3f89b9ccdc7fddd1b914c095f9"
 		},
 		{
 			"ImportPath": "github.com/jacobsa/oglematchers",
 			"Rev": "4fc24f97b5b74022c2a3f4ca7eed57ca29083d3e"
-		},
-		{
-			"ImportPath": "github.com/sauerbraten/persona",
-			"Rev": "535525635391bd08d8c2b062319c912e6f7214cf"
 		},
 		{
 			"ImportPath": "github.com/smartystreets/goconvey/convey",
