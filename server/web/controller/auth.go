@@ -27,11 +27,6 @@ func AuthorizationToken(r *http.Request) (string, bool) {
 }
 
 func AuthenticateToken(authorizationToken string) (*model.UserModel, bool, error) {
-	if isValidEmail(authorizationToken) {
-		return &model.UserModel{
-			Email: authorizationToken,
-		}, true, nil
-	}
 	token, ok, err := model.FindAuthToken(authorizationToken)
 	if err != nil || !ok ||
 		token.CreatedAt.Before(time.Now().AddDate(0, 0, -30)) {
