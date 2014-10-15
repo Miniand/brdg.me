@@ -86,6 +86,13 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if err != nil {
 			header = err.Error()
 		}
+		// Save now so websocket updates don't update old data
+		if err := gm.UpdateState(g); err != nil {
+			return err
+		}
+		if err := gm.Save(); err != nil {
+			return err
+		}
 		if output != "" {
 			if header != "" {
 				header += "\n\n"
