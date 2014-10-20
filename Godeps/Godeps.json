@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/dancannon/gorethink",
-			"Comment": "v0.4.1-6-g3f5ff83",
-			"Rev": "3f5ff83b3a590e175ac870f8d2d5ad9d3ddebcd8"
+			"Comment": "v0.5.x-5-gf1ae36f",
+			"Rev": "f1ae36fd641ece4203d8d5bbc6e0291ecd93a9fe"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
