@@ -15,8 +15,7 @@ cd $(dirname $0)
 
 # Build and deploy files
 cd ../main
-go get
-go build
+godep go build
 ssh $DEPLOY_ADDRESS "if pgrep brdg.me; then service brdg.me stop; fi"
 scp main $DEPLOY_ADDRESS:/usr/bin/brdg.me
 ssh $DEPLOY_ADDRESS service brdg.me start
