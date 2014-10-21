@@ -1,6 +1,7 @@
 package starship_catan
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"strconv"
@@ -13,8 +14,40 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	buf := bytes.NewBuffer([]byte{})
 	opponentNum := (playerNum + 1) % 2
+	// Current turn
 	cells := [][]string{
+		[]string{
+			Bold("Current turn:"),
+			g.RenderName(playerNum),
+		},
+	}
+	if g.Phase == PhaseFlight {
+		cells = append(
+			cells,
+			[]string{
+				Bold("Current sector:"),
+				strconv.Itoa(g.CurrentSector),
+			},
+			[]string{
+				Bold("Moves left:"),
+				strconv.Itoa(g.RemainingMoves),
+			},
+			[]string{
+				Bold("Actions left:"),
+				strconv.Itoa(g.RemainingActions),
+			},
+		)
+	}
+	t, err := render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	buf.WriteString(t)
+	buf.WriteString("\n\n")
+	// Resources
+	cells = [][]string{
 		[]string{Bold("Resource"), Bold(g.RenderName(playerNum)), Bold(g.RenderName(opponentNum))},
 		g.ResourceTableRow(ResourceAstro, playerNum),
 		g.ResourceTableRow(ResourceColonyShip, playerNum),
@@ -29,8 +62,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		g.ResourceTableRow(ResourceTrade, playerNum),
 		g.ResourceTableRow(ResourceScience, playerNum),
 	}
-	t, err := render.Table(cells, 0, 2)
-	return t, err
+	t, err = render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	buf.WriteString(t)
+	return buf.String(), nil
 }
 
 func (g *Game) ResourceTableRow(resource, player int) []string {

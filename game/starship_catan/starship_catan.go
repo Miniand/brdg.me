@@ -31,6 +31,7 @@ type Game struct {
 	SectorCards      map[int]card.Deck
 	SectorDrawPile   card.Deck
 	FlightCards      card.Deck
+	FlightActions    map[int]bool
 	CurrentSector    int
 	VisitedCards     card.Deck
 	RemainingActions int
@@ -190,6 +191,7 @@ func (g *Game) Sector(player, sector int) error {
 	g.Phase = PhaseFlight
 	g.CurrentSector = sector
 	g.RemainingActions = 2 + g.PlayerBoards[player].Modules[ModuleCommand]
+	g.FlightActions = map[int]bool{}
 	g.RemainingMoves = g.FlightDistance()
 	return g.NextSectorCard()
 }
@@ -274,7 +276,7 @@ func (g *Game) Found(player int) error {
 	} else {
 		g.Log.Add(log.NewPublicMessage("No replacement cards remain"))
 	}
-	g.RemainingActions -= 1
+	g.MarkCardActioned()
 	g.NextSectorCard()
 	return nil
 }
@@ -287,9 +289,15 @@ func (g *Game) Next(player int) error {
 	if !g.CanNext(player) {
 		return errors.New("you can't advance to the next card")
 	}
+	suffix := ""
+	if !g.FlightActions[g.FlightCards.Len()] {
+		suffix = " without taking an action"
+	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s continued their flight without taking an action`,
-		g.RenderName(player))))
+		`%s continued their flight%s`,
+		g.RenderName(player),
+		suffix,
+	)))
 	return g.NextSectorCard()
 }
 
@@ -502,6 +510,9 @@ func (g *Game) Trade(player, resource, amount int) error {
 	g.PlayerBoards[player].Resources[ResourceAstro] -= total
 	g.PlayerBoards[player].Resources[resource] += amount
 	g.TradeAmount += amount * tradeDir
+	if g.Phase == PhaseFlight {
+		g.MarkCardActioned()
+	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`%s %s %d %s for %s`,
 		g.RenderName(player),
@@ -511,6 +522,14 @@ func (g *Game) Trade(player, resource, amount int) error {
 		RenderMoney(total*tradeDir),
 	)))
 	return nil
+}
+
+func (g *Game) MarkCardActioned() {
+	if g.FlightActions[g.FlightCards.Len()] {
+		return
+	}
+	g.RemainingActions -= 1
+	g.FlightActions[g.FlightCards.Len()] = true
 }
 
 func (g *Game) HandleTradeCommand(player string, args []string, tradeDir int) error {
