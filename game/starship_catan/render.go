@@ -24,19 +24,24 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		},
 	}
 	if g.Phase == PhaseFlight {
+		card, _ := g.FlightCards.Pop()
 		cells = append(
 			cells,
+			[]string{
+				Bold("Current planet:"),
+				fmt.Sprintf("%v", card),
+			},
 			[]string{
 				Bold("Current sector:"),
 				strconv.Itoa(g.CurrentSector),
 			},
 			[]string{
 				Bold("Moves left:"),
-				strconv.Itoa(g.RemainingMoves),
+				strconv.Itoa(g.RemainingMoves()),
 			},
 			[]string{
 				Bold("Actions left:"),
-				strconv.Itoa(g.RemainingActions),
+				strconv.Itoa(g.RemainingActions()),
 			},
 		)
 	}
@@ -49,18 +54,20 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	// Resources
 	cells = [][]string{
 		[]string{Bold("Resource"), Bold(g.RenderName(playerNum)), Bold(g.RenderName(opponentNum))},
-		g.ResourceTableRow(ResourceAstro, playerNum),
-		g.ResourceTableRow(ResourceColonyShip, playerNum),
-		g.ResourceTableRow(ResourceTradeShip, playerNum),
-		g.ResourceTableRow(ResourceBooster, playerNum),
-		g.ResourceTableRow(ResourceCannon, playerNum),
-		[]string{},
 		g.ResourceTableRow(ResourceFood, playerNum),
 		g.ResourceTableRow(ResourceFuel, playerNum),
 		g.ResourceTableRow(ResourceCarbon, playerNum),
 		g.ResourceTableRow(ResourceOre, playerNum),
 		g.ResourceTableRow(ResourceTrade, playerNum),
 		g.ResourceTableRow(ResourceScience, playerNum),
+		[]string{},
+		g.ResourceTableRow(ResourceAstro, playerNum),
+		[]string{},
+		g.ResourceTableRow(ResourceColonyShip, playerNum),
+		g.ResourceTableRow(ResourceTradeShip, playerNum),
+		[]string{},
+		g.ResourceTableRow(ResourceBooster, playerNum),
+		g.ResourceTableRow(ResourceCannon, playerNum),
 	}
 	t, err = render.Table(cells, 0, 2)
 	if err != nil {
@@ -75,7 +82,8 @@ func (g *Game) ResourceTableRow(resource, player int) []string {
 	return []string{
 		RenderResource(resource),
 		Bold(strconv.Itoa(g.PlayerBoards[player].Resources[resource])),
-		strconv.Itoa(g.PlayerBoards[opponent].Resources[resource]),
+		fmt.Sprintf(`{{c "gray"}}%d{{_c}}`,
+			g.PlayerBoards[opponent].Resources[resource]),
 	}
 }
 

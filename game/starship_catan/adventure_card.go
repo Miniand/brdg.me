@@ -1,5 +1,7 @@
 package starship_catan
 
+import "fmt"
+
 const (
 	AdventurePlanetHades    = "Hades"
 	AdventurePlanetPallas   = "Pallas"
@@ -7,9 +9,24 @@ const (
 	AdventurePlanetPoseidon = "Poseidon"
 )
 
+var AdventurePlanetColours = map[string]string{
+	AdventurePlanetHades:    "red",
+	AdventurePlanetPallas:   "yellow",
+	AdventurePlanetPicasso:  "magenta",
+	AdventurePlanetPoseidon: "cyan",
+}
+
 type AdventurePlanetCard struct {
 	UnsortableCard
 	Name string
+}
+
+func (c AdventurePlanetCard) String() string {
+	return fmt.Sprintf(
+		`{{c "%s"}}{{b}}%s{{_b}}{{_c}}`,
+		AdventurePlanetColours[c.Name],
+		c.Name,
+	)
 }
 
 type Adventurer interface {

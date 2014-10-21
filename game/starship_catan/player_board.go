@@ -36,3 +36,7 @@ func NewPlayerBoard(player int) *PlayerBoard {
 	pb.Colonies = pb.Colonies.Push(StartingCards()[player])
 	return pb
 }
+
+func (b *PlayerBoard) Actions() int {
+	return 2 + b.Modules[ModuleCommand]
+}

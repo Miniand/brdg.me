@@ -26,24 +26,22 @@ const (
 var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type Game struct {
-	Players          []string
-	PlayerBoards     [2]*PlayerBoard
-	SectorCards      map[int]card.Deck
-	SectorDrawPile   card.Deck
-	FlightCards      card.Deck
-	FlightActions    map[int]bool
-	CurrentSector    int
-	VisitedCards     card.Deck
-	RemainingActions int
-	RemainingMoves   int
-	TradeAmount      int
-	AdventureCards   card.Deck
-	Phase            int
-	CurrentPlayer    int
-	GainPlayer       int
-	GainResources    []int
-	Log              *log.Log
-	YellowDice       int
+	Players        []string
+	PlayerBoards   [2]*PlayerBoard
+	SectorCards    map[int]card.Deck
+	SectorDrawPile card.Deck
+	FlightCards    card.Deck
+	FlightActions  map[int]bool
+	CurrentSector  int
+	VisitedCards   card.Deck
+	TradeAmount    int
+	AdventureCards card.Deck
+	Phase          int
+	CurrentPlayer  int
+	GainPlayer     int
+	GainResources  []int
+	Log            *log.Log
+	YellowDice     int
 }
 
 func (g *Game) Start(players []string) error {
@@ -190,10 +188,26 @@ func (g *Game) Sector(player, sector int) error {
 	}
 	g.Phase = PhaseFlight
 	g.CurrentSector = sector
-	g.RemainingActions = 2 + g.PlayerBoards[player].Modules[ModuleCommand]
 	g.FlightActions = map[int]bool{}
-	g.RemainingMoves = g.FlightDistance()
 	return g.NextSectorCard()
+}
+
+func (g *Game) Actions() int {
+	return g.PlayerBoards[g.CurrentPlayer].Actions()
+}
+
+func (g *Game) RemainingActions() int {
+	usedActions := 0
+	for _, a := range g.FlightActions {
+		if a {
+			usedActions += 1
+		}
+	}
+	return g.Actions() - usedActions
+}
+
+func (g *Game) RemainingMoves() int {
+	return g.FlightDistance() - g.FlightCards.Len()
 }
 
 func (g *Game) NextSectorCard() error {
@@ -205,7 +219,7 @@ func (g *Game) NextSectorCard() error {
 		return fmt.Errorf("%d is not a valid sector number", g.CurrentSector)
 	}
 	if len(g.SectorCards[g.CurrentSector]) == 0 ||
-		len(g.FlightCards) >= g.FlightDistance() || g.RemainingActions == 0 {
+		g.RemainingMoves() <= 0 || g.RemainingActions() <= 0 {
 		return g.EndFlight()
 	}
 	nextCard, g.SectorCards[g.CurrentSector] =
@@ -525,10 +539,6 @@ func (g *Game) Trade(player, resource, amount int) error {
 }
 
 func (g *Game) MarkCardActioned() {
-	if g.FlightActions[g.FlightCards.Len()] {
-		return
-	}
-	g.RemainingActions -= 1
 	g.FlightActions[g.FlightCards.Len()] = true
 }
 
