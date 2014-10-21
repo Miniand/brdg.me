@@ -3,18 +3,37 @@ package starship_catan
 import (
 	"errors"
 	"fmt"
+
+	"github.com/Miniand/brdg.me/command"
 )
 
 const (
-	TradeDirBoth = iota
-	TradeDirBuy
-	TradeDirSell
+	TradeDirBoth = 0
+	TradeDirBuy  = 1
+	TradeDirSell = -1
 )
 
 var TradeDirStrings = map[int]string{
 	TradeDirBoth: "buy/sell",
 	TradeDirBuy:  "buy",
 	TradeDirSell: "sell",
+}
+
+var TradeDirPastStrings = map[int]string{
+	TradeDirBoth: "bought/sold",
+	TradeDirBuy:  "bought",
+	TradeDirSell: "sold",
+}
+
+func AmountTradeDir(amount int) int {
+	switch {
+	case amount == 0:
+		return TradeDirBoth
+	case amount > 0:
+		return TradeDirBuy
+	default:
+		return TradeDirSell
+	}
 }
 
 type TradeCard struct {
@@ -28,21 +47,29 @@ type TradeCard struct {
 	TradingPost bool
 }
 
-func (c TradeCard) String() string {
-	amount := ""
+func (c TradeCard) AmountLimitString() string {
 	switch {
 	case c.Minimum > 0 && c.Minimum == c.Maximum:
-		amount = fmt.Sprintf(` {{b}}%d{{_b}}`, c.Minimum)
+		return fmt.Sprintf(`{{b}}%d{{_b}}`, c.Minimum)
 	case c.Minimum > 0 && c.Maximum > 0:
-		amount = fmt.Sprintf(
-			` between {{b}}%d{{_b}} and {{b}}%d{{_b}}`,
+		return fmt.Sprintf(
+			`between {{b}}%d{{_b}} and {{b}}%d{{_b}}`,
 			c.Minimum,
 			c.Maximum,
 		)
 	case c.Minimum > 0:
-		amount = fmt.Sprintf(` at least {{b}}%d{{_b}}`, c.Minimum)
+		return fmt.Sprintf(`at least {{b}}%d{{_b}}`, c.Minimum)
 	case c.Maximum > 0:
-		amount = fmt.Sprintf(` up to {{b}}%d{{_b}}`, c.Maximum)
+		return fmt.Sprintf(`up to {{b}}%d{{_b}}`, c.Maximum)
+	default:
+		return ""
+	}
+}
+
+func (c TradeCard) String() string {
+	amount := ""
+	if c.Minimum > 0 || c.Maximum > 0 {
+		amount = fmt.Sprintf(" %s", c.AmountLimitString())
 	}
 	return fmt.Sprintf(
 		`{{c "yellow"}}{{b}}%s{{_b}}{{_c}} (%s%s {{b}}%s{{_b}} for %s each)`,
@@ -71,4 +98,12 @@ func (c TradeCard) FriendshipPoints() int {
 
 func (c TradeCard) CanFoundTradingPost() bool {
 	return c.TradingPost
+}
+
+func (c TradeCard) Commands() []command.Command {
+	return []command.Command{
+		BuyCommand{},
+		SellCommand{},
+		NextCommand{},
+	}
 }

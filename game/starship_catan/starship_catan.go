@@ -35,6 +35,7 @@ type Game struct {
 	VisitedCards     card.Deck
 	RemainingActions int
 	RemainingMoves   int
+	TradeAmount      int
 	AdventureCards   card.Deck
 	Phase            int
 	CurrentPlayer    int
@@ -114,10 +115,6 @@ func (g *Game) Decode(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	decoder := gob.NewDecoder(buf)
 	return decoder.Decode(g)
-}
-
-func (g *Game) RenderForPlayer(player string) (string, error) {
-	return "", nil
 }
 
 func (g *Game) PlayerList() []string {
@@ -212,15 +209,18 @@ func (g *Game) NextSectorCard() error {
 	nextCard, g.SectorCards[g.CurrentSector] =
 		g.SectorCards[g.CurrentSector].Pop()
 	g.FlightCards = g.FlightCards.Push(nextCard)
+
+	g.TradeAmount = 0
+
 	cardText := fmt.Sprintf("%#v", nextCard)
 	if nextCard, ok := nextCard.(fmt.Stringer); ok {
 		cardText = nextCard.String()
 	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`You have arrived at %s`, cardText)))
+		`%s arrived at %s`, g.RenderName(g.CurrentPlayer), cardText)))
 	if _, ok := nextCard.(Commander); !ok {
 		g.Log.Add(log.NewPublicMessage(
-			"There is nothing you can do here, continuing flight"))
+			"There is nothing to do here, continuing flight"))
 		return g.NextSectorCard()
 	}
 	return nil
@@ -401,6 +401,150 @@ func (g *Game) GainResource(player, resource int) {
 			"%s gained {{b}}1 %s{{_b}}", g.RenderName(player),
 			ResourceNames[resource])))
 	}
+}
+
+func (g *Game) CanTrade(player, resource, amount int) (ok bool, price int, reason string) {
+	if g.CurrentPlayer != player {
+		return false, 0, "it's not your turn"
+	}
+	tradeDir := AmountTradeDir(amount)
+	if g.Phase == PhaseFlight {
+		if g.FlightCards.Len() == 0 {
+			return false, 0, "there are no flight cards"
+		}
+		currentRaw, _ := g.FlightCards.Pop()
+		trade, ok := currentRaw.(TradeCard)
+		if !ok {
+			return false, 0, "the current flight card is not a trade card"
+		}
+		if resource != ResourceAny &&
+			trade.Resource != ResourceAny &&
+			trade.Resource != resource {
+			return false, 0, fmt.Sprintf(
+				"you can only %s %s with this trade card",
+				TradeDirStrings[tradeDir],
+				ResourceNames[trade.Resource],
+			)
+		}
+		if tradeDir != TradeDirBoth &&
+			trade.Direction != TradeDirBoth &&
+			tradeDir != trade.Direction {
+			return false, 0, fmt.Sprintf(
+				"you can only %s with this trade card",
+				TradeDirStrings[tradeDir],
+			)
+		}
+		targetAmount := amount*tradeDir + g.TradeAmount
+		if amount != 0 && (trade.Minimum != 0 && targetAmount < trade.Minimum ||
+			trade.Maximum != 0 && targetAmount > trade.Maximum) {
+			return false, 0, fmt.Sprintf(
+				"you can only trade %s with this trade card, you have already traded %d",
+				trade.AmountLimitString(),
+				g.TradeAmount,
+			)
+		}
+		if tradeDir == TradeDirBuy {
+			if amount*trade.Price > g.PlayerBoards[player].Resources[ResourceAstro] {
+				return false, 0, fmt.Sprintf(
+					"you only have %s",
+					RenderMoney(g.PlayerBoards[player].Resources[ResourceAstro]),
+				)
+			}
+			if resource != ResourceAny {
+				limit := g.ResourceLimit(player, resource)
+				if amount+g.PlayerBoards[player].Resources[resource] > limit {
+					return false, 0, fmt.Sprintf(
+						"you can only store %d %s",
+						limit,
+						ResourceNames[resource],
+					)
+				}
+			}
+		}
+		if tradeDir == TradeDirSell && resource != ResourceAny &&
+			amount*tradeDir > g.PlayerBoards[player].Resources[resource] {
+			return false, 0, fmt.Sprintf(
+				"you only have %d %s",
+				g.PlayerBoards[player].Resources[resource],
+				ResourceNames[resource],
+			)
+		}
+		return true, trade.Price, ""
+	}
+	if g.Phase == PhaseTradeAndBuild {
+		return true, 0, ""
+	}
+	return false, 0, "it is not the correct phase to trade"
+}
+
+func (g *Game) CanBuy(player, resource int) (ok bool, price int, reason string) {
+	return g.CanTrade(player, resource, TradeDirBuy)
+}
+
+func (g *Game) CanSell(player, resource int) (ok bool, price int, reason string) {
+	return g.CanTrade(player, resource, TradeDirSell)
+}
+
+func (g *Game) Trade(player, resource, amount int) error {
+	tradeDir := AmountTradeDir(amount)
+	ok, price, reason := g.CanTrade(player, resource, amount)
+	if !ok {
+		return errors.New(reason)
+	}
+	if resource == ResourceAny {
+		return errors.New("you must specify which resource to trade")
+	}
+	if tradeDir == TradeDirBoth {
+		return errors.New("you must either buy or sell when trading")
+	}
+
+	total := amount * price
+	g.PlayerBoards[player].Resources[ResourceAstro] -= total
+	g.PlayerBoards[player].Resources[resource] += amount
+	g.TradeAmount += amount * tradeDir
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s %s %d %s for %s`,
+		g.RenderName(player),
+		TradeDirPastStrings[tradeDir],
+		amount*tradeDir,
+		RenderResource(resource),
+		RenderMoney(total*tradeDir),
+	)))
+	return nil
+}
+
+func (g *Game) HandleTradeCommand(player string, args []string, tradeDir int) error {
+	p, err := g.ParsePlayer(player)
+	if err != nil {
+		return err
+	}
+	if len(args) == 0 {
+		return errors.New("you must specify an amount")
+	}
+	amount, err := strconv.Atoi(args[0])
+	if err != nil || amount <= 0 {
+		return errors.New("the amount must be a positive whole number")
+	}
+
+	var resource int
+	if len(args) > 1 {
+		resource, err = ParseResource(args[1])
+		if err != nil {
+			return err
+		}
+	} else {
+		if g.Phase == PhaseFlight && len(g.FlightCards) > 0 {
+			c, _ := g.FlightCards.Pop()
+			tradeCard, ok := c.(TradeCard)
+			if ok && tradeCard.Resource != ResourceAny {
+				resource = tradeCard.Resource
+			}
+		}
+	}
+	if resource == 0 {
+		return errors.New("you must specify a resource")
+	}
+	return g.Trade(p, resource, amount*tradeDir)
 }
 
 func Itoas(in []int) []string {

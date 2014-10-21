@@ -36,13 +36,18 @@ var ResourceNames = map[int]string{
 }
 
 var ResourceColours = map[int]string{
-	ResourceAny:     "green",
-	ResourceFood:    "red",
-	ResourceFuel:    "gray",
-	ResourceCarbon:  "cyan",
-	ResourceOre:     "black",
-	ResourceScience: "magenta",
-	ResourceTrade:   "yellow",
+	ResourceAny:        "green",
+	ResourceFood:       "red",
+	ResourceFuel:       "gray",
+	ResourceCarbon:     "cyan",
+	ResourceOre:        "black",
+	ResourceScience:    "magenta",
+	ResourceTrade:      "yellow",
+	ResourceAstro:      "green",
+	ResourceColonyShip: "cyan",
+	ResourceTradeShip:  "yellow",
+	ResourceBooster:    "red",
+	ResourceCannon:     "blue",
 }
 
 func ParseResource(input string) (int, error) {
