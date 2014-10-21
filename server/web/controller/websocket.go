@@ -33,11 +33,35 @@ func Websocket(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 		return
 	}
-	communicate.RegisterPlayerConnection(token, conn)
+	user, found, err := AuthenticateToken(token)
+	if err != nil {
+		log.Printf("Error authenticating token over websocket, %s", err)
+		conn.WriteMessage(
+			websocket.TextMessage,
+			websocket.FormatCloseMessage(
+				websocket.CloseUnsupportedData,
+				"There was an error authenticating the token",
+			),
+		)
+		conn.Close()
+		return
+	}
+	if !found {
+		conn.WriteMessage(
+			websocket.TextMessage,
+			websocket.FormatCloseMessage(
+				websocket.CloseUnsupportedData,
+				"Invalid token",
+			),
+		)
+		conn.Close()
+		return
+	}
+	communicate.RegisterPlayerConnection(user.Email, conn)
 	for {
 		if _, _, err := conn.ReadMessage(); err != nil {
 			break
 		}
 	}
-	communicate.UnregisterPlayerConnection(token, conn)
+	communicate.UnregisterPlayerConnection(user.Email, conn)
 }

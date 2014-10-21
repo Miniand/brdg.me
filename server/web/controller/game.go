@@ -10,6 +10,7 @@ import (
 	"github.com/Miniand/brdg.me/render"
 	sgame "github.com/Miniand/brdg.me/server/game"
 	"github.com/Miniand/brdg.me/server/model"
+	"github.com/Miniand/brdg.me/server/scommand"
 
 	"github.com/dancannon/gorethink"
 	"github.com/gorilla/mux"
@@ -93,7 +94,8 @@ func ApiGameShow(w http.ResponseWriter, r *http.Request) {
 	commandHtml, err := render.RenderHtml(
 		render.CommandUsages(command.CommandUsages(
 			authUser.Email, g,
-			command.AvailableCommands(authUser.Email, g, g.Commands()))))
+			command.AvailableCommands(authUser.Email, g,
+				append(g.Commands(), scommand.Commands(gm)...)))))
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 		return

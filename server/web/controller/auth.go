@@ -27,11 +27,6 @@ func AuthorizationToken(r *http.Request) (string, bool) {
 }
 
 func AuthenticateToken(authorizationToken string) (*model.UserModel, bool, error) {
-	if isValidEmail(authorizationToken) {
-		return &model.UserModel{
-			Email: authorizationToken,
-		}, true, nil
-	}
 	token, ok, err := model.FindAuthToken(authorizationToken)
 	if err != nil || !ok ||
 		token.CreatedAt.Before(time.Now().AddDate(0, 0, -30)) {
@@ -78,6 +73,7 @@ This confirmation will expire in 30 minutes if not used.`, user.AuthRequest),
 		ApiBadRequest("Error emailing auth request token", w, r)
 		return
 	}
+	Json(http.StatusOK, "Email sent to address with confirmation code", w, r)
 }
 
 func AuthConfirm(w http.ResponseWriter, r *http.Request) {
