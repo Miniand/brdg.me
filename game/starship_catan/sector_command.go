@@ -43,10 +43,10 @@ func (c SectorCommand) Usage(player string, context interface{}) string {
 	g := context.(*Game)
 	p, _ := g.ParsePlayer(player)
 	lastSectorMsg := ""
-	if g.PlayerBoards[p].LastSector != 0 {
+	if len(g.PlayerBoards[p].LastSectors) != 0 {
 		lastSectorMsg = fmt.Sprintf(
 			`Your last sector was {{b}}sector %d{{_b}}.  `,
-			g.PlayerBoards[p].LastSector)
+			g.PlayerBoards[p].LastSectors[0])
 	}
 	return fmt.Sprintf(
 		"{{b}}sector #{{_b}} to choose which sector to travel through, between 1 and 4.  %sEg. {{b}}sector 3{{_b}}", lastSectorMsg)

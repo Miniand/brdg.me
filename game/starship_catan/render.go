@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/Miniand/brdg.me/render"
 )
@@ -23,7 +24,18 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			g.RenderName(playerNum),
 		},
 	}
-	if g.Phase == PhaseFlight {
+	switch g.Phase {
+	case PhaseChooseSector:
+		if len(g.PlayerBoards[playerNum].LastSectors) > 0 {
+			cells = append(
+				cells,
+				[]string{
+					Bold("Last sectors"),
+					strings.Join(Itoas(g.PlayerBoards[playerNum].LastSectors), " "),
+				},
+			)
+		}
+	case PhaseFlight:
 		card, _ := g.FlightCards.Pop()
 		cells = append(
 			cells,

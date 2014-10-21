@@ -253,6 +253,8 @@ func (g *Game) EndFlight() error {
 	g.SectorCards[g.CurrentSector] = g.SectorCards[g.CurrentSector].PushMany(
 		g.FlightCards).Shuffle()
 	g.FlightCards = card.Deck{}
+	g.PlayerBoards[g.CurrentPlayer].LastSectors = append(
+		[]int{g.CurrentSector}, g.PlayerBoards[g.CurrentPlayer].LastSectors...)
 	g.Phase = PhaseTradeAndBuild
 	return nil
 }
@@ -574,6 +576,24 @@ func (g *Game) HandleTradeCommand(player string, args []string, tradeDir int) er
 		return errors.New("you must specify a resource")
 	}
 	return g.Trade(p, resource, amount*tradeDir)
+}
+
+func (g *Game) CanFight(player int) bool {
+	if g.CurrentPlayer != player || g.Phase != PhaseFlight || g.FlightCards.Len() == 0 {
+		return false
+	}
+	card, _ := g.FlightCards.Pop()
+	_, ok := card.(PirateCard)
+	return ok
+}
+
+func (g *Game) CanPayRansom(player int) bool {
+	if g.CurrentPlayer != player || g.Phase != PhaseFlight || g.FlightCards.Len() == 0 {
+		return false
+	}
+	card, _ := g.FlightCards.Pop()
+	pirateCard, ok := card.(PirateCard)
+	return ok && pirateCard.Ransom <= g.PlayerBoards[player].Resources[ResourceAstro]
 }
 
 func Itoas(in []int) []string {
