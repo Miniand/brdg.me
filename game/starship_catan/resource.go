@@ -21,6 +21,7 @@ const (
 )
 
 var ResourceNames = map[int]string{
+	ResourceAny:        "any resource",
 	ResourceFood:       "food",
 	ResourceFuel:       "fuel",
 	ResourceCarbon:     "carbon",
@@ -32,6 +33,16 @@ var ResourceNames = map[int]string{
 	ResourceTradeShip:  "trade ship",
 	ResourceBooster:    "booster",
 	ResourceCannon:     "cannon",
+}
+
+var ResourceColours = map[int]string{
+	ResourceAny:     "green",
+	ResourceFood:    "red",
+	ResourceFuel:    "gray",
+	ResourceCarbon:  "cyan",
+	ResourceOre:     "black",
+	ResourceScience: "magenta",
+	ResourceTrade:   "yellow",
 }
 
 func ParseResource(input string) (int, error) {

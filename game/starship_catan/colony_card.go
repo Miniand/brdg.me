@@ -15,8 +15,12 @@ type ColonyCard struct {
 }
 
 func (c ColonyCard) String() string {
-	return fmt.Sprintf(`{{c "green"}}{{b}}%s{{_b}}{{_c}} (colony planet, roll {{b}}%d{{_b}} for {{b}}%s{{_b}})`,
-		c.Name, c.Dice, ResourceNames[c.Resource])
+	return fmt.Sprintf(
+		`{{c "green"}}{{b}}%s{{_b}}{{_c}} (colony planet, roll {{b}}%d{{_b}} for {{b}}%s{{_b}})`,
+		c.Name,
+		c.Dice,
+		RenderResource(c.Resource),
+	)
 }
 
 func (c ColonyCard) Commands() []command.Command {

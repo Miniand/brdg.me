@@ -263,6 +263,7 @@ func (g *Game) Found(player int) error {
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`%s founded a colony on %s`, g.RenderName(player), colCard)))
 	g.PlayerBoards[player].Colonies = g.PlayerBoards[player].Colonies.Push(c)
+	g.PlayerBoards[player].Resources[ResourceColonyShip] -= 1
 	if len(g.SectorDrawPile) > 0 {
 		c, g.SectorDrawPile = g.SectorDrawPile.Pop()
 		g.FlightCards = g.FlightCards.Push(c)
