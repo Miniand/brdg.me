@@ -54,9 +54,7 @@ func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 			"winners":    gm.Winners,
 		})
 	}
-	Json(http.StatusOK, map[string]interface{}{
-		"games": games,
-	}, w, r)
+	Json(http.StatusOK, games, w, r)
 }
 
 func ApiGameTypeIndex(w http.ResponseWriter, r *http.Request) {
