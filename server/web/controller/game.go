@@ -59,6 +59,17 @@ func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 	}, w, r)
 }
 
+func ApiGameTypeIndex(w http.ResponseWriter, r *http.Request) {
+	gameTypes := []map[string]interface{}{}
+	for _, g := range game.RawCollection() {
+		gameTypes = append(gameTypes, map[string]interface{}{
+			"identifier": g.Identifier(),
+			"name":       g.Name(),
+		})
+	}
+	Json(http.StatusOK, gameTypes, w, r)
+}
+
 func ApiGameShow(w http.ResponseWriter, r *http.Request) {
 	loggedIn, authUser := ApiMustAuthenticate(w, r)
 	if !loggedIn {
