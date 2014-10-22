@@ -1,7 +1,6 @@
 package starship_catan
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
@@ -39,9 +38,8 @@ func AmountTradeDir(amount int) int {
 type TradeCard struct {
 	UnsortableCard
 	Name        string
-	Resource    int
+	Resources   []int
 	Price       int
-	Minimum     int
 	Maximum     int
 	Direction   int
 	TradingPost bool
@@ -49,16 +47,6 @@ type TradeCard struct {
 
 func (c TradeCard) AmountLimitString() string {
 	switch {
-	case c.Minimum > 0 && c.Minimum == c.Maximum:
-		return fmt.Sprintf(`{{b}}%d{{_b}}`, c.Minimum)
-	case c.Minimum > 0 && c.Maximum > 0:
-		return fmt.Sprintf(
-			`between {{b}}%d{{_b}} and {{b}}%d{{_b}}`,
-			c.Minimum,
-			c.Maximum,
-		)
-	case c.Minimum > 0:
-		return fmt.Sprintf(`at least {{b}}%d{{_b}}`, c.Minimum)
 	case c.Maximum > 0:
 		return fmt.Sprintf(`up to {{b}}%d{{_b}}`, c.Maximum)
 	default:
@@ -68,7 +56,7 @@ func (c TradeCard) AmountLimitString() string {
 
 func (c TradeCard) String() string {
 	amount := ""
-	if c.Minimum > 0 || c.Maximum > 0 {
+	if c.Maximum > 0 {
 		amount = fmt.Sprintf(" %s", c.AmountLimitString())
 	}
 	return fmt.Sprintf(
@@ -76,17 +64,9 @@ func (c TradeCard) String() string {
 		c.Name,
 		TradeDirStrings[c.Direction],
 		amount,
-		RenderResource(c.Resource),
+		RenderResources(c.Resources),
 		RenderMoney(c.Price),
 	)
-}
-
-func (c TradeCard) Buy(resource, amount int) error {
-	return errors.New("not implemented")
-}
-
-func (c TradeCard) Sell(resource, amount int) error {
-	return errors.New("not implemented")
 }
 
 func (c TradeCard) FriendshipPoints() int {

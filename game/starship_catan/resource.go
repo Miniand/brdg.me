@@ -1,9 +1,6 @@
 package starship_catan
 
-import (
-	"errors"
-	"strings"
-)
+import "github.com/Miniand/brdg.me/game/helper"
 
 const (
 	ResourceAny = iota
@@ -50,26 +47,34 @@ var ResourceColours = map[int]string{
 	ResourceCannon:     "blue",
 }
 
-func ParseResource(input string) (int, error) {
-	in := []byte(strings.ToLower(input))
-	skipped := map[int]bool{}
-	for i, b := range in {
-		found := 0
-		foundR := 0
-		for r, rName := range ResourceNames {
-			if skipped[r] || b != rName[i] {
-				skipped[r] = true
-				continue
-			}
-			found += 1
-			foundR = r
-		}
-		switch found {
-		case 0:
-			break
-		case 1:
-			return foundR, nil
-		}
+var Goods = []int{
+	ResourceFood,
+	ResourceFuel,
+	ResourceCarbon,
+	ResourceOre,
+	ResourceTrade,
+}
+
+func ResourceNameArr(resources []int) []string {
+	names := make([]string, len(resources))
+	for i, r := range resources {
+		names[i] = ResourceNames[r]
 	}
-	return 0, errors.New("could not find a unique resource for that input")
+	return names
+}
+
+func ResourceNameMap(resources []int) map[int]string {
+	rm := map[int]string{}
+	for _, r := range resources {
+		rm[r] = ResourceNames[r]
+	}
+	return rm
+}
+
+func ParseGood(input string) (int, error) {
+	return helper.MatchStringInStringMap(input, ResourceNameMap(Goods))
+}
+
+func ParseResource(input string) (int, error) {
+	return helper.MatchStringInStringMap(input, ResourceNames)
 }

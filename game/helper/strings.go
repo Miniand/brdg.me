@@ -5,6 +5,19 @@ import (
 	"strings"
 )
 
+func MatchStringInStringMap(input string, strs map[int]string) (int, error) {
+	keyMap := map[int]int{}
+	strArr := make([]string, len(strs))
+	i := 0
+	for key, str := range strs {
+		keyMap[i] = key
+		strArr[i] = str
+		i += 1
+	}
+	key, err := MatchStringInStrings(input, strArr)
+	return keyMap[key], err
+}
+
 func MatchStringInStrings(input string, strs []string) (int, error) {
 	in := strings.ToLower(input)
 	lowerStrs := make([]string, len(strs))

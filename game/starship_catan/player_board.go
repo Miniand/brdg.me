@@ -9,6 +9,7 @@ type PlayerBoard struct {
 	CompletedAdventures card.Deck
 	Colonies            card.Deck
 	TradingPosts        card.Deck
+	DefeatedPirates     card.Deck
 	FriendOfThePeople   bool
 	HeroOfThePeople     bool
 	LastSectors         []int
@@ -30,6 +31,7 @@ func NewPlayerBoard(player int) *PlayerBoard {
 		CompletedAdventures: card.Deck{},
 		Colonies:            card.Deck{},
 		TradingPosts:        card.Deck{},
+		DefeatedPirates:     card.Deck{},
 		LastSectors:         []int{},
 	}
 	pb.Colonies = pb.Colonies.Push(StartingCards()[player])

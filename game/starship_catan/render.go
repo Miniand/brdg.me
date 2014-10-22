@@ -118,6 +118,14 @@ func RenderResource(resource int) string {
 	)
 }
 
+func RenderResources(resources []int) string {
+	strs := make([]string, len(resources))
+	for i, r := range resources {
+		strs[i] = RenderResource(r)
+	}
+	return strings.Join(strs, ", ")
+}
+
 func Bold(s string) string {
 	return fmt.Sprintf("{{b}}%s{{_b}}", s)
 }

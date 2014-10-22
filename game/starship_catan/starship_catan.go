@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 )
@@ -282,6 +284,14 @@ func (g *Game) Found(player int) error {
 		`%s founded a colony on %s`, g.RenderName(player), colCard)))
 	g.PlayerBoards[player].Colonies = g.PlayerBoards[player].Colonies.Push(c)
 	g.PlayerBoards[player].Resources[ResourceColonyShip] -= 1
+	g.ReplaceCard()
+	g.MarkCardActioned()
+	g.NextSectorCard()
+	return nil
+}
+
+func (g *Game) ReplaceCard() {
+	var c card.Card
 	if len(g.SectorDrawPile) > 0 {
 		c, g.SectorDrawPile = g.SectorDrawPile.Pop()
 		g.FlightCards = g.FlightCards.Push(c)
@@ -292,9 +302,6 @@ func (g *Game) Found(player int) error {
 	} else {
 		g.Log.Add(log.NewPublicMessage("No replacement cards remain"))
 	}
-	g.MarkCardActioned()
-	g.NextSectorCard()
-	return nil
 }
 
 func (g *Game) CanNext(player int) bool {
@@ -427,11 +434,24 @@ func (g *Game) GainResource(player, resource int) {
 	}
 }
 
+func (g *Game) TradableResources() []int {
+	switch {
+	case g.Phase == PhaseFlight && g.FlightCards.Len() > 0:
+		card, _ := g.FlightCards.Pop()
+		tradeCard, ok := card.(TradeCard)
+		if ok {
+			return tradeCard.Resources
+		}
+	}
+	return []int{}
+}
+
 func (g *Game) CanTrade(player, resource, amount int) (ok bool, price int, reason string) {
 	if g.CurrentPlayer != player {
 		return false, 0, "it's not your turn"
 	}
 	tradeDir := AmountTradeDir(amount)
+	tradableResources := g.TradableResources()
 	if g.Phase == PhaseFlight {
 		if g.FlightCards.Len() == 0 {
 			return false, 0, "there are no flight cards"
@@ -442,12 +462,11 @@ func (g *Game) CanTrade(player, resource, amount int) (ok bool, price int, reaso
 			return false, 0, "the current flight card is not a trade card"
 		}
 		if resource != ResourceAny &&
-			trade.Resource != ResourceAny &&
-			trade.Resource != resource {
+			!ContainsInt(resource, tradableResources) {
 			return false, 0, fmt.Sprintf(
 				"you can only %s %s with this trade card",
 				TradeDirStrings[tradeDir],
-				ResourceNames[trade.Resource],
+				strings.Join(ResourceNameArr(tradableResources), ", "),
 			)
 		}
 		if tradeDir != TradeDirBoth &&
@@ -459,8 +478,7 @@ func (g *Game) CanTrade(player, resource, amount int) (ok bool, price int, reaso
 			)
 		}
 		targetAmount := amount*tradeDir + g.TradeAmount
-		if amount != 0 && (trade.Minimum != 0 && targetAmount < trade.Minimum ||
-			trade.Maximum != 0 && targetAmount > trade.Maximum) {
+		if amount != 0 && trade.Maximum != 0 && targetAmount > trade.Maximum {
 			return false, 0, fmt.Sprintf(
 				"you can only trade %s with this trade card, you have already traded %d",
 				trade.AmountLimitString(),
@@ -557,19 +575,19 @@ func (g *Game) HandleTradeCommand(player string, args []string, tradeDir int) er
 		return errors.New("the amount must be a positive whole number")
 	}
 
+	tradableResources := g.TradableResources()
 	var resource int
 	if len(args) > 1 {
-		resource, err = ParseResource(args[1])
+		resource, err = helper.MatchStringInStringMap(
+			args[1],
+			ResourceNameMap(tradableResources),
+		)
 		if err != nil {
 			return err
 		}
 	} else {
-		if g.Phase == PhaseFlight && len(g.FlightCards) > 0 {
-			c, _ := g.FlightCards.Pop()
-			tradeCard, ok := c.(TradeCard)
-			if ok && tradeCard.Resource != ResourceAny {
-				resource = tradeCard.Resource
-			}
+		if len(tradableResources) == 1 {
+			resource = tradableResources[0]
 		}
 	}
 	if resource == 0 {
@@ -587,6 +605,81 @@ func (g *Game) CanFight(player int) bool {
 	return ok
 }
 
+func (g *Game) Fight(player int) error {
+	var c card.Card
+	if !g.CanFight(player) {
+		return errors.New("you are unable to fight")
+	}
+	c, _ = g.FlightCards.Pop()
+	pirateCard, ok := c.(PirateCard)
+	if !ok {
+		return errors.New("card isn't a pirate card")
+	}
+
+	pirateRoll := (r.Int() % 3) + 1
+	pirateAttack := pirateRoll + pirateCard.Strength
+	playerRoll := (r.Int() % 3) + 1
+	playerCannon := g.PlayerBoards[player].Resources[ResourceCannon]
+	playerAttack := playerRoll + playerCannon
+	playerWon := playerAttack >= pirateAttack
+
+	cells := [][]string{
+		[]string{
+			"",
+			"{{b}}Str.{{_b}}",
+			"{{b}}Roll{{_b}}",
+			"{{b}}Attack{{_b}}",
+		},
+		[]string{
+			g.RenderName(player),
+			strconv.Itoa(playerCannon),
+			strconv.Itoa(playerRoll),
+			Bold(strconv.Itoa(playerAttack)),
+		},
+		[]string{
+			`{{c "gray"}}{{b}}pirate{{_b}}{{_c}}`,
+			strconv.Itoa(pirateCard.Strength),
+			strconv.Itoa(pirateRoll),
+			Bold(strconv.Itoa(pirateAttack)),
+		},
+	}
+	table, err := render.Table(cells, 0, 2)
+	if err != nil {
+		return err
+	}
+
+	var resultStr string
+	if playerWon {
+		resultStr = fmt.Sprintf(
+			`%s has defeated the pirate`,
+			g.RenderName(player),
+		)
+	} else {
+		resultStr = fmt.Sprintf(
+			`The pirate has defeated %s`,
+			g.RenderName(player),
+		)
+	}
+
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s is fighting the pirate\n%s\n%s",
+		g.RenderName(player),
+		table,
+		resultStr,
+	)))
+
+	if playerWon {
+		c, g.FlightCards = g.FlightCards.Pop()
+		g.PlayerBoards[player].DefeatedPirates =
+			g.PlayerBoards[player].DefeatedPirates.Push(c)
+		g.ReplaceCard()
+		return g.NextSectorCard()
+	} else {
+		return g.EndFlight()
+	}
+	return nil
+}
+
 func (g *Game) CanPayRansom(player int) bool {
 	if g.CurrentPlayer != player || g.Phase != PhaseFlight || g.FlightCards.Len() == 0 {
 		return false
@@ -594,6 +687,24 @@ func (g *Game) CanPayRansom(player int) bool {
 	card, _ := g.FlightCards.Pop()
 	pirateCard, ok := card.(PirateCard)
 	return ok && pirateCard.Ransom <= g.PlayerBoards[player].Resources[ResourceAstro]
+}
+
+func (g *Game) PayRansom(player int) error {
+	if !g.CanPayRansom(player) {
+		return errors.New("you aren't able to pay the ransom")
+	}
+	card, _ := g.FlightCards.Pop()
+	pirateCard, ok := card.(PirateCard)
+	if !ok {
+		return errors.New("card isn't a pirate card")
+	}
+	g.PlayerBoards[player].Resources[ResourceAstro] -= pirateCard.Ransom
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s paid a ransom of %s`,
+		g.RenderName(player),
+		RenderMoney(pirateCard.Ransom),
+	)))
+	return g.NextSectorCard()
 }
 
 func Itoas(in []int) []string {
