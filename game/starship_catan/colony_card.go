@@ -25,14 +25,11 @@ func (c ColonyCard) String() string {
 
 func (c ColonyCard) Commands() []command.Command {
 	return []command.Command{
-		FoundCommand{},
+		FoundColonyCommand{},
 		NextCommand{},
 	}
 }
 
 func (c ColonyCard) VictoryPoints() int {
-	if c.StartCard {
-		return 0
-	}
 	return 1
 }

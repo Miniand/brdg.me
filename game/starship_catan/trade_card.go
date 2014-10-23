@@ -2,6 +2,7 @@ package starship_catan
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 )
@@ -59,13 +60,20 @@ func (c TradeCard) String() string {
 	if c.Maximum > 0 {
 		amount = fmt.Sprintf(" %s", c.AmountLimitString())
 	}
-	return fmt.Sprintf(
-		`{{c "yellow"}}{{b}}%s{{_b}}{{_c}} (%s%s {{b}}%s{{_b}} for %s each)`,
-		c.Name,
+	parts := []string{fmt.Sprintf(
+		`%s%s {{b}}%s{{_b}} for %s each`,
 		TradeDirStrings[c.Direction],
 		amount,
 		RenderResources(c.Resources),
 		RenderMoney(c.Price),
+	)}
+	if c.CanFoundTradingPost() {
+		parts = append(parts, "trading post")
+	}
+	return fmt.Sprintf(
+		`{{c "yellow"}}{{b}}%s{{_b}}{{_c}} (%s)`,
+		c.Name,
+		strings.Join(parts, ", "),
 	)
 }
 
@@ -82,8 +90,13 @@ func (c TradeCard) CanFoundTradingPost() bool {
 
 func (c TradeCard) Commands() []command.Command {
 	return []command.Command{
+		FoundTradeCommand{},
 		BuyCommand{},
 		SellCommand{},
 		NextCommand{},
 	}
+}
+
+func (c TradeCard) DiplomatPoints() int {
+	return 1
 }

@@ -21,6 +21,14 @@ type VictoryPointer interface {
 	VictoryPoints() int
 }
 
+type DiplomatPointer interface {
+	DiplomatPoints() int
+}
+
+type TradingPoster interface {
+	CanFoundTradingPost() bool
+}
+
 type UnsortableCard struct{}
 
 func (c UnsortableCard) Compare(other card.Comparer) (int, bool) {

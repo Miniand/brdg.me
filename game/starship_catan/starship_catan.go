@@ -268,7 +268,7 @@ func (g *Game) EndFlight() error {
 	return nil
 }
 
-func (g *Game) CanFound(player int) bool {
+func (g *Game) CanFoundColony(player int) bool {
 	if g.CurrentPlayer != player || g.Phase != PhaseFlight ||
 		len(g.FlightCards) == 0 ||
 		g.PlayerBoards[player].Resources[ResourceColonyShip] == 0 {
@@ -279,18 +279,45 @@ func (g *Game) CanFound(player int) bool {
 	return ok
 }
 
-func (g *Game) Found(player int) error {
+func (g *Game) FoundColony(player int) error {
 	var c card.Card
 
-	if !g.CanFound(player) {
+	if !g.CanFoundColony(player) {
 		return errors.New("you are not able to found a colony")
 	}
 	c, g.FlightCards = g.FlightCards.Pop()
-	colCard := c.(ColonyCard)
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s founded a colony on %s`, g.RenderName(player), colCard)))
+		`%s founded a colony on %s`, g.RenderName(player), c)))
 	g.PlayerBoards[player].Colonies = g.PlayerBoards[player].Colonies.Push(c)
 	g.PlayerBoards[player].Resources[ResourceColonyShip] -= 1
+	g.ReplaceCard()
+	g.MarkCardActioned()
+	g.NextSectorCard()
+	return nil
+}
+
+func (g *Game) CanFoundTradingPost(player int) bool {
+	if g.CurrentPlayer != player || g.Phase != PhaseFlight ||
+		len(g.FlightCards) == 0 || g.TradeAmount != 0 ||
+		g.PlayerBoards[player].Resources[ResourceTradeShip] == 0 {
+		return false
+	}
+	c, _ := g.FlightCards.Pop()
+	tp, ok := c.(TradingPoster)
+	return ok && tp.CanFoundTradingPost()
+}
+
+func (g *Game) FoundTradingPost(player int) error {
+	var c card.Card
+
+	if !g.CanFoundTradingPost(player) {
+		return errors.New("you are not able to found a trading post")
+	}
+	c, g.FlightCards = g.FlightCards.Pop()
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s founded a trading post on %s`, g.RenderName(player), c)))
+	g.PlayerBoards[player].TradingPosts = g.PlayerBoards[player].TradingPosts.Push(c)
+	g.PlayerBoards[player].Resources[ResourceTradeShip] -= 1
 	g.ReplaceCard()
 	g.MarkCardActioned()
 	g.NextSectorCard()
