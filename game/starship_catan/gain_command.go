@@ -47,8 +47,7 @@ func (c GainCommand) Call(player string, context interface{},
 			ResourceNames[r])
 	}
 	g.GainResource(p, r)
-	g.Gained(p)
-	return "", nil
+	return "", g.Gained(p)
 }
 
 func (c GainCommand) Usage(player string, context interface{}) string {

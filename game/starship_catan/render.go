@@ -86,6 +86,25 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf.WriteString(t)
+	buf.WriteString("\n\n")
+	// Adventure cards
+	buf.WriteString("{{b}}Adventure cards{{_b}}\n")
+	cells = [][]string{
+		[]string{Bold("#"), Bold("Planet"), Bold("Description")},
+	}
+	for i, c := range g.CurrentAdventureCards() {
+		ac := c.(Adventurer)
+		cells = append(cells, []string{
+			strconv.Itoa(i + 1),
+			AdventurePlanetString(ac.Planet()),
+			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, ac.Text()),
+		})
+	}
+	t, err = render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	buf.WriteString(t)
 	return buf.String(), nil
 }
 

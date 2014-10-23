@@ -1,6 +1,11 @@
 package starship_catan
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/Miniand/brdg.me/command"
+)
 
 const (
 	AdventurePlanetHades    = "Hades"
@@ -16,17 +21,28 @@ var AdventurePlanetColours = map[string]string{
 	AdventurePlanetPoseidon: "cyan",
 }
 
+func AdventurePlanetString(p string) string {
+	return fmt.Sprintf(
+		`{{c "%s"}}{{b}}%s{{_b}}{{_c}}`,
+		AdventurePlanetColours[p],
+		p,
+	)
+}
+
 type AdventurePlanetCard struct {
 	UnsortableCard
 	Name string
 }
 
 func (c AdventurePlanetCard) String() string {
-	return fmt.Sprintf(
-		`{{c "%s"}}{{b}}%s{{_b}}{{_c}}`,
-		AdventurePlanetColours[c.Name],
-		c.Name,
-	)
+	return AdventurePlanetString(c.Name)
+}
+
+func (c AdventurePlanetCard) Commands() []command.Command {
+	return []command.Command{
+		CompleteCommand{},
+		NextCommand{},
+	}
 }
 
 type Adventurer interface {
@@ -50,7 +66,13 @@ func (c AdventureEnvironmentalCrisis) Text() string {
 }
 
 func (c AdventureEnvironmentalCrisis) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceScience] < 1 {
+		return errors.New("you don't have enough science points")
+	}
+	game.PlayerBoards[player].Resources[ResourceScience] -= 1
+	game.PlayerBoards[player].Resources[ResourceAstro] += 3
+	game.GainOne(player, Goods)
+	return nil
 }
 
 type AdventureDiplomaticGift struct {
@@ -66,7 +88,8 @@ func (c AdventureDiplomaticGift) Text() string {
 }
 
 func (c AdventureDiplomaticGift) Complete(player int, game *Game) error {
-	panic("not implemented")
+	game.GainOne(player, Goods)
+	return nil
 }
 
 type AdventureMerchantGift struct {
@@ -82,7 +105,8 @@ func (c AdventureMerchantGift) Text() string {
 }
 
 func (c AdventureMerchantGift) Complete(player int, game *Game) error {
-	panic("not implemented")
+	game.GainOne(player, Goods)
+	return nil
 }
 
 // Adventure deck 2
@@ -100,7 +124,16 @@ func (c AdventureFamine) Text() string {
 }
 
 func (c AdventureFamine) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceFood] < 1 {
+		return errors.New("you don't have enough food")
+	}
+	game.PlayerBoards[player].Resources[ResourceFood] -= 1
+	game.GainOne(player, Goods)
+	return nil
+}
+
+func (c AdventureFamine) Medals() int {
+	return 1
 }
 
 type AdventureWholesaleOrder1 struct {
@@ -116,7 +149,16 @@ func (c AdventureWholesaleOrder1) Text() string {
 }
 
 func (c AdventureWholesaleOrder1) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceTrade] < 1 {
+		return errors.New("you don't have enough trade goods")
+	}
+	game.PlayerBoards[player].Resources[ResourceTrade] -= 1
+	game.GainOne(player, Goods)
+	return nil
+}
+
+func (c AdventureWholesaleOrder1) Medals() int {
+	return 1
 }
 
 type AdventurePirateNest struct {
@@ -128,11 +170,19 @@ func (c AdventurePirateNest) Planet() string {
 }
 
 func (c AdventurePirateNest) Text() string {
-	return "Pirates have take root in Hades.  Reach Hades with 4 boosters and gain a medal and 1 resource of your choice."
+	return "Pirates have taken root in Hades.  Reach Hades with 4 boosters and gain a medal and 1 resource of your choice."
 }
 
 func (c AdventurePirateNest) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceBooster] < 4 {
+		return errors.New("you don't have enough boosters")
+	}
+	game.GainOne(player, Goods)
+	return nil
+}
+
+func (c AdventurePirateNest) Medals() int {
+	return 1
 }
 
 // Adventure deck 3
@@ -150,7 +200,17 @@ func (c AdventureCouncilMeeting) Text() string {
 }
 
 func (c AdventureCouncilMeeting) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceAstro] < 6 {
+		return errors.New("you don't have enough astro")
+	}
+	game.PlayerBoards[player].Resources[ResourceAstro] -= 6
+	game.GainOne(player, Goods)
+	game.GainOne(player, Goods)
+	return nil
+}
+
+func (c AdventureCouncilMeeting) Medals() int {
+	return 1
 }
 
 type AdventureEpidemic struct {
@@ -166,7 +226,15 @@ func (c AdventureEpidemic) Text() string {
 }
 
 func (c AdventureEpidemic) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceScience] < 2 {
+		return errors.New("you don't have enough science points")
+	}
+	game.PlayerBoards[player].Resources[ResourceScience] -= 2
+	return nil
+}
+
+func (c AdventureEpidemic) VictoryPoints() int {
+	return 1
 }
 
 type AdventureEmergency struct {
@@ -182,7 +250,15 @@ func (c AdventureEmergency) Text() string {
 }
 
 func (c AdventureEmergency) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceBooster] < 4 {
+		return errors.New("you don't have enough boosters")
+	}
+	game.GainOne(player, Goods)
+	return nil
+}
+
+func (c AdventureEmergency) Medals() int {
+	return 1
 }
 
 // Adventure deck 4
@@ -200,7 +276,15 @@ func (c AdventureReconstruction) Text() string {
 }
 
 func (c AdventureReconstruction) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceAstro] < 10 {
+		return errors.New("you don't have enough astro")
+	}
+	game.PlayerBoards[player].Resources[ResourceAstro] -= 10
+	return nil
+}
+
+func (c AdventureReconstruction) Medals() int {
+	return 2
 }
 
 type AdventureMonument struct {
@@ -216,7 +300,19 @@ func (c AdventureMonument) Text() string {
 }
 
 func (c AdventureMonument) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceOre] < 2 {
+		return errors.New("you don't have enough ore")
+	}
+	if game.PlayerBoards[player].Resources[ResourceCarbon] < 1 {
+		return errors.New("you don't have enough carbon")
+	}
+	game.PlayerBoards[player].Resources[ResourceOre] -= 2
+	game.PlayerBoards[player].Resources[ResourceCarbon] -= 1
+	return nil
+}
+
+func (c AdventureMonument) VictoryPoints() int {
+	return 1
 }
 
 type AdventureWholesaleOrder2 struct {
@@ -228,9 +324,19 @@ func (c AdventureWholesaleOrder2) Planet() string {
 }
 
 func (c AdventureWholesaleOrder2) Text() string {
-	return "This time Pallas urgently requires merchandise.  Donate 2 trade goods and gain a medal and 2 resources of your choice."
+	return "This time Poseidon urgently requires merchandise.  Donate 2 trade goods and gain a medal and 2 resources of your choice."
 }
 
 func (c AdventureWholesaleOrder2) Complete(player int, game *Game) error {
-	panic("not implemented")
+	if game.PlayerBoards[player].Resources[ResourceTrade] < 2 {
+		return errors.New("you don't have enough trade goods")
+	}
+	game.PlayerBoards[player].Resources[ResourceTrade] -= 2
+	game.GainOne(player, Goods)
+	game.GainOne(player, Goods)
+	return nil
+}
+
+func (c AdventureWholesaleOrder2) Medals() int {
+	return 1
 }

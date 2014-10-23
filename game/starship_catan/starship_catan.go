@@ -28,22 +28,24 @@ const (
 var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type Game struct {
-	Players        []string
-	PlayerBoards   [2]*PlayerBoard
-	SectorCards    map[int]card.Deck
-	SectorDrawPile card.Deck
-	FlightCards    card.Deck
-	FlightActions  map[int]bool
-	CurrentSector  int
-	VisitedCards   card.Deck
-	TradeAmount    int
-	AdventureCards card.Deck
-	Phase          int
-	CurrentPlayer  int
-	GainPlayer     int
-	GainResources  []int
-	Log            *log.Log
-	YellowDice     int
+	Players             []string
+	PlayerBoards        [2]*PlayerBoard
+	SectorCards         map[int]card.Deck
+	SectorDrawPile      card.Deck
+	FlightCards         card.Deck
+	FlightActions       map[int]bool
+	CurrentSector       int
+	VisitedCards        card.Deck
+	TradeAmount         int
+	AdventureCards      card.Deck
+	RemoveAdventureCard int
+	Phase               int
+	CurrentPlayer       int
+	GainPlayer          int
+	GainResources       []int
+	GainQueue           [][]int
+	Log                 *log.Log
+	YellowDice          int
 }
 
 func (g *Game) Start(players []string) error {
@@ -63,6 +65,7 @@ func (g *Game) Start(players []string) error {
 	g.SectorDrawPile = sectorCards
 	g.FlightCards = card.Deck{}
 	g.AdventureCards = ShuffledAdventureCards()
+	g.GainQueue = [][]int{}
 	g.Log = log.New()
 	return nil
 }
@@ -73,7 +76,7 @@ func (g *Game) Commands() []command.Command {
 		GainCommand{},
 		SectorCommand{},
 	}
-	if len(g.FlightCards) > 0 {
+	if len(g.GainResources) == 0 && len(g.FlightCards) > 0 {
 		c, _ := g.FlightCards.Pop()
 		if c, ok := c.(Commander); ok {
 			commands = append(commands, c.Commands()...)
@@ -236,7 +239,11 @@ func (g *Game) NextSectorCard() error {
 	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`%s arrived at %s`, g.RenderName(g.CurrentPlayer), cardText)))
-	if _, ok := nextCard.(Commander); !ok {
+	if commander, ok := nextCard.(Commander); !ok || len(command.AvailableCommands(
+		g.Players[g.CurrentPlayer],
+		g,
+		commander.Commands(),
+	)) == 0 {
 		g.Log.Add(log.NewPublicMessage(
 			"There is nothing to do here, continuing flight"))
 		return g.NextSectorCard()
@@ -295,9 +302,16 @@ func (g *Game) ReplaceCard() {
 	if len(g.SectorDrawPile) > 0 {
 		c, g.SectorDrawPile = g.SectorDrawPile.Pop()
 		g.FlightCards = g.FlightCards.Push(c)
-		if cStr, ok := c.(fmt.Stringer); ok {
+		str := ""
+		switch t := c.(type) {
+		case FullStringer:
+			str = t.FullString()
+		case fmt.Stringer:
+			str = t.String()
+		}
+		if str != "" {
 			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-				`The replacement card is %s`, cStr)))
+				`The replacement card is %s`, str)))
 		}
 	} else {
 		g.Log.Add(log.NewPublicMessage("No replacement cards remain"))
@@ -352,6 +366,11 @@ func (g *Game) CanGain(player int) bool {
 }
 
 func (g *Game) GainOne(player int, resources []int) {
+	if g.GainResources != nil {
+		// Add it to the queue
+		g.GainQueue = append(g.GainQueue, resources)
+		return
+	}
 	if len(resources) == 0 {
 		g.Gained(player)
 	}
@@ -375,15 +394,47 @@ func (g *Game) GainOne(player int, resources []int) {
 	}
 }
 
-func (g *Game) Gained(player int) {
+func (g *Game) Gained(player int) error {
 	g.GainResources = nil
-	if g.Phase == PhaseProduce {
+	if len(g.GainQueue) > 0 {
+		// There's still some gains in the queue, kick off the next one.
+		resources := g.GainQueue[0]
+		g.GainQueue = g.GainQueue[1:]
+		g.GainOne(player, resources)
+		return nil
+	}
+	switch g.Phase {
+	case PhaseProduce:
 		if player == g.CurrentPlayer {
 			g.Produce((g.CurrentPlayer + 1) % 2)
 		} else {
 			g.Phase = PhaseChooseSector
 		}
+		return nil
+	case PhaseFlight:
+		c, _ := g.FlightCards.Pop()
+		switch c.(type) {
+		case AdventurePlanetCard:
+			return g.Completed()
+		default:
+			return g.NextSectorCard()
+		}
 	}
+	return nil
+}
+
+func (g *Game) Completed() error {
+	if g.RemoveAdventureCard > 0 {
+		currentLen := g.CurrentAdventureCards().Len()
+		acIndex := len(g.AdventureCards) - (currentLen - g.RemoveAdventureCard) - 1
+		ac := g.AdventureCards[acIndex]
+		g.AdventureCards = append(g.AdventureCards[:acIndex],
+			g.AdventureCards[acIndex+1:]...)
+		g.PlayerBoards[g.CurrentPlayer].CompletedAdventures =
+			g.PlayerBoards[g.CurrentPlayer].CompletedAdventures.Push(ac)
+		g.RemoveAdventureCard = 0
+	}
+	return g.NextSectorCard()
 }
 
 func (g *Game) Produce(player int) {
@@ -705,6 +756,61 @@ func (g *Game) PayRansom(player int) error {
 		RenderMoney(pirateCard.Ransom),
 	)))
 	return g.NextSectorCard()
+}
+
+func (g *Game) CurrentAdventureCards() card.Deck {
+	n := 3
+	if l := g.AdventureCards.Len(); l < n {
+		n = l
+	}
+	cards, _ := g.AdventureCards.PopN(n)
+	return cards
+}
+
+func (g *Game) CanComplete(player int) bool {
+	if g.CurrentPlayer != player || g.Phase != PhaseFlight {
+		return false
+	}
+	c, _ := g.FlightCards.Pop()
+	_, ok := c.(AdventurePlanetCard)
+	return ok && g.CurrentAdventureCards().Len() > 0
+}
+
+func (g *Game) Complete(player, adventure int) error {
+	if !g.CanComplete(player) {
+		return errors.New("you can't complete an adventure at the moment")
+	}
+	if adventure <= 0 {
+		return errors.New("the adventure number must be above 0")
+	}
+	current := g.CurrentAdventureCards()
+	if l := len(current); adventure > l {
+		return fmt.Errorf("the adventure number can't be higher than %d", l)
+	}
+
+	c, _ := g.FlightCards.Pop()
+	apc := c.(AdventurePlanetCard)
+	ac := current[adventure-1].(Adventurer)
+	if ac.Planet() != apc.Name {
+		return errors.New("it is not the correct planet to complete that card")
+	}
+
+	if err := ac.Complete(player, g); err != nil {
+		return err
+	}
+
+	g.MarkCardActioned()
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s completed a mission on %s - {{c "gray"}}%s{{_c}}`,
+		g.RenderName(player),
+		apc,
+		ac.Text(),
+	)))
+	g.RemoveAdventureCard = adventure
+	if g.GainResources == nil {
+		return g.Completed()
+	}
+	return nil
 }
 
 func Itoas(in []int) []string {

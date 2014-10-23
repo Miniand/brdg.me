@@ -13,6 +13,14 @@ type FullStringer interface {
 	FullString() string
 }
 
+type Medaller interface {
+	Medals() int
+}
+
+type VictoryPointer interface {
+	VictoryPoints() int
+}
+
 type UnsortableCard struct{}
 
 func (c UnsortableCard) Compare(other card.Comparer) (int, bool) {
