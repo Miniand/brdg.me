@@ -54,9 +54,18 @@ func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 			"winners":    gm.Winners,
 		})
 	}
-	Json(http.StatusOK, map[string]interface{}{
-		"games": games,
-	}, w, r)
+	Json(http.StatusOK, games, w, r)
+}
+
+func ApiGameTypeIndex(w http.ResponseWriter, r *http.Request) {
+	gameTypes := []map[string]interface{}{}
+	for _, g := range game.RawCollection() {
+		gameTypes = append(gameTypes, map[string]interface{}{
+			"identifier": g.Identifier(),
+			"name":       g.Name(),
+		})
+	}
+	Json(http.StatusOK, gameTypes, w, r)
 }
 
 func ApiGameShow(w http.ResponseWriter, r *http.Request) {
