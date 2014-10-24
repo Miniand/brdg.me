@@ -36,26 +36,28 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			)
 		}
 	case PhaseFlight:
-		card, _ := g.FlightCards.Pop()
-		cells = append(
-			cells,
-			[]string{
-				Bold("Current planet:"),
-				fmt.Sprintf("%s", card),
-			},
-			[]string{
-				Bold("Current sector:"),
-				strconv.Itoa(g.CurrentSector),
-			},
-			[]string{
-				Bold("Moves left:"),
-				strconv.Itoa(g.RemainingMoves()),
-			},
-			[]string{
-				Bold("Actions left:"),
-				strconv.Itoa(g.RemainingActions()),
-			},
-		)
+		if g.FlightCards.Len() > 0 {
+			card, _ := g.FlightCards.Pop()
+			cells = append(
+				cells,
+				[]string{
+					Bold("Current planet:"),
+					fmt.Sprintf("%s", card),
+				},
+				[]string{
+					Bold("Current sector:"),
+					strconv.Itoa(g.CurrentSector),
+				},
+				[]string{
+					Bold("Moves left:"),
+					strconv.Itoa(g.RemainingMoves()),
+				},
+				[]string{
+					Bold("Actions left:"),
+					strconv.Itoa(g.RemainingActions()),
+				},
+			)
+		}
 	case PhaseTradeAndBuild:
 		cells = append(
 			cells,

@@ -32,6 +32,7 @@ type Game struct {
 	PlayerBoards        [2]*PlayerBoard
 	SectorCards         map[int]card.Deck
 	SectorDrawPile      card.Deck
+	Peeking             card.Deck
 	FlightCards         card.Deck
 	FlightActions       map[int]bool
 	CurrentSector       int
@@ -66,6 +67,7 @@ func (g *Game) Start(players []string) error {
 	}
 	g.SectorDrawPile = sectorCards
 	g.FlightCards = card.Deck{}
+	g.Peeking = card.Deck{}
 	g.AdventureCards = ShuffledAdventureCards()
 	g.GainQueue = [][]int{}
 	g.Log = log.New()
@@ -84,6 +86,7 @@ func (g *Game) Commands() []command.Command {
 		commands,
 		ChooseCommand{},
 		GainCommand{},
+		PutCommand{},
 		SectorCommand{},
 		BuildCommand{},
 		UpgradeCommand{},

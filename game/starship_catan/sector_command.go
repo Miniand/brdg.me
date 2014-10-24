@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type SectorCommand struct{}
@@ -66,5 +67,23 @@ func (g *Game) Sector(player, sector int) error {
 	g.Phase = PhaseFlight
 	g.CurrentSector = sector
 	g.FlightActions = map[int]bool{}
-	return g.NextSectorCard()
+	switch g.PlayerBoards[g.CurrentPlayer].Modules[ModuleSensor] {
+	case 1:
+		g.Peeking, g.SectorCards[g.CurrentSector] =
+			g.SectorCards[g.CurrentSector].PopN(2)
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`%s is using the sensor module to peek at 2 cards`,
+			g.RenderName(player),
+		)))
+	case 2:
+		g.Peeking, g.SectorCards[g.CurrentSector] =
+			g.SectorCards[g.CurrentSector].PopN(3)
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`%s is using the sensor module to peek at 3 cards`,
+			g.RenderName(player),
+		)))
+	default:
+		return g.NextSectorCard()
+	}
+	return nil
 }
