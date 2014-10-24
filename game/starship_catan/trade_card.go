@@ -93,7 +93,6 @@ func (c TradeCard) Commands() []command.Command {
 		FoundTradeCommand{},
 		BuyCommand{},
 		SellCommand{},
-		NextCommand{},
 	}
 }
 

@@ -1,6 +1,13 @@
 package starship_catan
 
-import "github.com/Miniand/brdg.me/command"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type FoundTradeCommand struct{}
 
@@ -29,4 +36,31 @@ func (c FoundTradeCommand) Call(player string, context interface{},
 
 func (c FoundTradeCommand) Usage(player string, context interface{}) string {
 	return "{{b}}found{{_b}} to found a trading post here"
+}
+
+func (g *Game) CanFoundTradingPost(player int) bool {
+	if g.CurrentPlayer != player || g.Phase != PhaseFlight ||
+		len(g.FlightCards) == 0 || g.TradeAmount != 0 ||
+		g.PlayerBoards[player].Resources[ResourceTradeShip] == 0 {
+		return false
+	}
+	c, _ := g.FlightCards.Pop()
+	tp, ok := c.(TradingPoster)
+	return ok && tp.CanFoundTradingPost()
+}
+
+func (g *Game) FoundTradingPost(player int) error {
+	var c card.Card
+
+	if !g.CanFoundTradingPost(player) {
+		return errors.New("you are not able to found a trading post")
+	}
+	c, g.FlightCards = g.FlightCards.Pop()
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		`%s founded a trading post on %s`, g.RenderName(player), c)))
+	g.PlayerBoards[player].TradingPosts = g.PlayerBoards[player].TradingPosts.Push(c)
+	g.PlayerBoards[player].Resources[ResourceTradeShip] -= 1
+	g.ReplaceCard()
+	g.MarkCardActioned()
+	return nil
 }

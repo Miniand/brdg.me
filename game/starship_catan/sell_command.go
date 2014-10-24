@@ -31,3 +31,17 @@ func (c SellCommand) Call(player string, context interface{},
 func (c SellCommand) Usage(player string, context interface{}) string {
 	return "{{b}}sell #{{_b}} to sell goods, eg. {{b}}sell 3{{_b}}.  If you get to choose which resource to sell you must specify the resource, eg. {{b}}sell 3 food{{_b}}."
 }
+
+func (g *Game) CanSell(player, resource int) (ok bool, price int, reason string) {
+	return g.CanTrade(player, resource, TradeDirSell)
+}
+
+type TradePhaseSellCommand struct {
+	SellCommand
+}
+
+func (c TradePhaseSellCommand) CanCall(player string, context interface{}) bool {
+	g := context.(*Game)
+	return g.Phase == PhaseTradeAndBuild &&
+		c.SellCommand.CanCall(player, context)
+}

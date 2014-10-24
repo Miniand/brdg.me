@@ -37,6 +37,7 @@ type Game struct {
 	CurrentSector       int
 	VisitedCards        card.Deck
 	TradeAmount         int
+	PlayerTradeAmount   int
 	AdventureCards      card.Deck
 	RemoveAdventureCard int
 	Phase               int
@@ -46,6 +47,7 @@ type Game struct {
 	GainQueue           [][]int
 	Log                 *log.Log
 	YellowDice          int
+	CardFinished        bool
 }
 
 func (g *Game) Start(players []string) error {
@@ -71,18 +73,26 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) Commands() []command.Command {
-	commands := []command.Command{
-		ChooseCommand{},
-		GainCommand{},
-		SectorCommand{},
-	}
-	if len(g.GainResources) == 0 && len(g.FlightCards) > 0 {
+	commands := []command.Command{}
+	if g.GainResources == nil && len(g.FlightCards) > 0 && !g.CardFinished {
 		c, _ := g.FlightCards.Pop()
 		if c, ok := c.(Commander); ok {
 			commands = append(commands, c.Commands()...)
 		}
 	}
-	return commands
+	return append(
+		commands,
+		ChooseCommand{},
+		GainCommand{},
+		SectorCommand{},
+		BuildCommand{},
+		UpgradeCommand{},
+		TradePhaseBuyCommand{},
+		TradePhaseSellCommand{},
+		DoneCommand{},
+		NextCommand{},
+		EndCommand{},
+	)
 }
 
 func (g *Game) Name() string {
@@ -161,42 +171,6 @@ func (g *Game) ParsePlayer(player string) (int, error) {
 	return 0, fmt.Errorf(`could not find player with the name %s`, player)
 }
 
-func (g *Game) CanChoose(player int) bool {
-	return g.Phase == PhaseChooseModule &&
-		len(g.PlayerBoards[player].Modules) == 0
-}
-
-func (g *Game) Choose(player, module int) error {
-	if !g.CanChoose(player) {
-		return errors.New("you can't choose a module at the moment")
-	}
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s chose the {{b}}%s module{{_b}}`,
-		g.RenderName(player), ModuleNames[module])))
-	g.PlayerBoards[player].Modules[module] = 1
-	if len(g.WhoseTurn()) == 0 {
-		g.NewTurn()
-	}
-	return nil
-}
-
-func (g *Game) CanSector(player int) bool {
-	return g.Phase == PhaseChooseSector && g.CurrentPlayer == player
-}
-
-func (g *Game) Sector(player, sector int) error {
-	if !g.CanSector(player) {
-		return errors.New("you can't choose a sectore at the moment")
-	}
-	if sector < 1 || sector > 4 {
-		return errors.New("sector must be between 1 and 4")
-	}
-	g.Phase = PhaseFlight
-	g.CurrentSector = sector
-	g.FlightActions = map[int]bool{}
-	return g.NextSectorCard()
-}
-
 func (g *Game) Actions() int {
 	return g.PlayerBoards[g.CurrentPlayer].Actions()
 }
@@ -232,6 +206,7 @@ func (g *Game) NextSectorCard() error {
 	g.FlightCards = g.FlightCards.Push(nextCard)
 
 	g.TradeAmount = 0
+	g.CardFinished = false
 
 	cardText := fmt.Sprintf("%#v", nextCard)
 	if nextCard, ok := nextCard.(fmt.Stringer); ok {
@@ -239,15 +214,6 @@ func (g *Game) NextSectorCard() error {
 	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`%s arrived at %s`, g.RenderName(g.CurrentPlayer), cardText)))
-	if commander, ok := nextCard.(Commander); !ok || len(command.AvailableCommands(
-		g.Players[g.CurrentPlayer],
-		g,
-		commander.Commands(),
-	)) == 0 {
-		g.Log.Add(log.NewPublicMessage(
-			"There is nothing to do here, continuing flight"))
-		return g.NextSectorCard()
-	}
 	return nil
 }
 
@@ -264,71 +230,27 @@ func (g *Game) EndFlight() error {
 	g.FlightCards = card.Deck{}
 	g.PlayerBoards[g.CurrentPlayer].LastSectors = append(
 		[]int{g.CurrentSector}, g.PlayerBoards[g.CurrentPlayer].LastSectors...)
+	g.TradeAmount = 0
+	g.PlayerTradeAmount = 0
 	g.Phase = PhaseTradeAndBuild
 	return nil
 }
 
-func (g *Game) CanFoundColony(player int) bool {
-	if g.CurrentPlayer != player || g.Phase != PhaseFlight ||
-		len(g.FlightCards) == 0 ||
-		g.PlayerBoards[player].Resources[ResourceColonyShip] == 0 {
-		return false
-	}
-	c, _ := g.FlightCards.Pop()
-	_, ok := c.(ColonyCard)
-	return ok
+func (g *Game) RemainingPlayerTrades() int {
+	return g.PlayerBoards[g.CurrentPlayer].Modules[ModuleTrade] -
+		g.PlayerTradeAmount
 }
 
-func (g *Game) FoundColony(player int) error {
-	var c card.Card
-
-	if !g.CanFoundColony(player) {
-		return errors.New("you are not able to found a colony")
-	}
-	c, g.FlightCards = g.FlightCards.Pop()
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s founded a colony on %s`, g.RenderName(player), c)))
-	g.PlayerBoards[player].Colonies = g.PlayerBoards[player].Colonies.Push(c)
-	g.PlayerBoards[player].Resources[ResourceColonyShip] -= 1
-	g.ReplaceCard()
-	g.MarkCardActioned()
-	g.NextSectorCard()
-	return nil
+func (g *Game) RemainingTrades() int {
+	return 2 - g.TradeAmount
 }
 
-func (g *Game) CanFoundTradingPost(player int) bool {
-	if g.CurrentPlayer != player || g.Phase != PhaseFlight ||
-		len(g.FlightCards) == 0 || g.TradeAmount != 0 ||
-		g.PlayerBoards[player].Resources[ResourceTradeShip] == 0 {
-		return false
-	}
-	c, _ := g.FlightCards.Pop()
-	tp, ok := c.(TradingPoster)
-	return ok && tp.CanFoundTradingPost()
-}
-
-func (g *Game) FoundTradingPost(player int) error {
-	var c card.Card
-
-	if !g.CanFoundTradingPost(player) {
-		return errors.New("you are not able to found a trading post")
-	}
-	c, g.FlightCards = g.FlightCards.Pop()
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s founded a trading post on %s`, g.RenderName(player), c)))
-	g.PlayerBoards[player].TradingPosts = g.PlayerBoards[player].TradingPosts.Push(c)
-	g.PlayerBoards[player].Resources[ResourceTradeShip] -= 1
-	g.ReplaceCard()
-	g.MarkCardActioned()
-	g.NextSectorCard()
-	return nil
-}
-
-func (g *Game) ReplaceCard() {
+func (g *Game) ReplaceCard() error {
 	var c card.Card
 	if len(g.SectorDrawPile) > 0 {
 		c, g.SectorDrawPile = g.SectorDrawPile.Pop()
 		g.FlightCards = g.FlightCards.Push(c)
+		g.CardFinished = true
 		str := ""
 		switch t := c.(type) {
 		case FullStringer:
@@ -342,27 +264,9 @@ func (g *Game) ReplaceCard() {
 		}
 	} else {
 		g.Log.Add(log.NewPublicMessage("No replacement cards remain"))
+		return g.EndFlight()
 	}
-}
-
-func (g *Game) CanNext(player int) bool {
-	return g.CurrentPlayer == player && g.Phase == PhaseFlight
-}
-
-func (g *Game) Next(player int) error {
-	if !g.CanNext(player) {
-		return errors.New("you can't advance to the next card")
-	}
-	suffix := ""
-	if !g.FlightActions[g.FlightCards.Len()] {
-		suffix = " without taking an action"
-	}
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s continued their flight%s`,
-		g.RenderName(player),
-		suffix,
-	)))
-	return g.NextSectorCard()
+	return nil
 }
 
 func (g *Game) NextTurn() {
@@ -388,69 +292,7 @@ func (g *Game) RenderName(player int) string {
 	return render.PlayerName(player, g.Players[player])
 }
 
-func (g *Game) CanGain(player int) bool {
-	return g.GainPlayer == player && g.GainResources != nil
-}
-
-func (g *Game) GainOne(player int, resources []int) {
-	if g.GainResources != nil {
-		// Add it to the queue
-		g.GainQueue = append(g.GainQueue, resources)
-		return
-	}
-	if len(resources) == 0 {
-		g.Gained(player)
-	}
-	canProduce := []int{}
-	for _, r := range resources {
-		if g.PlayerBoards[player].Resources[r] < g.ResourceLimit(player, r) {
-			canProduce = append(canProduce, r)
-		}
-	}
-	switch len(canProduce) {
-	case 0:
-		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-			"%s did not gain a resource, all full", g.RenderName(player))))
-		g.Gained(player)
-	case 1:
-		g.GainResource(player, canProduce[0])
-		g.Gained(player)
-	default:
-		g.GainPlayer = player
-		g.GainResources = canProduce
-	}
-}
-
-func (g *Game) Gained(player int) error {
-	g.GainResources = nil
-	if len(g.GainQueue) > 0 {
-		// There's still some gains in the queue, kick off the next one.
-		resources := g.GainQueue[0]
-		g.GainQueue = g.GainQueue[1:]
-		g.GainOne(player, resources)
-		return nil
-	}
-	switch g.Phase {
-	case PhaseProduce:
-		if player == g.CurrentPlayer {
-			g.Produce((g.CurrentPlayer + 1) % 2)
-		} else {
-			g.Phase = PhaseChooseSector
-		}
-		return nil
-	case PhaseFlight:
-		c, _ := g.FlightCards.Pop()
-		switch c.(type) {
-		case AdventurePlanetCard:
-			return g.Completed()
-		default:
-			return g.NextSectorCard()
-		}
-	}
-	return nil
-}
-
-func (g *Game) Completed() error {
+func (g *Game) Completed() {
 	if g.RemoveAdventureCard > 0 {
 		currentLen := g.CurrentAdventureCards().Len()
 		acIndex := len(g.AdventureCards) - (currentLen - g.RemoveAdventureCard) - 1
@@ -461,7 +303,7 @@ func (g *Game) Completed() error {
 			g.PlayerBoards[g.CurrentPlayer].CompletedAdventures.Push(ac)
 		g.RemoveAdventureCard = 0
 	}
-	return g.NextSectorCard()
+	g.CardFinished = true
 }
 
 func (g *Game) Produce(player int) {
@@ -494,21 +336,11 @@ func (g *Game) Produce(player int) {
 	}
 }
 
-func (g *Game) ResourceLimit(player, resource int) int {
-	limit := 4
-	if resource != ResourceScience {
-		limit = 2 + g.PlayerBoards[player].Modules[ModuleLogistics]
-	}
-	return limit
-}
-
 func (g *Game) GainResource(player, resource int) {
-	if g.PlayerBoards[player].Resources[resource] <
-		g.ResourceLimit(player, resource) {
-		g.PlayerBoards[player].Resources[resource] += 1
-		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-			"%s gained {{b}}1 %s{{_b}}", g.RenderName(player),
-			ResourceNames[resource])))
+	t := Transaction{resource: 1}
+	gained := g.PlayerBoards[player].Transact(t)
+	if !gained.IsEmpty() {
+		g.LogTransaction(player, gained)
 	}
 }
 
@@ -520,6 +352,12 @@ func (g *Game) TradableResources() []int {
 		if ok {
 			return tradeCard.Resources
 		}
+	case g.Phase == PhaseTradeAndBuild:
+		resources := []int{}
+		for r, _ := range g.PlayerBoards[g.CurrentPlayer].TradingPostPrices() {
+			resources = append(resources, r)
+		}
+		return resources
 	}
 	return []int{}
 }
@@ -530,7 +368,8 @@ func (g *Game) CanTrade(player, resource, amount int) (ok bool, price int, reaso
 	}
 	tradeDir := AmountTradeDir(amount)
 	tradableResources := g.TradableResources()
-	if g.Phase == PhaseFlight {
+	switch g.Phase {
+	case PhaseFlight:
 		if g.FlightCards.Len() == 0 {
 			return false, 0, "there are no flight cards"
 		}
@@ -571,13 +410,9 @@ func (g *Game) CanTrade(player, resource, amount int) (ok bool, price int, reaso
 				)
 			}
 			if resource != ResourceAny {
-				limit := g.ResourceLimit(player, resource)
-				if amount+g.PlayerBoards[player].Resources[resource] > limit {
-					return false, 0, fmt.Sprintf(
-						"you can only store %d %s",
-						limit,
-						ResourceNames[resource],
-					)
+				t := Transaction{resource: amount}
+				if !g.PlayerBoards[player].CanFit(t) {
+					return false, 0, t.CannotFitError().Error()
 				}
 			}
 		}
@@ -590,19 +425,34 @@ func (g *Game) CanTrade(player, resource, amount int) (ok bool, price int, reaso
 			)
 		}
 		return true, trade.Price, ""
-	}
-	if g.Phase == PhaseTradeAndBuild {
+	case PhaseTradeAndBuild:
+		if g.RemainingTrades() == 0 {
+			return false, 0, "you have already done two trades this phase"
+		}
+		if resource == ResourceAny && len(tradableResources) == 0 {
+			return false, 0, "you don't have any trading posts"
+		}
+		if resource != ResourceAny {
+			if !ContainsInt(resource, tradableResources) {
+				return false, 0, "you don't have any trading posts for that resource"
+			}
+			prices := g.PlayerBoards[player].TradingPostPrices()
+			if tradeDir == TradeDirBuy {
+				if prices[resource].Buy > 0 {
+					return true, prices[resource].Buy, ""
+				}
+				return false, 0, "you aren't able to buy that resource"
+			}
+			if tradeDir == TradeDirSell {
+				if prices[resource].Sell > 0 {
+					return true, prices[resource].Sell, ""
+				}
+				return false, 0, "you aren't able to sell that resource"
+			}
+		}
 		return true, 0, ""
 	}
 	return false, 0, "it is not the correct phase to trade"
-}
-
-func (g *Game) CanBuy(player, resource int) (ok bool, price int, reason string) {
-	return g.CanTrade(player, resource, TradeDirBuy)
-}
-
-func (g *Game) CanSell(player, resource int) (ok bool, price int, reason string) {
-	return g.CanTrade(player, resource, TradeDirSell)
 }
 
 func (g *Game) Trade(player, resource, amount int) error {
@@ -621,9 +471,12 @@ func (g *Game) Trade(player, resource, amount int) error {
 	total := amount * price
 	g.PlayerBoards[player].Resources[ResourceAstro] -= total
 	g.PlayerBoards[player].Resources[resource] += amount
-	g.TradeAmount += amount * tradeDir
-	if g.Phase == PhaseFlight {
+	switch g.Phase {
+	case PhaseFlight:
 		g.MarkCardActioned()
+		g.TradeAmount += amount * tradeDir
+	case PhaseTradeAndBuild:
+		g.TradeAmount += 1
 	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`%s %s %d %s for %s`,
@@ -674,117 +527,6 @@ func (g *Game) HandleTradeCommand(player string, args []string, tradeDir int) er
 	return g.Trade(p, resource, amount*tradeDir)
 }
 
-func (g *Game) CanFight(player int) bool {
-	if g.CurrentPlayer != player || g.Phase != PhaseFlight || g.FlightCards.Len() == 0 {
-		return false
-	}
-	card, _ := g.FlightCards.Pop()
-	_, ok := card.(PirateCard)
-	return ok
-}
-
-func (g *Game) Fight(player int) error {
-	var c card.Card
-	if !g.CanFight(player) {
-		return errors.New("you are unable to fight")
-	}
-	c, _ = g.FlightCards.Pop()
-	pirateCard, ok := c.(PirateCard)
-	if !ok {
-		return errors.New("card isn't a pirate card")
-	}
-
-	pirateRoll := (r.Int() % 3) + 1
-	pirateAttack := pirateRoll + pirateCard.Strength
-	playerRoll := (r.Int() % 3) + 1
-	playerCannon := g.PlayerBoards[player].Resources[ResourceCannon]
-	playerAttack := playerRoll + playerCannon
-	playerWon := playerAttack >= pirateAttack
-
-	cells := [][]string{
-		[]string{
-			"",
-			"{{b}}Str.{{_b}}",
-			"{{b}}Roll{{_b}}",
-			"{{b}}Attack{{_b}}",
-		},
-		[]string{
-			g.RenderName(player),
-			strconv.Itoa(playerCannon),
-			strconv.Itoa(playerRoll),
-			Bold(strconv.Itoa(playerAttack)),
-		},
-		[]string{
-			`{{c "gray"}}{{b}}pirate{{_b}}{{_c}}`,
-			strconv.Itoa(pirateCard.Strength),
-			strconv.Itoa(pirateRoll),
-			Bold(strconv.Itoa(pirateAttack)),
-		},
-	}
-	table, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return err
-	}
-
-	var resultStr string
-	if playerWon {
-		resultStr = fmt.Sprintf(
-			`%s has defeated the pirate`,
-			g.RenderName(player),
-		)
-	} else {
-		resultStr = fmt.Sprintf(
-			`The pirate has defeated %s`,
-			g.RenderName(player),
-		)
-	}
-
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s is fighting the pirate\n%s\n%s",
-		g.RenderName(player),
-		table,
-		resultStr,
-	)))
-
-	if playerWon {
-		c, g.FlightCards = g.FlightCards.Pop()
-		g.PlayerBoards[player].DefeatedPirates =
-			g.PlayerBoards[player].DefeatedPirates.Push(c)
-		g.ReplaceCard()
-		return g.NextSectorCard()
-	} else {
-		return g.EndFlight()
-	}
-	return nil
-}
-
-func (g *Game) CanPayRansom(player int) bool {
-	if g.CurrentPlayer != player || g.Phase != PhaseFlight || g.FlightCards.Len() == 0 {
-		return false
-	}
-	card, _ := g.FlightCards.Pop()
-	pirateCard, ok := card.(PirateCard)
-	return ok && pirateCard.Ransom <= g.PlayerBoards[player].Resources[ResourceAstro]
-}
-
-func (g *Game) PayRansom(player int) error {
-	if !g.CanPayRansom(player) {
-		return errors.New("you aren't able to pay the ransom")
-	}
-	card, _ := g.FlightCards.Pop()
-	pirateCard, ok := card.(PirateCard)
-	if !ok {
-		return errors.New("card isn't a pirate card")
-	}
-	g.PlayerBoards[player].Resources[ResourceAstro] -= pirateCard.Ransom
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s paid a ransom of %s`,
-		g.RenderName(player),
-		RenderMoney(pirateCard.Ransom),
-	)))
-	return g.NextSectorCard()
-}
-
 func (g *Game) CurrentAdventureCards() card.Deck {
 	n := 3
 	if l := g.AdventureCards.Len(); l < n {
@@ -792,52 +534,6 @@ func (g *Game) CurrentAdventureCards() card.Deck {
 	}
 	cards, _ := g.AdventureCards.PopN(n)
 	return cards
-}
-
-func (g *Game) CanComplete(player int) bool {
-	if g.CurrentPlayer != player || g.Phase != PhaseFlight {
-		return false
-	}
-	c, _ := g.FlightCards.Pop()
-	_, ok := c.(AdventurePlanetCard)
-	return ok && g.CurrentAdventureCards().Len() > 0
-}
-
-func (g *Game) Complete(player, adventure int) error {
-	if !g.CanComplete(player) {
-		return errors.New("you can't complete an adventure at the moment")
-	}
-	if adventure <= 0 {
-		return errors.New("the adventure number must be above 0")
-	}
-	current := g.CurrentAdventureCards()
-	if l := len(current); adventure > l {
-		return fmt.Errorf("the adventure number can't be higher than %d", l)
-	}
-
-	c, _ := g.FlightCards.Pop()
-	apc := c.(AdventurePlanetCard)
-	ac := current[adventure-1].(Adventurer)
-	if ac.Planet() != apc.Name {
-		return errors.New("it is not the correct planet to complete that card")
-	}
-
-	if err := ac.Complete(player, g); err != nil {
-		return err
-	}
-
-	g.MarkCardActioned()
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s completed a mission on %s - {{c "gray"}}%s{{_c}}`,
-		g.RenderName(player),
-		apc,
-		ac.Text(),
-	)))
-	g.RemoveAdventureCard = adventure
-	if g.GainResources == nil {
-		return g.Completed()
-	}
-	return nil
 }
 
 func Itoas(in []int) []string {

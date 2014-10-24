@@ -41,7 +41,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			cells,
 			[]string{
 				Bold("Current planet:"),
-				fmt.Sprintf("%v", card),
+				fmt.Sprintf("%s", card),
 			},
 			[]string{
 				Bold("Current sector:"),
@@ -54,6 +54,18 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			[]string{
 				Bold("Actions left:"),
 				strconv.Itoa(g.RemainingActions()),
+			},
+		)
+	case PhaseTradeAndBuild:
+		cells = append(
+			cells,
+			[]string{
+				Bold("Post trades remaining:"),
+				strconv.Itoa(g.RemainingTrades()),
+			},
+			[]string{
+				Bold("Player trades remaining:"),
+				strconv.Itoa(g.RemainingPlayerTrades()),
 			},
 		)
 	}
@@ -105,7 +117,53 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf.WriteString(t)
+	buf.WriteString("\n\n")
+	// Modules
+	cells = [][]string{{
+		"{{b}}Module{{_b}}",
+		g.RenderName(playerNum),
+		g.RenderName(opponentNum),
+		"{{b}}Description{{_b}}",
+	}}
+	for _, m := range Modules {
+		cells = append(cells, []string{
+			ModuleNames[m],
+			RenderModuleLevel(g.PlayerBoards[playerNum].Modules[m]),
+			RenderModuleLevel(g.PlayerBoards[opponentNum].Modules[m]),
+			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, ModuleSummaries[m]),
+		})
+	}
+	t, err = render.Table(cells, 0, 2)
+	if err != nil {
+		return "", err
+	}
+	buf.WriteString(t)
+	// Cards
+	for _, p := range []int{playerNum, opponentNum} {
+		buf.WriteString("\n\n")
+		strs := []string{
+			fmt.Sprintf("%s {{b}}cards{{_b}}", g.RenderName(p)),
+		}
+		for _, c := range g.PlayerBoards[p].Colonies {
+			strs = append(strs, fmt.Sprintf("%s", c))
+		}
+		for _, c := range g.PlayerBoards[p].TradingPosts {
+			strs = append(strs, fmt.Sprintf("%s", c))
+		}
+		buf.WriteString(strings.Join(strs, "\n"))
+	}
 	return buf.String(), nil
+}
+
+func RenderModuleLevel(level int) string {
+	switch level {
+	case 0:
+		return fmt.Sprintf(`{{c "gray"}}0{{_c}}`)
+	case 2:
+		return fmt.Sprintf(`{{b}}2{{_b}}`)
+	default:
+		return strconv.Itoa(level)
+	}
 }
 
 func (g *Game) ResourceTableRow(resource, player int) []string {
@@ -135,6 +193,15 @@ func RenderResource(resource int) string {
 		ResourceColours[resource],
 		ResourceNames[resource],
 	)
+}
+
+func RenderResourceAmount(resource, amount int) string {
+	switch resource {
+	case ResourceAstro:
+		return RenderMoney(amount)
+	default:
+		return fmt.Sprintf("%d %s", amount, RenderResource(resource))
+	}
 }
 
 func RenderResources(resources []int) string {

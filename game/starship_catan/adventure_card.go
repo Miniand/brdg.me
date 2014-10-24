@@ -41,7 +41,6 @@ func (c AdventurePlanetCard) String() string {
 func (c AdventurePlanetCard) Commands() []command.Command {
 	return []command.Command{
 		CompleteCommand{},
-		NextCommand{},
 	}
 }
 
@@ -66,11 +65,15 @@ func (c AdventureEnvironmentalCrisis) Text() string {
 }
 
 func (c AdventureEnvironmentalCrisis) Complete(player int, game *Game) error {
-	if game.PlayerBoards[player].Resources[ResourceScience] < 1 {
-		return errors.New("you don't have enough science points")
+	t := Transaction{
+		ResourceScience: -1,
+		ResourceAstro:   3,
 	}
-	game.PlayerBoards[player].Resources[ResourceScience] -= 1
-	game.PlayerBoards[player].Resources[ResourceAstro] += 3
+	if !game.PlayerBoards[player].CanAfford(t) {
+		return t.CannotAffordError()
+	}
+	game.PlayerBoards[player].Transact(t)
+	game.LogTransaction(player, t)
 	game.GainOne(player, Goods)
 	return nil
 }
@@ -124,10 +127,14 @@ func (c AdventureFamine) Text() string {
 }
 
 func (c AdventureFamine) Complete(player int, game *Game) error {
-	if game.PlayerBoards[player].Resources[ResourceFood] < 1 {
-		return errors.New("you don't have enough food")
+	t := Transaction{
+		ResourceFood: -1,
 	}
-	game.PlayerBoards[player].Resources[ResourceFood] -= 1
+	if !game.PlayerBoards[player].CanAfford(t) {
+		return t.CannotAffordError()
+	}
+	game.PlayerBoards[player].Transact(t)
+	game.LogTransaction(player, t)
 	game.GainOne(player, Goods)
 	return nil
 }
@@ -149,10 +156,14 @@ func (c AdventureWholesaleOrder1) Text() string {
 }
 
 func (c AdventureWholesaleOrder1) Complete(player int, game *Game) error {
-	if game.PlayerBoards[player].Resources[ResourceTrade] < 1 {
-		return errors.New("you don't have enough trade goods")
+	t := Transaction{
+		ResourceTrade: -1,
 	}
-	game.PlayerBoards[player].Resources[ResourceTrade] -= 1
+	if !game.PlayerBoards[player].CanAfford(t) {
+		return t.CannotAffordError()
+	}
+	game.PlayerBoards[player].Transact(t)
+	game.LogTransaction(player, t)
 	game.GainOne(player, Goods)
 	return nil
 }
@@ -200,10 +211,14 @@ func (c AdventureCouncilMeeting) Text() string {
 }
 
 func (c AdventureCouncilMeeting) Complete(player int, game *Game) error {
-	if game.PlayerBoards[player].Resources[ResourceAstro] < 6 {
-		return errors.New("you don't have enough astro")
+	t := Transaction{
+		ResourceAstro: -6,
 	}
-	game.PlayerBoards[player].Resources[ResourceAstro] -= 6
+	if !game.PlayerBoards[player].CanAfford(t) {
+		return t.CannotAffordError()
+	}
+	game.PlayerBoards[player].Transact(t)
+	game.LogTransaction(player, t)
 	game.GainOne(player, Goods)
 	game.GainOne(player, Goods)
 	return nil
@@ -226,10 +241,14 @@ func (c AdventureEpidemic) Text() string {
 }
 
 func (c AdventureEpidemic) Complete(player int, game *Game) error {
-	if game.PlayerBoards[player].Resources[ResourceScience] < 2 {
-		return errors.New("you don't have enough science points")
+	t := Transaction{
+		ResourceScience: -2,
 	}
-	game.PlayerBoards[player].Resources[ResourceScience] -= 2
+	if !game.PlayerBoards[player].CanAfford(t) {
+		return t.CannotAffordError()
+	}
+	game.PlayerBoards[player].Transact(t)
+	game.LogTransaction(player, t)
 	return nil
 }
 
@@ -276,10 +295,14 @@ func (c AdventureReconstruction) Text() string {
 }
 
 func (c AdventureReconstruction) Complete(player int, game *Game) error {
-	if game.PlayerBoards[player].Resources[ResourceAstro] < 10 {
-		return errors.New("you don't have enough astro")
+	t := Transaction{
+		ResourceAstro: -10,
 	}
-	game.PlayerBoards[player].Resources[ResourceAstro] -= 10
+	if !game.PlayerBoards[player].CanAfford(t) {
+		return t.CannotAffordError()
+	}
+	game.PlayerBoards[player].Transact(t)
+	game.LogTransaction(player, t)
 	return nil
 }
 
@@ -300,14 +323,15 @@ func (c AdventureMonument) Text() string {
 }
 
 func (c AdventureMonument) Complete(player int, game *Game) error {
-	if game.PlayerBoards[player].Resources[ResourceOre] < 2 {
-		return errors.New("you don't have enough ore")
+	t := Transaction{
+		ResourceOre:    -2,
+		ResourceCarbon: -1,
 	}
-	if game.PlayerBoards[player].Resources[ResourceCarbon] < 1 {
-		return errors.New("you don't have enough carbon")
+	if !game.PlayerBoards[player].CanAfford(t) {
+		return t.CannotAffordError()
 	}
-	game.PlayerBoards[player].Resources[ResourceOre] -= 2
-	game.PlayerBoards[player].Resources[ResourceCarbon] -= 1
+	game.PlayerBoards[player].Transact(t)
+	game.LogTransaction(player, t)
 	return nil
 }
 
@@ -328,10 +352,14 @@ func (c AdventureWholesaleOrder2) Text() string {
 }
 
 func (c AdventureWholesaleOrder2) Complete(player int, game *Game) error {
-	if game.PlayerBoards[player].Resources[ResourceTrade] < 2 {
-		return errors.New("you don't have enough trade goods")
+	t := Transaction{
+		ResourceTrade: -2,
 	}
-	game.PlayerBoards[player].Resources[ResourceTrade] -= 2
+	if !game.PlayerBoards[player].CanAfford(t) {
+		return t.CannotAffordError()
+	}
+	game.PlayerBoards[player].Transact(t)
+	game.LogTransaction(player, t)
 	game.GainOne(player, Goods)
 	game.GainOne(player, Goods)
 	return nil

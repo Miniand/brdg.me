@@ -43,6 +43,10 @@ func (c PirateCard) FullString() string {
 	)
 }
 
+func (c PirateCard) RequiresAction() bool {
+	return true
+}
+
 func (c PirateCard) Commands() []command.Command {
 	return []command.Command{
 		FightCommand{},

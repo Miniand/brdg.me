@@ -51,3 +51,20 @@ func (c SectorCommand) Usage(player string, context interface{}) string {
 	return fmt.Sprintf(
 		"{{b}}sector #{{_b}} to choose which sector to travel through, between 1 and 4.  %sEg. {{b}}sector 3{{_b}}", lastSectorMsg)
 }
+
+func (g *Game) CanSector(player int) bool {
+	return g.Phase == PhaseChooseSector && g.CurrentPlayer == player
+}
+
+func (g *Game) Sector(player, sector int) error {
+	if !g.CanSector(player) {
+		return errors.New("you can't choose a sectore at the moment")
+	}
+	if sector < 1 || sector > 4 {
+		return errors.New("sector must be between 1 and 4")
+	}
+	g.Phase = PhaseFlight
+	g.CurrentSector = sector
+	g.FlightActions = map[int]bool{}
+	return g.NextSectorCard()
+}

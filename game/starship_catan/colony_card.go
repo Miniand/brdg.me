@@ -26,7 +26,6 @@ func (c ColonyCard) String() string {
 func (c ColonyCard) Commands() []command.Command {
 	return []command.Command{
 		FoundColonyCommand{},
-		NextCommand{},
 	}
 }
 

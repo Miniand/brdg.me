@@ -29,6 +29,10 @@ type TradingPoster interface {
 	CanFoundTradingPost() bool
 }
 
+type Actioner interface {
+	RequiresAction() bool
+}
+
 type UnsortableCard struct{}
 
 func (c UnsortableCard) Compare(other card.Comparer) (int, bool) {

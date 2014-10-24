@@ -17,6 +17,21 @@ const (
 	ResourceCannon
 )
 
+var Resources = []int{
+	ResourceAny,
+	ResourceFood,
+	ResourceFuel,
+	ResourceCarbon,
+	ResourceOre,
+	ResourceScience,
+	ResourceTrade,
+	ResourceAstro,
+	ResourceColonyShip,
+	ResourceTradeShip,
+	ResourceBooster,
+	ResourceCannon,
+}
+
 var ResourceNames = map[int]string{
 	ResourceAny:        "any resource",
 	ResourceFood:       "food",
@@ -47,12 +62,33 @@ var ResourceColours = map[int]string{
 	ResourceCannon:     "blue",
 }
 
+var ColonyShipTransaction = Transaction{
+	ResourceOre:        -1,
+	ResourceFuel:       -1,
+	ResourceFood:       -1,
+	ResourceColonyShip: 1,
+}
+
+var TradeShipTransaction = Transaction{
+	ResourceOre:       -1,
+	ResourceFuel:      -1,
+	ResourceTrade:     -1,
+	ResourceTradeShip: 1,
+}
+
 var Goods = []int{
 	ResourceFood,
 	ResourceFuel,
 	ResourceCarbon,
 	ResourceOre,
 	ResourceTrade,
+}
+
+var Buildables = []int{
+	ResourceTradeShip,
+	ResourceColonyShip,
+	ResourceBooster,
+	ResourceCannon,
 }
 
 func ResourceNameArr(resources []int) []string {
@@ -69,6 +105,10 @@ func ResourceNameMap(resources []int) map[int]string {
 		rm[r] = ResourceNames[r]
 	}
 	return rm
+}
+
+func ParseBuildable(input string) (int, error) {
+	return helper.MatchStringInStringMap(input, ResourceNameMap(Buildables))
 }
 
 func ParseGood(input string) (int, error) {

@@ -1,9 +1,10 @@
 package starship_catan
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/Miniand/brdg.me/game/helper"
 )
 
 const (
@@ -33,6 +34,26 @@ var ModuleNames = map[int]string{
 	ModuleProduction: "production",
 }
 
+var ModuleSummaries = map[int]string{
+	ModuleLogistics: "store extra goods (2, 3, 4)",
+	ModuleCommand:   "take extra actions (2, 3, 4)",
+	ModuleSensor:    "peek at sector cards (0, 2, 3)",
+	ModuleTrade: fmt.Sprintf(
+		"buy resources from opponent for %s (0, 1, 2)",
+		RenderMoney(2),
+	),
+	ModuleScience:    "produce science (0, 1, 2)",
+	ModuleProduction: "produce trade (0, 1, 2)",
+}
+
+func ModuleTransaction(level int) Transaction {
+	return Transaction{
+		ResourceOre:    -1,
+		ResourceCarbon: -1,
+		ResourceFood:   -level,
+	}
+}
+
 func ModuleDescription(module, player, level int) string {
 	switch module {
 	case ModuleLogistics:
@@ -60,27 +81,7 @@ func ModuleDescription(module, player, level int) string {
 }
 
 func ParseModule(input string) (int, error) {
-	in := []byte(strings.ToLower(input))
-	skipped := map[int]bool{}
-	for i, b := range in {
-		found := 0
-		foundM := 0
-		for m, mName := range ModuleNames {
-			if skipped[m] || b != mName[i] {
-				skipped[m] = true
-				continue
-			}
-			found += 1
-			foundM = m
-		}
-		switch found {
-		case 0:
-			break
-		case 1:
-			return foundM, nil
-		}
-	}
-	return 0, errors.New("could not find a unique module for that input")
+	return helper.MatchStringInStringMap(input, ModuleNames)
 }
 
 func ScienceModuleDice(level, player int) []int {

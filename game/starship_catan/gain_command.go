@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type GainCommand struct{}
@@ -59,4 +60,59 @@ func (c GainCommand) Usage(player string, context interface{}) string {
 	return fmt.Sprintf(
 		"{{b}}gain ##{{_b}} to gain a resource.  Enter as much of the resource name as needed to uniquely identify it.  Eg. {{b}}gain sci{{_b}}\nYou can gain: %s",
 		strings.Join(resources, ", "))
+}
+
+func (g *Game) CanGain(player int) bool {
+	return g.GainPlayer == player && g.GainResources != nil
+}
+
+func (g *Game) GainOne(player int, resources []int) {
+	if g.GainResources != nil {
+		// Add it to the queue
+		g.GainQueue = append(g.GainQueue, resources)
+		return
+	}
+	if len(resources) == 0 {
+		g.Gained(player)
+	}
+	canProduce := g.PlayerBoards[player].FitTransaction(
+		TransactionFromResources(resources)).Resources()
+	switch len(canProduce) {
+	case 0:
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s did not gain a resource, all full", g.RenderName(player))))
+		g.Gained(player)
+	case 1:
+		g.GainResource(player, canProduce[0])
+		g.Gained(player)
+	default:
+		g.GainPlayer = player
+		g.GainResources = canProduce
+	}
+}
+
+func (g *Game) Gained(player int) error {
+	g.GainResources = nil
+	if len(g.GainQueue) > 0 {
+		// There's still some gains in the queue, kick off the next one.
+		resources := g.GainQueue[0]
+		g.GainQueue = g.GainQueue[1:]
+		g.GainOne(player, resources)
+		return nil
+	}
+	switch g.Phase {
+	case PhaseProduce:
+		if player == g.CurrentPlayer {
+			g.Produce((g.CurrentPlayer + 1) % 2)
+		} else {
+			g.Phase = PhaseChooseSector
+		}
+	case PhaseFlight:
+		c, _ := g.FlightCards.Pop()
+		switch c.(type) {
+		case AdventurePlanetCard:
+			g.Completed()
+		}
+	}
+	return nil
 }
