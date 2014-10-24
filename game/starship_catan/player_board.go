@@ -172,3 +172,51 @@ func (b *PlayerBoard) TradingPostPrices() map[int]*PlayerTradingPrices {
 	}
 	return prices
 }
+
+func (b *PlayerBoard) AllCards() card.Deck {
+	return b.Colonies.PushMany(
+		b.TradingPosts).PushMany(
+		b.CompletedAdventures).PushMany(
+		b.DefeatedPirates)
+}
+
+func (b *PlayerBoard) VictoryPoints() int {
+	vp := 0
+	if b.HeroOfThePeople {
+		vp += 1
+	}
+	if b.FriendOfThePeople {
+		vp += 1
+	}
+	for _, m := range b.Modules {
+		if m == 2 {
+			vp += 1
+		}
+	}
+	for _, c := range b.AllCards() {
+		if vc, ok := c.(VictoryPointer); ok {
+			vp += vc.VictoryPoints()
+		}
+	}
+	return vp
+}
+
+func (b *PlayerBoard) Medals() int {
+	medals := 0
+	for _, c := range b.AllCards() {
+		if mc, ok := c.(Medaller); ok {
+			medals += mc.Medals()
+		}
+	}
+	return medals
+}
+
+func (b *PlayerBoard) DiplomatPoints() int {
+	diplomatPoints := 0
+	for _, c := range b.AllCards() {
+		if dc, ok := c.(DiplomatPointer); ok {
+			diplomatPoints += dc.DiplomatPoints()
+		}
+	}
+	return diplomatPoints
+}

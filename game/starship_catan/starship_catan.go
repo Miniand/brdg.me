@@ -89,6 +89,7 @@ func (g *Game) Commands() []command.Command {
 		UpgradeCommand{},
 		TradePhaseBuyCommand{},
 		TradePhaseSellCommand{},
+		TakeCommand{},
 		DoneCommand{},
 		NextCommand{},
 		EndCommand{},
@@ -136,11 +137,28 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
+	for _, b := range g.PlayerBoards {
+		if b.VictoryPoints() >= 10 {
+			return true
+		}
+	}
 	return false
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	p1 := g.PlayerBoards[0].VictoryPoints()
+	p2 := g.PlayerBoards[1].VictoryPoints()
+	switch {
+	case p1 > p2:
+		return []string{g.Players[0]}
+	case p2 > p1:
+		return []string{g.Players[0]}
+	default:
+		return g.Players
+	}
 }
 
 func (g *Game) WhoseTurn() []string {
@@ -438,12 +456,23 @@ func (g *Game) CanTrade(player, resource, amount int) (ok bool, price int, reaso
 			}
 			prices := g.PlayerBoards[player].TradingPostPrices()
 			if tradeDir == TradeDirBuy {
+				t := Transaction{resource: amount}
+				if !g.PlayerBoards[player].CanFit(t) {
+					return false, 0, t.CannotFitError().Error()
+				}
 				if prices[resource].Buy > 0 {
 					return true, prices[resource].Buy, ""
 				}
 				return false, 0, "you aren't able to buy that resource"
 			}
 			if tradeDir == TradeDirSell {
+				if amount*tradeDir > g.PlayerBoards[player].Resources[resource] {
+					return false, 0, fmt.Sprintf(
+						"you only have %d %s",
+						g.PlayerBoards[player].Resources[resource],
+						ResourceNames[resource],
+					)
+				}
 				if prices[resource].Sell > 0 {
 					return true, prices[resource].Sell, ""
 				}

@@ -36,7 +36,7 @@ func (c UpgradeCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	return "", g.Build(p, m)
+	return "", g.UpgradeModule(p, m)
 }
 
 func (c UpgradeCommand) Usage(player string, context interface{}) string {

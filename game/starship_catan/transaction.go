@@ -11,10 +11,11 @@ type Transaction map[int]int
 
 // Inverse gets the inverse of the transaction.
 func (t Transaction) Inverse() Transaction {
+	inv := Transaction{}
 	for k, v := range t {
-		t[k] = v * -1
+		inv[k] = v * -1
 	}
-	return t
+	return inv
 }
 
 func (t Transaction) String() string {

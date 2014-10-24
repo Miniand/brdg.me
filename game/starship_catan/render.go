@@ -92,6 +92,22 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		[]string{},
 		g.ResourceTableRow(ResourceBooster, playerNum),
 		g.ResourceTableRow(ResourceCannon, playerNum),
+		[]string{},
+		[]string{
+			fmt.Sprintf(`{{c "red"}}{{b}}medals{{_b}}{{_c}}`),
+			Bold(strconv.Itoa(g.PlayerBoards[playerNum].Medals())),
+			strconv.Itoa(g.PlayerBoards[opponentNum].Medals()),
+		},
+		[]string{
+			fmt.Sprintf(`{{c "green"}}{{b}}diplomacy{{_b}}{{_c}}`),
+			Bold(strconv.Itoa(g.PlayerBoards[playerNum].DiplomatPoints())),
+			strconv.Itoa(g.PlayerBoards[opponentNum].DiplomatPoints()),
+		},
+		[]string{
+			fmt.Sprintf(`{{c "blue"}}{{b}}VP{{_b}}{{_c}}`),
+			Bold(strconv.Itoa(g.PlayerBoards[playerNum].VictoryPoints())),
+			strconv.Itoa(g.PlayerBoards[opponentNum].VictoryPoints()),
+		},
 	}
 	t, err = render.Table(cells, 0, 2)
 	if err != nil {
