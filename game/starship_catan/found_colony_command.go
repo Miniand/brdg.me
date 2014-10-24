@@ -62,5 +62,6 @@ func (g *Game) FoundColony(player int) error {
 	g.PlayerBoards[player].Resources[ResourceColonyShip] -= 1
 	g.ReplaceCard()
 	g.MarkCardActioned()
+	g.RecalculatePeopleCards()
 	return nil
 }

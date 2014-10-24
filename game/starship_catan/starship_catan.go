@@ -323,6 +323,7 @@ func (g *Game) Completed() {
 		g.PlayerBoards[g.CurrentPlayer].CompletedAdventures =
 			g.PlayerBoards[g.CurrentPlayer].CompletedAdventures.Push(ac)
 		g.RemoveAdventureCard = 0
+		g.RecalculatePeopleCards()
 	}
 	g.CardFinished = true
 }
@@ -566,6 +567,34 @@ func (g *Game) CurrentAdventureCards() card.Deck {
 	}
 	cards, _ := g.AdventureCards.PopN(n)
 	return cards
+}
+
+func (g *Game) RecalculatePeopleCards() {
+	// Diplomat points
+	p1D := g.PlayerBoards[0].DiplomatPoints()
+	p2D := g.PlayerBoards[1].DiplomatPoints()
+	d := -1
+	switch {
+	case p1D > 3 && p1D > p2D:
+		d = 0
+	case p2D > 3 && p2D > p1D:
+		d = 1
+	}
+	// Medals
+	p1M := g.PlayerBoards[0].Medals()
+	p2M := g.PlayerBoards[1].Medals()
+	m := 0
+	switch {
+	case p1M > 3 && p1M > p2M:
+		m = 0
+	case p2M > 3 && p2M > p1M:
+		m = 1
+	}
+	// Apply
+	for p, _ := range g.PlayerBoards {
+		g.PlayerBoards[p].FriendOfThePeople = d == p
+		g.PlayerBoards[p].HeroOfThePeople = m == p
+	}
 }
 
 func Itoas(in []int) []string {

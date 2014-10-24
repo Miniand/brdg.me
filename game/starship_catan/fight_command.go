@@ -116,6 +116,7 @@ func (g *Game) Fight(player int) error {
 		c, g.FlightCards = g.FlightCards.Pop()
 		g.PlayerBoards[player].DefeatedPirates =
 			g.PlayerBoards[player].DefeatedPirates.Push(c)
+		g.RecalculatePeopleCards()
 		if err := g.ReplaceCard(); err != nil {
 			return err
 		}

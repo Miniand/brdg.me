@@ -62,5 +62,6 @@ func (g *Game) FoundTradingPost(player int) error {
 	g.PlayerBoards[player].Resources[ResourceTradeShip] -= 1
 	g.ReplaceCard()
 	g.MarkCardActioned()
+	g.RecalculatePeopleCards()
 	return nil
 }
