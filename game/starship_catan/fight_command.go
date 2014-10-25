@@ -41,7 +41,8 @@ func (c FightCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanFight(player int) bool {
-	if g.CurrentPlayer != player || g.Phase != PhaseFlight || g.FlightCards.Len() == 0 {
+	if g.CurrentPlayer != player || g.Phase != PhaseFlight ||
+		g.FlightCards.Len() == 0 || g.LosingModule {
 		return false
 	}
 	card, _ := g.FlightCards.Pop()
@@ -121,7 +122,21 @@ func (g *Game) Fight(player int) error {
 			return err
 		}
 	} else {
-		return g.EndFlight()
+		if pirateCard.DestroyCannon {
+			if g.PlayerBoards[player].Resources[ResourceCannon] > 0 {
+				g.PlayerBoards[player].Resources[ResourceCannon] -= 1
+				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+					`%s had a cannon destroyed by the pirate`,
+					g.RenderName(player),
+				)))
+			}
+		}
+		if true || pirateCard.DestroyModule &&
+			len(g.PlayerBoards[player].ModuleList()) > 0 {
+			g.LosingModule = true
+		} else {
+			return g.EndFlight()
+		}
 	}
 	return nil
 }

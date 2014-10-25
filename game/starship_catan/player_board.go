@@ -220,3 +220,13 @@ func (b *PlayerBoard) DiplomatPoints() int {
 	}
 	return diplomatPoints
 }
+
+func (b *PlayerBoard) ModuleList() []int {
+	modules := []int{}
+	for m, l := range b.Modules {
+		if l > 0 {
+			modules = append(modules, m)
+		}
+	}
+	return modules
+}

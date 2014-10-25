@@ -51,5 +51,6 @@ func (c PirateCard) Commands() []command.Command {
 	return []command.Command{
 		FightCommand{},
 		PayCommand{},
+		LoseCommand{},
 	}
 }

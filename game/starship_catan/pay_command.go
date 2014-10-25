@@ -38,7 +38,8 @@ func (c PayCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanPayRansom(player int) bool {
-	if g.CurrentPlayer != player || g.Phase != PhaseFlight || g.FlightCards.Len() == 0 {
+	if g.CurrentPlayer != player || g.Phase != PhaseFlight ||
+		g.FlightCards.Len() == 0 || g.LosingModule {
 		return false
 	}
 	card, _ := g.FlightCards.Pop()

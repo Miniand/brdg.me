@@ -6,7 +6,6 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/log"
-	"github.com/Miniand/brdg.me/render"
 )
 
 type UpgradeCommand struct{}
@@ -40,27 +39,7 @@ func (c UpgradeCommand) Call(player string, context interface{},
 }
 
 func (c UpgradeCommand) Usage(player string, context interface{}) string {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		return ""
-	}
-	cells := [][]string{{"{{b}}Module{{_b}}", "{{b}}Price{{_b}}"}}
-	for _, m := range g.AvailableModuleUpgrades(p) {
-		cells = append(cells, []string{
-			ModuleNames[m],
-			ModuleTransaction(g.PlayerBoards[p].Modules[m] + 1).LoseString(),
-		})
-	}
-	table, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return ""
-	}
-	return fmt.Sprintf(
-		`{{b}}upgrade ##{{_b}} to upgrade a module.  Eg. {{b}}upgrade logistics{{_b}}
-%s`,
-		table,
-	)
+	return "{{b}}upgrade ##{{_b}} to upgrade a module.  Eg. {{b}}upgrade logistics{{_b}}"
 }
 
 func (g *Game) CanUpgrade(player int) bool {

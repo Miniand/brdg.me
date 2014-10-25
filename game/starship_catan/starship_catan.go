@@ -49,6 +49,7 @@ type Game struct {
 	Log                 *log.Log
 	YellowDice          int
 	CardFinished        bool
+	LosingModule        bool
 }
 
 func (g *Game) Start(players []string) error {

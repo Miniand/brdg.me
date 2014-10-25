@@ -79,37 +79,40 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString("\n\n")
 	// Resources
 	cells = [][]string{
-		[]string{Bold("Resource"), Bold(g.RenderName(playerNum)), Bold(g.RenderName(opponentNum))},
-		g.ResourceTableRow(ResourceFood, playerNum),
-		g.ResourceTableRow(ResourceFuel, playerNum),
-		g.ResourceTableRow(ResourceCarbon, playerNum),
-		g.ResourceTableRow(ResourceOre, playerNum),
+		[]string{
+			Bold("Resource"), Bold(g.RenderName(playerNum)), Bold(g.RenderName(opponentNum)),
+			" ", // Column spacing
+			Bold("Resource"), Bold(g.RenderName(playerNum)), Bold(g.RenderName(opponentNum)),
+		},
+		g.ResourceTableDoubleRow(ResourceFood, ResourceColonyShip, playerNum),
+		g.ResourceTableDoubleRow(ResourceFuel, ResourceTradeShip, playerNum),
+		g.ResourceTableDoubleRow(ResourceCarbon, ResourceBooster, playerNum),
+		g.ResourceTableDoubleRow(ResourceOre, ResourceCannon, playerNum),
 		g.ResourceTableRow(ResourceTrade, playerNum),
-		g.ResourceTableRow(ResourceScience, playerNum),
-		[]string{},
-		g.ResourceTableRow(ResourceAstro, playerNum),
-		[]string{},
-		g.ResourceTableRow(ResourceColonyShip, playerNum),
-		g.ResourceTableRow(ResourceTradeShip, playerNum),
-		[]string{},
-		g.ResourceTableRow(ResourceBooster, playerNum),
-		g.ResourceTableRow(ResourceCannon, playerNum),
-		[]string{},
-		[]string{
-			fmt.Sprintf(`{{c "red"}}{{b}}medals{{_b}}{{_c}}`),
-			Bold(strconv.Itoa(g.PlayerBoards[playerNum].Medals())),
-			strconv.Itoa(g.PlayerBoards[opponentNum].Medals()),
-		},
-		[]string{
-			fmt.Sprintf(`{{c "green"}}{{b}}diplomacy{{_b}}{{_c}}`),
-			Bold(strconv.Itoa(g.PlayerBoards[playerNum].DiplomatPoints())),
-			strconv.Itoa(g.PlayerBoards[opponentNum].DiplomatPoints()),
-		},
-		[]string{
-			fmt.Sprintf(`{{c "blue"}}{{b}}VP{{_b}}{{_c}}`),
-			Bold(strconv.Itoa(g.PlayerBoards[playerNum].VictoryPoints())),
-			strconv.Itoa(g.PlayerBoards[opponentNum].VictoryPoints()),
-		},
+		DoubleRow(
+			g.ResourceTableRow(ResourceScience, playerNum),
+			[]string{
+				fmt.Sprintf(`{{c "red"}}{{b}}medals{{_b}}{{_c}}`),
+				Bold(strconv.Itoa(g.PlayerBoards[playerNum].Medals())),
+				strconv.Itoa(g.PlayerBoards[opponentNum].Medals()),
+			},
+		),
+		DoubleRow(
+			[]string{"", "", ""},
+			[]string{
+				fmt.Sprintf(`{{c "green"}}{{b}}diplomacy{{_b}}{{_c}}`),
+				Bold(strconv.Itoa(g.PlayerBoards[playerNum].DiplomatPoints())),
+				strconv.Itoa(g.PlayerBoards[opponentNum].DiplomatPoints()),
+			},
+		),
+		DoubleRow(
+			g.ResourceTableRow(ResourceAstro, playerNum),
+			[]string{
+				fmt.Sprintf(`{{c "blue"}}{{b}}VP{{_b}}{{_c}}`),
+				Bold(strconv.Itoa(g.PlayerBoards[playerNum].VictoryPoints())),
+				strconv.Itoa(g.PlayerBoards[opponentNum].VictoryPoints()),
+			},
+		),
 	}
 	t, err = render.Table(cells, 0, 2)
 	if err != nil {
@@ -156,6 +159,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf.WriteString(t)
+	buf.WriteString(fmt.Sprintf(
+		`
+{{b}}Upgrade cost: L1{{_b}} (%s), {{b}}L2{{_b}} (%s)`,
+		ModuleTransaction(1).LoseString(),
+		ModuleTransaction(2).LoseString(),
+	))
 	// Cards
 	for _, p := range []int{playerNum, opponentNum} {
 		buf.WriteString("\n\n")
@@ -192,6 +201,19 @@ func (g *Game) ResourceTableRow(resource, player int) []string {
 		fmt.Sprintf(`{{c "gray"}}%d{{_c}}`,
 			g.PlayerBoards[opponent].Resources[resource]),
 	}
+}
+
+func DoubleRow(row1, row2 []string) []string {
+	row1 = append(row1, "")
+	row1 = append(row1, row2...)
+	return row1
+}
+
+func (g *Game) ResourceTableDoubleRow(resource1, resource2, player int) []string {
+	return DoubleRow(
+		g.ResourceTableRow(resource1, player),
+		g.ResourceTableRow(resource2, player),
+	)
 }
 
 func RenderMoney(amount int) string {
