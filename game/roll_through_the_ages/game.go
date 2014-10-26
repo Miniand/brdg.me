@@ -44,6 +44,7 @@ func (g *Game) Commands() []command.Command {
 		RollCommand{},
 		TakeCommand{},
 		BuildCommand{},
+		SellCommand{},
 		BuyCommand{},
 		DiscardCommand{},
 		NextCommand{},
