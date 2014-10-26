@@ -46,7 +46,6 @@ func (c BuildCommand) Call(player string, context interface{},
 
 	stringMap := map[int]string{
 		-1: "city",
-		-2: "cities",
 	}
 	for _, m := range g.Monuments() {
 		stringMap[m] = MonumentValues[m].Name

@@ -2,10 +2,8 @@ package roll_through_the_ages
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game/log"
 )
 
 type NextCommand struct{}
@@ -50,10 +48,6 @@ func (g *Game) Next(player int) error {
 	if !g.CanNext(player) {
 		return errors.New("you can't next at the moment")
 	}
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		`%s kept the current dice`,
-		g.RenderName(player),
-	)))
 	switch g.Phase {
 	case PhaseRoll, PhaseExtraRoll:
 		g.CollectPhase()

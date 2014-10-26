@@ -19,14 +19,8 @@ type PlayerBoard struct {
 }
 
 func NewPlayerBoard() *PlayerBoard {
-	developments := map[int]bool{}
-	for _, d := range Developments {
-		if r.Int()%2 == 0 {
-			developments[d] = true
-		}
-	}
 	return &PlayerBoard{
-		Developments:       developments, //map[int]bool{},
+		Developments:       map[int]bool{},
 		Monuments:          map[int]int{},
 		MonumentBuiltFirst: map[int]bool{},
 		Food:               3,
@@ -132,4 +126,8 @@ func (b *PlayerBoard) GoodsValue() int {
 		val += GoodValue(g, n)
 	}
 	return val
+}
+
+func (b *PlayerBoard) HasBuilt(monument int) bool {
+	return b.Monuments[monument] >= MonumentValues[monument].Size
 }

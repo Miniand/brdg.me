@@ -200,6 +200,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		row = append(row, render.Centred(cell))
 	}
 	cells = append(cells, row)
+	row = []interface{}{DisasterName}
 	for p, _ := range g.Players {
 		cell := render.Markup(
 			g.Boards[p].Disasters,
@@ -208,7 +209,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		)
 		row = append(row, render.Centred(cell))
 	}
-	row = []interface{}{DisasterName}
 	cells = append(cells, row)
 	row = []interface{}{render.Bold("score")}
 	for p, _ := range g.Players {

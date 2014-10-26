@@ -1,6 +1,7 @@
 package roll_through_the_ages
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -33,6 +34,8 @@ type Game struct {
 	RemainingRolls   int
 	RemainingCoins   int
 	RemainingWorkers int
+	Round            int
+	FinalRound       int
 	Log              *log.Log
 }
 
@@ -41,6 +44,7 @@ func (g *Game) Commands() []command.Command {
 		RollCommand{},
 		TakeCommand{},
 		BuildCommand{},
+		DiscardCommand{},
 		NextCommand{},
 	}
 }
@@ -71,6 +75,10 @@ func (g *Game) Start(players []string) error {
 	for i := 0; i < l; i++ {
 		g.Boards[i] = NewPlayerBoard()
 	}
+	g.Round = 1
+	if len(players) == 1 {
+		g.FinalRound = 10
+	}
 	g.Log = log.New()
 	g.StartTurn()
 	return nil
@@ -81,11 +89,50 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.FinalRound != 0 && g.Round > g.FinalRound
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	winners := []int{}
+	winningScore := 0
+	for p, _ := range g.Players {
+		score := g.Boards[p].Score()
+		if score > winningScore {
+			winners = []int{}
+			winningScore = score
+		}
+		if score == winningScore {
+			winners = append(winners, p)
+		}
+	}
+	if len(winners) < 2 {
+		return g.PlayerNumsToNames(winners)
+	}
+	// There's a tie, goods value is tie breaker
+	goodsWinners := []int{}
+	goodsScore := 0
+	for p, _ := range winners {
+		score := g.Boards[p].GoodsValue()
+		if score > goodsScore {
+			goodsWinners = []int{}
+			goodsScore = score
+		}
+		if score == goodsScore {
+			goodsWinners = append(goodsWinners, p)
+		}
+	}
+	return g.PlayerNumsToNames(goodsWinners)
+}
+
+func (g *Game) PlayerNumsToNames(players []int) []string {
+	names := make([]string, len(players))
+	for i, p := range players {
+		names[i] = g.Players[p]
+	}
+	return names
 }
 
 func (g *Game) WhoseTurn() []string {
@@ -141,8 +188,91 @@ func (g *Game) CollectPhase() {
 
 func (g *Game) PhaseResolve() {
 	g.Phase = PhaseResolve
+	cp := g.CurrentPlayer
 	// Feed cities
+	if cities := g.Boards[cp].Cities(); g.Boards[cp].Food >= cities {
+		g.Boards[cp].Food -= cities
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`%s fed {{b}}%d{{_b}} cities`,
+			g.RenderName(cp),
+			cities,
+		)))
+	} else {
+		// Famine
+		famine := cities - g.Boards[cp].Food
+		g.Boards[cp].Food = 0
+		g.Boards[cp].Disasters += famine
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`Famine! %s takes {{b}}%d disaster points{{_b}}`,
+			g.RenderName(cp),
+			famine,
+		)))
+	}
 	// Resolve disasters
+	skulls := 0
+	for _, d := range g.KeptDice {
+		if d == DiceSkull {
+			skulls += 1
+		}
+	}
+	switch skulls {
+	case 0, 1:
+		break
+	case 2:
+		if g.Boards[cp].Developments[DevelopmentIrrigation] {
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				`%s avoids a drought with their irrigation development`,
+				g.RenderName(cp),
+			)))
+		} else {
+			g.Boards[cp].Disasters += 2
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				`Drought! %s takes {{b}}2 disaster points{{_b}}`,
+				g.RenderName(cp),
+			)))
+		}
+	case 3:
+		buf := bytes.NewBufferString("Pestilence!")
+		for p, _ := range g.Players {
+			if p == cp {
+				continue
+			}
+			if g.Boards[p].Developments[DevelopmentMedicine] {
+				buf.WriteString(fmt.Sprintf(
+					"\n  %s avoids pestilence with their medicine development",
+					g.RenderName(p),
+				))
+			} else {
+				g.Boards[cp].Disasters += 3
+				buf.WriteString(fmt.Sprintf(
+					"\n  %s takes {{b}}3 disaster points{{_b}}",
+					g.RenderName(p),
+				))
+			}
+		}
+		g.Log.Add(log.NewPublicMessage(buf.String()))
+	case 4:
+		if g.Boards[cp].HasBuilt(MonumentGreatWall) {
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				`%s avoids an invasion with their wall`,
+				g.RenderName(cp),
+			)))
+		} else {
+			g.Boards[cp].Disasters += 4
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				`Invasion! %s takes {{b}}4 disaster points{{_b}}`,
+				g.RenderName(cp),
+			)))
+		}
+	default:
+		for _, good := range Goods {
+			g.Boards[cp].Goods[good] = 0
+		}
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`Revolt! %s loses {{b}}all of their goods{{_b}}`,
+			g.RenderName(cp),
+		)))
+	}
 	g.BuildPhase()
 }
 
@@ -156,6 +286,10 @@ func (g *Game) BuyPhase() {
 
 func (g *Game) DiscardPhase() {
 	g.Phase = PhaseDiscard
+	if g.Boards[g.CurrentPlayer].GoodsNum() <= 6 ||
+		g.Boards[g.CurrentPlayer].Developments[DevelopmentCaravans] {
+		g.NextTurn()
+	}
 }
 
 func (g *Game) NextTurn() {
