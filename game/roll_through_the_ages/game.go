@@ -44,6 +44,7 @@ func (g *Game) Commands() []command.Command {
 		RollCommand{},
 		TakeCommand{},
 		BuildCommand{},
+		BuyCommand{},
 		DiscardCommand{},
 		NextCommand{},
 	}
@@ -278,10 +279,18 @@ func (g *Game) PhaseResolve() {
 
 func (g *Game) BuildPhase() {
 	g.Phase = PhaseBuild
+	if g.RemainingWorkers == 0 {
+		g.BuyPhase()
+	}
 }
 
 func (g *Game) BuyPhase() {
 	g.Phase = PhaseBuy
+	b := g.Boards[g.CurrentPlayer]
+	if g.RemainingCoins == 0 && b.GoodsNum() == 0 &&
+		(!b.Developments[DevelopmentGranaries] || b.Food == 0) {
+		g.DiscardPhase()
+	}
 }
 
 func (g *Game) DiscardPhase() {

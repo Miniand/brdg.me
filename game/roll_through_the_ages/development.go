@@ -119,3 +119,11 @@ var DevelopmentValues = map[int]Development{
 		Points: 8,
 	},
 }
+
+func DevelopmentNameMap() map[int]string {
+	m := map[int]string{}
+	for _, d := range Developments {
+		m[d] = DevelopmentValues[d].Name
+	}
+	return m
+}
