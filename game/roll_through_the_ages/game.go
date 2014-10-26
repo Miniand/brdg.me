@@ -39,8 +39,8 @@ type Game struct {
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		RollCommand{},
-		KeepCommand{},
 		TakeCommand{},
+		NextCommand{},
 	}
 }
 
