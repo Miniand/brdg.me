@@ -38,6 +38,21 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	t := render.Table([][]interface{}{diceRow, numberRow}, 0, 2)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
+	// Turn resources
+	switch g.Phase {
+	case PhaseBuild, PhaseBuy:
+		cells := [][]interface{}{
+			{render.Bold("Turn supplies")},
+			{render.Bold("Workers:"), g.RemainingWorkers},
+			{render.Bold("Coins:"), fmt.Sprintf(
+				"%d (%d including goods)",
+				g.RemainingCoins,
+				g.RemainingCoins+g.Boards[pNum].GoodsValue(),
+			)},
+		}
+		buf.WriteString(render.Table(cells, 0, 2))
+		buf.WriteString("\n\n")
+	}
 	// Cities
 	buf.WriteString("{{b}}Cities{{_b}} {{c \"gray\"}}(number of dice and food used per turn){{_c}}\n")
 	cityHeaderBuf := bytes.NewBufferString(fmt.Sprintf(
