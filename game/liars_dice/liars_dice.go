@@ -85,11 +85,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString(fmt.Sprintf("Your dice: {{l}}%s{{_l}}\n\n",
 			strings.Join(die.RenderDice(g.PlayerDice[playerNum]), " ")))
 	}
-	cells := [][]string{
-		[]string{"{{b}}Player{{_b}}", "{{b}}Remaining dice{{_b}}"},
+	cells := [][]interface{}{
+		[]interface{}{"{{b}}Player{{_b}}", "{{b}}Remaining dice{{_b}}"},
 	}
 	for pNum, p := range g.Players {
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			render.PlayerName(pNum, p),
 			fmt.Sprintf("%d", len(g.PlayerDice[pNum])),
 		})

@@ -27,13 +27,13 @@ func TestPadded(t *testing.T) {
 }
 
 func TestTable(t *testing.T) {
-	output := Table([][]string{}, 0, 1)
+	output := Table([][]interface{}{}, 0, 1)
 	if output != "" {
 		t.Fatal("Output wasn't blank, got:", output)
 	}
-	output = Table([][]string{
-		[]string{"{{b}}Five{{_b}}", "One"},
-		[]string{"Twenty"},
+	output = Table([][]interface{}{
+		[]interface{}{"{{b}}Five{{_b}}", "One"},
+		[]interface{}{"Twenty"},
 	}, 0, 1)
 	if output != `{{b}}Five{{_b}}   One
 Twenty` {

@@ -210,7 +210,7 @@ func (g *Game) Decode(data []byte) error {
 	return decoder.Decode(g)
 }
 
-func (g *Game) PlayerExpeditionCells(pNum, dir int, title string) (cells [][]string) {
+func (g *Game) PlayerExpeditionCells(pNum, dir int, title string) (cells [][]interface{}) {
 	maxExpSize := 0
 	for s := SUIT_RED; s <= SUIT_YELLOW; s++ {
 		l := len(g.Board.PlayerExpeditions[pNum][s])
@@ -219,7 +219,7 @@ func (g *Game) PlayerExpeditionCells(pNum, dir int, title string) (cells [][]str
 		}
 	}
 	for i := 0; i < maxExpSize; i++ {
-		row := make([]string, SUIT_YELLOW+2)
+		row := make([]interface{}, SUIT_YELLOW+2)
 		header := ""
 		if i == 0 {
 			header = fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, title)
@@ -236,7 +236,7 @@ func (g *Game) PlayerExpeditionCells(pNum, dir int, title string) (cells [][]str
 		if dir == DIR_ASC {
 			cells = append(cells, row)
 		} else {
-			cells = append([][]string{row}, cells...)
+			cells = append([][]interface{}{row}, cells...)
 		}
 	}
 	return
@@ -249,11 +249,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	// Board
-	cells := [][]string{}
+	cells := [][]interface{}{}
 	// Opponent area
 	cells = append(cells, g.PlayerExpeditionCells((pNum+1)%2, DIR_DESC, "   Them ")...)
 	// Discard area
-	discard := make([]string, SUIT_YELLOW+2)
+	discard := make([]interface{}, SUIT_YELLOW+2)
 	discard[0] = `{{c "gray"}}Discard {{_c}}`
 	for s := SUIT_RED; s <= SUIT_YELLOW; s++ {
 		var cell string
@@ -265,7 +265,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		discard[s+1] = cell
 	}
-	cells = append(cells, []string{}, discard, []string{})
+	cells = append(cells, []interface{}{}, discard, []interface{}{})
 	// Your area
 	cells = append(cells, g.PlayerExpeditionCells(pNum, DIR_ASC, "    You ")...)
 	table := render.Table(cells, 0, 2)
@@ -283,8 +283,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString(strings.Join(hand, " "))
 	output.WriteString("\n\n")
 	// Round scores
-	cells = [][]string{
-		[]string{
+	cells = [][]interface{}{
+		[]interface{}{
 			"{{b}}Player{{_b}}",
 			"{{b}}R1{{_b}}",
 			"{{b}}R2{{_b}}",
@@ -293,7 +293,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		},
 	}
 	for p := 0; p <= 1; p++ {
-		row := []string{
+		row := []interface{}{
 			render.PlayerName(p, g.Players[p]),
 		}
 		for r := 0; r < 3; r++ {

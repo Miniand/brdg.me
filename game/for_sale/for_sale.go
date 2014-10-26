@@ -98,9 +98,9 @@ func (g *Game) StartRound() {
 	case GameFinished:
 		output := bytes.NewBufferString(
 			"{{b}}The game has finished!  The scores are:{{_b}}\n")
-		playerScores := [][]string{}
+		playerScores := [][]interface{}{}
 		for pNum, p := range g.Players {
-			playerScores = append(playerScores, []string{
+			playerScores = append(playerScores, []interface{}{
 				render.PlayerName(pNum, p),
 				fmt.Sprintf("{{b}}%d{{_b}}", g.DeckValue(g.Cheques[pNum])),
 			})

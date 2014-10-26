@@ -3,6 +3,7 @@ package render
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"strings"
 	"unicode/utf8"
 )
@@ -48,7 +49,8 @@ func PlayerNamesInPlayers(players []string, playerList []string) []string {
 	return renderedPlayers
 }
 
-func Padded(text string, width int) string {
+func Padded(s interface{}, width int) string {
+	text := String(s)
 	buf := bytes.NewBufferString(text)
 	extra := width - StrLen(text)
 	if extra > 0 {
@@ -57,12 +59,12 @@ func Padded(text string, width int) string {
 	return buf.String()
 }
 
-func Table(cells [][]string, rowPadding, colPadding int) string {
+func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 	// First calculate widths
 	widths := map[int]int{}
 	for _, row := range cells {
 		for colIndex, cell := range row {
-			w := StrLen(cell)
+			w := StrLen(String(cell))
 			if w > widths[colIndex] {
 				widths[colIndex] = w
 			}
@@ -74,8 +76,9 @@ func Table(cells [][]string, rowPadding, colPadding int) string {
 		if rowIndex > 0 {
 			buf.WriteString(strings.Repeat("\n", rowPadding+1))
 		}
-		for colIndex, cell := range row {
+		for colIndex, cellRaw := range row {
 			var padded string
+			cell := String(cellRaw)
 			if colIndex == len(row)-1 {
 				// Last col doesn't get right padding
 				padded = cell
@@ -105,9 +108,10 @@ func StrLen(s string) int {
 	return utf8.RuneCountInString(RenderPlain(s))
 }
 
-func Centre(s string, width int) string {
+func Centre(s interface{}, width int) string {
 	buf := bytes.NewBuffer([]byte{})
-	extra := width - StrLen(s)
+	str := String(s)
+	extra := width - StrLen(str)
 	left := ""
 	right := ""
 	if extra > 0 {
@@ -115,17 +119,52 @@ func Centre(s string, width int) string {
 		right = strings.Repeat(" ", extra-len(left))
 	}
 	buf.WriteString(left)
-	buf.WriteString(s)
+	buf.WriteString(str)
 	buf.WriteString(right)
 	return buf.String()
 }
 
-func Right(s string, width int) string {
+func Right(s interface{}, width int) string {
 	buf := bytes.NewBuffer([]byte{})
-	extra := width - StrLen(s)
+	str := String(s)
+	extra := width - StrLen(str)
 	if extra > 0 {
 		buf.WriteString(strings.Repeat(" ", extra))
 	}
-	buf.WriteString(s)
+	buf.WriteString(str)
 	return buf.String()
+}
+
+func String(s interface{}) string {
+	return fmt.Sprintf("%v", s)
+}
+
+func Bold(s interface{}) string {
+	return fmt.Sprintf("{{b}}%v{{_b}}")
+}
+
+func Colour(s interface{}, colour string) string {
+	if !IsValidColour(colour) {
+		log.Fatalf("%s is not a valid colour", colour)
+	}
+	return fmt.Sprintf(`{{c "%s"}}%v{{_c}}`)
+}
+
+func Markup(s interface{}, colour string, bold bool) string {
+	str := String(s)
+	if colour != "" {
+		str = Colour(str, colour)
+	}
+	if bold {
+		str = Bold(s)
+	}
+	return str
+}
+
+func StringsToInterfaces(strs []string) []interface{} {
+	ints := make([]interface{}, len(strs))
+	for i, s := range strs {
+		ints[i] = s
+	}
+	return ints
 }

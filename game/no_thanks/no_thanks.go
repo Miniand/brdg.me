@@ -78,15 +78,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		buf.WriteString(strconv.Itoa(g.PlayerChips[player]))
 		buf.WriteString("{{_c}}\n\n")
 	}
-	header := []string{"{{b}}Players{{_b}}", "{{b}}Cards{{_b}}"}
+	header := []interface{}{"{{b}}Players{{_b}}", "{{b}}Cards{{_b}}"}
 	if g.IsFinished() {
 		header = append(header, "{{b}}Score{{_b}}")
 	}
-	cells := [][]string{
+	cells := [][]interface{}{
 		header,
 	}
 	for pNum, p := range g.Players {
-		row := []string{
+		row := []interface{}{
 			render.PlayerName(pNum, p),
 		}
 		if len(g.PlayerHands[p]) > 0 {

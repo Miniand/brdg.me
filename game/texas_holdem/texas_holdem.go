@@ -417,7 +417,7 @@ func (g *Game) Showdown() {
 		smallest := g.SmallestBet()
 		pot := 0
 		handResults := map[int]poker.HandResult{}
-		handsTable := [][]string{}
+		handsTable := [][]interface{}{}
 		for playerNum, b := range g.Bets {
 			if b == 0 {
 				continue
@@ -428,7 +428,7 @@ func (g *Game) Showdown() {
 			if !g.FoldedPlayers[playerNum] {
 				handResults[playerNum] = poker.Result(
 					g.PlayerHands[playerNum].PushMany(g.CommunityCards))
-				handsTableRow := []string{g.RenderPlayerName(playerNum)}
+				handsTableRow := []interface{}{g.RenderPlayerName(playerNum)}
 				handsTableRow = append(handsTableRow, strings.Join(
 					RenderCards(g.PlayerHands[playerNum]), " "))
 				handsTableRow = append(handsTableRow,
@@ -572,18 +572,19 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(RenderCash(g.PlayerMoney[playerNum]))
 	buf.WriteString("\n\n")
 	// All players table
-	playersTable := [][]string{
-		[]string{
+	playersTable := [][]interface{}{
+		[]interface{}{
 			"{{b}}Players{{_b}}",
 			"{{b}}Cash{{_b}}",
 			"{{b}}Bet{{_b}}",
 		},
 	}
 	for tablePlayerNum, _ := range g.Players {
-		playerRow := []string{g.RenderPlayerName(tablePlayerNum)}
+		name := g.RenderPlayerName(tablePlayerNum)
 		if tablePlayerNum == g.CurrentDealer {
-			playerRow[0] += " (D)"
+			name += " (D)"
 		}
+		playerRow := []interface{}{name}
 		if g.PlayerMoney[tablePlayerNum] == 0 && g.Bets[tablePlayerNum] == 0 {
 			playerRow = append(playerRow, `{{c "gray"}}Out{{_c}}`)
 		} else {

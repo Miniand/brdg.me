@@ -51,7 +51,7 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 		resultText = fmt.Sprintf("%s bid correctly and %s lost a die",
 			bidPlayerName, callPlayerName)
 	}
-	cells := [][]string{}
+	cells := [][]interface{}{}
 	for _, pNum := range g.ActivePlayers() {
 		renderedPlayerDice := []string{}
 		for _, d := range g.PlayerDice[pNum] {
@@ -62,7 +62,7 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 			}
 			renderedPlayerDice = append(renderedPlayerDice, renderedPlayerDie)
 		}
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			render.PlayerNameInPlayers(g.Players[pNum], g.Players),
 			fmt.Sprintf(`{{l}}%s{{_l}}`, strings.Join(renderedPlayerDice, " ")),
 		})

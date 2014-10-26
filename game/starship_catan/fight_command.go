@@ -68,20 +68,20 @@ func (g *Game) Fight(player int) error {
 	playerAttack := playerRoll + playerCannon
 	playerWon := playerAttack >= pirateAttack
 
-	cells := [][]string{
-		[]string{
+	cells := [][]interface{}{
+		[]interface{}{
 			"",
 			"{{b}}Str.{{_b}}",
 			"{{b}}Roll{{_b}}",
 			"{{b}}Attack{{_b}}",
 		},
-		[]string{
+		[]interface{}{
 			g.RenderName(player),
 			strconv.Itoa(playerCannon),
 			strconv.Itoa(playerRoll),
 			Bold(strconv.Itoa(playerAttack)),
 		},
-		[]string{
+		[]interface{}{
 			`{{c "gray"}}{{b}}pirate{{_b}}{{_c}}`,
 			strconv.Itoa(pirateCard.Strength),
 			strconv.Itoa(pirateRoll),

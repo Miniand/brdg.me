@@ -280,9 +280,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output := bytes.NewBufferString("")
 	output.WriteString("{{b}}Board:{{_b}}\n\n")
 	// Board
-	cells := [][]string{}
+	cells := [][]interface{}{}
 	for _, r := range Rows() {
-		row := []string{}
+		row := []interface{}{}
 		for _, c := range Cols() {
 			cellOutput := g.RenderTile(Tile{r, c})
 			// We embolden the tile if the player has it in their hand
@@ -312,8 +312,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString(fmt.Sprintf(
 		"{{b}}Your cash:  $%d{{_b}}", g.PlayerCash[pNum]))
 	// Corp table
-	cells = [][]string{
-		[]string{
+	cells = [][]interface{}{
+		[]interface{}{
 			"{{b}}Corporation{{_b}}",
 			"{{b}}Size{{_b}}",
 			"{{b}}Value{{_b}}",
@@ -323,7 +323,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		},
 	}
 	for _, c := range Corps() {
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			fmt.Sprintf(`{{b}}%s{{_b}}`, RenderCorpWithShort(c)),
 			fmt.Sprintf("%d", g.CorpSize(c)),
 			fmt.Sprintf("$%d", g.CorpValue(c)),
@@ -336,7 +336,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString("\n\n")
 	output.WriteString(corpOutput)
 	// Player table
-	playerHeadings := []string{
+	playerHeadings := []interface{}{
 		"{{b}}Player{{_b}}",
 		"{{b}}Cash{{_b}}",
 	}
@@ -344,11 +344,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		playerHeadings = append(playerHeadings, fmt.Sprintf(
 			"{{b}}%s{{_b}}", RenderCorpShort(corp)))
 	}
-	cells = [][]string{
+	cells = [][]interface{}{
 		playerHeadings,
 	}
 	for pNum, p := range g.Players {
-		row := []string{
+		row := []interface{}{
 			fmt.Sprintf("{{b}}%s{{_b}}", render.PlayerName(pNum, p)),
 			fmt.Sprintf("$%d", g.PlayerCash[pNum]),
 		}

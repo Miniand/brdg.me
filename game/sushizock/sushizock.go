@@ -59,14 +59,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf := bytes.NewBuffer([]byte{})
 	// Dice
 	diceCounts := g.DiceCounts()
-	diceNumbers := make([]string, len(g.RolledDice))
+	diceNumbers := make([]interface{}, len(g.RolledDice))
 	for i, _ := range g.RolledDice {
 		diceNumbers[i] = fmt.Sprintf(`{{c "gray"}}%d{{_c}}`, i+1)
 	}
 	dice := append(BoldStrings(DiceStrings(g.RolledDice)),
 		DiceStrings(g.KeptDice)...)
-	cells := [][]string{
-		dice,
+	cells := [][]interface{}{
+		render.StringsToInterfaces(dice),
 		diceNumbers,
 	}
 	table := render.Table(cells, 0, 2)
@@ -83,15 +83,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		redTilesStrs[diceCounts[DiceBones]-1] = fmt.Sprintf(`{{b}}%s{{_b}}`,
 			redTilesStrs[diceCounts[DiceBones]-1])
 	}
-	cells = [][]string{
-		blueTilesStrs,
-		redTilesStrs,
+	cells = [][]interface{}{
+		render.StringsToInterfaces(blueTilesStrs),
+		render.StringsToInterfaces(redTilesStrs),
 	}
 	table = render.Table(cells, 0, 1)
 	buf.WriteString(fmt.Sprintf(
 		"{{b}}Tiles{{_b}}\n%s\n\n", table))
 	// Players
-	cells = [][]string{
+	cells = [][]interface{}{
 		{`{{b}}Player{{_b}}`, `{{b}}Blue{{_b}}`, `{{b}}Red{{_b}}`},
 	}
 	for pNum, p := range g.Players {
@@ -107,7 +107,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			redText = fmt.Sprintf(`%s {{c "gray"}}(%d tiles){{_c}}`,
 				g.PlayerRedTiles[pNum][rLen-1].String(), rLen)
 		}
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			render.PlayerName(pNum, p),
 			blueText,
 			redText,
@@ -157,9 +157,9 @@ func (g *Game) NextPlayer() {
 func (g *Game) LogGameEnd() {
 	buf := bytes.NewBuffer([]byte{})
 	buf.WriteString("{{b}}The game is now finished, scores are as follows:{{_b}}\n")
-	cells := [][]string{}
+	cells := [][]interface{}{}
 	for pNum, _ := range g.Players {
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			g.PlayerName(pNum),
 			fmt.Sprintf("{{b}}%s{{_b}}", strings.Join(
 				append(append(Tiles{}, g.PlayerBlueTiles[pNum]...),

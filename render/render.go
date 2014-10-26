@@ -25,16 +25,18 @@ func ValidColours() []string {
 	}
 }
 
+func IsValidColour(c string) bool {
+	for _, validColour := range ValidColours() {
+		if validColour == c {
+			return true
+		}
+	}
+	return false
+}
+
 func AttachTemplateFuncs(to map[string]interface{}, m Markupper) map[string]interface{} {
 	to["c"] = func(colour string) interface{} {
-		found := false
-		for _, validColour := range ValidColours() {
-			if validColour == colour {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !IsValidColour(colour) {
 			panic(colour + " is not a valid colour")
 		}
 		return m.StartColour(colour)

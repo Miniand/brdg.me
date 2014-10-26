@@ -26,8 +26,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	buf := bytes.NewBuffer([]byte{})
 	// Dice
-	diceRow := []string{}
-	numberRow := []string{}
+	diceRow := []interface{}{}
+	numberRow := []interface{}{}
 	for i, d := range g.RolledDice {
 		diceString := DiceStrings[d]
 		diceRow = append(diceRow, Bold(RenderDice(d)))
@@ -41,7 +41,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		diceRow = append(diceRow, RenderDice(d))
 	}
 	buf.WriteString("{{b}}Dice{{_b}} {{c \"gray\"}}(F: food, W: worker, G: good, C: coin, X: skull){{_c}}\n")
-	t := render.Table([][]string{diceRow, numberRow}, 0, 2)
+	t := render.Table([][]interface{}{diceRow, numberRow}, 0, 2)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Cities
@@ -57,9 +57,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		))
 		last = n
 	}
-	cells := [][]string{{"{{b}}Player{{_b}}", cityHeaderBuf.String()}}
+	cells := [][]interface{}{{"{{b}}Player{{_b}}", cityHeaderBuf.String()}}
 	for p, _ := range g.Players {
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			g.RenderName(p),
 			fmt.Sprintf(
 				"%s%s",
@@ -78,19 +78,19 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Developments
-	header := []string{Bold("Development")}
+	header := []interface{}{Bold("Development")}
 	for p, _ := range g.Players {
 		header = append(header, g.RenderName(p))
 	}
-	header = append(header, []string{
+	header = append(header, []interface{}{
 		Bold("Cost"),
 		Bold("Pts"),
 		Bold("Effect"),
 	}...)
-	cells = [][]string{header}
+	cells = [][]interface{}{header}
 	for _, d := range Developments {
 		dv := DevelopmentValues[d]
-		row := []string{strings.Title(dv.Name)}
+		row := []interface{}{strings.Title(dv.Name)}
 		for p, _ := range g.Players {
 			cell := `{{c "gray"}}.{{_c}}`
 			if g.Boards[p].Developments[d] {
@@ -98,7 +98,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			}
 			row = append(row, render.Centre(cell, nameWidths[p]))
 		}
-		row = append(row, []string{
+		row = append(row, []interface{}{
 			fmt.Sprintf(" %d", dv.Cost),
 			fmt.Sprintf(" %d", dv.Points),
 			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, dv.Effect),
@@ -109,19 +109,19 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Monuments
-	header = []string{Bold("Monument")}
+	header = []interface{}{Bold("Monument")}
 	for p, _ := range g.Players {
 		header = append(header, g.RenderName(p))
 	}
-	header = append(header, []string{
+	header = append(header, []interface{}{
 		Bold("Size"),
 		Bold("Pts"),
 		Bold("Effect"),
 	}...)
-	cells = [][]string{header}
+	cells = [][]interface{}{header}
 	for _, m := range g.Monuments() {
 		mv := MonumentValues[m]
-		row := []string{strings.Title(mv.Name)}
+		row := []interface{}{strings.Title(mv.Name)}
 		for p, _ := range g.Players {
 			var cell string
 			switch {
@@ -138,7 +138,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			}
 			row = append(row, render.Centre(cell, nameWidths[p]))
 		}
-		row = append(row, []string{
+		row = append(row, []interface{}{
 			fmt.Sprintf(" %d", mv.Size),
 			fmt.Sprintf("{{b}}%d{{_b}}/%d", mv.Points, mv.SubsequentPoints()),
 			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, mv.Effect),
@@ -149,13 +149,13 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Resources
-	header = []string{Bold("Resource")}
+	header = []interface{}{Bold("Resource")}
 	for p, _ := range g.Players {
 		header = append(header, g.RenderName(p))
 	}
-	cells = [][]string{header}
+	cells = [][]interface{}{header}
 	for _, good := range GoodsReversed() {
-		row := []string{RenderGoodName(good)}
+		row := []interface{}{RenderGoodName(good)}
 		for p, _ := range g.Players {
 			num := g.Boards[p].Goods[good]
 			cell := Colour(".", "gray")
@@ -170,7 +170,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		cells = append(cells, row)
 	}
-	row := []string{Bold("total")}
+	row := []interface{}{Bold("total")}
 	for p, _ := range g.Players {
 		cell := Markup(
 			fmt.Sprintf("%d (%d)", g.Boards[p].GoodsNum(), g.Boards[p].GoodsValue()),
@@ -179,9 +179,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		)
 		row = append(row, render.Centre(cell, nameWidths[p]))
 	}
-	cells = append(cells, row, []string{})
+	cells = append(cells, row, []interface{}{})
 
-	row = []string{FoodName}
+	row = []interface{}{FoodName}
 	for p, _ := range g.Players {
 		cell := Markup(
 			strconv.Itoa(g.Boards[p].Food),
@@ -199,9 +199,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		)
 		row = append(row, render.Centre(cell, nameWidths[p]))
 	}
-	row = []string{DisasterName}
+	row = []interface{}{DisasterName}
 	cells = append(cells, row)
-	row = []string{Bold("score")}
+	row = []interface{}{Bold("score")}
 	for p, _ := range g.Players {
 		cell := Markup(
 			strconv.Itoa(g.Boards[p].Score()),

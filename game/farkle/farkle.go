@@ -67,19 +67,19 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	buf := bytes.NewBufferString("")
-	cells := [][]string{}
+	cells := [][]interface{}{}
 	if playerNum == g.Player {
 		cells = append(cells,
-			[]string{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
-			[]string{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)})
+			[]interface{}{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
+			[]interface{}{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)})
 	}
 	cells = append(cells,
-		[]string{"{{b}}Your score{{_b}}", strconv.Itoa(g.Scores[playerNum])})
+		[]interface{}{"{{b}}Your score{{_b}}", strconv.Itoa(g.Scores[playerNum])})
 	t := render.Table(cells, 0, 1)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
-	cells = [][]string{
-		[]string{
+	cells = [][]interface{}{
+		[]interface{}{
 			"{{b}}Player{{_b}}",
 			"{{b}}Score{{_b}}",
 		},
@@ -89,7 +89,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		if playerNum == g.FirstPlayer {
 			playerName += " (started)"
 		}
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			playerName,
 			strconv.Itoa(g.Scores[playerNum]),
 		})

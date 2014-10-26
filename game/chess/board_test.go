@@ -2,9 +2,10 @@ package chess
 
 import (
 	"bytes"
-	"github.com/Miniand/brdg.me/render"
 	"strings"
 	"testing"
+
+	"github.com/Miniand/brdg.me/render"
 )
 
 func parseBoard(input string, t *testing.T) (b Board) {
@@ -102,7 +103,7 @@ func TestRender(t *testing.T) {
 2 ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙ 2
 1 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 1
   a b c d e f g h`
-	output, _ := render.RenderPlain(b.Render())
+	output := render.RenderPlain(b.Render())
 	if output != expected {
 		t.Fatalf("Board was not:\n%s\nGot\n%s", expected, output)
 	}

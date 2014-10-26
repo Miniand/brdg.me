@@ -18,8 +18,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf := bytes.NewBuffer([]byte{})
 	opponentNum := (playerNum + 1) % 2
 	// Current turn
-	cells := [][]string{
-		[]string{
+	cells := [][]interface{}{
+		[]interface{}{
 			Bold("Current turn:"),
 			g.RenderName(playerNum),
 		},
@@ -29,7 +29,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		if len(g.PlayerBoards[playerNum].LastSectors) > 0 {
 			cells = append(
 				cells,
-				[]string{
+				[]interface{}{
 					Bold("Last sectors"),
 					strings.Join(Itoas(g.PlayerBoards[playerNum].LastSectors), " "),
 				},
@@ -40,19 +40,19 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			card, _ := g.FlightCards.Pop()
 			cells = append(
 				cells,
-				[]string{
+				[]interface{}{
 					Bold("Current planet:"),
 					fmt.Sprintf("%s", card),
 				},
-				[]string{
+				[]interface{}{
 					Bold("Current sector:"),
 					strconv.Itoa(g.CurrentSector),
 				},
-				[]string{
+				[]interface{}{
 					Bold("Moves left:"),
 					strconv.Itoa(g.RemainingMoves()),
 				},
-				[]string{
+				[]interface{}{
 					Bold("Actions left:"),
 					strconv.Itoa(g.RemainingActions()),
 				},
@@ -61,11 +61,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	case PhaseTradeAndBuild:
 		cells = append(
 			cells,
-			[]string{
+			[]interface{}{
 				Bold("Post trades remaining:"),
 				strconv.Itoa(g.RemainingTrades()),
 			},
-			[]string{
+			[]interface{}{
 				Bold("Player trades remaining:"),
 				strconv.Itoa(g.RemainingPlayerTrades()),
 			},
@@ -75,8 +75,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Resources
-	cells = [][]string{
-		[]string{
+	cells = [][]interface{}{
+		[]interface{}{
 			Bold("Resource"), Bold(g.RenderName(playerNum)), Bold(g.RenderName(opponentNum)),
 			" ", // Column spacing
 			Bold("Resource"), Bold(g.RenderName(playerNum)), Bold(g.RenderName(opponentNum)),
@@ -88,15 +88,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		g.ResourceTableRow(ResourceTrade, playerNum),
 		DoubleRow(
 			g.ResourceTableRow(ResourceScience, playerNum),
-			[]string{
+			[]interface{}{
 				fmt.Sprintf(`{{c "red"}}{{b}}medals{{_b}}{{_c}}`),
 				Bold(strconv.Itoa(g.PlayerBoards[playerNum].Medals())),
 				strconv.Itoa(g.PlayerBoards[opponentNum].Medals()),
 			},
 		),
 		DoubleRow(
-			[]string{"", "", ""},
-			[]string{
+			[]interface{}{"", "", ""},
+			[]interface{}{
 				fmt.Sprintf(`{{c "green"}}{{b}}diplomacy{{_b}}{{_c}}`),
 				Bold(strconv.Itoa(g.PlayerBoards[playerNum].DiplomatPoints())),
 				strconv.Itoa(g.PlayerBoards[opponentNum].DiplomatPoints()),
@@ -104,7 +104,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		),
 		DoubleRow(
 			g.ResourceTableRow(ResourceAstro, playerNum),
-			[]string{
+			[]interface{}{
 				fmt.Sprintf(`{{c "blue"}}{{b}}VP{{_b}}{{_c}}`),
 				Bold(strconv.Itoa(g.PlayerBoards[playerNum].VictoryPoints())),
 				strconv.Itoa(g.PlayerBoards[opponentNum].VictoryPoints()),
@@ -116,12 +116,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString("\n\n")
 	// Adventure cards
 	buf.WriteString("{{b}}Adventure cards{{_b}}\n")
-	cells = [][]string{
-		[]string{Bold("#"), Bold("Planet"), Bold("Description")},
+	cells = [][]interface{}{
+		[]interface{}{Bold("#"), Bold("Planet"), Bold("Description")},
 	}
 	for i, c := range g.CurrentAdventureCards() {
 		ac := c.(Adventurer)
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			strconv.Itoa(i + 1),
 			AdventurePlanetString(ac.Planet()),
 			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, ac.Text()),
@@ -131,14 +131,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Modules
-	cells = [][]string{{
+	cells = [][]interface{}{{
 		"{{b}}Module{{_b}}",
 		g.RenderName(playerNum),
 		g.RenderName(opponentNum),
 		"{{b}}Description{{_b}}",
 	}}
 	for _, m := range Modules {
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			ModuleNames[m],
 			RenderModuleLevel(g.PlayerBoards[playerNum].Modules[m]),
 			RenderModuleLevel(g.PlayerBoards[opponentNum].Modules[m]),
@@ -181,9 +181,9 @@ func RenderModuleLevel(level int) string {
 	}
 }
 
-func (g *Game) ResourceTableRow(resource, player int) []string {
+func (g *Game) ResourceTableRow(resource, player int) []interface{} {
 	opponent := (player + 1) % 2
-	return []string{
+	return []interface{}{
 		RenderResource(resource),
 		Bold(strconv.Itoa(g.PlayerBoards[player].Resources[resource])),
 		fmt.Sprintf(`{{c "gray"}}%d{{_c}}`,
@@ -191,13 +191,13 @@ func (g *Game) ResourceTableRow(resource, player int) []string {
 	}
 }
 
-func DoubleRow(row1, row2 []string) []string {
+func DoubleRow(row1, row2 []interface{}) []interface{} {
 	row1 = append(row1, "")
 	row1 = append(row1, row2...)
 	return row1
 }
 
-func (g *Game) ResourceTableDoubleRow(resource1, resource2, player int) []string {
+func (g *Game) ResourceTableDoubleRow(resource1, resource2, player int) []interface{} {
 	return DoubleRow(
 		g.ResourceTableRow(resource1, player),
 		g.ResourceTableRow(resource2, player),

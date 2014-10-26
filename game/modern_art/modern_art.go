@@ -232,8 +232,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	output.WriteString("\n")
 	// Players
-	cells := [][]string{
-		[]string{
+	cells := [][]interface{}{
+		[]interface{}{
 			"{{b}}Players{{_b}}",
 			"{{b}}Purchases{{_b}}",
 		},
@@ -248,7 +248,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		} else {
 			cards = append(cards, `{{c "gray"}}None{{_c}}`)
 		}
-		cells = append(cells, []string{
+		cells = append(cells, []interface{}{
 			render.PlayerName(opNum, oPlayer),
 			strings.Join(cards, " "),
 		})
@@ -257,8 +257,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString(table)
 	output.WriteString("\n\n")
 	// Artists
-	cells = [][]string{
-		[]string{
+	cells = [][]interface{}{
+		[]interface{}{
 			"{{b}}Artist{{_b}}",
 			"{{b}}R1{{_b}}",
 			"{{b}}R2{{_b}}",
@@ -268,7 +268,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		},
 	}
 	for _, s := range suits {
-		row := []string{
+		row := []interface{}{
 			RenderSuit(s),
 		}
 		for i := 0; i < 4; i++ {
@@ -386,9 +386,9 @@ func (g *Game) EndRound() {
 		g.PlayerMoney[pNum] += pTotal
 	}
 	if g.Round == 3 {
-		moneyTable := [][]string{}
+		moneyTable := [][]interface{}{}
 		for pNum, p := range g.Players {
-			moneyTable = append(moneyTable, []string{
+			moneyTable = append(moneyTable, []interface{}{
 				render.PlayerName(pNum, p),
 				RenderMoney(g.PlayerMoney[pNum]),
 			})
