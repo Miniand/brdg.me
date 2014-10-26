@@ -38,6 +38,19 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	t := render.Table([][]interface{}{diceRow, numberRow}, 0, 2)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
+	// Remaining turns
+	if g.FinalRound >= g.Round {
+		remaining := g.FinalRound - g.Round
+		if remaining == 0 {
+			buf.WriteString("{{b}}This is the final round{{_b}}")
+		} else {
+			buf.WriteString(fmt.Sprintf(
+				"{{b}}%d{{_b}} rounds remaining after this one",
+				remaining,
+			))
+		}
+		buf.WriteString("\n\n")
+	}
 	// Turn resources
 	switch g.Phase {
 	case PhaseBuild, PhaseBuy:

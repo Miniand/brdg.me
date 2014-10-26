@@ -150,6 +150,8 @@ func (g *Game) StartTurn() {
 	g.Phase = PhaseRoll
 	g.NewRoll(g.Boards[g.CurrentPlayer].Cities())
 	g.RemainingRolls = 2
+	g.RemainingCoins = 0
+	g.RemainingWorkers = 0
 }
 
 func (g *Game) RollExtraPhase() {
@@ -235,25 +237,40 @@ func (g *Game) PhaseResolve() {
 			)))
 		}
 	case 3:
-		buf := bytes.NewBufferString("Pestilence!")
-		for p, _ := range g.Players {
-			if p == cp {
-				continue
-			}
-			if g.Boards[p].Developments[DevelopmentMedicine] {
-				buf.WriteString(fmt.Sprintf(
-					"\n  %s avoids pestilence with their medicine development",
-					g.RenderName(p),
-				))
+		if len(g.Players) == 1 {
+			if g.Boards[cp].Developments[DevelopmentMedicine] {
+				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+					`%s avoids pestilence with their medicine development`,
+					g.RenderName(cp),
+				)))
 			} else {
 				g.Boards[cp].Disasters += 3
-				buf.WriteString(fmt.Sprintf(
-					"\n  %s takes {{b}}3 disaster points{{_b}}",
-					g.RenderName(p),
-				))
+				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+					`Pestilence! %s takes {{b}}3 disaster points{{_b}}`,
+					g.RenderName(cp),
+				)))
 			}
+		} else {
+			buf := bytes.NewBufferString("Pestilence!")
+			for p, _ := range g.Players {
+				if p == cp {
+					continue
+				}
+				if g.Boards[p].Developments[DevelopmentMedicine] {
+					buf.WriteString(fmt.Sprintf(
+						"\n  %s avoids pestilence with their medicine development",
+						g.RenderName(p),
+					))
+				} else {
+					g.Boards[cp].Disasters += 3
+					buf.WriteString(fmt.Sprintf(
+						"\n  %s takes {{b}}3 disaster points{{_b}}",
+						g.RenderName(p),
+					))
+				}
+			}
+			g.Log.Add(log.NewPublicMessage(buf.String()))
 		}
-		g.Log.Add(log.NewPublicMessage(buf.String()))
 	case 4:
 		if g.Boards[cp].HasBuilt(MonumentGreatWall) {
 			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
@@ -268,13 +285,35 @@ func (g *Game) PhaseResolve() {
 			)))
 		}
 	default:
-		for _, good := range Goods {
-			g.Boards[cp].Goods[good] = 0
+		if g.Boards[cp].Developments[DevelopmentReligion] {
+			if len(g.Players) == 1 {
+				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+					`%s avoids a revolt with their religion development`,
+					g.RenderName(cp),
+				)))
+			} else {
+				for p, _ := range g.Players {
+					if p == cp {
+						continue
+					}
+					for _, good := range Goods {
+						g.Boards[p].Goods[good] = 0
+					}
+				}
+				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+					`Revolt! %s has the religion development, so {{b}}all other players{{_b}} lose {{b}}all of their goods{{_b}}`,
+					g.RenderName(cp),
+				)))
+			}
+		} else {
+			for _, good := range Goods {
+				g.Boards[cp].Goods[good] = 0
+			}
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				`Revolt! %s loses {{b}}all of their goods{{_b}}`,
+				g.RenderName(cp),
+			)))
 		}
-		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-			`Revolt! %s loses {{b}}all of their goods{{_b}}`,
-			g.RenderName(cp),
-		)))
 	}
 	g.BuildPhase()
 }
@@ -305,7 +344,12 @@ func (g *Game) DiscardPhase() {
 
 func (g *Game) NextTurn() {
 	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
-	g.StartTurn()
+	if g.CurrentPlayer == 0 {
+		g.Round += 1
+	}
+	if !g.IsFinished() {
+		g.StartTurn()
+	}
 }
 
 func (g *Game) PlayerNum(player string) (int, error) {
@@ -315,6 +359,39 @@ func (g *Game) PlayerNum(player string) (int, error) {
 		}
 	}
 	return 0, fmt.Errorf("could not find a player by the name %s", player)
+}
+
+func (g *Game) CheckGameEndTriggered(player int) {
+	if g.FinalRound != 0 {
+		// End game already triggered
+		return
+	}
+	// 5th development built
+	if len(g.Boards[player].Developments) >= 5 {
+		g.TriggerGameEnd()
+		return
+	}
+	// Every monument built
+	for _, m := range g.Monuments() {
+		built := false
+		for _, b := range g.Boards {
+			if b.HasBuilt(m) {
+				built = true
+				break
+			}
+		}
+		if !built {
+			return
+		}
+	}
+	// All were built
+	g.TriggerGameEnd()
+}
+
+func (g *Game) TriggerGameEnd() {
+	g.FinalRound = g.Round
+	g.Log.Add(log.NewPublicMessage(
+		"{{b}}Game end has been triggered, the game will be finished after the last player has their turn{{_b}}"))
 }
 
 func ContainsInt(needle int, haystack []int) bool {

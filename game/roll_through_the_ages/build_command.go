@@ -149,6 +149,7 @@ func (g *Game) BuildMonument(player, monument, amount int) error {
 			g.RenderName(player),
 			mv.Name,
 		)))
+		g.CheckGameEndTriggered(player)
 	}
 	if g.RemainingWorkers == 0 {
 		g.BuyPhase()

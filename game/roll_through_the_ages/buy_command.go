@@ -43,19 +43,27 @@ func (c BuyCommand) Call(player string, context interface{},
 	}
 
 	goods := []int{}
-	for _, input := range a[1:] {
-		good, err := helper.MatchStringInStringMap(input, GoodStrings)
-		if err != nil {
-			return "", err
+	if len(a) == 2 && strings.ToLower(a[1]) == "all" {
+		for good, num := range g.Boards[pNum].Goods {
+			if num > 0 {
+				goods = append(goods, good)
+			}
 		}
-		goods = append(goods, good)
+	} else {
+		for _, input := range a[1:] {
+			good, err := helper.MatchStringInStringMap(input, GoodStrings)
+			if err != nil {
+				return "", err
+			}
+			goods = append(goods, good)
+		}
 	}
 
 	return "", g.BuyDevelopment(pNum, development, goods)
 }
 
 func (c BuyCommand) Usage(player string, context interface{}) string {
-	return "{{b}}buy (thing){{_b}} to buy developments, eg. {{b}}buy irrigation{{_b}}.  If you don't have enough coins and need to use goods, list the goods after the development name, eg. {{b}}buy irrigation wood stone{{_b}}"
+	return "{{b}}buy (thing){{_b}} to buy developments, eg. {{b}}buy irrigation{{_b}}.  If you don't have enough coins and need to use goods, list the goods after the development name, eg. {{b}}buy irrigation wood stone{{_b}} or {{b}}buy irrigation all{{_b}} to use all your goods"
 }
 
 func (g *Game) CanBuy(player int) bool {
@@ -109,6 +117,7 @@ func (g *Game) BuyDevelopment(player, development int, goods []int) error {
 	for _, good := range goods {
 		g.Boards[player].Goods[good] = 0
 	}
+	g.CheckGameEndTriggered(player)
 
 	g.DiscardPhase()
 	return nil
