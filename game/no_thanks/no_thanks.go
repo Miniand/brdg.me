@@ -102,10 +102,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		cells = append(cells, row)
 	}
-	table, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	table := render.Table(cells, 0, 2)
 	buf.WriteString(table)
 	return buf.String(), nil
 }

@@ -5,11 +5,7 @@ import (
 )
 
 func TestPlainRender(t *testing.T) {
-	output, err := RenderPlain(`{{c "blue"}}{{b}}hello{{_b}}{{_c}}`)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	output := RenderPlain(`{{c "blue"}}{{b}}hello{{_b}}{{_c}}`)
 	if output != `hello` {
 		t.Error("Output was", output)
 		return

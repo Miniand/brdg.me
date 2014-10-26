@@ -71,10 +71,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			},
 		)
 	}
-	t, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	t := render.Table(cells, 0, 2)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Resources
@@ -114,10 +111,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			},
 		),
 	}
-	t, err = render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	t = render.Table(cells, 0, 2)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Adventure cards
@@ -133,10 +127,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, ac.Text()),
 		})
 	}
-	t, err = render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	t = render.Table(cells, 0, 2)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Modules
@@ -154,10 +145,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, ModuleSummaries[m]),
 		})
 	}
-	t, err = render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	t = render.Table(cells, 0, 2)
 	buf.WriteString(t)
 	buf.WriteString(fmt.Sprintf(
 		`

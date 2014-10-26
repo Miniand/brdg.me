@@ -132,6 +132,7 @@ func (g *Game) CollectPhase() {
 			g.RemainingCoins += g.Boards[cp].CoinsDieValue()
 		}
 	}
+	g.Boards[cp].GainGoods(goods)
 	if !hasFoodOrWorkersDice {
 		g.PhaseResolve()
 	}

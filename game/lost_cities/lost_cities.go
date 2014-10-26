@@ -268,10 +268,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	cells = append(cells, []string{}, discard, []string{})
 	// Your area
 	cells = append(cells, g.PlayerExpeditionCells(pNum, DIR_ASC, "    You ")...)
-	table, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	table := render.Table(cells, 0, 2)
 	output.WriteString(table)
 	output.WriteString("\n\n")
 	// Remaining draw cards
@@ -309,10 +306,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		row = append(row, strconv.Itoa(g.PreviousRoundsPlayerScore(p)))
 		cells = append(cells, row)
 	}
-	table, err = render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	table = render.Table(cells, 0, 2)
 	output.WriteString(table)
 	return output.String(), nil
 }

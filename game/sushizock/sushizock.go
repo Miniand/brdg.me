@@ -69,10 +69,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		dice,
 		diceNumbers,
 	}
-	table, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	table := render.Table(cells, 0, 2)
 	buf.WriteString(fmt.Sprintf(
 		"{{b}}Dice{{_b}}\n%s\n\n", table))
 	// Tiles
@@ -90,10 +87,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		blueTilesStrs,
 		redTilesStrs,
 	}
-	table, err = render.Table(cells, 0, 1)
-	if err != nil {
-		return "", err
-	}
+	table = render.Table(cells, 0, 1)
 	buf.WriteString(fmt.Sprintf(
 		"{{b}}Tiles{{_b}}\n%s\n\n", table))
 	// Players
@@ -119,10 +113,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			redText,
 		})
 	}
-	table, err = render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	table = render.Table(cells, 0, 2)
 	buf.WriteString(table)
 	return buf.String(), nil
 }
@@ -177,7 +168,7 @@ func (g *Game) LogGameEnd() {
 				Score(g.PlayerBlueTiles[pNum], g.PlayerRedTiles[pNum])),
 		})
 	}
-	table, _ := render.Table(cells, 0, 2)
+	table := render.Table(cells, 0, 2)
 	buf.WriteString(table)
 	g.Log.Add(log.NewPublicMessage(buf.String()))
 }

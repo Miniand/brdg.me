@@ -5,13 +5,14 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"math/rand"
+	"strings"
+	"time"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/die"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
-	"math/rand"
-	"strings"
-	"time"
 )
 
 const (
@@ -93,10 +94,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			fmt.Sprintf("%d", len(g.PlayerDice[pNum])),
 		})
 	}
-	table, err := render.Table(cells, 0, 1)
-	if err != nil {
-		return "", err
-	}
+	table := render.Table(cells, 0, 1)
 	buf.WriteString(table)
 	return buf.String(), nil
 }

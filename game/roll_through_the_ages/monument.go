@@ -76,7 +76,7 @@ var MonumentValues = map[int]Monument{
 		Blacklist: 3,
 	},
 	MonumentGreatWall: {
-		Name:   "Great Wall",
+		Name:   "Wall", // Changed from Great Wall to help string matching.
 		Size:   13,
 		Points: 10,
 		Effect: "invasion has no effect",

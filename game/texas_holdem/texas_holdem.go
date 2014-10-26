@@ -440,10 +440,7 @@ func (g *Game) Showdown() {
 		}
 		if len(handResults) > 1 {
 			// Multiple people for this pot, showdown
-			handsTableOutput, err := render.Table(handsTable, 0, 2)
-			if err != nil {
-				panic(err.Error())
-			}
+			handsTableOutput := render.Table(handsTable, 0, 2)
 			buf.WriteString(fmt.Sprintf("Showdown for pot of %s\n%s\n",
 				RenderCash(pot), handsTableOutput))
 			winners := poker.WinningHandResult(handResults)
@@ -600,10 +597,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		playersTable = append(playersTable, playerRow)
 	}
-	table, err := render.Table(playersTable, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	table := render.Table(playersTable, 0, 2)
 	buf.WriteString(table)
 	return buf.String(), nil
 }

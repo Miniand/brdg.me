@@ -5,11 +5,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
-	"strings"
 )
 
 const (
@@ -252,10 +253,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			strings.Join(cards, " "),
 		})
 	}
-	table, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	table := render.Table(cells, 0, 2)
 	output.WriteString(table)
 	output.WriteString("\n\n")
 	// Artists
@@ -283,10 +281,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		row = append(row, RenderMoney(g.SuitValue(s)))
 		cells = append(cells, row)
 	}
-	table, err = render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	table = render.Table(cells, 0, 2)
 	output.WriteString(table)
 	return output.String(), nil
 }
@@ -398,7 +393,7 @@ func (g *Game) EndRound() {
 				RenderMoney(g.PlayerMoney[pNum]),
 			})
 		}
-		table, _ := render.Table(moneyTable, 0, 1)
+		table := render.Table(moneyTable, 0, 1)
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"{{b}}End of the game, final player money:{{_b}}\n%s", table)))
 		g.Finished = true

@@ -88,10 +88,7 @@ func (g *Game) Fight(player int) error {
 			Bold(strconv.Itoa(pirateAttack)),
 		},
 	}
-	table, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return err
-	}
+	table := render.Table(cells, 0, 2)
 
 	var resultStr string
 	if playerWon {

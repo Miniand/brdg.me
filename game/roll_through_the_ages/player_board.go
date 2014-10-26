@@ -14,7 +14,7 @@ type PlayerBoard struct {
 	Monuments          map[int]int
 	MonumentBuiltFirst map[int]bool
 	Food               int
-	Resources          map[int]int
+	Goods              map[int]int
 	Disasters          int
 }
 
@@ -30,7 +30,7 @@ func NewPlayerBoard() *PlayerBoard {
 		Monuments:          map[int]int{},
 		MonumentBuiltFirst: map[int]bool{},
 		Food:               3,
-		Resources:          map[int]int{},
+		Goods:              map[int]int{},
 	}
 }
 
@@ -96,4 +96,40 @@ func (b *PlayerBoard) WorkerModifier() int {
 		return 1
 	}
 	return 0
+}
+
+func (b *PlayerBoard) GainGoods(n int) {
+	good := GoodWood
+	for i := 0; i < n; i++ {
+		b.GainGood(good)
+		good = (good + 1) % len(Goods)
+	}
+}
+
+func (b *PlayerBoard) GainGood(good int) {
+	max := GoodMaximum(good)
+	if b.Goods[good] < max {
+		b.Goods[good] += 1
+	}
+	// Extra stone if player has quarry
+	if good == GoodStone && b.Developments[DevelopmentQuarrying] &&
+		b.Goods[good] < max {
+		b.Goods[good] += 1
+	}
+}
+
+func (b *PlayerBoard) GoodsNum() int {
+	num := 0
+	for _, n := range b.Goods {
+		num += n
+	}
+	return num
+}
+
+func (b *PlayerBoard) GoodsValue() int {
+	val := 0
+	for g, n := range b.Goods {
+		val += GoodValue(g, n)
+	}
+	return val
 }

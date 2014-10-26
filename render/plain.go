@@ -1,40 +1,9 @@
 package render
 
-import (
-	"bytes"
-	"html/template"
-)
+import "regexp"
 
-type PlainMarkupper struct {
-	Markupper
-}
+var plainReplaceRegexp = regexp.MustCompile(`\{\{[^}]*\}\}`)
 
-func (t *PlainMarkupper) StartColour(colour string) interface{} {
-	return ""
-}
-func (t *PlainMarkupper) EndColour() interface{} {
-	return ""
-}
-func (t *PlainMarkupper) StartBold() interface{} {
-	return ""
-}
-func (t *PlainMarkupper) EndBold() interface{} {
-	return ""
-}
-func (t *PlainMarkupper) StartLarge() interface{} {
-	return ""
-}
-func (t *PlainMarkupper) EndLarge() interface{} {
-	return ""
-}
-
-func RenderPlain(tmpl string) (string, error) {
-	t := template.Must(template.New("tmpl").
-		Funcs(AttachTemplateFuncs(template.FuncMap{}, &PlainMarkupper{})).Parse(tmpl))
-	buf := &bytes.Buffer{}
-	err := t.Execute(buf, Context{})
-	if err != nil {
-		return "", err
-	}
-	return buf.String(), nil
+func RenderPlain(tmpl string) string {
+	return plainReplaceRegexp.ReplaceAllString(tmpl, "")
 }

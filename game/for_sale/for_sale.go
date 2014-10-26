@@ -105,7 +105,7 @@ func (g *Game) StartRound() {
 				fmt.Sprintf("{{b}}%d{{_b}}", g.DeckValue(g.Cheques[pNum])),
 			})
 		}
-		table, _ := render.Table(playerScores, 0, 1)
+		table := render.Table(playerScores, 0, 1)
 		output.WriteString(table)
 		g.Log.Add(log.NewPublicMessage(output.String()))
 	}

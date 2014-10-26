@@ -48,30 +48,21 @@ func PlayerNamesInPlayers(players []string, playerList []string) []string {
 	return renderedPlayers
 }
 
-func Padded(text string, width int) (string, error) {
+func Padded(text string, width int) string {
 	buf := bytes.NewBufferString(text)
-	plain, err := RenderPlain(text)
-	if err != nil {
-		return "", err
-	}
-	extra := width - utf8.RuneCountInString(plain)
+	extra := width - StrLen(text)
 	if extra > 0 {
 		buf.WriteString(strings.Repeat(" ", extra))
 	}
-	return buf.String(), nil
+	return buf.String()
 }
 
-func Table(cells [][]string, rowPadding, colPadding int) (string, error) {
+func Table(cells [][]string, rowPadding, colPadding int) string {
 	// First calculate widths
-	var err error
 	widths := map[int]int{}
 	for _, row := range cells {
 		for colIndex, cell := range row {
-			plain, err := RenderPlain(cell)
-			if err != nil {
-				return "", err
-			}
-			w := utf8.RuneCountInString(plain)
+			w := StrLen(cell)
 			if w > widths[colIndex] {
 				widths[colIndex] = w
 			}
@@ -89,15 +80,12 @@ func Table(cells [][]string, rowPadding, colPadding int) (string, error) {
 				// Last col doesn't get right padding
 				padded = cell
 			} else {
-				padded, err = Padded(cell, widths[colIndex]+colPadding)
-				if err != nil {
-					return "", err
-				}
+				padded = Padded(cell, widths[colIndex]+colPadding)
 			}
 			buf.WriteString(padded)
 		}
 	}
-	return buf.String(), nil
+	return buf.String()
 }
 
 func CommaList(list []string) string {
@@ -111,4 +99,33 @@ func CommaList(list []string) string {
 		return list[0] + " and " + list[1]
 	}
 	return list[0] + ", " + CommaList(list[1:])
+}
+
+func StrLen(s string) int {
+	return utf8.RuneCountInString(RenderPlain(s))
+}
+
+func Centre(s string, width int) string {
+	buf := bytes.NewBuffer([]byte{})
+	extra := width - StrLen(s)
+	left := ""
+	right := ""
+	if extra > 0 {
+		left = strings.Repeat(" ", (extra+1)/2)
+		right = strings.Repeat(" ", extra-len(left))
+	}
+	buf.WriteString(left)
+	buf.WriteString(s)
+	buf.WriteString(right)
+	return buf.String()
+}
+
+func Right(s string, width int) string {
+	buf := bytes.NewBuffer([]byte{})
+	extra := width - StrLen(s)
+	if extra > 0 {
+		buf.WriteString(strings.Repeat(" ", extra))
+	}
+	buf.WriteString(s)
+	return buf.String()
 }

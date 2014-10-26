@@ -298,10 +298,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		cells = append(cells, row)
 	}
-	boardOutput, err := render.Table(cells, 0, 1)
-	if err != nil {
-		return "", err
-	}
+	boardOutput := render.Table(cells, 0, 1)
 	output.WriteString(boardOutput)
 	// Hand
 	handTiles := []string{}
@@ -335,10 +332,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			fmt.Sprintf("$%d", g.Corp2ndBonus(c)),
 		})
 	}
-	corpOutput, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	corpOutput := render.Table(cells, 0, 2)
 	output.WriteString("\n\n")
 	output.WriteString(corpOutput)
 	// Player table
@@ -363,10 +357,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		cells = append(cells, row)
 	}
-	playerOutput, err := render.Table(cells, 0, 2)
-	if err != nil {
-		return "", err
-	}
+	playerOutput := render.Table(cells, 0, 2)
 	output.WriteString("\n\n")
 	output.WriteString(playerOutput)
 	return output.String(), nil

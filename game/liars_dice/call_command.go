@@ -2,11 +2,12 @@ package liars_dice
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/die"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
-	"strings"
 )
 
 type CallCommand struct{}
@@ -67,10 +68,7 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 		})
 	}
 	g.PlayerDice[losingPlayer] = g.PlayerDice[losingPlayer][1:]
-	table, err := render.Table(cells, 0, 1)
-	if err != nil {
-		return "", err
-	}
+	table := render.Table(cells, 0, 1)
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`%s called the bid of %d %s by %s
 Everyone revealed the following dice:
 %s

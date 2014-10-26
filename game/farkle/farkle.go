@@ -5,15 +5,16 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game/die"
-	"github.com/Miniand/brdg.me/game/log"
-	"github.com/Miniand/brdg.me/render"
 	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/die"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type Game struct {
@@ -74,10 +75,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	cells = append(cells,
 		[]string{"{{b}}Your score{{_b}}", strconv.Itoa(g.Scores[playerNum])})
-	t, err := render.Table(cells, 0, 1)
-	if err != nil {
-		return "", err
-	}
+	t := render.Table(cells, 0, 1)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	cells = [][]string{
@@ -96,10 +94,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			strconv.Itoa(g.Scores[playerNum]),
 		})
 	}
-	t, err = render.Table(cells, 0, 1)
-	if err != nil {
-		return "", err
-	}
+	t = render.Table(cells, 0, 1)
 	buf.WriteString(t)
 	return buf.String(), nil
 }
