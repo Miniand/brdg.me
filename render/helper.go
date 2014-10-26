@@ -8,6 +8,10 @@ import (
 	"unicode/utf8"
 )
 
+type Centred string
+type RightAligned string
+type Unbounded string
+
 func PlayerColour(playerNum int) string {
 	colours := []string{
 		"green",
@@ -64,6 +68,10 @@ func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 	widths := map[int]int{}
 	for _, row := range cells {
 		for colIndex, cell := range row {
+			switch cell.(type) {
+			case Unbounded:
+				continue
+			}
 			w := StrLen(String(cell))
 			if w > widths[colIndex] {
 				widths[colIndex] = w
@@ -77,15 +85,19 @@ func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 			buf.WriteString(strings.Repeat("\n", rowPadding+1))
 		}
 		for colIndex, cellRaw := range row {
-			var padded string
-			cell := String(cellRaw)
-			if colIndex == len(row)-1 {
-				// Last col doesn't get right padding
-				padded = cell
-			} else {
-				padded = Padded(cell, widths[colIndex]+colPadding)
+			var content string
+			switch cellRaw.(type) {
+			case Centred:
+				content = Centre(cellRaw, widths[colIndex])
+			case RightAligned:
+				content = Right(cellRaw, widths[colIndex])
+			default:
+				content = String(cellRaw)
 			}
-			buf.WriteString(padded)
+			if colIndex != len(row)-1 {
+				content = Padded(content, widths[colIndex]+colPadding)
+			}
+			buf.WriteString(content)
 		}
 	}
 	return buf.String()
@@ -140,14 +152,14 @@ func String(s interface{}) string {
 }
 
 func Bold(s interface{}) string {
-	return fmt.Sprintf("{{b}}%v{{_b}}")
+	return fmt.Sprintf("{{b}}%v{{_b}}", s)
 }
 
 func Colour(s interface{}, colour string) string {
 	if !IsValidColour(colour) {
 		log.Fatalf("%s is not a valid colour", colour)
 	}
-	return fmt.Sprintf(`{{c "%s"}}%v{{_c}}`)
+	return fmt.Sprintf(`{{c "%s"}}%v{{_c}}`, colour, s)
 }
 
 func Markup(s interface{}, colour string, bold bool) string {
@@ -156,7 +168,7 @@ func Markup(s interface{}, colour string, bold bool) string {
 		str = Colour(str, colour)
 	}
 	if bold {
-		str = Bold(s)
+		str = Bold(str)
 	}
 	return str
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type RollCommand struct{}
@@ -125,7 +126,7 @@ func (g *Game) KeepSkulls() {
 func (g *Game) LogRoll(newDice, oldDice []int) {
 	diceStrings := []string{}
 	for _, d := range newDice {
-		diceStrings = append(diceStrings, Bold(RenderDice(d)))
+		diceStrings = append(diceStrings, render.Bold(RenderDice(d)))
 	}
 	for _, d := range oldDice {
 		diceStrings = append(diceStrings, RenderDice(d))

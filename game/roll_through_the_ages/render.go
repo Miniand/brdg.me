@@ -3,7 +3,6 @@ package roll_through_the_ages
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -19,18 +18,13 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Calculate name widths now as we use them quite a lot
-	nameWidths := map[int]int{}
-	for p, _ := range g.Players {
-		nameWidths[p] = render.StrLen(g.RenderName(p))
-	}
 	buf := bytes.NewBuffer([]byte{})
 	// Dice
 	diceRow := []interface{}{}
 	numberRow := []interface{}{}
 	for i, d := range g.RolledDice {
 		diceString := DiceStrings[d]
-		diceRow = append(diceRow, Bold(RenderDice(d)))
+		diceRow = append(diceRow, render.Bold(RenderDice(d)))
 		numberRow = append(numberRow, fmt.Sprintf(
 			`%s{{c "gray"}}%d{{_c}}`,
 			strings.Repeat(" ", utf8.RuneCountInString(diceString)/2),
@@ -78,14 +72,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Developments
-	header := []interface{}{Bold("Development")}
+	header := []interface{}{render.Bold("Development")}
 	for p, _ := range g.Players {
 		header = append(header, g.RenderName(p))
 	}
 	header = append(header, []interface{}{
-		Bold("Cost"),
-		Bold("Pts"),
-		Bold("Effect"),
+		render.Bold("Cost"),
+		render.Bold("Pts"),
+		render.Bold("Effect"),
 	}...)
 	cells = [][]interface{}{header}
 	for _, d := range Developments {
@@ -96,7 +90,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			if g.Boards[p].Developments[d] {
 				cell = RenderX(p, pNum == p)
 			}
-			row = append(row, render.Centre(cell, nameWidths[p]))
+			row = append(row, render.Centred(cell))
 		}
 		row = append(row, []interface{}{
 			fmt.Sprintf(" %d", dv.Cost),
@@ -109,14 +103,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Monuments
-	header = []interface{}{Bold("Monument")}
+	header = []interface{}{render.Bold("Monument")}
 	for p, _ := range g.Players {
 		header = append(header, g.RenderName(p))
 	}
 	header = append(header, []interface{}{
-		Bold("Size"),
-		Bold("Pts"),
-		Bold("Effect"),
+		render.Bold("Size"),
+		render.Bold("Pts"),
+		render.Bold("Effect"),
 	}...)
 	cells = [][]interface{}{header}
 	for _, m := range g.Monuments() {
@@ -136,7 +130,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 					g.Boards[p].Monuments[m],
 				)
 			}
-			row = append(row, render.Centre(cell, nameWidths[p]))
+			row = append(row, render.Centred(cell))
 		}
 		row = append(row, []interface{}{
 			fmt.Sprintf(" %d", mv.Size),
@@ -149,7 +143,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Resources
-	header = []interface{}{Bold("Resource")}
+	header = []interface{}{render.Bold("Resource")}
 	for p, _ := range g.Players {
 		header = append(header, g.RenderName(p))
 	}
@@ -158,57 +152,57 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		row := []interface{}{RenderGoodName(good)}
 		for p, _ := range g.Players {
 			num := g.Boards[p].Goods[good]
-			cell := Colour(".", "gray")
+			cell := render.Colour(".", "gray")
 			if num > 0 {
-				cell = Markup(
+				cell = render.Markup(
 					fmt.Sprintf("%d (%d)", num, GoodValue(good, num)),
 					render.PlayerColour(p),
 					p == pNum,
 				)
 			}
-			row = append(row, render.Centre(cell, nameWidths[p]))
+			row = append(row, render.Centred(cell))
 		}
 		cells = append(cells, row)
 	}
-	row := []interface{}{Bold("total")}
+	row := []interface{}{render.Bold("total")}
 	for p, _ := range g.Players {
-		cell := Markup(
+		cell := render.Markup(
 			fmt.Sprintf("%d (%d)", g.Boards[p].GoodsNum(), g.Boards[p].GoodsValue()),
 			render.PlayerColour(p),
 			p == pNum,
 		)
-		row = append(row, render.Centre(cell, nameWidths[p]))
+		row = append(row, render.Centred(cell))
 	}
 	cells = append(cells, row, []interface{}{})
 
 	row = []interface{}{FoodName}
 	for p, _ := range g.Players {
-		cell := Markup(
-			strconv.Itoa(g.Boards[p].Food),
+		cell := render.Markup(
+			g.Boards[p].Food,
 			render.PlayerColour(p),
 			p == pNum,
 		)
-		row = append(row, render.Centre(cell, nameWidths[p]))
+		row = append(row, render.Centred(cell))
 	}
 	cells = append(cells, row)
 	for p, _ := range g.Players {
-		cell := Markup(
-			strconv.Itoa(g.Boards[p].Disasters),
+		cell := render.Markup(
+			g.Boards[p].Disasters,
 			render.PlayerColour(p),
 			p == pNum,
 		)
-		row = append(row, render.Centre(cell, nameWidths[p]))
+		row = append(row, render.Centred(cell))
 	}
 	row = []interface{}{DisasterName}
 	cells = append(cells, row)
-	row = []interface{}{Bold("score")}
+	row = []interface{}{render.Bold("score")}
 	for p, _ := range g.Players {
-		cell := Markup(
-			strconv.Itoa(g.Boards[p].Score()),
+		cell := render.Markup(
+			g.Boards[p].Score(),
 			render.PlayerColour(p),
 			p == pNum,
 		)
-		row = append(row, render.Centre(cell, nameWidths[p]))
+		row = append(row, render.Centred(cell))
 	}
 	cells = append(cells, row)
 
@@ -222,7 +216,7 @@ func RenderX(player int, strong bool) string {
 	if strong {
 		x = "X"
 	}
-	return Markup(x, render.PlayerColour(player), strong)
+	return render.Markup(x, render.PlayerColour(player), strong)
 }
 
 func RenderDice(dice int) string {
@@ -247,21 +241,3 @@ func RenderGoodName(good int) string {
 
 var FoodName = `{{b}}{{c "green"}}food{{_c}}{{_b}}`
 var DisasterName = `{{b}}{{c "red"}}disaster{{_c}}{{_b}}`
-
-func Markup(s string, colour string, bold bool) string {
-	if colour != "" {
-		s = Colour(s, colour)
-	}
-	if bold {
-		s = Bold(s)
-	}
-	return s
-}
-
-func Colour(s, colour string) string {
-	return fmt.Sprintf(`{{c "%s"}}%s{{_c}}`, colour, s)
-}
-
-func Bold(s string) string {
-	return fmt.Sprintf("{{b}}%s{{_b}}", s)
-}
