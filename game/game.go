@@ -4,6 +4,7 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/acquire"
 	"github.com/Miniand/brdg.me/game/battleship"
+	"github.com/Miniand/brdg.me/game/category_5"
 	"github.com/Miniand/brdg.me/game/farkle"
 	"github.com/Miniand/brdg.me/game/for_sale"
 	"github.com/Miniand/brdg.me/game/liars_dice"
@@ -47,6 +48,7 @@ func gameList() []Playable {
 	return []Playable{
 		&acquire.Game{},
 		&battleship.Game{},
+		&category_5.Game{},
 		&farkle.Game{},
 		&for_sale.Game{},
 		&liars_dice.Game{},
