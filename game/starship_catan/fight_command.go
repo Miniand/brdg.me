@@ -128,7 +128,7 @@ func (g *Game) Fight(player int) error {
 				)))
 			}
 		}
-		if true || pirateCard.DestroyModule &&
+		if pirateCard.DestroyModule &&
 			len(g.PlayerBoards[player].ModuleList()) > 0 {
 			g.LosingModule = true
 		} else {
