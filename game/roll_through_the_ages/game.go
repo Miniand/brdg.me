@@ -262,7 +262,7 @@ func (g *Game) PhaseResolve() {
 						g.RenderName(p),
 					))
 				} else {
-					g.Boards[cp].Disasters += 3
+					g.Boards[p].Disasters += 3
 					buf.WriteString(fmt.Sprintf(
 						"\n  %s takes {{b}}3 disaster points{{_b}}",
 						g.RenderName(p),
