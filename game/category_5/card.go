@@ -91,3 +91,11 @@ func SortCards(cards []Card) []Card {
 	sort.Ints(ints)
 	return Itoc(ints)
 }
+
+func CardsHeads(cards []Card) int {
+	heads := 0
+	for _, c := range cards {
+		heads += c.Heads()
+	}
+	return heads
+}

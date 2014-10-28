@@ -1,7 +1,9 @@
 package category_5
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -128,11 +130,26 @@ func (g *Game) ResolvePlays() {
 			return
 		} else if len(g.Board[closestRow]) == 5 {
 			// Row is full, gotta take it
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				"%s played %s as card {{b}}%d{{_b}} of row {{b}}%d{{_b}} and {{b}}took the row for %d points{{_b}}",
+				g.RenderName(lowestPlayer),
+				lowestCard,
+				len(g.Board[closestRow])+1,
+				closestRow+1,
+				CardsHeads(g.Board[closestRow]),
+			)))
 			g.PlayerCards[lowestPlayer] = append(
 				g.PlayerCards[lowestPlayer], g.Board[closestRow]...)
 			g.Board[closestRow] = []Card{lowestCard}
 		} else {
 			// Just slot the card into the row
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				"%s played %s as card {{b}}%d{{_b}} of row {{b}}%d{{_b}}",
+				g.RenderName(lowestPlayer),
+				lowestCard,
+				len(g.Board[closestRow])+1,
+				closestRow+1,
+			)))
 			g.Board[closestRow] = append(g.Board[closestRow], lowestCard)
 		}
 		g.Plays[lowestPlayer] = 0
@@ -144,13 +161,22 @@ func (g *Game) ResolvePlays() {
 }
 
 func (g *Game) EndRound() {
+	buf := bytes.NewBufferString("{{b}}End of the round, counting points{{_b}}")
 	for p, _ := range g.Players {
 		total := 0
 		for _, c := range g.PlayerCards[p] {
-			total += int(c)
+			total += c.Heads()
 		}
 		g.Points[p] += total
+		buf.WriteString(fmt.Sprintf(
+			"\n  %s had {{b}}%d{{_b}} cards worth {{b}}%d{{_b}} points, total now {{b}}%d{{_b}}",
+			g.RenderName(p),
+			len(g.PlayerCards[p]),
+			total,
+			g.Points[p],
+		))
 	}
+	g.Log.Add(log.NewPublicMessage(buf.String()))
 	if !g.IsFinished() {
 		g.StartRound()
 	}

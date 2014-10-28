@@ -2,9 +2,11 @@ package category_5
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type ChooseCommand struct{}
@@ -59,6 +61,14 @@ func (g *Game) Choose(player, row int) error {
 		return errors.New("the row must be between 1 and 4")
 	}
 	row -= 1
+
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s played %s and chose to take row {{b}}%d{{_b}} for {{b}}%d points{{_b}}",
+		g.RenderName(player),
+		g.Plays[player],
+		row+1,
+		CardsHeads(g.Board[row]),
+	)))
 
 	g.PlayerCards[player] = append(g.PlayerCards[player], g.Board[row]...)
 	g.Board[row] = []Card{g.Plays[player]}
