@@ -62,7 +62,16 @@ func SendGame(
 			pHeader += "\n\n{{b}}You can:{{_b}}\n" +
 				render.CommandUsages(usages)
 		}
-		body := pHeader + "\n\n" + rawOutput
+		body := fmt.Sprintf(
+			`%s
+
+%s
+
+You can also <a href="http://baconheist.com/brdgme/game.html?id=%s">continue playing this game live in your browser</a>.`,
+			pHeader,
+			rawOutput,
+			id,
+		)
 		subject := fmt.Sprintf("%s (%s)", g.Name(), id)
 		extraHeaders := []string{}
 		messageId := id + "@brdg.me"
