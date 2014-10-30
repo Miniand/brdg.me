@@ -15,7 +15,7 @@ type PirateCard struct {
 	DestroyModule bool
 }
 
-func (c PirateCard) FamePoints() int {
+func (c PirateCard) Medals() int {
 	return 1
 }
 
