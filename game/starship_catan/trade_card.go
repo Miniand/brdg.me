@@ -77,7 +77,7 @@ func (c TradeCard) String() string {
 	)
 }
 
-func (c TradeCard) FriendshipPoints() int {
+func (c TradeCard) DiplomatPoints() int {
 	if c.TradingPost {
 		return 1
 	}
