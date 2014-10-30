@@ -95,7 +95,3 @@ func (c TradeCard) Commands() []command.Command {
 		SellCommand{},
 	}
 }
-
-func (c TradeCard) DiplomatPoints() int {
-	return 1
-}
