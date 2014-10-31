@@ -5,11 +5,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -260,7 +261,7 @@ func (g *Game) PlayerShipHitsRemaining(player, ship int) int {
 }
 
 func (g *Game) Winners() []string {
-	if g.IsFinished() {
+	if !g.IsFinished() {
 		return []string{}
 	}
 	winner := 0
