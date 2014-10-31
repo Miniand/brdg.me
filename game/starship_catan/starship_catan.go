@@ -584,7 +584,7 @@ func (g *Game) RecalculatePeopleCards() {
 	// Medals
 	p1M := g.PlayerBoards[0].Medals()
 	p2M := g.PlayerBoards[1].Medals()
-	m := 0
+	m := -1
 	switch {
 	case p1M > 3 && p1M > p2M:
 		m = 0
