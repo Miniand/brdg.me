@@ -16,7 +16,7 @@ func (c CardDedicatedNewsTeam) Description() string {
 }
 
 func (c CardDedicatedNewsTeam) Cost() int {
-	return 5
+	return 3
 }
 
 func (c CardDedicatedNewsTeam) Kind() int {

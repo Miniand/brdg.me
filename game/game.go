@@ -7,6 +7,7 @@ import (
 	"github.com/Miniand/brdg.me/game/category_5"
 	"github.com/Miniand/brdg.me/game/farkle"
 	"github.com/Miniand/brdg.me/game/for_sale"
+	"github.com/Miniand/brdg.me/game/king_of_tokyo"
 	"github.com/Miniand/brdg.me/game/liars_dice"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/game/lost_cities"
@@ -51,6 +52,7 @@ func gameList() []Playable {
 		&category_5.Game{},
 		&farkle.Game{},
 		&for_sale.Game{},
+		&king_of_tokyo.Game{},
 		&liars_dice.Game{},
 		&lost_cities.Game{},
 		&modern_art.Game{},

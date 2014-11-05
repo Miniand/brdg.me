@@ -10,7 +10,7 @@ func (c CardDeathFromAbove) Name() string {
 
 func (c CardDeathFromAbove) Description() string {
 	return fmt.Sprintf(
-		"%s {{b}}and take control of Tokyo{{_b}} if you don't already have it",
+		"%s {{b}}and take control of Tokyo{{_b}} if you don't already control it",
 		RenderVPChange(2),
 	)
 }

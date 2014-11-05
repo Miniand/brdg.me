@@ -13,7 +13,7 @@ func (c CardCompleteDestruction) Description() string {
 		"If you roll %s%s%s%s%s%s {{b}}gain %s{{_b}} in addition to the regular results.",
 		RenderDie(Die1),
 		RenderDie(Die2),
-		RenderDie(Die2),
+		RenderDie(Die3),
 		RenderDie(DieHeal),
 		RenderDie(DieAttack),
 		RenderDie(DieEnergy),

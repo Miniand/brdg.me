@@ -8,7 +8,7 @@ import (
 type TerminalMarkupper struct {
 	Markupper
 	ColourStack []string
-	Bold        bool
+	BoldStack   int
 }
 
 func (t *TerminalMarkupper) StartColour(colour string) interface{} {
@@ -20,17 +20,14 @@ func (t *TerminalMarkupper) EndColour() interface{} {
 		panic("There are no colours set")
 	}
 	t.ColourStack = t.ColourStack[:len(t.ColourStack)-1]
-	if len(t.ColourStack) == 0 {
-		return t.Current()
-	}
-	return t.ColourStack[len(t.ColourStack)-1]
+	return t.Current()
 }
 func (t *TerminalMarkupper) StartBold() interface{} {
-	t.Bold = true
+	t.BoldStack += 1
 	return t.Current()
 }
 func (t *TerminalMarkupper) EndBold() interface{} {
-	t.Bold = false
+	t.BoldStack -= 1
 	return t.Current()
 }
 func (t *TerminalMarkupper) StartLarge() interface{} {
@@ -44,8 +41,10 @@ func (t *TerminalMarkupper) Current() string {
 	if len(t.ColourStack) > 0 {
 		c = TerminalColours()[t.ColourStack[len(t.ColourStack)-1]]
 	}
-	if t.Bold {
+	if t.BoldStack > 0 {
 		c += ";1"
+	} else {
+		c += ";0"
 	}
 	return c + "m"
 }

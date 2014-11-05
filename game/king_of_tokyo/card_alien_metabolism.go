@@ -10,7 +10,7 @@ func (c CardAlienMetabolism) Name() string {
 
 func (c CardAlienMetabolism) Description() string {
 	return fmt.Sprintf(
-		`{{b}}Buying cards costs you 1 less %s.`,
+		`{{b}}Buying cards costs you 1 less %s.{{_b}}`,
 		EnergySymbol,
 	)
 }

@@ -10,7 +10,7 @@ func (c CardSolarPowered) Name() string {
 
 func (c CardSolarPowered) Description() string {
 	return fmt.Sprintf(
-		"At the end of your turn {{b}}gain %s if you have no %s{{_b}}",
+		"At the end of your turn {{b}}gain %s if you have no %s{{_b}}.",
 		RenderEnergy(1),
 		EnergySymbol,
 	)

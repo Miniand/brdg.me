@@ -10,7 +10,7 @@ func (c CardRootingForTheUnderdog) Name() string {
 
 func (c CardRootingForTheUnderdog) Description() string {
 	return fmt.Sprintf(
-		"At the end of a turn, if you have the fewest %s, {{b}}gain %s.{{_b}}",
+		"At the end of a turn, if you have the fewest %s {{b}}gain %s.{{_b}}",
 		VPSymbol,
 		RenderVP(1),
 	)

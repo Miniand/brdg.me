@@ -10,7 +10,7 @@ func (c CardCamouflage) Name() string {
 
 func (c CardCamouflage) Description() string {
 	return fmt.Sprintf(
-		"If you take a damage roll a die for each damage point. {{b}}On a %s you do not take that damage point.{{_b}}",
+		"If you take damage roll a die for each damage point. {{b}}On a %s you do not take that damage point.{{_b}}",
 		RenderDie(DieHeal),
 	)
 }

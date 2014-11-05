@@ -7,7 +7,7 @@ func (c CardEnergize) Name() string {
 }
 
 func (c CardEnergize) Description() string {
-	return RenderVPChange(9)
+	return RenderEnergyChange(9)
 }
 
 func (c CardEnergize) Cost() int {
