@@ -82,7 +82,7 @@ The cards are:
 }
 
 func (g *Game) CanPut(player int) bool {
-	return g.GainPlayer == player && g.Peeking.Len() > 0
+	return g.CurrentPlayer == player && g.Peeking.Len() > 0
 }
 
 func (g *Game) Put(player, num, on int) error {
