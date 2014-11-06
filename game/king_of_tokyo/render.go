@@ -15,9 +15,9 @@ const (
 )
 
 var LocationStrings = map[int]string{
-	LocationOutside:  render.Markup("outside Tokyo", "gray", false),
-	LocationTokyo:    render.Markup("Tokyo", "yellow", true),
-	LocationTokyoBay: render.Markup("Tokyo Bay", "yellow", true),
+	LocationOutside:   render.Markup("outside Tokyo", "gray", false),
+	LocationTokyoCity: render.Markup("Tokyo City", "yellow", true),
+	LocationTokyoBay:  render.Markup("Tokyo Bay", "yellow", true),
 }
 
 func RenderVP(num int) string {

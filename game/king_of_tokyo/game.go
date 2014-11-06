@@ -22,9 +22,9 @@ const (
 )
 
 const (
-	LocationOutside  = -1
-	LocationTokyo    = 0
-	LocationTokyoBay = 1
+	LocationOutside   = -1
+	LocationTokyoCity = 0
+	LocationTokyoBay  = 1
 )
 
 type Game struct {
