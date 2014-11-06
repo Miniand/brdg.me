@@ -98,3 +98,12 @@ func Deck() []CardBase {
 		CardWings{},
 	}
 }
+
+func Shuffle(deck []CardBase) []CardBase {
+	l := len(deck)
+	shuffled := make([]CardBase, l)
+	for i, p := range r.Perm(l) {
+		shuffled[i] = deck[p]
+	}
+	return shuffled
+}
