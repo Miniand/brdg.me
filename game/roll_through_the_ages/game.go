@@ -20,6 +20,7 @@ const (
 	PhaseResolve
 	PhaseInvade
 	PhaseBuild
+	PhaseTrade
 	PhaseBuy
 	PhaseDiscard
 )
@@ -36,6 +37,7 @@ type Game struct {
 	RemainingRolls   int
 	RemainingCoins   int
 	RemainingWorkers int
+	RemainingShips   int
 	FinalRound       bool
 	Finished         bool
 	Log              *log.Log
@@ -46,9 +48,11 @@ func (g *Game) Commands() []command.Command {
 		PreserveCommand{},
 		RollCommand{},
 		TakeCommand{},
+		InvadeCommand{},
 		TradeCommand{},
 		BuildCommand{},
 		SellCommand{},
+		SwapCommand{},
 		BuyCommand{},
 		DiscardCommand{},
 		NextCommand{},
@@ -151,10 +155,33 @@ func (g *Game) StartTurn() {
 	g.PreservePhase()
 }
 
+func (g *Game) NextPhase() {
+	switch g.Phase {
+	case PhasePreserve:
+		g.RollPhase()
+	case PhaseRoll:
+		g.RollExtraPhase()
+	case PhaseExtraRoll:
+		g.CollectPhase()
+	case PhaseCollect:
+		g.PhaseResolve()
+	case PhaseResolve, PhaseInvade:
+		g.BuildPhase()
+	case PhaseBuild:
+		g.TradePhase()
+	case PhaseTrade:
+		g.BuyPhase()
+	case PhaseBuy:
+		g.DiscardPhase()
+	case PhaseDiscard:
+		g.NextTurn()
+	}
+}
+
 func (g *Game) PreservePhase() {
 	g.Phase = PhasePreserve
 	if !g.CanPreserve(g.CurrentPlayer) {
-		g.RollPhase()
+		g.NextPhase()
 	}
 }
 
@@ -167,7 +194,7 @@ func (g *Game) RollPhase() {
 func (g *Game) RollExtraPhase() {
 	g.Phase = PhaseExtraRoll
 	if !g.Boards[g.CurrentPlayer].Developments[DevelopmentLeadership] {
-		g.CollectPhase()
+		g.NextPhase()
 	}
 }
 
@@ -197,7 +224,7 @@ func (g *Game) CollectPhase() {
 	}
 	g.Boards[cp].GainGoods(goods)
 	if !hasFoodOrWorkersDice {
-		g.PhaseResolve()
+		g.NextPhase()
 	}
 }
 
@@ -208,8 +235,8 @@ func (g *Game) PhaseResolve() {
 	if g.Boards[cp].Food > 15 {
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			`%s had their food reduced from {{b}}%d{{_b}} to the maximum of {{b}}15{{_b}}`,
-			g.Boards[cp].Food,
 			g.RenderName(cp),
+			g.Boards[cp].Food,
 		)))
 		g.Boards[cp].Food = 15
 	}
@@ -277,8 +304,10 @@ func (g *Game) PhaseResolve() {
 		g.Log.Add(log.NewPublicMessage(buf.String()))
 	case 4:
 		if g.Boards[cp].Developments[DevelopmentSmithing] {
-			buf := bytes.NewBufferString(
-				"Invasion! %s has the smithing development, so {{b}}all other players are invaded{{_b}}")
+			buf := bytes.NewBufferString(fmt.Sprintf(
+				"Invasion! %s has the smithing development, so {{b}}all other players are invaded{{_b}}",
+				g.RenderName(cp),
+			))
 			for p, _ := range g.Players {
 				if p == cp {
 					continue
@@ -335,29 +364,41 @@ func (g *Game) PhaseResolve() {
 			)))
 		}
 	}
-	g.BuildPhase()
+	g.NextPhase()
 }
 
 func (g *Game) InvadePhase() {
 	g.Phase = PhaseInvade
 	if !g.CanInvade(g.CurrentPlayer) {
-		g.BuildPhase()
+		g.NextPhase()
 	}
 }
 
 func (g *Game) BuildPhase() {
 	g.Phase = PhaseBuild
-	if g.RemainingWorkers == 0 {
-		g.BuyPhase()
+	if !g.CanBuild(g.CurrentPlayer) && !g.CanBuildShip(g.CurrentPlayer) {
+		g.NextPhase()
+	}
+}
+
+func (g *Game) TradePhase() {
+	g.Phase = PhaseTrade
+	g.RemainingShips = g.Boards[g.CurrentPlayer].Ships
+	if g.Boards[g.CurrentPlayer].Ships == 0 ||
+		g.Boards[g.CurrentPlayer].GoodsNum() == 0 {
+		g.NextPhase()
 	}
 }
 
 func (g *Game) BuyPhase() {
 	g.Phase = PhaseBuy
 	b := g.Boards[g.CurrentPlayer]
-	if g.RemainingCoins == 0 && b.GoodsNum() == 0 &&
-		(!b.Developments[DevelopmentGranaries] || b.Food == 0) {
-		g.DiscardPhase()
+	buyingPower := g.RemainingCoins + b.GoodsValue()
+	if b.Developments[DevelopmentGranaries] {
+		buyingPower += b.Food * 6
+	}
+	if buyingPower < 10 {
+		g.NextPhase()
 	}
 }
 
@@ -365,7 +406,7 @@ func (g *Game) DiscardPhase() {
 	g.Phase = PhaseDiscard
 	if g.Boards[g.CurrentPlayer].GoodsNum() <= 6 ||
 		g.Boards[g.CurrentPlayer].Developments[DevelopmentCaravans] {
-		g.NextTurn()
+		g.NextPhase()
 	}
 }
 
@@ -394,7 +435,7 @@ func (g *Game) CheckGameEndTriggered(player int) {
 		return
 	}
 	// 5th development built
-	if len(g.Boards[player].Developments) >= 5 {
+	if len(g.Boards[player].Developments) >= 7 {
 		g.TriggerGameEnd()
 		return
 	}

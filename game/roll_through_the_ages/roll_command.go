@@ -87,10 +87,10 @@ func (g *Game) Roll(player int, diceNum []int) error {
 	case PhaseRoll:
 		g.RemainingRolls -= 1
 		if g.RemainingRolls == 0 {
-			g.RollExtraPhase()
+			g.NextPhase()
 		}
 	case PhaseExtraRoll:
-		g.CollectPhase()
+		g.NextPhase()
 	}
 	return nil
 }
@@ -119,7 +119,7 @@ func (g *Game) KeepSkulls() {
 		}
 	}
 	if len(g.RolledDice) == 0 {
-		g.CollectPhase()
+		g.NextPhase()
 	}
 }
 

@@ -93,6 +93,6 @@ func (g *Game) Take(player int, actions []int) error {
 		}
 	}
 
-	g.PhaseResolve()
+	g.NextPhase()
 	return nil
 }

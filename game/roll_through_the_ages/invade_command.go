@@ -93,6 +93,6 @@ func (g *Game) Invade(player, amount int) error {
 	}
 	g.Log.Add(log.NewPublicMessage(buf.String()))
 
-	g.BuildPhase()
+	g.NextPhase()
 	return nil
 }

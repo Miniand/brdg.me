@@ -42,6 +42,7 @@ func (g *Game) CanNext(player int) bool {
 		PhaseExtraRoll,
 		PhaseInvade,
 		PhaseBuild,
+		PhaseTrade,
 		PhaseBuy,
 	})
 }
@@ -50,17 +51,6 @@ func (g *Game) Next(player int) error {
 	if !g.CanNext(player) {
 		return errors.New("you can't next at the moment")
 	}
-	switch g.Phase {
-	case PhasePreserve:
-		g.RollPhase()
-	case PhaseRoll, PhaseExtraRoll:
-		g.CollectPhase()
-	case PhaseInvade:
-		g.BuildPhase()
-	case PhaseBuild:
-		g.BuyPhase()
-	case PhaseBuy:
-		g.DiscardPhase()
-	}
+	g.NextPhase()
 	return nil
 }

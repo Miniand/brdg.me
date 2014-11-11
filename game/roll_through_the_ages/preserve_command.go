@@ -41,7 +41,7 @@ func (c PreserveCommand) Usage(player string, context interface{}) string {
 func (g *Game) CanPreserve(player int) bool {
 	b := g.Boards[player]
 	return g.CurrentPlayer == player && g.Phase == PhasePreserve &&
-		b.Developments[DevelopmentGranaries] && b.Goods[GoodPottery] > 0 &&
+		b.Developments[DevelopmentPreservation] && b.Goods[GoodPottery] > 0 &&
 		b.Food > 0
 }
 
@@ -58,5 +58,6 @@ func (g *Game) Preserve(player int) error {
 		g.RenderName(player),
 		g.Boards[player].Food,
 	)))
+	g.NextPhase()
 	return nil
 }

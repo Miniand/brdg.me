@@ -56,6 +56,13 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		buf.WriteString(render.Table(cells, 0, 2))
 		buf.WriteString("\n\n")
+	case PhaseTrade:
+		cells := [][]interface{}{
+			{render.Bold("Turn supplies")},
+			{render.Bold("Ships:"), g.RemainingShips},
+		}
+		buf.WriteString(render.Table(cells, 0, 2))
+		buf.WriteString("\n\n")
 	}
 	// Cities
 	buf.WriteString("{{b}}Cities{{_b}} {{c \"gray\"}}(number of dice and food used per turn){{_c}}\n")
@@ -204,6 +211,16 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		row = append(row, render.Centred(cell))
 	}
 	cells = append(cells, row)
+	row = []interface{}{ShipName}
+	for p, _ := range g.Players {
+		cell := render.Markup(
+			g.Boards[p].Ships,
+			render.PlayerColour(p),
+			p == pNum,
+		)
+		row = append(row, render.Centred(cell))
+	}
+	cells = append(cells, row)
 	row = []interface{}{DisasterName}
 	for p, _ := range g.Players {
 		cell := render.Markup(
@@ -259,4 +276,5 @@ func RenderGoodName(good int) string {
 }
 
 var FoodName = `{{b}}{{c "green"}}food{{_c}}{{_b}}`
+var ShipName = `{{b}}{{c "blue"}}ship{{_c}}{{_b}}`
 var DisasterName = `{{b}}{{c "red"}}disaster{{_c}}{{_b}}`

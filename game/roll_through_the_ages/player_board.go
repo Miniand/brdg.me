@@ -16,6 +16,7 @@ type PlayerBoard struct {
 	Food               int
 	Goods              map[int]int
 	Disasters          int
+	Ships              int
 }
 
 func NewPlayerBoard() *PlayerBoard {

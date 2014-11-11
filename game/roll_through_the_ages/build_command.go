@@ -23,7 +23,7 @@ func (c BuildCommand) CanCall(player string, context interface{}) bool {
 	if err != nil {
 		return false
 	}
-	return g.CanBuild(pNum)
+	return g.CanBuild(pNum) || g.CanBuildShip(pNum)
 }
 
 func (c BuildCommand) Call(player string, context interface{},
@@ -47,6 +47,9 @@ func (c BuildCommand) Call(player string, context interface{},
 	stringMap := map[int]string{
 		-1: "city",
 	}
+	if g.Boards[pNum].Developments[DevelopmentShipping] {
+		stringMap[-2] = "ship"
+	}
 	for _, m := range Monuments {
 		stringMap[m] = MonumentValues[m].Name
 	}
@@ -58,19 +61,30 @@ func (c BuildCommand) Call(player string, context interface{},
 		return "", err
 	}
 
-	if thing < 0 {
+	switch thing {
+	case -1:
 		return "", g.BuildCity(pNum, amount)
+	case -2:
+		return "", g.BuildShip(pNum, amount)
+	default:
+		return "", g.BuildMonument(pNum, thing, amount)
 	}
-	return "", g.BuildMonument(pNum, thing, amount)
 }
 
 func (c BuildCommand) Usage(player string, context interface{}) string {
-	return "{{b}}build # (thing){{_b}} to build monuments or cities, eg. {{b}}build 2 great{{_b}} or {{b}}build 3 city{{_b}}"
+	return "{{b}}build # (thing){{_b}} to build monuments or cities using workers, or ships using cloth and wood. Eg. {{b}}build 2 great{{_b}} or {{b}}build 3 city{{_b}} or {{b}}build 1 ship{{_b}}"
 }
 
 func (g *Game) CanBuild(player int) bool {
 	return g.CurrentPlayer == player && g.Phase == PhaseBuild &&
 		g.RemainingWorkers > 0
+}
+
+func (g *Game) CanBuildShip(player int) bool {
+	b := g.Boards[player]
+	return g.CurrentPlayer == player && g.Phase == PhaseBuild &&
+		b.Developments[DevelopmentShipping] &&
+		b.Goods[GoodWood] > 0 && b.Goods[GoodCloth] > 0
 }
 
 func (g *Game) BuildCity(player, amount int) error {
@@ -102,8 +116,40 @@ func (g *Game) BuildCity(player, amount int) error {
 			newCities,
 		)))
 	}
-	if g.RemainingWorkers == 0 {
-		g.BuyPhase()
+	if !g.CanBuild(player) && !g.CanBuildShip(player) {
+		g.NextPhase()
+	}
+	return nil
+}
+
+func (g *Game) BuildShip(player, amount int) error {
+	if !g.CanBuildShip(player) {
+		return errors.New("you can't build a ship at the moment")
+	}
+	if amount < 1 {
+		return errors.New("amount must be a positive number")
+	}
+	if w := g.Boards[player].Goods[GoodWood]; amount > w {
+		return fmt.Errorf("you only have %d wood left", w)
+	}
+	if c := g.Boards[player].Goods[GoodWood]; amount > c {
+		return fmt.Errorf("you only have %d cloth left", c)
+	}
+	if g.Boards[player].Ships+amount > 5 {
+		return errors.New("you can only have 5 ships")
+	}
+
+	g.Boards[player].Ships += amount
+	g.Boards[player].Goods[GoodWood] -= amount
+	g.Boards[player].Goods[GoodCloth] -= amount
+
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s built {{b}}%d ships{{_b}}",
+		g.RenderName(player),
+		amount,
+	)))
+	if !g.CanBuild(player) && !g.CanBuildShip(player) {
+		g.NextPhase()
 	}
 	return nil
 }
@@ -151,8 +197,8 @@ func (g *Game) BuildMonument(player, monument, amount int) error {
 		)))
 		g.CheckGameEndTriggered(player)
 	}
-	if g.RemainingWorkers == 0 {
-		g.BuyPhase()
+	if !g.CanBuild(player) && !g.CanBuildShip(player) {
+		g.NextPhase()
 	}
 	return nil
 }
