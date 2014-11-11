@@ -39,17 +39,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Remaining turns
-	if g.FinalRound >= g.Round {
-		remaining := g.FinalRound - g.Round
-		if remaining == 0 {
-			buf.WriteString("{{b}}This is the final round{{_b}}")
-		} else {
-			buf.WriteString(fmt.Sprintf(
-				"{{b}}%d{{_b}} rounds remaining after this one",
-				remaining,
-			))
-		}
-		buf.WriteString("\n\n")
+	if g.FinalRound {
+		buf.WriteString("{{b}}This is the final round{{_b}}\n\n")
 	}
 	// Turn resources
 	switch g.Phase {
@@ -141,7 +132,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		render.Bold("Effect"),
 	}...)
 	cells = [][]interface{}{header}
-	for _, m := range g.Monuments() {
+	for _, m := range Monuments {
 		mv := MonumentValues[m]
 		row := []interface{}{strings.Title(mv.Name)}
 		for p, _ := range g.Players {
@@ -162,7 +153,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		row = append(row, []interface{}{
 			fmt.Sprintf(" %d", mv.Size),
-			fmt.Sprintf("{{b}}%d{{_b}}/%d", mv.Points, mv.SubsequentPoints()),
+			fmt.Sprintf("{{b}}%d{{_b}}/%d", mv.Points, mv.SubsequentPoints),
 			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, mv.Effect),
 		}...)
 		cells = append(cells, row)

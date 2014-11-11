@@ -47,7 +47,7 @@ func (c BuildCommand) Call(player string, context interface{},
 	stringMap := map[int]string{
 		-1: "city",
 	}
-	for _, m := range g.Monuments() {
+	for _, m := range Monuments {
 		stringMap[m] = MonumentValues[m].Name
 	}
 	thing, err := helper.MatchStringInStringMap(
@@ -115,7 +115,7 @@ func (g *Game) BuildMonument(player, monument, amount int) error {
 	if amount < 1 {
 		return errors.New("amount must be a positive number")
 	}
-	if !ContainsInt(monument, g.Monuments()) {
+	if !ContainsInt(monument, Monuments) {
 		return errors.New("that isn't a valid monument")
 	}
 	if amount > g.RemainingWorkers {

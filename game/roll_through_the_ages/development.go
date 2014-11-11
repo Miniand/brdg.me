@@ -13,12 +13,16 @@ const (
 	DevelopmentAgriculture
 	DevelopmentQuarrying
 	DevelopmentMedicine
+	DevelopmentPreservation
 	DevelopmentCoinage
 	DevelopmentCaravans
+	DevelopmentShipping
+	DevelopmentSmithing
 	DevelopmentReligion
 	DevelopmentGranaries
 	DevelopmentMasonry
 	DevelopmentEngineering
+	DevelopmentCommerce
 	DevelopmentArchitecture
 	DevelopmentEmpire
 )
@@ -29,12 +33,16 @@ var Developments = []int{
 	DevelopmentAgriculture,
 	DevelopmentQuarrying,
 	DevelopmentMedicine,
+	DevelopmentPreservation,
 	DevelopmentCoinage,
 	DevelopmentCaravans,
+	DevelopmentShipping,
+	DevelopmentSmithing,
 	DevelopmentReligion,
 	DevelopmentGranaries,
 	DevelopmentMasonry,
 	DevelopmentEngineering,
+	DevelopmentCommerce,
 	DevelopmentArchitecture,
 	DevelopmentEmpire,
 }
@@ -67,8 +75,14 @@ var DevelopmentValues = map[int]Development{
 	DevelopmentMedicine: {
 		Name:   "medicine",
 		Effect: "pestilence has no effect",
-		Cost:   15,
-		Points: 3,
+		Cost:   20,
+		Points: 4,
+	},
+	DevelopmentPreservation: {
+		Name:   "preservation",
+		Effect: "food x2 before roll for 1 pottery",
+		Cost:   20,
+		Points: 4,
 	},
 	DevelopmentCoinage: {
 		Name:   "coinage",
@@ -82,15 +96,27 @@ var DevelopmentValues = map[int]Development{
 		Cost:   20,
 		Points: 4,
 	},
+	DevelopmentShipping: {
+		Name:   "shipping",
+		Effect: "swap 1 good / ship",
+		Cost:   25,
+		Points: 5,
+	},
+	DevelopmentSmithing: {
+		Name:   "smithing",
+		Effect: "invasion affects opponents",
+		Cost:   25,
+		Points: 5,
+	},
 	DevelopmentReligion: {
 		Name:   "religion",
 		Effect: "revolt affects opponents",
-		Cost:   20,
-		Points: 6,
+		Cost:   25,
+		Points: 7,
 	},
 	DevelopmentGranaries: {
 		Name:   "granaries",
-		Effect: "sell food for 4 coins each",
+		Effect: "sell food for 6 coins each",
 		Cost:   30,
 		Points: 6,
 	},
@@ -106,17 +132,23 @@ var DevelopmentValues = map[int]Development{
 		Cost:   40,
 		Points: 6,
 	},
+	DevelopmentCommerce: {
+		Name:   "commerce",
+		Effect: "bonus pts: 1 / good",
+		Cost:   40,
+		Points: 8,
+	},
 	DevelopmentArchitecture: {
 		Name:   "architecture",
-		Effect: "bonus pts: 1 / monument",
-		Cost:   50,
+		Effect: "bonus pts: 2 / monument",
+		Cost:   60,
 		Points: 8,
 	},
 	DevelopmentEmpire: {
 		Name:   "empire",
 		Effect: "bonus pts: 1 / city",
-		Cost:   60,
-		Points: 8,
+		Cost:   70,
+		Points: 10,
 	},
 }
 

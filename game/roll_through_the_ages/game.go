@@ -13,10 +13,12 @@ import (
 )
 
 const (
-	PhaseRoll = iota
+	PhasePreserve = iota
+	PhaseRoll
 	PhaseExtraRoll
 	PhaseCollect
 	PhaseResolve
+	PhaseInvade
 	PhaseBuild
 	PhaseBuy
 	PhaseDiscard
@@ -34,13 +36,14 @@ type Game struct {
 	RemainingRolls   int
 	RemainingCoins   int
 	RemainingWorkers int
-	Round            int
-	FinalRound       int
+	FinalRound       bool
+	Finished         bool
 	Log              *log.Log
 }
 
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
+		PreserveCommand{},
 		RollCommand{},
 		TakeCommand{},
 		TradeCommand{},
@@ -70,17 +73,13 @@ func (g *Game) Decode(data []byte) error {
 
 func (g *Game) Start(players []string) error {
 	l := len(players)
-	if l < 1 || l > 4 {
-		return errors.New("Roll Through the Ages is 1-4 player")
+	if l < 2 || l > 4 {
+		return errors.New("Roll Through the Ages is 2-4 player")
 	}
 	g.Players = players
 	g.Boards = make([]*PlayerBoard, l)
 	for i := 0; i < l; i++ {
 		g.Boards[i] = NewPlayerBoard()
-	}
-	g.Round = 1
-	if len(players) == 1 {
-		g.FinalRound = 10
 	}
 	g.Log = log.New()
 	g.StartTurn()
@@ -92,7 +91,7 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return g.FinalRound != 0 && g.Round > g.FinalRound
+	return g.Finished
 }
 
 func (g *Game) Winners() []string {
@@ -147,11 +146,22 @@ func (g *Game) GameLog() *log.Log {
 }
 
 func (g *Game) StartTurn() {
+	g.RemainingCoins = 0
+	g.RemainingWorkers = 0
+	g.PreservePhase()
+}
+
+func (g *Game) PreservePhase() {
+	g.Phase = PhasePreserve
+	if !g.CanPreserve(g.CurrentPlayer) {
+		g.RollPhase()
+	}
+}
+
+func (g *Game) RollPhase() {
 	g.Phase = PhaseRoll
 	g.NewRoll(g.Boards[g.CurrentPlayer].Cities())
 	g.RemainingRolls = 2
-	g.RemainingCoins = 0
-	g.RemainingWorkers = 0
 }
 
 func (g *Game) RollExtraPhase() {
@@ -194,6 +204,15 @@ func (g *Game) CollectPhase() {
 func (g *Game) PhaseResolve() {
 	g.Phase = PhaseResolve
 	cp := g.CurrentPlayer
+	// Check food isn't over maximum
+	if g.Boards[cp].Food > 15 {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`%s had their food reduced from {{b}}%d{{_b}} to the maximum of {{b}}15{{_b}}`,
+			g.Boards[cp].Food,
+			g.RenderName(cp),
+		)))
+		g.Boards[cp].Food = 15
+	}
 	// Feed cities
 	if cities := g.Boards[cp].Cities(); g.Boards[cp].Food >= cities {
 		g.Boards[cp].Food -= cities
@@ -237,42 +256,50 @@ func (g *Game) PhaseResolve() {
 			)))
 		}
 	case 3:
-		if len(g.Players) == 1 {
-			if g.Boards[cp].Developments[DevelopmentMedicine] {
-				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-					`%s avoids pestilence with their medicine development`,
-					g.RenderName(cp),
-				)))
-			} else {
-				g.Boards[cp].Disasters += 3
-				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-					`Pestilence! %s takes {{b}}3 disaster points{{_b}}`,
-					g.RenderName(cp),
-				)))
+		buf := bytes.NewBufferString("Pestilence!")
+		for p, _ := range g.Players {
+			if p == cp {
+				continue
 			}
-		} else {
-			buf := bytes.NewBufferString("Pestilence!")
+			if g.Boards[p].Developments[DevelopmentMedicine] {
+				buf.WriteString(fmt.Sprintf(
+					"\n  %s avoids pestilence with their medicine development",
+					g.RenderName(p),
+				))
+			} else {
+				g.Boards[p].Disasters += 3
+				buf.WriteString(fmt.Sprintf(
+					"\n  %s takes {{b}}3 disaster points{{_b}}",
+					g.RenderName(p),
+				))
+			}
+		}
+		g.Log.Add(log.NewPublicMessage(buf.String()))
+	case 4:
+		if g.Boards[cp].Developments[DevelopmentSmithing] {
+			buf := bytes.NewBufferString(
+				"Invasion! %s has the smithing development, so {{b}}all other players are invaded{{_b}}")
 			for p, _ := range g.Players {
 				if p == cp {
 					continue
 				}
-				if g.Boards[p].Developments[DevelopmentMedicine] {
+				if g.Boards[p].HasBuilt(MonumentGreatWall) {
 					buf.WriteString(fmt.Sprintf(
-						"\n  %s avoids pestilence with their medicine development",
+						"\n  %s avoids an invasion with their wall",
 						g.RenderName(p),
 					))
 				} else {
-					g.Boards[p].Disasters += 3
+					g.Boards[p].Disasters += 4
 					buf.WriteString(fmt.Sprintf(
-						"\n  %s takes {{b}}3 disaster points{{_b}}",
+						"\n  %s takes {{b}}4 disaster points{{_b}}",
 						g.RenderName(p),
 					))
 				}
 			}
 			g.Log.Add(log.NewPublicMessage(buf.String()))
-		}
-	case 4:
-		if g.Boards[cp].HasBuilt(MonumentGreatWall) {
+			g.InvadePhase()
+			return
+		} else if g.Boards[cp].HasBuilt(MonumentGreatWall) {
 			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 				`%s avoids an invasion with their wall`,
 				g.RenderName(cp),
@@ -286,25 +313,18 @@ func (g *Game) PhaseResolve() {
 		}
 	default:
 		if g.Boards[cp].Developments[DevelopmentReligion] {
-			if len(g.Players) == 1 {
-				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-					`%s avoids a revolt with their religion development`,
-					g.RenderName(cp),
-				)))
-			} else {
-				for p, _ := range g.Players {
-					if p == cp {
-						continue
-					}
-					for _, good := range Goods {
-						g.Boards[p].Goods[good] = 0
-					}
+			for p, _ := range g.Players {
+				if p == cp {
+					continue
 				}
-				g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-					`Revolt! %s has the religion development, so {{b}}all other players{{_b}} lose {{b}}all of their goods{{_b}}`,
-					g.RenderName(cp),
-				)))
+				for _, good := range Goods {
+					g.Boards[p].Goods[good] = 0
+				}
 			}
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				`Revolt! %s has the religion development, so {{b}}all other players{{_b}} lose {{b}}all of their goods{{_b}}`,
+				g.RenderName(cp),
+			)))
 		} else {
 			for _, good := range Goods {
 				g.Boards[cp].Goods[good] = 0
@@ -316,6 +336,13 @@ func (g *Game) PhaseResolve() {
 		}
 	}
 	g.BuildPhase()
+}
+
+func (g *Game) InvadePhase() {
+	g.Phase = PhaseInvade
+	if !g.CanInvade(g.CurrentPlayer) {
+		g.BuildPhase()
+	}
 }
 
 func (g *Game) BuildPhase() {
@@ -344,8 +371,8 @@ func (g *Game) DiscardPhase() {
 
 func (g *Game) NextTurn() {
 	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
-	if g.CurrentPlayer == 0 {
-		g.Round += 1
+	if g.CurrentPlayer == 0 && g.FinalRound {
+		g.Finished = true
 	}
 	if !g.IsFinished() {
 		g.StartTurn()
@@ -362,7 +389,7 @@ func (g *Game) PlayerNum(player string) (int, error) {
 }
 
 func (g *Game) CheckGameEndTriggered(player int) {
-	if g.FinalRound != 0 {
+	if g.FinalRound {
 		// End game already triggered
 		return
 	}
@@ -372,7 +399,7 @@ func (g *Game) CheckGameEndTriggered(player int) {
 		return
 	}
 	// Every monument built
-	for _, m := range g.Monuments() {
+	for _, m := range Monuments {
 		built := false
 		for _, b := range g.Boards {
 			if b.HasBuilt(m) {
@@ -389,7 +416,7 @@ func (g *Game) CheckGameEndTriggered(player int) {
 }
 
 func (g *Game) TriggerGameEnd() {
-	g.FinalRound = g.Round
+	g.FinalRound = true
 	g.Log.Add(log.NewPublicMessage(
 		"{{b}}Game end has been triggered, the game will be finished after the last player has their turn{{_b}}"))
 }

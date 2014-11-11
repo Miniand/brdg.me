@@ -11,15 +11,11 @@ const (
 )
 
 type Monument struct {
-	Name      string
-	Size      int
-	Points    int
-	Blacklist int
-	Effect    string
-}
-
-func (m Monument) SubsequentPoints() int {
-	return m.Points / 2
+	Name             string
+	Size             int
+	Points           int
+	SubsequentPoints int
+	Effect           string
 }
 
 var Monuments = []int{
@@ -32,21 +28,6 @@ var Monuments = []int{
 	MonumentGreatPyramid,
 }
 
-func MonumentsForPlayerCount(count int) []int {
-	monuments := []int{}
-	for _, m := range Monuments {
-		mv := MonumentValues[m]
-		if mv.Blacklist != count {
-			monuments = append(monuments, m)
-		}
-	}
-	return monuments
-}
-
-func (g *Game) Monuments() []int {
-	return MonumentsForPlayerCount(len(g.Players))
-}
-
 var MonumentValues = map[int]Monument{
 	MonumentStepPyramid: {
 		Name:   "Step Pyramid",
@@ -54,37 +35,40 @@ var MonumentValues = map[int]Monument{
 		Points: 1,
 	},
 	MonumentStoneCircle: {
-		Name:   "Stone Circle",
-		Size:   5,
-		Points: 2,
+		Name:             "Stone Circle",
+		Size:             5,
+		Points:           2,
+		SubsequentPoints: 1,
 	},
 	MonumentTemple: {
-		Name:      "Temple",
-		Size:      7,
-		Points:    4,
-		Blacklist: 2,
+		Name:             "Temple",
+		Size:             7,
+		Points:           4,
+		SubsequentPoints: 3,
 	},
 	MonumentObelisk: {
-		Name:   "Obelisk",
-		Size:   9,
-		Points: 6,
+		Name:             "Obelisk",
+		Size:             9,
+		Points:           6,
+		SubsequentPoints: 4,
 	},
 	MonumentHangingGardens: {
-		Name:      "Hanging Gardens",
-		Size:      11,
-		Points:    8,
-		Blacklist: 3,
+		Name:             "Hanging Gardens",
+		Size:             11,
+		Points:           8,
+		SubsequentPoints: 5,
 	},
 	MonumentGreatWall: {
-		Name:   "Wall", // Changed from Great Wall to help string matching.
-		Size:   13,
-		Points: 10,
-		Effect: "invasion has no effect",
+		Name:             "Wall", // Changed from Great Wall to help string matching.
+		Size:             13,
+		Points:           10,
+		SubsequentPoints: 6,
+		Effect:           "invasion has no effect",
 	},
 	MonumentGreatPyramid: {
-		Name:      "Great Pyramid",
-		Size:      15,
-		Points:    12,
-		Blacklist: 2,
+		Name:             "Great Pyramid",
+		Size:             15,
+		Points:           12,
+		SubsequentPoints: 8,
 	},
 }

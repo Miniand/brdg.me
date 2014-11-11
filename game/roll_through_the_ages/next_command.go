@@ -37,8 +37,10 @@ func (c NextCommand) Usage(player string, context interface{}) string {
 
 func (g *Game) CanNext(player int) bool {
 	return player == g.CurrentPlayer && ContainsInt(g.Phase, []int{
+		PhasePreserve,
 		PhaseRoll,
 		PhaseExtraRoll,
+		PhaseInvade,
 		PhaseBuild,
 		PhaseBuy,
 	})
@@ -49,8 +51,12 @@ func (g *Game) Next(player int) error {
 		return errors.New("you can't next at the moment")
 	}
 	switch g.Phase {
+	case PhasePreserve:
+		g.RollPhase()
 	case PhaseRoll, PhaseExtraRoll:
 		g.CollectPhase()
+	case PhaseInvade:
+		g.BuildPhase()
 	case PhaseBuild:
 		g.BuyPhase()
 	case PhaseBuy:
