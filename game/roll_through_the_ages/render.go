@@ -39,17 +39,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
 	// Remaining turns
-	if g.FinalRound >= g.Round {
-		remaining := g.FinalRound - g.Round
-		if remaining == 0 {
-			buf.WriteString("{{b}}This is the final round{{_b}}")
-		} else {
-			buf.WriteString(fmt.Sprintf(
-				"{{b}}%d{{_b}} rounds remaining after this one",
-				remaining,
-			))
-		}
-		buf.WriteString("\n\n")
+	if g.FinalRound {
+		buf.WriteString("{{b}}This is the final round{{_b}}\n\n")
 	}
 	// Turn resources
 	switch g.Phase {
@@ -62,6 +53,13 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 				g.RemainingCoins,
 				g.RemainingCoins+g.Boards[pNum].GoodsValue(),
 			)},
+		}
+		buf.WriteString(render.Table(cells, 0, 2))
+		buf.WriteString("\n\n")
+	case PhaseTrade:
+		cells := [][]interface{}{
+			{render.Bold("Turn supplies")},
+			{render.Bold("Ships:"), g.RemainingShips},
 		}
 		buf.WriteString(render.Table(cells, 0, 2))
 		buf.WriteString("\n\n")
@@ -141,7 +139,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		render.Bold("Effect"),
 	}...)
 	cells = [][]interface{}{header}
-	for _, m := range g.Monuments() {
+	for _, m := range Monuments {
 		mv := MonumentValues[m]
 		row := []interface{}{strings.Title(mv.Name)}
 		for p, _ := range g.Players {
@@ -162,7 +160,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		row = append(row, []interface{}{
 			fmt.Sprintf(" %d", mv.Size),
-			fmt.Sprintf("{{b}}%d{{_b}}/%d", mv.Points, mv.SubsequentPoints()),
+			fmt.Sprintf("{{b}}%d{{_b}}/%d", mv.Points, mv.SubsequentPoints),
 			fmt.Sprintf(`{{c "gray"}}%s{{_c}}`, mv.Effect),
 		}...)
 		cells = append(cells, row)
@@ -207,6 +205,16 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	for p, _ := range g.Players {
 		cell := render.Markup(
 			g.Boards[p].Food,
+			render.PlayerColour(p),
+			p == pNum,
+		)
+		row = append(row, render.Centred(cell))
+	}
+	cells = append(cells, row)
+	row = []interface{}{ShipName}
+	for p, _ := range g.Players {
+		cell := render.Markup(
+			g.Boards[p].Ships,
 			render.PlayerColour(p),
 			p == pNum,
 		)
@@ -268,4 +276,5 @@ func RenderGoodName(good int) string {
 }
 
 var FoodName = `{{b}}{{c "green"}}food{{_c}}{{_b}}`
+var ShipName = `{{b}}{{c "blue"}}ship{{_c}}{{_b}}`
 var DisasterName = `{{b}}{{c "red"}}disaster{{_c}}{{_b}}`

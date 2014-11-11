@@ -16,6 +16,7 @@ type PlayerBoard struct {
 	Food               int
 	Goods              map[int]int
 	Disasters          int
+	Ships              int
 }
 
 func NewPlayerBoard() *PlayerBoard {
@@ -57,13 +58,16 @@ func (b *PlayerBoard) Score() int {
 			if b.MonumentBuiltFirst[m] {
 				score += mv.Points
 			} else {
-				score += mv.SubsequentPoints()
+				score += mv.SubsequentPoints
 			}
 		}
 	}
 	// Bonus points
+	if b.Developments[DevelopmentCommerce] {
+		score += b.GoodsNum()
+	}
 	if b.Developments[DevelopmentArchitecture] {
-		score += builtMonuments
+		score += builtMonuments * 2
 	}
 	if b.Developments[DevelopmentEmpire] {
 		score += b.Cities()

@@ -119,6 +119,6 @@ func (g *Game) BuyDevelopment(player, development int, goods []int) error {
 	}
 	g.CheckGameEndTriggered(player)
 
-	g.DiscardPhase()
+	g.NextPhase()
 	return nil
 }
