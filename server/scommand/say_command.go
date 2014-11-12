@@ -12,6 +12,10 @@ import (
 	"github.com/Miniand/brdg.me/server/model"
 )
 
+const (
+	MsgTypeSay = "say"
+)
+
 type SayCommand struct {
 	gameModel *model.GameModel
 }
@@ -31,8 +35,12 @@ func (sc SayCommand) Call(player string, context interface{},
 	if !ok {
 		return "", errors.New("No game was passed in")
 	}
-	g.GameLog().Add(log.NewPublicMessage(fmt.Sprintf(`%s says: %s`,
-		render.PlayerNameInPlayers(player, g.PlayerList()), args[1])))
+	message := fmt.Sprintf(
+		`{{b}}%s says: %s{{_b}}`,
+		render.PlayerNameInPlayers(player, g.PlayerList()),
+		render.RenderPlain(args[1]),
+	)
+	g.GameLog().Add(log.NewPublicMessage(message))
 	if g.IsFinished() && sc.gameModel != nil {
 		// Just send it out to everyone.
 		otherPlayers := []string{}
@@ -41,9 +49,15 @@ func (sc SayCommand) Call(player string, context interface{},
 				otherPlayers = append(otherPlayers, p)
 			}
 		}
-		communicate.Game(sc.gameModel.Id, g, otherPlayers,
+		communicate.Game(
+			sc.gameModel.Id,
+			g,
+			otherPlayers,
 			append(g.Commands(), Commands(sc.gameModel)...),
-			"", false)
+			message,
+			MsgTypeSay,
+			false,
+		)
 	}
 	return "", nil
 }

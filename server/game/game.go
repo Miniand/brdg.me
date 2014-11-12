@@ -15,6 +15,16 @@ import (
 	"github.com/Miniand/brdg.me/server/scommand"
 )
 
+const (
+	MsgTypeElimitate = "eliminate"
+	MsgTypeFinish    = "finish"
+	MsgTypeSuccess   = "success"
+	MsgTypeError     = "error"
+	MsgTypeYourTurn  = "yourTurn"
+	MsgTypeNewLogs   = "newLogs"
+	MsgTypeUpdate    = "update"
+)
+
 var gameMut = map[string]*sync.Mutex{}
 
 // Run commands on the game, email relevant people and handle action issues
@@ -81,9 +91,11 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if isEliminator {
 			initialEliminated = eliminator.EliminatedPlayerList()
 		}
+		msgType := MsgTypeSuccess
 		output, err := command.CallInCommands(player, g, commandText, commands)
 		header := ""
 		if err != nil {
+			msgType = MsgTypeError
 			header = err.Error()
 		}
 		// Save now so websocket updates don't update old data
@@ -100,8 +112,15 @@ func HandleCommandText(player, gameId, commandText string) error {
 			header += output
 		}
 		commErrs := []string{}
-		commErr := communicate.Game(gm.Id, g, []string{player},
-			commands, header, false)
+		commErr := communicate.Game(
+			gm.Id,
+			g,
+			[]string{player},
+			commands,
+			header,
+			msgType,
+			false,
+		)
 		if commErr != nil {
 			commErrs = append(commErrs, commErr.Error())
 		}
@@ -112,21 +131,35 @@ func HandleCommandText(player, gameId, commandText string) error {
 			// Email any players who now have a turn, or for ones who still have
 			// a turn but there are new logs
 			whoseTurnNow, remaining := WhoseTurnNow(g, initialWhoseTurn)
-			commErr = communicate.Game(gm.Id, g, whoseTurnNow,
-				append(g.Commands(), scommand.Commands(gm)...), "", false)
+			commErr = communicate.Game(
+				gm.Id,
+				g,
+				whoseTurnNow,
+				append(g.Commands(), scommand.Commands(gm)...),
+				"",
+				MsgTypeYourTurn,
+				false,
+			)
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
 			communicatedTo = append(communicatedTo, whoseTurnNow...)
 			whoseTurnNewLogs := []string{}
-			for _, p := range remaining {
+			uncommunicated, _ := FindNewStringsInSlice(communicatedTo, remaining)
+			for _, p := range uncommunicated {
 				if len(g.GameLog().NewMessagesFor(p)) > 0 {
 					whoseTurnNewLogs = append(whoseTurnNewLogs, p)
 				}
 			}
-			commErr = communicate.Game(gm.Id, g, whoseTurnNewLogs,
+			commErr = communicate.Game(
+				gm.Id,
+				g,
+				whoseTurnNewLogs,
 				append(g.Commands(), scommand.Commands(gm)...),
-				"", false)
+				"",
+				MsgTypeNewLogs,
+				false,
+			)
 			if commErr != nil {
 				commErrs = append(commErrs, commErr.Error())
 			}
@@ -135,25 +168,38 @@ func HandleCommandText(player, gameId, commandText string) error {
 			if isEliminator {
 				newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
 					eliminator.EliminatedPlayerList())
-				commErr = communicate.Game(gm.Id, g, newlyEliminated,
+				commErr = communicate.Game(
+					gm.Id,
+					g,
+					newlyEliminated,
 					append(g.Commands(), scommand.Commands(gm)...),
-					"You have been eliminated from the game.", false)
+					"You have been eliminated from the game.",
+					MsgTypeElimitate,
+					false,
+				)
 				if commErr != nil {
 					commErrs = append(commErrs, commErr.Error())
 				}
 				communicatedTo = append(communicatedTo, newlyEliminated...)
 			}
-			uncommunicated, _ := FindNewStringsInSlice(communicatedTo,
+			uncommunicated, _ = FindNewStringsInSlice(communicatedTo,
 				g.PlayerList())
 			if len(uncommunicated) > 0 {
 				if !alreadyFinished && g.IsFinished() {
 					// If it's the end of the game and some people haven't been contacted
-					commErr = communicate.Game(gm.Id, g, uncommunicated,
-						append(g.Commands(), scommand.Commands(gm)...), "", false)
+					commErr = communicate.Game(
+						gm.Id,
+						g,
+						uncommunicated,
+						append(g.Commands(), scommand.Commands(gm)...),
+						"",
+						MsgTypeFinish,
+						false,
+					)
 				} else {
 					// We send updates to all remaining players via websockets so
 					// they can update.
-					communicate.GameUpdate(gm.Id, g, uncommunicated, "")
+					communicate.GameUpdate(gm.Id, g, uncommunicated, "", MsgTypeUpdate)
 				}
 			}
 		}

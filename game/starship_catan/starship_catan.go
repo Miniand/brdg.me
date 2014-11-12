@@ -166,6 +166,9 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
+	if g.GainResources != nil {
+		return []string{g.Players[g.GainPlayer]}
+	}
 	players := []string{}
 	switch g.Phase {
 	case PhaseChooseModule:
