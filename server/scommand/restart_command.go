@@ -49,7 +49,7 @@ func (rc RestartCommand) Call(player string, context interface{},
 		return "", err
 	}
 	rc.gameModel.Restarted = true
-	return "The game has been restarted in a new email thread", nil
+	return "The game has been restarted", nil
 }
 
 func (rc RestartCommand) Usage(player string, context interface{}) string {

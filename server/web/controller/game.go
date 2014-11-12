@@ -156,7 +156,15 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vars := mux.Vars(r)
-	gm, err := model.LoadGame(vars["id"])
+	gameId := vars["id"]
+	// Do the command
+	if err := sgame.HandleCommandText(authUser.Email, gameId,
+		r.FormValue("command")); err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	// Load game to get changes
+	gm, err := model.LoadGame(gameId)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 		return
@@ -166,11 +174,7 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 		ApiInternalServerError(err.Error(), w, r)
 		return
 	}
-	if err := sgame.HandleCommandText(authUser.Email, gm.Id,
-		r.FormValue("command")); err != nil {
-		ApiInternalServerError(err.Error(), w, r)
-		return
-	}
+	// Get output for return
 	gameOutput, err := g.RenderForPlayer(authUser.Email)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
@@ -190,7 +194,12 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 	commandHtml, err := render.RenderHtml(
 		render.CommandUsages(command.CommandUsages(
 			authUser.Email, g,
-			command.AvailableCommands(authUser.Email, g, g.Commands()))))
+			command.AvailableCommands(
+				authUser.Email,
+				g,
+				append(g.Commands(), scommand.Commands(gm)...),
+			),
+		)))
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 		return

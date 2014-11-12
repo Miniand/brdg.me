@@ -11,6 +11,10 @@ import (
 	"github.com/Miniand/brdg.me/server/model"
 )
 
+const (
+	MsgTypeInvite = "invite"
+)
+
 type NewCommand struct{}
 
 func (nc NewCommand) Parse(input string) []string {
@@ -39,10 +43,15 @@ func (nc NewCommand) Call(player string, context interface{},
 	if err != nil {
 		return "", err
 	}
-	return "", communicate.Game(gm.Id, g, g.PlayerList(),
+	return "", communicate.Game(
+		gm.Id,
+		g,
+		g.PlayerList(),
 		append(g.Commands(), Commands(gm)...),
-		"You have been invited by "+player+" to play "+g.Name()+" by email!",
-		true)
+		"You have been invited by "+player+" to play "+g.Name()+"!",
+		MsgTypeInvite,
+		true,
+	)
 }
 
 func (nc NewCommand) Usage(player string, context interface{}) string {
