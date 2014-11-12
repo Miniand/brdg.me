@@ -16,12 +16,13 @@ import (
 )
 
 const (
-	MsgTypeElimitate       = "eliminate"
-	MsgTypeFinish          = "finish"
-	MsgTypeCommandResponse = "commandResponse"
-	MsgTypeYourTurn        = "yourTurn"
-	MsgTypeNewLogs         = "newLogs"
-	MsgTypeUpdate          = "update"
+	MsgTypeElimitate = "eliminate"
+	MsgTypeFinish    = "finish"
+	MsgTypeSuccess   = "success"
+	MsgTypeError     = "error"
+	MsgTypeYourTurn  = "yourTurn"
+	MsgTypeNewLogs   = "newLogs"
+	MsgTypeUpdate    = "update"
 )
 
 var gameMut = map[string]*sync.Mutex{}
@@ -90,9 +91,11 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if isEliminator {
 			initialEliminated = eliminator.EliminatedPlayerList()
 		}
+		msgType := MsgTypeSuccess
 		output, err := command.CallInCommands(player, g, commandText, commands)
 		header := ""
 		if err != nil {
+			msgType = MsgTypeError
 			header = err.Error()
 		}
 		// Save now so websocket updates don't update old data
@@ -115,7 +118,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			[]string{player},
 			commands,
 			header,
-			MsgTypeCommandResponse,
+			msgType,
 			false,
 		)
 		if commErr != nil {
@@ -142,7 +145,8 @@ func HandleCommandText(player, gameId, commandText string) error {
 			}
 			communicatedTo = append(communicatedTo, whoseTurnNow...)
 			whoseTurnNewLogs := []string{}
-			for _, p := range remaining {
+			uncommunicated, _ := FindNewStringsInSlice(communicatedTo, remaining)
+			for _, p := range uncommunicated {
 				if len(g.GameLog().NewMessagesFor(p)) > 0 {
 					whoseTurnNewLogs = append(whoseTurnNewLogs, p)
 				}
@@ -178,7 +182,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				}
 				communicatedTo = append(communicatedTo, newlyEliminated...)
 			}
-			uncommunicated, _ := FindNewStringsInSlice(communicatedTo,
+			uncommunicated, _ = FindNewStringsInSlice(communicatedTo,
 				g.PlayerList())
 			if len(uncommunicated) > 0 {
 				if !alreadyFinished && g.IsFinished() {

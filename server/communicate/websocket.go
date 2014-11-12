@@ -2,15 +2,18 @@ package communicate
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/render"
 
 	"github.com/gorilla/websocket"
 )
 
 type WsMsg struct {
 	Text     string `json:"text,omitempty"`
+	TextHtml string `json:"textHtml,omitempty"`
 	MsgType  string `json:"msgType,omitempty"`
 	GameId   string `json:"gameId"`
 	GameName string `json:"gameName"`
@@ -22,7 +25,7 @@ var wsConnections = map[string][]*websocket.Conn{}
 var errNoConnections = errors.New(
 	"that player does not have any connections open")
 
-func NewWsMsg(player, gameId, text, msgType string, g game.Playable) WsMsg {
+func NewWsMsg(player, gameId, text, textHtml, msgType string, g game.Playable) WsMsg {
 	isFinished := g.IsFinished()
 	yourTurn := false
 	if !isFinished {
@@ -54,6 +57,10 @@ func wsSendGameMulti(players []string, gameId, text, msgType string, g game.Play
 }
 
 func wsSendGame(player, gameId, text, msgType string, g game.Playable) (err error) {
+	textHtml, err := render.RenderHtml(text)
+	if err != nil {
+		return fmt.Errorf("unable to render text to HTML: %v", err)
+	}
 	sent := false
 	conns := wsConnections[player]
 	if conns == nil || len(conns) == 0 {
@@ -64,6 +71,7 @@ func wsSendGame(player, gameId, text, msgType string, g game.Playable) (err erro
 			player,
 			gameId,
 			text,
+			textHtml,
 			msgType,
 			g,
 		)); err == nil {
