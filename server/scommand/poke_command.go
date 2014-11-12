@@ -3,11 +3,16 @@ package scommand
 import (
 	"errors"
 	"fmt"
+
 	comm "github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/communicate"
 	"github.com/Miniand/brdg.me/server/model"
+)
+
+const (
+	MsgTypePoke = "poke"
 )
 
 type PokeCommand struct {
@@ -44,13 +49,19 @@ func (pc PokeCommand) Call(player string, context interface{},
 	}
 	whoseTurn := g.WhoseTurn()
 	if pc.gameModel != nil && pc.gameModel.Id != "" {
-		communicate.Game(pc.gameModel.Id, g, whoseTurn,
+		communicate.Game(
+			pc.gameModel.Id,
+			g,
+			whoseTurn,
 			append(g.Commands(), Commands(pc.gameModel)...),
 			fmt.Sprintf(
 				"%s wants to remind you it's your turn!",
-				render.PlayerNameInPlayers(player, g.PlayerList())), false)
+				render.PlayerNameInPlayers(player, g.PlayerList())),
+			MsgTypePoke,
+			false,
+		)
 	}
-	return "You poked the current turn players", nil
+	return "You poked the other players to take their turn", nil
 }
 
 func (pc PokeCommand) Usage(player string, context interface{}) string {

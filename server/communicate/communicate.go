@@ -12,9 +12,10 @@ func Game(
 	to []string,
 	commands []command.Command,
 	header string,
+	headerType string,
 	initial bool,
 ) error {
-	failed := wsSendGameMulti(to, id, header, g)
+	failed := wsSendGameMulti(to, id, header, headerType, g)
 	if len(failed) == 0 {
 		return nil
 	}
@@ -25,6 +26,6 @@ func Game(
 	return email.SendGame(id, g, emailTo, commands, header, initial)
 }
 
-func GameUpdate(id string, g game.Playable, to []string, text string) {
-	wsSendGameMulti(to, id, text, g)
+func GameUpdate(id string, g game.Playable, to []string, text, msgType string) {
+	wsSendGameMulti(to, id, text, msgType, g)
 }

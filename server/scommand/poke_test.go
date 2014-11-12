@@ -1,9 +1,10 @@
 package scommand
 
 import (
+	"testing"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/tic_tac_toe"
-	"testing"
 )
 
 func TestPokeCall(t *testing.T) {
@@ -20,7 +21,7 @@ func TestPokeCall(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if output != "You poked the current turn players" {
-		t.Fatal("Expected output to be 'You poked mick' but got:", output)
+	if output != "You poked the other players to take their turn" {
+		t.Fatal("Expected output to be 'You poked the other players to take their turn' but got:", output)
 	}
 }

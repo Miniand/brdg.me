@@ -11,6 +11,7 @@ import (
 
 type WsMsg struct {
 	Text     string `json:"text,omitempty"`
+	MsgType  string `json:"msgType,omitempty"`
 	GameId   string `json:"gameId"`
 	GameName string `json:"gameName"`
 	YourTurn bool   `json:"yourTurn"`
@@ -21,7 +22,7 @@ var wsConnections = map[string][]*websocket.Conn{}
 var errNoConnections = errors.New(
 	"that player does not have any connections open")
 
-func NewWsMsg(player, gameId, text string, g game.Playable) WsMsg {
+func NewWsMsg(player, gameId, text, msgType string, g game.Playable) WsMsg {
 	isFinished := g.IsFinished()
 	yourTurn := false
 	if !isFinished {
@@ -34,24 +35,25 @@ func NewWsMsg(player, gameId, text string, g game.Playable) WsMsg {
 	}
 	return WsMsg{
 		Text:     text,
+		MsgType:  msgType,
 		GameId:   gameId,
 		GameName: g.Name(),
 		YourTurn: yourTurn,
 	}
 }
 
-func wsSendGameMulti(players []string, gameId, text string, g game.Playable) (
+func wsSendGameMulti(players []string, gameId, text, msgType string, g game.Playable) (
 	failed map[string]error) {
 	failed = map[string]error{}
 	for _, p := range players {
-		if err := wsSendGame(p, gameId, text, g); err != nil {
+		if err := wsSendGame(p, gameId, text, msgType, g); err != nil {
 			failed[p] = err
 		}
 	}
 	return
 }
 
-func wsSendGame(player, gameId, text string, g game.Playable) (err error) {
+func wsSendGame(player, gameId, text, msgType string, g game.Playable) (err error) {
 	sent := false
 	conns := wsConnections[player]
 	if conns == nil || len(conns) == 0 {
@@ -62,6 +64,7 @@ func wsSendGame(player, gameId, text string, g game.Playable) (err error) {
 			player,
 			gameId,
 			text,
+			msgType,
 			g,
 		)); err == nil {
 			sent = true
