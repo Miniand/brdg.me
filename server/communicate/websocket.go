@@ -38,6 +38,7 @@ func NewWsMsg(player, gameId, text, textHtml, msgType string, g game.Playable) W
 	}
 	return WsMsg{
 		Text:     text,
+		TextHtml: textHtml,
 		MsgType:  msgType,
 		GameId:   gameId,
 		GameName: g.Name(),
