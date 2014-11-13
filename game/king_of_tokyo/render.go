@@ -62,7 +62,7 @@ func RenderDie(kind int) string {
 	default:
 		face = render.Markup(kind+1, "magenta", false)
 	}
-	return fmt.Sprintf("{{b}}[%s]{{_b}}", face)
+	return fmt.Sprintf("[%s]", face)
 }
 
 func RenderCardTable(cards []CardBase) string {
@@ -88,7 +88,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	diceStrs := []interface{}{render.Bold("Current roll:")}
 	diceNums := []interface{}{""}
 	for i, d := range g.CurrentRoll {
-		diceStrs = append(diceStrs, RenderDie(d))
+		diceStrs = append(diceStrs, render.Bold(RenderDie(d)))
 		diceNums = append(diceNums, render.Centred(render.Colour(i+1, "gray")))
 	}
 	cells := [][]interface{}{
