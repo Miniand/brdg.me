@@ -184,7 +184,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		output.WriteString("\n\n")
 	} else {
 		output.WriteString("{{b}}Enemy board:{{_b}}\n\n")
-		output.WriteString(RenderBoard(g.Boards[OtherPlayer(p)], tileOutputsEnemy))
+		tiles := tileOutputsEnemy
+		if g.IsFinished() {
+			tiles = tileOutputsSelf
+		}
+		output.WriteString(RenderBoard(g.Boards[OtherPlayer(p)], tiles))
 		output.WriteString("\n\n")
 	}
 	output.WriteString("{{b}}Your board:{{_b}}\n\n")
@@ -502,6 +506,8 @@ func RenderBoard(board [10][10]int, tiles map[int]string) string {
 		for _, cell := range row {
 			output.WriteString(tiles[cell])
 		}
+		output.WriteString(fmt.Sprintf(" %c", y+'A'))
 	}
+	output.WriteString("\n  1 2 3 4 5 6 7 8 9 10")
 	return output.String()
 }
