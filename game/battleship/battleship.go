@@ -105,14 +105,19 @@ var directionStrings = map[string]int{
 }
 
 var tileOutputsSelf = map[int]string{
-	LOCATION_EMPTY:  `{{c "blue"}}░░{{_c}}`,
+	LOCATION_EMPTY:  ``, // These are done automatically
 	SHIP_CARRIER:    "██",
 	SHIP_BATTLESHIP: "██",
 	SHIP_CRUISER:    "██",
 	SHIP_SUBMARINE:  "██",
 	SHIP_DESTROYER:  "██",
 	LOCATION_HIT:    `{{c "red"}}{{b}}╬╬{{_b}}{{_c}}`,
-	LOCATION_MISS:   `{{c "gray"}}XX{{_c}}`,
+	LOCATION_MISS:   `{{c "gray"}}{{b}}XX{{_b}}{{_c}}`,
+}
+
+var emptyTiles = []string{
+	`{{c "cyan"}}▒▒{{_c}}`,
+	`{{c "cyan"}}░░{{_c}}`,
 }
 
 var tileOutputsEnemy = map[int]string{
@@ -184,7 +189,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		output.WriteString("\n\n")
 	} else {
 		output.WriteString("{{b}}Enemy board:{{_b}}\n\n")
-		output.WriteString(RenderBoard(g.Boards[OtherPlayer(p)], tileOutputsEnemy))
+		tiles := tileOutputsEnemy
+		if g.IsFinished() {
+			tiles = tileOutputsSelf
+		}
+		output.WriteString(RenderBoard(g.Boards[OtherPlayer(p)], tiles))
 		output.WriteString("\n\n")
 	}
 	output.WriteString("{{b}}Your board:{{_b}}\n\n")
@@ -499,9 +508,16 @@ func RenderBoard(board [10][10]int, tiles map[int]string) string {
 	output.WriteString("  1 2 3 4 5 6 7 8 9 10")
 	for y, row := range board {
 		output.WriteString(fmt.Sprintf("\n%c ", y+'A'))
-		for _, cell := range row {
-			output.WriteString(tiles[cell])
+		for x, cell := range row {
+			switch tiles[cell] {
+			case tiles[LOCATION_EMPTY]:
+				output.WriteString(emptyTiles[(x+y)%2])
+			default:
+				output.WriteString(tiles[cell])
+			}
 		}
+		output.WriteString(fmt.Sprintf(" %c", y+'A'))
 	}
+	output.WriteString("\n  1 2 3 4 5 6 7 8 9 10")
 	return output.String()
 }
