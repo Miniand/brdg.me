@@ -9,6 +9,15 @@ const (
 	DieHeal
 )
 
+var Dice = []int{
+	Die1,
+	Die2,
+	Die3,
+	DieEnergy,
+	DieAttack,
+	DieHeal,
+}
+
 func RollDie() int {
 	return r.Int() % 6
 }
