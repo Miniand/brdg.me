@@ -18,33 +18,39 @@ var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 const (
 	PhaseRoll = iota
+	PhaseFlee
 	PhaseBuy
 )
 
 const (
+	TokyoEmpty        = -1
 	LocationOutside   = -1
 	LocationTokyoCity = 0
 	LocationTokyoBay  = 1
 )
 
 type Game struct {
-	Players        []string
-	CurrentPlayer  int
-	Phase          int
-	CurrentRoll    []int
-	RemainingRolls int
-	Buyable        []CardBase
-	Deck           []CardBase
-	Discard        []CardBase
-	Boards         []*PlayerBoard
-	Tokyo          []int
-	Log            *log.Log
+	Players           []string
+	CurrentPlayer     int
+	AttackDamage      int
+	CurrentFleeingLoc int
+	Phase             int
+	CurrentRoll       []int
+	RemainingRolls    int
+	Buyable           []CardBase
+	Deck              []CardBase
+	Discard           []CardBase
+	Boards            []*PlayerBoard
+	Tokyo             []int
+	Log               *log.Log
 }
 
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		RollCommand{},
 		KeepCommand{},
+		StayCommand{},
+		LeaveCommand{},
 		BuyCommand{},
 		SweepCommand{},
 		DoneCommand{},
@@ -54,7 +60,7 @@ func (g *Game) Commands() []command.Command {
 func (g *Game) NextPhase() {
 	switch g.Phase {
 	case PhaseRoll:
-		g.BuyPhase()
+		g.ResolveDice()
 	case PhaseBuy:
 		g.NextTurn()
 	}
@@ -67,7 +73,7 @@ func (g *Game) RollPhase() {
 	g.RemainingRolls = 2
 }
 
-func (g *Game) BuyPhase() {
+func (g *Game) ResolveDice() {
 	// Handle dice
 	diceCounts := map[int]int{}
 	for _, d := range g.CurrentRoll {
@@ -86,11 +92,57 @@ func (g *Game) BuyPhase() {
 		case DieEnergy:
 			g.Boards[g.CurrentPlayer].Energy += count
 		case DieAttack:
-
+			if count > 0 {
+				g.AttackDamage = count
+				// Damage those outside tokyo immediately.
+				// Damage to those in Tokyo is applied after staying or fleeing.
+				g.FleePhase()
+				return
+			}
 		case DieHeal:
 			g.Boards[g.CurrentPlayer].Health += count
+			if g.Boards[g.CurrentPlayer].Health > 10 {
+				g.Boards[g.CurrentPlayer].Health = 10
+			}
 		}
 	}
+	g.BuyPhase()
+}
+
+func (g *Game) FleePhase() {
+	g.Phase = PhaseFlee
+	g.CurrentFleeingLoc = -1
+	g.NextFleeingLoc()
+}
+
+func (g *Game) NextFleeingLoc() {
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("Tokyo is size %d", len(g.Tokyo))))
+	g.CurrentFleeingLoc += 1
+	if g.CurrentFleeingLoc >= len(g.Tokyo) {
+		// Remove others from Tokyo if their location no longer
+		// exists.
+		for l, tp := range g.Tokyo[g.TokyoSize():] {
+			if tp != TokyoEmpty {
+				g.Tokyo[l] = TokyoEmpty
+			}
+		}
+		// Enter tokyo if there's room
+		g.Log.Add(log.NewPublicMessage("trying to add player to tokyo"))
+		for t, p := range g.TokyoLocs() {
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%d is %d", t, p)))
+			if p == TokyoEmpty {
+				g.Log.Add(log.NewPublicMessage("putting player there"))
+				g.Tokyo[t] = g.CurrentPlayer
+				break
+			}
+		}
+		g.BuyPhase()
+	} else if g.Tokyo[g.CurrentFleeingLoc] == TokyoEmpty {
+		g.NextFleeingLoc()
+	}
+}
+
+func (g *Game) BuyPhase() {
 	// Start buy phase
 	g.Phase = PhaseBuy
 }
@@ -104,7 +156,7 @@ func (g *Game) Identifier() string {
 }
 
 func (g *Game) PlayerLocation(player int) int {
-	for loc, p := range g.Tokyo {
+	for loc, p := range g.TokyoLocs() {
 		if p == player {
 			return loc
 		}
@@ -114,7 +166,7 @@ func (g *Game) PlayerLocation(player int) int {
 
 func (g *Game) PlayersInsideTokyo() []int {
 	players := []int{}
-	for _, p := range g.Tokyo {
+	for _, p := range g.TokyoLocs() {
 		if p != -1 {
 			players = append(players, p)
 		}
@@ -138,6 +190,15 @@ func (g *Game) PlayersOutsideTokyo() []int {
 		}
 	}
 	return players
+}
+
+func (g *Game) AttackTargetsForPlayer(player int) []int {
+	switch g.PlayerLocation(player) {
+	case LocationOutside:
+		return g.PlayersInsideTokyo()
+	default:
+		return g.PlayersOutsideTokyo()
+	}
 }
 
 func RegisterGobTypes() {
@@ -167,13 +228,9 @@ func (g *Game) Start(players []string) error {
 	g.Buyable = deck[:3]
 	g.Deck = deck[3:]
 	g.Discard = []CardBase{}
-	locations := 1
-	if playerCount > 4 {
-		locations = 2
-	}
-	g.Tokyo = make([]int, locations)
+	g.Tokyo = make([]int, 2)
 	for i, _ := range g.Tokyo {
-		g.Tokyo[i] = -1
+		g.Tokyo[i] = TokyoEmpty
 	}
 	g.Boards = make([]*PlayerBoard, playerCount)
 	for p, _ := range g.Players {
@@ -241,7 +298,15 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{g.Players[g.CurrentPlayer]}
+	if g.IsFinished() {
+		return []string{}
+	}
+	switch g.Phase {
+	case PhaseFlee:
+		return []string{g.Players[g.Tokyo[g.CurrentFleeingLoc]]}
+	default:
+		return []string{g.Players[g.CurrentPlayer]}
+	}
 }
 
 func (g *Game) GameLog() *log.Log {
@@ -260,6 +325,17 @@ func (g *Game) EliminatedPlayerList() []string {
 
 func (g *Game) PlayerNum(player string) (int, error) {
 	return helper.StringInStrings(player, g.Players)
+}
+
+func (g *Game) TokyoSize() int {
+	if len(g.Players)-len(g.EliminatedPlayerList()) > 4 {
+		return 2
+	}
+	return 1
+}
+
+func (g *Game) TokyoLocs() []int {
+	return g.Tokyo[:g.TokyoSize()]
 }
 
 func ContainsInt(i int, s []int) bool {
