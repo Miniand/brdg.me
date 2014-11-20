@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardAlienMetabolism struct{}
 
@@ -21,4 +25,19 @@ func (c CardAlienMetabolism) Cost() int {
 
 func (c CardAlienMetabolism) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardAlienMetabolism) ModifyCardCost(game *Game, cost int) int {
+	cost = cost - 1
+	if cost < 0 {
+		cost = 0
+	}
+	return cost
+}
+
+func (c CardAlienMetabolism) PostCardBuy(game *Game, card CardBase, cost int) {
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"Card cost 1 less ({{b}}%s{{_b}})",
+		c.Name(),
+	)))
 }

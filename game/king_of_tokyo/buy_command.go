@@ -67,8 +67,14 @@ func (g *Game) Buy(player, cardNum int) error {
 	if l := len(g.Buyable); cardNum >= l {
 		return fmt.Errorf("the card number must be less than %d", l)
 	}
+	things := g.Boards[player].Things()
 	c := g.Buyable[cardNum]
 	cost := c.Cost()
+	for _, t := range things {
+		if costMod, ok := t.(CardCostModifier); ok {
+			cost = costMod.ModifyCardCost(g, cost)
+		}
+	}
 	if g.Boards[player].Energy < cost {
 		return fmt.Errorf(
 			"you require %s to buy that card",
@@ -85,6 +91,11 @@ func (g *Game) Buy(player, cardNum int) error {
 	if len(g.Deck) > 0 {
 		g.Buyable = append(g.Buyable, g.Deck[0])
 		g.Deck = g.Deck[1:]
+	}
+	for _, t := range things {
+		if postBuy, ok := t.(PostCardBuyHandler); ok {
+			postBuy.PostCardBuy(g, c, cost)
+		}
 	}
 	return nil
 }

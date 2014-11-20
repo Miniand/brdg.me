@@ -115,3 +115,11 @@ type AttackModifier interface {
 type HasThings interface {
 	Things() []interface{}
 }
+
+type CardCostModifier interface {
+	ModifyCardCost(game *Game, cost int) int
+}
+
+type PostCardBuyHandler interface {
+	PostCardBuy(game *Game, card CardBase, cost int)
+}
