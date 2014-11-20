@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardCamouflage struct{}
 
@@ -21,4 +25,30 @@ func (c CardCamouflage) Cost() int {
 
 func (c CardCamouflage) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardCamouflage) ModifyDamage(game *Game, player, attacker, damage int) int {
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s is rolling to avoid damage ({{b}}%s{{_b}})",
+		game.RenderName(player),
+		c.Name(),
+	)))
+	roll := RollDice(damage)
+	game.LogRoll(player, roll, []int{})
+	avoided := 0
+	for _, d := range roll {
+		if d == DieHeal {
+			avoided += 1
+		}
+	}
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s avoided {{b}}%d{{_b}} damage",
+		game.RenderName(player),
+		avoided,
+	)))
+	damage -= avoided
+	if damage < 0 {
+		damage = 0
+	}
+	return damage
 }

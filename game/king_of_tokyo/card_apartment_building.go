@@ -24,11 +24,11 @@ func (c CardApartmentBuilding) Kind() int {
 	return CardKindDiscard
 }
 
-func (c CardApartmentBuilding) PostCardBuy(game *Game, card CardBase, cost int) {
-	game.Boards[game.CurrentPlayer].VP += 3
+func (c CardApartmentBuilding) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+	game.Boards[player].VP += 3
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",
-		game.RenderName(game.CurrentPlayer),
+		game.RenderName(player),
 		RenderVP(3),
 		c.Name(),
 	)))

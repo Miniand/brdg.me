@@ -77,7 +77,7 @@ func (g *Game) Roll(player int, diceNum []int) error {
 		}
 	}
 	rolled := RollDice(len(g.CurrentRoll) - len(kept))
-	g.LogRoll(rolled, kept)
+	g.LogRoll(player, rolled, kept)
 	g.CurrentRoll = append(rolled, kept...)
 	switch g.Phase {
 	case PhaseRoll:

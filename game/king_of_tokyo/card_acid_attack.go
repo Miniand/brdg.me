@@ -24,11 +24,15 @@ func (c CardAcidAttack) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardAcidAttack) ModifyAttack(game *Game, attack int) int {
+func (c CardAcidAttack) ModifyAttack(
+	game *Game,
+	player, damage int,
+	attacked []int,
+) (int, []int) {
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s deals 1 extra damage ({{b}}%s{{_b}})",
-		game.RenderName(game.CurrentPlayer),
+		game.RenderName(player),
 		c.Name(),
 	)))
-	return attack + 1
+	return damage + 1, attacked
 }

@@ -28,6 +28,34 @@ type CardBase interface {
 	Kinder
 }
 
+type AttackModifier interface {
+	ModifyAttack(game *Game, player, damage int, attacked []int) (int, []int)
+}
+
+type DamageModifier interface {
+	ModifyDamage(game *Game, player, attacker, damage int) int
+}
+
+type HasThings interface {
+	Things() []interface{}
+}
+
+type CardCostModifier interface {
+	ModifyCardCost(game *Game, player, cost int) int
+}
+
+type PostCardBuyHandler interface {
+	PostCardBuy(game *Game, player int, card CardBase, cost int)
+}
+
+type PostAttackHandler interface {
+	PostAttack(game *Game, player, damage int)
+}
+
+type ExtraReroller interface {
+	ExtraReroll(game *Game, player int, extra map[int]bool) map[int]bool
+}
+
 func Deck() []CardBase {
 	return []CardBase{
 		CardAcidAttack{},
@@ -106,32 +134,4 @@ func Shuffle(deck []CardBase) []CardBase {
 		shuffled[i] = deck[p]
 	}
 	return shuffled
-}
-
-type AttackModifier interface {
-	ModifyAttack(game *Game, attack int) int
-}
-
-type DamageModifier interface {
-	ModifyDamage(game *Game, damage int) int
-}
-
-type HasThings interface {
-	Things() []interface{}
-}
-
-type CardCostModifier interface {
-	ModifyCardCost(game *Game, cost int) int
-}
-
-type PostCardBuyHandler interface {
-	PostCardBuy(game *Game, card CardBase, cost int)
-}
-
-type PostAttackHandler interface {
-	PostAttack(game *Game, attack int)
-}
-
-type ExtraReroller interface {
-	ExtraReroll(game *Game, extra map[int]bool) map[int]bool
 }

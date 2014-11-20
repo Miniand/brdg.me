@@ -18,7 +18,7 @@ func (c CardArmorPlating) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardArmorPlating) ModifyDamage(game *Game, damage int) int {
+func (c CardArmorPlating) ModifyDamage(game *Game, player, attacker, damage int) int {
 	if damage == 1 {
 		return 0
 	}

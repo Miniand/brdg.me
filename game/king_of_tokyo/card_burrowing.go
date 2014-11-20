@@ -18,9 +18,13 @@ func (c CardBurrowing) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardBurrowing) ModifyAttack(game *Game, attack int) int {
+func (c CardBurrowing) ModifyAttack(
+	game *Game,
+	player, damage int,
+	attacked []int,
+) (int, []int) {
 	if game.PlayerLocation(game.CurrentPlayer) != LocationOutside {
-		attack += 1
+		damage += 1
 	}
-	return attack
+	return damage, attacked
 }

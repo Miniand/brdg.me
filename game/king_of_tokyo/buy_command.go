@@ -72,7 +72,7 @@ func (g *Game) Buy(player, cardNum int) error {
 	cost := c.Cost()
 	for _, t := range things {
 		if costMod, ok := t.(CardCostModifier); ok {
-			cost = costMod.ModifyCardCost(g, cost)
+			cost = costMod.ModifyCardCost(g, player, cost)
 		}
 	}
 	if g.Boards[player].Energy < cost {
@@ -94,7 +94,7 @@ func (g *Game) Buy(player, cardNum int) error {
 	}
 	for _, t := range things {
 		if postBuy, ok := t.(PostCardBuyHandler); ok {
-			postBuy.PostCardBuy(g, c, cost)
+			postBuy.PostCardBuy(g, player, c, cost)
 		}
 	}
 	return nil

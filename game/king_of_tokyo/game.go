@@ -77,7 +77,7 @@ func (g *Game) RollPhase() {
 	}
 	g.Phase = PhaseRoll
 	g.CurrentRoll = RollDice(6)
-	g.LogRoll(g.CurrentRoll, []int{})
+	g.LogRoll(g.CurrentPlayer, g.CurrentRoll, []int{})
 	g.RemainingRolls = 2
 }
 
@@ -86,7 +86,7 @@ func (g *Game) CheckRollComplete() {
 	extra := map[int]bool{}
 	for _, t := range g.Boards[g.CurrentPlayer].Things() {
 		if extraReroller, ok := t.(ExtraReroller); ok {
-			extra = extraReroller.ExtraReroll(g, extra)
+			extra = extraReroller.ExtraReroll(g, g.CurrentPlayer, extra)
 		}
 	}
 	if len(extra) > 0 {
@@ -103,10 +103,15 @@ func (g *Game) ResolveDice() {
 		diceCounts[d] += 1
 	}
 	// Modify attack
+	attacked := g.AttackTargetsForPlayer(g.CurrentPlayer)
 	for _, t := range g.Boards[g.CurrentPlayer].Things() {
 		if attackMod, ok := t.(AttackModifier); ok {
-			diceCounts[DieAttack] = attackMod.ModifyAttack(
-				g, diceCounts[DieAttack])
+			diceCounts[DieAttack], attacked = attackMod.ModifyAttack(
+				g,
+				g.CurrentPlayer,
+				diceCounts[DieAttack],
+				attacked,
+			)
 		}
 	}
 	isAttacking := false
@@ -137,7 +142,7 @@ func (g *Game) ResolveDice() {
 	}
 	if isAttacking {
 		g.AttackPhase(
-			g.AttackTargetsForPlayer(g.CurrentPlayer),
+			attacked,
 			diceCounts[DieAttack],
 		)
 	} else {
@@ -205,7 +210,7 @@ func (g *Game) EndAttackPhase() {
 	}
 	for _, t := range g.Boards[g.CurrentPlayer].Things() {
 		if postAttack, ok := t.(PostAttackHandler); ok {
-			postAttack.PostAttack(g, g.AttackDamage)
+			postAttack.PostAttack(g, g.CurrentPlayer, g.AttackDamage)
 		}
 	}
 	g.NextPhase()
@@ -220,14 +225,14 @@ func (g *Game) HandleAttackedPlayer() {
 	damage := g.AttackDamage
 	for _, t := range g.Boards[p].Things() {
 		if damageMod, ok := t.(DamageModifier); ok {
-			damage = damageMod.ModifyDamage(g, damage)
+			damage = damageMod.ModifyDamage(g, p, g.CurrentPlayer, damage)
 		}
 	}
 	loc := g.PlayerLocation(p)
 	if damage <= 0 {
 		g.NextAttackedPlayer()
 	} else if loc == LocationOutside {
-		g.TakeDamage(p, g.AttackDamage)
+		g.TakeDamage(p, damage)
 		g.NextAttackedPlayer()
 	}
 }
@@ -340,7 +345,7 @@ func (g *Game) NextTurn() {
 	}
 }
 
-func (g *Game) LogRoll(rolled, kept []int) {
+func (g *Game) LogRoll(player int, rolled, kept []int) {
 	diceStr := []string{}
 	for _, d := range rolled {
 		diceStr = append(diceStr, render.Bold(RenderDie(d)))

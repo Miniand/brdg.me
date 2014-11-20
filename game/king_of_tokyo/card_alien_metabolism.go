@@ -27,7 +27,7 @@ func (c CardAlienMetabolism) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardAlienMetabolism) ModifyCardCost(game *Game, cost int) int {
+func (c CardAlienMetabolism) ModifyCardCost(game *Game, player, cost int) int {
 	cost = cost - 1
 	if cost < 0 {
 		cost = 0

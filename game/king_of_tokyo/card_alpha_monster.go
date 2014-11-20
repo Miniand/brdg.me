@@ -27,11 +27,11 @@ func (c CardAlphaMonster) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardAlphaMonster) PostAttack(game *Game, attack int) {
-	game.Boards[game.CurrentPlayer].VP += 1
+func (c CardAlphaMonster) PostAttack(game *Game, player, attack int) {
+	game.Boards[player].VP += 1
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s for attacking ({{b}}%s{{_b}})",
-		game.RenderName(game.CurrentPlayer),
+		game.RenderName(player),
 		RenderVP(1),
 		c.Name(),
 	)))
