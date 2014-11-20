@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardAlphaMonster struct{}
 
@@ -21,4 +25,14 @@ func (c CardAlphaMonster) Cost() int {
 
 func (c CardAlphaMonster) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardAlphaMonster) PostAttack(game *Game, attack int) {
+	game.Boards[game.CurrentPlayer].VP += 1
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s gained %s for attacking ({{b}}%s{{_b}})",
+		game.RenderName(game.CurrentPlayer),
+		RenderVP(1),
+		c.Name(),
+	)))
 }

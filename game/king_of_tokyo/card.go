@@ -123,3 +123,7 @@ type CardCostModifier interface {
 type PostCardBuyHandler interface {
 	PostCardBuy(game *Game, card CardBase, cost int)
 }
+
+type PostAttackHandler interface {
+	PostAttack(game *Game, attack int)
+}

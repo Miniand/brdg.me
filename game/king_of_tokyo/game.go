@@ -173,6 +173,11 @@ func (g *Game) EndAttackPhase() {
 			break
 		}
 	}
+	for _, t := range g.Boards[g.CurrentPlayer].Things() {
+		if postAttack, ok := t.(PostAttackHandler); ok {
+			postAttack.PostAttack(g, g.AttackDamage)
+		}
+	}
 	g.NextPhase()
 }
 
