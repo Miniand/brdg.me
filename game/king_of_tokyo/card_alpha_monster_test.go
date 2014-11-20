@@ -3,33 +3,30 @@ package king_of_tokyo
 import (
 	"testing"
 
-	"github.com/Miniand/brdg.me/command"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCardAlphaMonsterModifyAttackNoAttackDice(t *testing.T) {
+func TestCardAlphaMonsterNoAttackDice(t *testing.T) {
 	g := &Game{}
-	assert.NoError(t, g.Start([]string{Mick, Steve}))
+	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
-	g.Tokyo[LocationTokyoCity] = 0
-	g.Boards[0].Cards = []CardBase{&CardAlphaMonster{}}
+	g.Tokyo[LocationTokyoCity] = Mick
+	g.Boards[Mick].Cards = []CardBase{&CardAlphaMonster{}}
 	g.CurrentRoll = []int{}
-	_, err := command.CallInCommands(Mick, g, "keep", g.Commands())
-	assert.NoError(t, err)
-	assert.Equal(t, 0, g.Boards[0].VP)
+	cmd(t, g, Mick, "keep")
+	assert.Equal(t, 0, g.Boards[Mick].VP)
 }
 
-func TestCardAlphaMonsterModifyAttackWithAttackDice(t *testing.T) {
+func TestCardAlphaMonsterWithAttackDice(t *testing.T) {
 	g := &Game{}
-	assert.NoError(t, g.Start([]string{Mick, Steve}))
+	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
-	g.Tokyo[LocationTokyoCity] = 0
-	g.Boards[0].Cards = []CardBase{&CardAlphaMonster{}}
+	g.Tokyo[LocationTokyoCity] = Mick
+	g.Boards[Mick].Cards = []CardBase{&CardAlphaMonster{}}
 	g.CurrentRoll = []int{
 		DieAttack,
 		DieAttack,
 	}
-	_, err := command.CallInCommands(Mick, g, "keep", g.Commands())
-	assert.NoError(t, err)
-	assert.Equal(t, 1, g.Boards[0].VP)
+	cmd(t, g, Mick, "keep")
+	assert.Equal(t, 1, g.Boards[Mick].VP)
 }
