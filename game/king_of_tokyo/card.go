@@ -112,6 +112,10 @@ type AttackModifier interface {
 	ModifyAttack(game *Game, attack int) int
 }
 
+type DamageModifier interface {
+	ModifyDamage(game *Game, damage int) int
+}
+
 type HasThings interface {
 	Things() []interface{}
 }

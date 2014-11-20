@@ -17,3 +17,10 @@ func (c CardArmorPlating) Cost() int {
 func (c CardArmorPlating) Kind() int {
 	return CardKindKeep
 }
+
+func (c CardArmorPlating) ModifyDamage(game *Game, damage int) int {
+	if damage == 1 {
+		return 0
+	}
+	return damage
+}

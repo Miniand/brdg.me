@@ -187,8 +187,16 @@ func (g *Game) HandleAttackedPlayer() {
 		return
 	}
 	p := g.AttackPlayers[0]
+	damage := g.AttackDamage
+	for _, t := range g.Boards[p].Things() {
+		if damageMod, ok := t.(DamageModifier); ok {
+			damage = damageMod.ModifyDamage(g, damage)
+		}
+	}
 	loc := g.PlayerLocation(p)
-	if loc == LocationOutside {
+	if damage <= 0 {
+		g.NextAttackedPlayer()
+	} else if loc == LocationOutside {
 		g.TakeDamage(p, g.AttackDamage)
 		g.NextAttackedPlayer()
 	}
