@@ -71,6 +71,10 @@ func (g *Game) NextPhase() {
 }
 
 func (g *Game) RollPhase() {
+	// 2 VP for being in Tokyo at the start of the turn
+	if g.PlayerLocation(g.CurrentPlayer) != LocationOutside {
+		g.Boards[g.CurrentPlayer].VP += 2
+	}
 	g.Phase = PhaseRoll
 	g.CurrentRoll = RollDice(6)
 	g.LogRoll(g.CurrentRoll, []int{})
@@ -105,6 +109,7 @@ func (g *Game) ResolveDice() {
 				g, diceCounts[DieAttack])
 		}
 	}
+	isAttacking := false
 	for _, d := range Dice {
 		count := diceCounts[d]
 		if count == 0 {
@@ -119,17 +124,25 @@ func (g *Game) ResolveDice() {
 			g.Boards[g.CurrentPlayer].Energy += count
 		case DieAttack:
 			if count > 0 {
-				g.AttackPhase(g.AttackTargetsForPlayer(g.CurrentPlayer), count)
-				return
+				isAttacking = true
 			}
 		case DieHeal:
-			g.Boards[g.CurrentPlayer].Health += count
-			if g.Boards[g.CurrentPlayer].Health > 10 {
-				g.Boards[g.CurrentPlayer].Health = 10
+			if g.PlayerLocation(g.CurrentPlayer) == LocationOutside {
+				g.Boards[g.CurrentPlayer].Health += count
+				if g.Boards[g.CurrentPlayer].Health > 10 {
+					g.Boards[g.CurrentPlayer].Health = 10
+				}
 			}
 		}
 	}
-	g.BuyPhase()
+	if isAttacking {
+		g.AttackPhase(
+			g.AttackTargetsForPlayer(g.CurrentPlayer),
+			diceCounts[DieAttack],
+		)
+	} else {
+		g.BuyPhase()
+	}
 }
 
 func (g *Game) AttackPhase(players []int, damage int) {
@@ -186,6 +199,7 @@ func (g *Game) EndAttackPhase() {
 	for t, p := range g.TokyoLocs() {
 		if p == TokyoEmpty {
 			g.Tokyo[t] = g.CurrentPlayer
+			g.Boards[g.CurrentPlayer].VP += 1
 			break
 		}
 	}
