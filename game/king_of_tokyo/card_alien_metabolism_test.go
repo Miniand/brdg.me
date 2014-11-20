@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCardAlienMetabolismModifyAttackNoAttackDice(t *testing.T) {
+func TestCardAlienMetabolism(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start([]string{Mick, Steve}))
 	g.Boards[0].Cards = []CardBase{&CardAlienMetabolism{}}
