@@ -131,3 +131,7 @@ type PostCardBuyHandler interface {
 type PostAttackHandler interface {
 	PostAttack(game *Game, attack int)
 }
+
+type ExtraReroller interface {
+	ExtraReroll(game *Game, extra map[int]bool) map[int]bool
+}

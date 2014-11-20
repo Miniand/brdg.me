@@ -22,3 +22,12 @@ func (c CardBackgroundDweller) Cost() int {
 func (c CardBackgroundDweller) Kind() int {
 	return CardKindKeep
 }
+
+func (c CardBackgroundDweller) ExtraReroll(game *Game, extra map[int]bool) map[int]bool {
+	for i, d := range game.CurrentRoll {
+		if d == Die3 {
+			extra[i] = true
+		}
+	}
+	return extra
+}

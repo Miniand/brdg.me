@@ -37,6 +37,7 @@ type Game struct {
 	CurrentFleeingLoc int
 	Phase             int
 	CurrentRoll       []int
+	ExtraRollable     map[int]bool
 	RemainingRolls    int
 	Buyable           []CardBase
 	Deck              []CardBase
@@ -74,6 +75,21 @@ func (g *Game) RollPhase() {
 	g.CurrentRoll = RollDice(6)
 	g.LogRoll(g.CurrentRoll, []int{})
 	g.RemainingRolls = 2
+}
+
+func (g *Game) CheckRollComplete() {
+	// Check if we have more rerolls
+	extra := map[int]bool{}
+	for _, t := range g.Boards[g.CurrentPlayer].Things() {
+		if extraReroller, ok := t.(ExtraReroller); ok {
+			extra = extraReroller.ExtraReroll(g, extra)
+		}
+	}
+	if len(extra) > 0 {
+		g.ExtraRollable = extra
+	} else {
+		g.NextPhase()
+	}
 }
 
 func (g *Game) ResolveDice() {

@@ -83,13 +83,21 @@ func RenderCardTable(cards []CardBase) string {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
+	pNum, err := g.PlayerNum(player)
+	if err != nil {
+		return "", err
+	}
 	buf := bytes.NewBuffer([]byte{})
 	// Current roll
 	diceStrs := []interface{}{render.Bold("Current roll:")}
 	diceNums := []interface{}{""}
 	for i, d := range g.CurrentRoll {
 		diceStrs = append(diceStrs, render.Bold(RenderDie(d)))
-		diceNums = append(diceNums, render.Centred(render.Colour(i+1, "gray")))
+		diceStr := ""
+		if g.CanRoll(pNum) && (g.RemainingRolls > 0 || g.ExtraRollable[i]) {
+			diceStr = render.Colour(i+1, "gray")
+		}
+		diceNums = append(diceNums, render.Centred(diceStr))
 	}
 	cells := [][]interface{}{
 		diceStrs,

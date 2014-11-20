@@ -50,7 +50,8 @@ func (g *Game) CanRoll(player int) bool {
 	if g.CurrentPlayer != player {
 		return false
 	}
-	return g.Phase == PhaseRoll && g.RemainingRolls > 0
+	return g.Phase == PhaseRoll && (g.RemainingRolls > 0 ||
+		len(g.ExtraRollable) > 0)
 }
 
 func (g *Game) Roll(player int, diceNum []int) error {
@@ -65,6 +66,9 @@ func (g *Game) Roll(player int, diceNum []int) error {
 		if n < 0 || n > l {
 			return fmt.Errorf("dice number must be between 1 and %d", l)
 		}
+		if g.RemainingRolls <= 0 && !g.ExtraRollable[n-1] {
+			return fmt.Errorf("dice number %d is not rerollable", n)
+		}
 	}
 	kept := []int{}
 	for i, d := range g.CurrentRoll {
@@ -78,8 +82,8 @@ func (g *Game) Roll(player int, diceNum []int) error {
 	switch g.Phase {
 	case PhaseRoll:
 		g.RemainingRolls -= 1
-		if g.RemainingRolls == 0 {
-			g.NextPhase()
+		if g.RemainingRolls <= 0 {
+			g.CheckRollComplete()
 		}
 	}
 	return nil
