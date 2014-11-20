@@ -1,5 +1,11 @@
 package king_of_tokyo
 
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
+
 type CardAcidAttack struct{}
 
 func (c CardAcidAttack) Name() string {
@@ -16,4 +22,13 @@ func (c CardAcidAttack) Cost() int {
 
 func (c CardAcidAttack) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardAcidAttack) ModifyAttack(game *Game, attack int) int {
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s deals 1 extra damage ({{b}}%s{{_b}})",
+		game.RenderName(game.CurrentPlayer),
+		c.Name(),
+	)))
+	return attack + 1
 }

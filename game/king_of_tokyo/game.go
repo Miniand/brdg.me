@@ -82,6 +82,13 @@ func (g *Game) ResolveDice() {
 	for _, d := range g.CurrentRoll {
 		diceCounts[d] += 1
 	}
+	// Modify attack
+	for _, t := range g.Boards[g.CurrentPlayer].Things() {
+		if attackMod, ok := t.(AttackModifier); ok {
+			diceCounts[DieAttack] = attackMod.ModifyAttack(
+				g, diceCounts[DieAttack])
+		}
+	}
 	for _, d := range Dice {
 		count := diceCounts[d]
 		if count == 0 {

@@ -107,3 +107,11 @@ func Shuffle(deck []CardBase) []CardBase {
 	}
 	return shuffled
 }
+
+type AttackModifier interface {
+	ModifyAttack(game *Game, attack int) int
+}
+
+type HasThings interface {
+	Things() []interface{}
+}
