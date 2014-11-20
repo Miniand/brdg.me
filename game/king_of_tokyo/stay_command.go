@@ -36,7 +36,7 @@ func (c StayCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanStay(player int) bool {
-	return g.Phase == PhaseFlee && g.Tokyo[g.CurrentFleeingLoc] == player
+	return g.Phase == PhaseAttack && g.AttackPlayers[0] == player
 }
 
 func (g *Game) Stay(player int) error {
@@ -48,14 +48,7 @@ func (g *Game) Stay(player int) error {
 }
 
 func (g *Game) PostStayOrLeave() {
-	p := g.Tokyo[g.CurrentFleeingLoc]
-	g.Boards[p].Health -= g.AttackDamage
-	if g.Boards[p].Health < 0 {
-		g.Boards[p].Health = 0
-		// Remove from Tokyo
-		if pLoc := g.PlayerLocation(p); pLoc != LocationOutside {
-			g.Tokyo[pLoc] = TokyoEmpty
-		}
-	}
-	g.NextFleeingLoc()
+	p := g.AttackPlayers[0]
+	g.TakeDamage(p, g.AttackDamage)
+	g.NextAttackedPlayer()
 }

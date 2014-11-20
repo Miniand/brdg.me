@@ -18,7 +18,7 @@ var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 const (
 	PhaseRoll = iota
-	PhaseFlee
+	PhaseAttack
 	PhaseBuy
 )
 
@@ -33,6 +33,7 @@ type Game struct {
 	Players           []string
 	CurrentPlayer     int
 	AttackDamage      int
+	AttackPlayers     []int
 	CurrentFleeingLoc int
 	Phase             int
 	CurrentRoll       []int
@@ -61,6 +62,8 @@ func (g *Game) NextPhase() {
 	switch g.Phase {
 	case PhaseRoll:
 		g.ResolveDice()
+	case PhaseAttack:
+		g.BuyPhase()
 	case PhaseBuy:
 		g.NextTurn()
 	}
@@ -93,10 +96,7 @@ func (g *Game) ResolveDice() {
 			g.Boards[g.CurrentPlayer].Energy += count
 		case DieAttack:
 			if count > 0 {
-				g.AttackDamage = count
-				// Damage those outside tokyo immediately.
-				// Damage to those in Tokyo is applied after staying or fleeing.
-				g.FleePhase()
+				g.AttackPhase(g.AttackTargetsForPlayer(g.CurrentPlayer), count)
 				return
 			}
 		case DieHeal:
@@ -109,36 +109,76 @@ func (g *Game) ResolveDice() {
 	g.BuyPhase()
 }
 
-func (g *Game) FleePhase() {
-	g.Phase = PhaseFlee
-	g.CurrentFleeingLoc = -1
-	g.NextFleeingLoc()
+func (g *Game) AttackPhase(players []int, damage int) {
+	g.Phase = PhaseAttack
+	g.AttackDamage = damage
+	// Make sure outside players are attacked first, then Tokyo players in order
+	orderedAttackPlayers := []int{}
+	inTokyoMap := map[int]bool{}
+	for _, p := range players {
+		if loc := g.PlayerLocation(p); loc == LocationOutside {
+			orderedAttackPlayers = append(orderedAttackPlayers, p)
+		} else {
+			inTokyoMap[loc] = true
+		}
+	}
+	for l, p := range g.Tokyo {
+		if inTokyoMap[l] {
+			orderedAttackPlayers = append(orderedAttackPlayers, p)
+		}
+	}
+	g.AttackPlayers = orderedAttackPlayers
+	g.HandleAttackedPlayer()
 }
 
-func (g *Game) NextFleeingLoc() {
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("Tokyo is size %d", len(g.Tokyo))))
-	g.CurrentFleeingLoc += 1
-	if g.CurrentFleeingLoc >= len(g.Tokyo) {
-		// Remove others from Tokyo if their location no longer
-		// exists.
-		for l, tp := range g.Tokyo[g.TokyoSize():] {
-			if tp != TokyoEmpty {
-				g.Tokyo[l] = TokyoEmpty
-			}
+func (g *Game) TakeDamage(player, amount int) {
+	g.Boards[player].Health -= amount
+	if g.Boards[player].Health <= 0 {
+		g.Boards[player].Health = 0
+		// Leave Tokyo if they are in it
+		if loc := g.PlayerLocation(player); loc != LocationOutside {
+			g.Tokyo[loc] = TokyoEmpty
 		}
-		// Enter tokyo if there's room
-		g.Log.Add(log.NewPublicMessage("trying to add player to tokyo"))
-		for t, p := range g.TokyoLocs() {
-			g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%d is %d", t, p)))
-			if p == TokyoEmpty {
-				g.Log.Add(log.NewPublicMessage("putting player there"))
-				g.Tokyo[t] = g.CurrentPlayer
-				break
-			}
+	}
+}
+
+func (g *Game) NextAttackedPlayer() {
+	if len(g.AttackPlayers) > 1 {
+		g.AttackPlayers = g.AttackPlayers[1:]
+		g.HandleAttackedPlayer()
+	} else {
+		g.EndAttackPhase()
+	}
+}
+
+func (g *Game) EndAttackPhase() {
+	// Remove others from Tokyo if their location no longer
+	// exists.
+	for l, tp := range g.Tokyo[g.TokyoSize():] {
+		if tp != TokyoEmpty {
+			g.Tokyo[l] = TokyoEmpty
 		}
-		g.BuyPhase()
-	} else if g.Tokyo[g.CurrentFleeingLoc] == TokyoEmpty {
-		g.NextFleeingLoc()
+	}
+	// Enter tokyo if there's room
+	for t, p := range g.TokyoLocs() {
+		if p == TokyoEmpty {
+			g.Tokyo[t] = g.CurrentPlayer
+			break
+		}
+	}
+	g.NextPhase()
+}
+
+func (g *Game) HandleAttackedPlayer() {
+	if len(g.AttackPlayers) == 0 {
+		g.EndAttackPhase()
+		return
+	}
+	p := g.AttackPlayers[0]
+	loc := g.PlayerLocation(p)
+	if loc == LocationOutside {
+		g.TakeDamage(p, g.AttackDamage)
+		g.NextAttackedPlayer()
 	}
 }
 
@@ -302,8 +342,8 @@ func (g *Game) WhoseTurn() []string {
 		return []string{}
 	}
 	switch g.Phase {
-	case PhaseFlee:
-		return []string{g.Players[g.Tokyo[g.CurrentFleeingLoc]]}
+	case PhaseAttack:
+		return []string{g.Players[g.AttackPlayers[0]]}
 	default:
 		return []string{g.Players[g.CurrentPlayer]}
 	}
