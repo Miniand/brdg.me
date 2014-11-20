@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardCompleteDestruction struct{}
 
@@ -27,4 +31,25 @@ func (c CardCompleteDestruction) Cost() int {
 
 func (c CardCompleteDestruction) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardCompleteDestruction) PreResolveDice(
+	game *Game,
+	player int,
+	dice []int,
+) []int {
+	rolledDice := map[int]bool{}
+	for _, d := range dice {
+		rolledDice[d] = true
+	}
+	if len(rolledDice) == 6 {
+		game.Boards[player].VP += 9
+		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s gained %s ({{b}}%s{{_b}})",
+			game.RenderName(player),
+			RenderVP(9),
+			c.Name(),
+		)))
+	}
+	return dice
 }

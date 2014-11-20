@@ -97,14 +97,21 @@ func (g *Game) CheckRollComplete() {
 }
 
 func (g *Game) ResolveDice() {
+	things := g.Boards[g.CurrentPlayer].Things()
+	roll := g.CurrentRoll
+	for _, t := range things {
+		if preResolve, ok := t.(PreResolveDiceHandler); ok {
+			roll = preResolve.PreResolveDice(g, g.CurrentPlayer, roll)
+		}
+	}
 	// Handle dice
 	diceCounts := map[int]int{}
-	for _, d := range g.CurrentRoll {
+	for _, d := range roll {
 		diceCounts[d] += 1
 	}
 	// Modify attack
 	attacked := g.AttackTargetsForPlayer(g.CurrentPlayer)
-	for _, t := range g.Boards[g.CurrentPlayer].Things() {
+	for _, t := range things {
 		if attackMod, ok := t.(AttackModifier); ok {
 			diceCounts[DieAttack], attacked = attackMod.ModifyAttack(
 				g,

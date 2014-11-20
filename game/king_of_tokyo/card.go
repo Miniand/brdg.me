@@ -56,6 +56,10 @@ type ExtraReroller interface {
 	ExtraReroll(game *Game, player int, extra map[int]bool) map[int]bool
 }
 
+type PreResolveDiceHandler interface {
+	PreResolveDice(game *Game, player int, dice []int) []int
+}
+
 func Deck() []CardBase {
 	return []CardBase{
 		CardAcidAttack{},
