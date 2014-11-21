@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardEvacuationOrders struct{}
 
@@ -21,4 +25,22 @@ func (c CardEvacuationOrders) Cost() int {
 
 func (c CardEvacuationOrders) Kind() int {
 	return CardKindDiscard
+}
+
+func (c CardEvacuationOrders) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+	for p, _ := range game.Players {
+		if p == player {
+			continue
+		}
+		game.Boards[p].VP -= 5
+		if game.Boards[p].VP < 0 {
+			game.Boards[p].VP = 0
+		}
+	}
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s made all other monsters lose %s ({{b}}%s{{_b}})",
+		game.RenderName(player),
+		RenderVP(5),
+		c.Name(),
+	)))
 }
