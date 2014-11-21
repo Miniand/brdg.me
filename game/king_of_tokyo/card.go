@@ -76,6 +76,10 @@ type LeaveTokyoHandler interface {
 	LeaveTokyo(game *Game, location, player, enteringPlayer int)
 }
 
+type DiceCountModifier interface {
+	ModifyDiceCount(game *Game, player, diceCount int) int
+}
+
 func Deck() []CardBase {
 	return []CardBase{
 		CardAcidAttack{},

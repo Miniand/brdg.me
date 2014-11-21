@@ -76,7 +76,16 @@ func (g *Game) RollPhase() {
 		g.Boards[g.CurrentPlayer].ModifyVP(2)
 	}
 	g.Phase = PhaseRoll
-	g.CurrentRoll = RollDice(6)
+	diceCount := 6
+	for _, t := range g.Boards[g.CurrentPlayer].Things() {
+		if dm, ok := t.(DiceCountModifier); ok {
+			diceCount = dm.ModifyDiceCount(g, g.CurrentPlayer, diceCount)
+		}
+	}
+	if diceCount > 8 {
+		diceCount = 8
+	}
+	g.CurrentRoll = RollDice(diceCount)
 	g.LogRoll(g.CurrentPlayer, g.CurrentRoll, []int{})
 	g.RemainingRolls = 2
 }

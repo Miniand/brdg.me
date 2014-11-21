@@ -17,3 +17,7 @@ func (c CardExtraHead) Cost() int {
 func (c CardExtraHead) Kind() int {
 	return CardKindKeep
 }
+
+func (c CardExtraHead) ModifyDiceCount(game *Game, player, diceCount int) int {
+	return diceCount + 1
+}
