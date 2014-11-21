@@ -187,6 +187,13 @@ func (g *Game) TakeDamage(player, amount int) {
 		if loc := g.PlayerLocation(player); loc != LocationOutside {
 			g.Tokyo[loc] = TokyoEmpty
 		}
+		for p, _ := range g.Players {
+			for _, t := range g.Boards[p].Things() {
+				if zero, ok := t.(HealthZeroHandler); ok {
+					zero.HealthZero(g, p, player)
+				}
+			}
+		}
 	}
 }
 

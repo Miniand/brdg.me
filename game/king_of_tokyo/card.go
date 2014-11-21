@@ -60,6 +60,10 @@ type PreResolveDiceHandler interface {
 	PreResolveDice(game *Game, player int, dice []int) []int
 }
 
+type HealthZeroHandler interface {
+	HealthZero(game *Game, player, zeroPlayer int)
+}
+
 func Deck() []CardBase {
 	return []CardBase{
 		CardAcidAttack{},
