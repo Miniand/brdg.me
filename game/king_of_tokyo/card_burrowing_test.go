@@ -36,3 +36,19 @@ func TestCardBurrowingModifyAttackInTokyo(t *testing.T) {
 	cmd(t, g, Mick, "keep")
 	assert.Equal(t, startingHealth-3, g.Boards[Steve].Health)
 }
+
+func TestCardBurrowingDamageWhenLeavingTokyo(t *testing.T) {
+	g := &Game{}
+	assert.NoError(t, g.Start(names))
+	// Put Steve in Tokyo and give card
+	g.Tokyo[LocationTokyoCity] = Steve
+	g.Boards[Steve].Cards = []CardBase{&CardBurrowing{}}
+	g.CurrentRoll = []int{
+		DieAttack,
+		DieAttack,
+	}
+	startingHealth := g.Boards[Mick].Health
+	cmd(t, g, Mick, "keep")
+	cmd(t, g, Steve, "leave")
+	assert.Equal(t, startingHealth-1, g.Boards[Mick].Health)
+}

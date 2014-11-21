@@ -25,7 +25,7 @@ func (c CardCornerStore) Kind() int {
 }
 
 func (c CardCornerStore) PostCardBuy(game *Game, player int, card CardBase, cost int) {
-	game.Boards[player].VP += 1
+	game.Boards[player].ModifyVP(1)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",
 		game.RenderName(player),

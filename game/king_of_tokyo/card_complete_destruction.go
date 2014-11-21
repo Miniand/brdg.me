@@ -43,7 +43,7 @@ func (c CardCompleteDestruction) PreResolveDice(
 		rolledDice[d] = true
 	}
 	if len(rolledDice) == 6 {
-		game.Boards[player].VP += 9
+		game.Boards[player].ModifyVP(9)
 		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"%s gained %s ({{b}}%s{{_b}})",
 			game.RenderName(player),

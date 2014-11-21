@@ -30,21 +30,21 @@ const (
 )
 
 type Game struct {
-	Players           []string
-	CurrentPlayer     int
-	AttackDamage      int
-	AttackPlayers     []int
-	CurrentFleeingLoc int
-	Phase             int
-	CurrentRoll       []int
-	ExtraRollable     map[int]bool
-	RemainingRolls    int
-	Buyable           []CardBase
-	Deck              []CardBase
-	Discard           []CardBase
-	Boards            []*PlayerBoard
-	Tokyo             []int
-	Log               *log.Log
+	Players        []string
+	CurrentPlayer  int
+	AttackDamage   int
+	AttackPlayers  []int
+	LeftPlayer     int
+	Phase          int
+	CurrentRoll    []int
+	ExtraRollable  map[int]bool
+	RemainingRolls int
+	Buyable        []CardBase
+	Deck           []CardBase
+	Discard        []CardBase
+	Boards         []*PlayerBoard
+	Tokyo          []int
+	Log            *log.Log
 }
 
 func (g *Game) Commands() []command.Command {
@@ -73,7 +73,7 @@ func (g *Game) NextPhase() {
 func (g *Game) RollPhase() {
 	// 2 VP for being in Tokyo at the start of the turn
 	if g.PlayerLocation(g.CurrentPlayer) != LocationOutside {
-		g.Boards[g.CurrentPlayer].VP += 2
+		g.Boards[g.CurrentPlayer].ModifyVP(2)
 	}
 	g.Phase = PhaseRoll
 	g.CurrentRoll = RollDice(6)
@@ -97,6 +97,7 @@ func (g *Game) CheckRollComplete() {
 }
 
 func (g *Game) ResolveDice() {
+	g.LeftPlayer = TokyoEmpty
 	things := g.Boards[g.CurrentPlayer].Things()
 	roll := g.CurrentRoll
 	for _, t := range things {
@@ -130,20 +131,17 @@ func (g *Game) ResolveDice() {
 		switch d {
 		case Die1, Die2, Die3:
 			if count >= 3 {
-				g.Boards[g.CurrentPlayer].VP += d + count - 2
+				g.Boards[g.CurrentPlayer].ModifyVP(d + count - 2)
 			}
 		case DieEnergy:
-			g.Boards[g.CurrentPlayer].Energy += count
+			g.Boards[g.CurrentPlayer].ModifyEnergy(count)
 		case DieAttack:
 			if count > 0 {
 				isAttacking = true
 			}
 		case DieHeal:
 			if g.PlayerLocation(g.CurrentPlayer) == LocationOutside {
-				g.Boards[g.CurrentPlayer].Health += count
-				if g.Boards[g.CurrentPlayer].Health > 10 {
-					g.Boards[g.CurrentPlayer].Health = 10
-				}
+				g.Boards[g.CurrentPlayer].ModifyHealth(count)
 			}
 		}
 	}
@@ -180,9 +178,8 @@ func (g *Game) AttackPhase(players []int, damage int) {
 }
 
 func (g *Game) TakeDamage(player, amount int) {
-	g.Boards[player].Health -= amount
-	if g.Boards[player].Health <= 0 {
-		g.Boards[player].Health = 0
+	g.Boards[player].ModifyHealth(-amount)
+	if g.Boards[player].Health == 0 {
 		// Leave Tokyo if they are in it
 		if loc := g.PlayerLocation(player); loc != LocationOutside {
 			g.Tokyo[loc] = TokyoEmpty
@@ -212,12 +209,24 @@ func (g *Game) EndAttackPhase() {
 	for l, tp := range g.Tokyo[g.TokyoSize():] {
 		if tp != TokyoEmpty {
 			g.Tokyo[l] = TokyoEmpty
+			for _, t := range g.Boards[g.LeftPlayer].Things() {
+				if lt, ok := t.(LeaveTokyoHandler); ok {
+					lt.LeaveTokyo(g, l, tp, TokyoEmpty)
+				}
+			}
 		}
 	}
 	// Enter tokyo if there's room
 	for _, p := range g.TokyoLocs() {
 		if p == TokyoEmpty {
-			g.TakeControl(g.CurrentPlayer)
+			to := g.TakeControl(g.CurrentPlayer)
+			if g.LeftPlayer != TokyoEmpty {
+				for _, t := range g.Boards[g.LeftPlayer].Things() {
+					if lt, ok := t.(LeaveTokyoHandler); ok {
+						lt.LeaveTokyo(g, to, g.LeftPlayer, g.CurrentPlayer)
+					}
+				}
+			}
 			break
 		}
 	}
@@ -229,10 +238,10 @@ func (g *Game) EndAttackPhase() {
 	g.NextPhase()
 }
 
-func (g *Game) TakeControl(player int) {
-	if g.PlayerLocation(player) != LocationOutside {
+func (g *Game) TakeControl(player int) int {
+	if loc := g.PlayerLocation(player); loc != LocationOutside {
 		// Player is already in Tokyo
-		return
+		return loc
 	}
 	// Move into the empty one if there, otherwise to Tokyo City (even if
 	// another player is there).
@@ -261,6 +270,14 @@ func (g *Game) TakeControl(player int) {
 	}
 	g.Tokyo[to] = player
 	g.Boards[player].VP += 1
+	return to
+}
+
+func (g *Game) LeaveTokyo(player int) {
+	loc := g.PlayerLocation(player)
+	if loc != LocationOutside {
+		g.Tokyo[loc] = TokyoEmpty
+	}
 }
 
 func (g *Game) HandleAttackedPlayer() {

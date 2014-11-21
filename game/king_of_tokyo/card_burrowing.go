@@ -1,5 +1,11 @@
 package king_of_tokyo
 
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
+
 type CardBurrowing struct{}
 
 func (c CardBurrowing) Name() string {
@@ -27,4 +33,16 @@ func (c CardBurrowing) ModifyAttack(
 		damage += 1
 	}
 	return damage, attacked
+}
+
+func (c CardBurrowing) LeaveTokyo(game *Game, location, player, enteringPlayer int) {
+	if enteringPlayer != TokyoEmpty {
+		game.TakeDamage(enteringPlayer, 1)
+		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s took 1 damage for taking Tokyo from %s ({{b}}%s{{_b}})",
+			game.RenderName(enteringPlayer),
+			game.RenderName(player),
+			c.Name(),
+		)))
+	}
 }

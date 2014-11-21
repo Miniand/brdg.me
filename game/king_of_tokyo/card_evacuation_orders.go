@@ -32,10 +32,7 @@ func (c CardEvacuationOrders) PostCardBuy(game *Game, player int, card CardBase,
 		if p == player {
 			continue
 		}
-		game.Boards[p].VP -= 5
-		if game.Boards[p].VP < 0 {
-			game.Boards[p].VP = 0
-		}
+		game.Boards[p].ModifyVP(-5)
 	}
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s made all other monsters lose %s ({{b}}%s{{_b}})",

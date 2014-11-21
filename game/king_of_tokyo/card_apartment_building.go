@@ -25,7 +25,7 @@ func (c CardApartmentBuilding) Kind() int {
 }
 
 func (c CardApartmentBuilding) PostCardBuy(game *Game, player int, card CardBase, cost int) {
-	game.Boards[player].VP += 3
+	game.Boards[player].ModifyVP(3)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",
 		game.RenderName(player),

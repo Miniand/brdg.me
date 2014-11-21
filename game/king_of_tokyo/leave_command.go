@@ -43,7 +43,10 @@ func (g *Game) Leave(player int) error {
 	if !g.CanLeave(player) {
 		return errors.New("you can't call leave at the moment")
 	}
-	g.Tokyo[g.CurrentFleeingLoc] = TokyoEmpty
+	if g.LeftPlayer == TokyoEmpty {
+		g.LeftPlayer = player
+	}
+	g.LeaveTokyo(player)
 	g.PostStayOrLeave()
 	return nil
 }

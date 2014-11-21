@@ -68,6 +68,14 @@ type EndTurnHandler interface {
 	EndTurn(game *Game, player int)
 }
 
+type MaxHealthModifier interface {
+	ModifyMaxHealth(health int) int
+}
+
+type LeaveTokyoHandler interface {
+	LeaveTokyo(game *Game, location, player, enteringPlayer int)
+}
+
 func Deck() []CardBase {
 	return []CardBase{
 		CardAcidAttack{},

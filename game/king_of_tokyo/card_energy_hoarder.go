@@ -30,7 +30,7 @@ func (c CardEnergyHoarder) Kind() int {
 
 func (c CardEnergyHoarder) EndTurn(game *Game, player int) {
 	if vp := game.Boards[player].Energy / 6; vp > 0 {
-		game.Boards[player].VP += vp
+		game.Boards[player].ModifyVP(vp)
 		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"%s gained %s ({{b}}%s{{_b}})",
 			game.RenderName(player),
