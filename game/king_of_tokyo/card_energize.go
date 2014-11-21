@@ -1,5 +1,11 @@
 package king_of_tokyo
 
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
+
 type CardEnergize struct{}
 
 func (c CardEnergize) Name() string {
@@ -16,4 +22,14 @@ func (c CardEnergize) Cost() int {
 
 func (c CardEnergize) Kind() int {
 	return CardKindDiscard
+}
+
+func (c CardEnergize) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+	game.Boards[player].Energy += 9
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s gained %s ({{b}}%s{{_b}})",
+		game.RenderName(player),
+		RenderEnergy(1),
+		c.Name(),
+	)))
 }
