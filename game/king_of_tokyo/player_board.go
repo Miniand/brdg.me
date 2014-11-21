@@ -1,5 +1,7 @@
 package king_of_tokyo
 
+import "sort"
+
 type PlayerBoard struct {
 	Health int
 	VP     int
@@ -16,15 +18,17 @@ func NewPlayerBoard() *PlayerBoard {
 	}
 }
 
-func (b *PlayerBoard) Things() []interface{} {
-	things := []interface{}{}
+func (b *PlayerBoard) Things() Things {
+	things := Things{}
 	for _, c := range b.Cards {
 		things = append(things, c)
 	}
 	for _, t := range b.Tokens {
 		things = append(things, t)
 	}
-	return AllThings(things)
+	allThings := AllThings(things)
+	sort.Sort(allThings)
+	return allThings
 }
 
 func (b *PlayerBoard) MaxHealth() int {
@@ -61,8 +65,8 @@ func (b *PlayerBoard) ModifyEnergy(amount int) {
 	}
 }
 
-func AllThings(things []interface{}) []interface{} {
-	allThings := append([]interface{}{}, things...)
+func AllThings(things Things) Things {
+	allThings := append(Things{}, things...)
 	for _, t := range things {
 		if withThings, ok := t.(HasThings); ok {
 			allThings = append(allThings, AllThings(withThings.Things())...)
