@@ -64,6 +64,10 @@ type HealthZeroHandler interface {
 	HealthZero(game *Game, player, zeroPlayer int)
 }
 
+type EndTurnHandler interface {
+	EndTurn(game *Game, player int)
+}
+
 func Deck() []CardBase {
 	return []CardBase{
 		CardAcidAttack{},

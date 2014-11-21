@@ -383,6 +383,11 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) NextTurn() {
+	for _, t := range g.Boards[g.CurrentPlayer].Things() {
+		if endTurn, ok := t.(EndTurnHandler); ok {
+			endTurn.EndTurn(g, g.CurrentPlayer)
+		}
+	}
 	if !g.IsFinished() {
 		g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
 		for g.Boards[g.CurrentPlayer].Health <= 0 {
