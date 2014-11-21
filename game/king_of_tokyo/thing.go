@@ -4,16 +4,25 @@ type Prioritiser interface {
 	Priority() int
 }
 
+// AttackModifier allows the modification of an attack immediately after roll,
+// and allows the modification of the damage and who was attacked.
 type AttackModifier interface {
 	ModifyAttack(game *Game, player, damage int, attacked []int) (int, []int)
 }
 
+// AttackDamageForPlayerModifier allows the modification of an attack damage
+// for a specific player, after any AttackModifier is run.
+type AttackDamageForPlayerModifier interface {
+	ModifyAttackDamageForPlayer(game *Game, player, attacked, damage int) int
+}
+
+// DamageModifier allowed the attacked monster to modify damage.
 type DamageModifier interface {
 	ModifyDamage(game *Game, player, attacker, damage int) int
 }
 
 type HasThings interface {
-	Things() []interface{}
+	Things() Things
 }
 
 type CardCostModifier interface {

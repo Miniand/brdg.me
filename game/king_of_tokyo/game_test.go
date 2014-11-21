@@ -11,9 +11,10 @@ const (
 	Mick = iota
 	Steve
 	BJ
+	Walas
 )
 
-var names = []string{"Mick", "Steve", "BJ"}
+var names = []string{"Mick", "Steve", "BJ", "Walas"}
 
 func cmd(t *testing.T, g *Game, player int, input string) {
 	_, err := command.CallInCommands(g.Players[player], g, input, g.Commands())

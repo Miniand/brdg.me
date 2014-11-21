@@ -296,6 +296,13 @@ func (g *Game) HandleAttackedPlayer() {
 	}
 	p := g.AttackPlayers[0]
 	damage := g.AttackDamage
+	// First attacker modifies damage
+	for _, t := range g.Boards[g.CurrentPlayer].Things() {
+		if damageMod, ok := t.(AttackDamageForPlayerModifier); ok {
+			damage = damageMod.ModifyAttackDamageForPlayer(g, g.CurrentPlayer, p, damage)
+		}
+	}
+	// Second attacked modifies damage
 	for _, t := range g.Boards[p].Things() {
 		if damageMod, ok := t.(DamageModifier); ok {
 			damage = damageMod.ModifyDamage(g, p, g.CurrentPlayer, damage)
