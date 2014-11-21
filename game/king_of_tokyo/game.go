@@ -208,10 +208,9 @@ func (g *Game) EndAttackPhase() {
 		}
 	}
 	// Enter tokyo if there's room
-	for t, p := range g.TokyoLocs() {
+	for _, p := range g.TokyoLocs() {
 		if p == TokyoEmpty {
-			g.Tokyo[t] = g.CurrentPlayer
-			g.Boards[g.CurrentPlayer].VP += 1
+			g.TakeControl(g.CurrentPlayer)
 			break
 		}
 	}
@@ -221,6 +220,40 @@ func (g *Game) EndAttackPhase() {
 		}
 	}
 	g.NextPhase()
+}
+
+func (g *Game) TakeControl(player int) {
+	if g.PlayerLocation(player) != LocationOutside {
+		// Player is already in Tokyo
+		return
+	}
+	// Move into the empty one if there, otherwise to Tokyo City (even if
+	// another player is there).
+	to := LocationTokyoCity
+	for l, p := range g.TokyoLocs() {
+		if p == TokyoEmpty {
+			to = l
+			break
+		}
+	}
+	if g.Tokyo[to] == TokyoEmpty {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s gained control of %s gaining %s",
+			g.RenderName(player),
+			LocationStrings[to],
+			RenderVP(1),
+		)))
+	} else {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s gained control of %s from %s, gaining %s",
+			g.RenderName(player),
+			LocationStrings[to],
+			g.RenderName(g.Tokyo[to]),
+			RenderVP(1),
+		)))
+	}
+	g.Tokyo[to] = player
+	g.Boards[player].VP += 1
 }
 
 func (g *Game) HandleAttackedPlayer() {

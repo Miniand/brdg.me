@@ -9,7 +9,7 @@ import (
 func TestCardApartmentBuilding(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{&CardApartmentBuilding{}}
+	g.Boards[Mick].Cards = []CardBase{}
 	g.Boards[Mick].Energy = 5
 	g.Buyable = []CardBase{&CardApartmentBuilding{}}
 	g.Phase = PhaseBuy

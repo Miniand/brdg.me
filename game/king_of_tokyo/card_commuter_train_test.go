@@ -9,7 +9,7 @@ import (
 func TestCardCommuterTrain(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{&CardCommuterTrain{}}
+	g.Boards[Mick].Cards = []CardBase{}
 	g.Boards[Mick].Energy = 4
 	g.Buyable = []CardBase{&CardCommuterTrain{}}
 	g.Phase = PhaseBuy
