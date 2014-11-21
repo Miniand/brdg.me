@@ -39,6 +39,7 @@ type Game struct {
 	CurrentRoll    []int
 	ExtraRollable  map[int]bool
 	RemainingRolls int
+	ExtraTurns     []int
 	Buyable        []CardBase
 	Deck           []CardBase
 	Discard        []CardBase
@@ -71,11 +72,6 @@ func (g *Game) NextPhase() {
 }
 
 func (g *Game) RollPhase() {
-	// 2 VP for being in Tokyo at the start of the turn
-	if g.PlayerLocation(g.CurrentPlayer) != LocationOutside {
-		g.Boards[g.CurrentPlayer].ModifyVP(2)
-	}
-	g.Phase = PhaseRoll
 	diceCount := 6
 	for _, t := range g.Boards[g.CurrentPlayer].Things() {
 		if dm, ok := t.(DiceCountModifier); ok {
@@ -84,6 +80,15 @@ func (g *Game) RollPhase() {
 	}
 	if diceCount > 8 {
 		diceCount = 8
+	}
+	g.RollPhaceNDice(diceCount)
+}
+
+func (g *Game) RollPhaceNDice(diceCount int) {
+	g.Phase = PhaseRoll
+	// 2 VP for being in Tokyo at the start of the turn
+	if g.PlayerLocation(g.CurrentPlayer) != LocationOutside {
+		g.Boards[g.CurrentPlayer].ModifyVP(2)
 	}
 	g.CurrentRoll = RollDice(diceCount)
 	g.LogRoll(g.CurrentPlayer, g.CurrentRoll, []int{})
@@ -402,6 +407,7 @@ func (g *Game) Start(players []string) error {
 	deck := Shuffle(Deck())
 	g.Buyable = deck[:3]
 	g.Deck = deck[3:]
+	g.ExtraTurns = []int{}
 	g.Discard = []CardBase{}
 	g.Tokyo = make([]int, 2)
 	for i, _ := range g.Tokyo {
@@ -422,11 +428,17 @@ func (g *Game) NextTurn() {
 		}
 	}
 	if !g.IsFinished() {
-		g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
-		for g.Boards[g.CurrentPlayer].Health <= 0 {
+		if len(g.ExtraTurns) > 0 {
+			diceCount := g.ExtraTurns[0]
+			g.ExtraTurns = g.ExtraTurns[1:]
+			g.RollPhaceNDice(diceCount)
+		} else {
 			g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+			for g.Boards[g.CurrentPlayer].Health <= 0 {
+				g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+			}
+			g.RollPhase()
 		}
-		g.RollPhase()
 	}
 }
 

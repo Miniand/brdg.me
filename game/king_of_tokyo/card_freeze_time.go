@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardFreezeTime struct{}
 
@@ -22,4 +26,24 @@ func (c CardFreezeTime) Cost() int {
 
 func (c CardFreezeTime) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardFreezeTime) PreResolveDice(game *Game, player int, dice []int) []int {
+	count := 0
+	for _, d := range dice {
+		if d == Die1 {
+			count += 1
+		}
+	}
+	if count >= 3 {
+		extraTurnDice := len(game.CurrentRoll) - 1
+		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s will get an extra turn with %d dice ({{b}}%s{{_b}})",
+			game.RenderName(player),
+			extraTurnDice,
+			c.Name(),
+		)))
+		game.ExtraTurns = append(game.ExtraTurns, extraTurnDice)
+	}
+	return dice
 }
