@@ -17,3 +17,7 @@ func (c CardGiantBrain) Cost() int {
 func (c CardGiantBrain) Kind() int {
 	return CardKindKeep
 }
+
+func (c CardGiantBrain) ModifyRollCount(game *Game, player, rollCount int) int {
+	return rollCount + 1
+}

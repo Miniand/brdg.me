@@ -71,6 +71,10 @@ type DiceCountModifier interface {
 	ModifyDiceCount(game *Game, player, diceCount int) int
 }
 
+type RollCountModifier interface {
+	ModifyRollCount(game *Game, player, rollCount int) int
+}
+
 type Things []interface{}
 
 func (t Things) Len() int {

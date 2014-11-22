@@ -31,7 +31,7 @@ func (c CardGasRefinery) PostCardBuy(game *Game, player int, card CardBase, cost
 	game.Boards[player].ModifyVP(2)
 	for p, _ := range game.Players {
 		if p != player {
-			game.TakeDamage(p, 3)
+			game.DealDamage(player, p, 3)
 		}
 	}
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(

@@ -93,6 +93,15 @@ func (g *Game) RollPhaceNDice(diceCount int) {
 	g.CurrentRoll = RollDice(diceCount)
 	g.LogRoll(g.CurrentPlayer, g.CurrentRoll, []int{})
 	g.RemainingRolls = 2
+	for _, t := range g.Boards[g.CurrentPlayer].Things() {
+		if mod, ok := t.(RollCountModifier); ok {
+			g.RemainingRolls = mod.ModifyRollCount(
+				g,
+				g.CurrentPlayer,
+				g.RemainingRolls,
+			)
+		}
+	}
 }
 
 func (g *Game) CheckRollComplete() {
