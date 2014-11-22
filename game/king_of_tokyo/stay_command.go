@@ -50,11 +50,6 @@ func (g *Game) Stay(player int) error {
 func (g *Game) PostStayOrLeave() {
 	p := g.AttackPlayers[0]
 	damage := g.AttackDamage
-	for _, t := range g.Boards[p].Things() {
-		if damageMod, ok := t.(DamageModifier); ok {
-			damage = damageMod.ModifyDamage(g, p, g.CurrentPlayer, damage)
-		}
-	}
-	g.TakeDamage(p, damage)
+	g.DealDamage(g.CurrentPlayer, p, damage)
 	g.NextAttackedPlayer()
 }

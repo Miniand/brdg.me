@@ -200,8 +200,26 @@ func (g *Game) AttackPhase(players []int, damage int) {
 	g.HandleAttackedPlayer()
 }
 
-func (g *Game) TakeDamage(player, amount int) {
-	g.Boards[player].ModifyHealth(-amount)
+func (g *Game) DealDamage(attacker, target, damage int) {
+	// First attacker modifies damage
+	for _, t := range g.Boards[attacker].Things() {
+		if damageMod, ok := t.(AttackDamageForPlayerModifier); ok {
+			damage = damageMod.ModifyAttackDamageForPlayer(g, attacker, target, damage)
+		}
+	}
+	// Second attacked modifies damage
+	for _, t := range g.Boards[target].Things() {
+		if damageMod, ok := t.(DamageModifier); ok {
+			damage = damageMod.ModifyDamage(g, target, attacker, damage)
+		}
+	}
+	if damage != 0 {
+		g.TakeDamage(target, damage)
+	}
+}
+
+func (g *Game) TakeDamage(player, damage int) {
+	g.Boards[player].ModifyHealth(-damage)
 	if g.Boards[player].Health == 0 {
 		// Leave Tokyo if they are in it
 		if loc := g.PlayerLocation(player); loc != LocationOutside {
@@ -310,23 +328,8 @@ func (g *Game) HandleAttackedPlayer() {
 	}
 	p := g.AttackPlayers[0]
 	damage := g.AttackDamage
-	// First attacker modifies damage
-	for _, t := range g.Boards[g.CurrentPlayer].Things() {
-		if damageMod, ok := t.(AttackDamageForPlayerModifier); ok {
-			damage = damageMod.ModifyAttackDamageForPlayer(g, g.CurrentPlayer, p, damage)
-		}
-	}
-	// Second attacked modifies damage
-	for _, t := range g.Boards[p].Things() {
-		if damageMod, ok := t.(DamageModifier); ok {
-			damage = damageMod.ModifyDamage(g, p, g.CurrentPlayer, damage)
-		}
-	}
-	loc := g.PlayerLocation(p)
-	if damage <= 0 {
-		g.NextAttackedPlayer()
-	} else if loc == LocationOutside {
-		g.TakeDamage(p, damage)
+	if g.PlayerLocation(p) == LocationOutside {
+		g.DealDamage(g.CurrentPlayer, p, damage)
 		g.NextAttackedPlayer()
 	}
 }

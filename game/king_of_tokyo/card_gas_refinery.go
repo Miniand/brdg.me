@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardGasRefinery struct{}
 
@@ -21,4 +25,19 @@ func (c CardGasRefinery) Cost() int {
 
 func (c CardGasRefinery) Kind() int {
 	return CardKindDiscard
+}
+
+func (c CardGasRefinery) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+	game.Boards[player].ModifyVP(2)
+	for p, _ := range game.Players {
+		if p != player {
+			game.TakeDamage(p, 3)
+		}
+	}
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s gained %s and dealt 3 damage to other monsters ({{b}}%s{{_b}})",
+		game.RenderName(player),
+		RenderVP(1),
+		c.Name(),
+	)))
 }
