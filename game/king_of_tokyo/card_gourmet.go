@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardGourmet struct{}
 
@@ -23,4 +27,23 @@ func (c CardGourmet) Cost() int {
 
 func (c CardGourmet) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardGourmet) PreResolveDice(game *Game, player int, dice []int) []int {
+	count := 0
+	for _, d := range dice {
+		if d == Die1 {
+			count += 1
+		}
+	}
+	if count >= 3 {
+		game.Boards[player].ModifyVP(2)
+		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s gained %s ({{b}}%s{{_b}})",
+			game.RenderName(player),
+			RenderVP(2),
+			c.Name(),
+		)))
+	}
+	return dice
 }

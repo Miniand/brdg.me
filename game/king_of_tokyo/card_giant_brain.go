@@ -1,5 +1,11 @@
 package king_of_tokyo
 
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
+
 type CardGiantBrain struct{}
 
 func (c CardGiantBrain) Name() string {
@@ -19,5 +25,10 @@ func (c CardGiantBrain) Kind() int {
 }
 
 func (c CardGiantBrain) ModifyRollCount(game *Game, player, rollCount int) int {
+	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s gets an extra reroll ({{b}}%s{{_b}})",
+		game.RenderName(player),
+		c.Name(),
+	)))
 	return rollCount + 1
 }
