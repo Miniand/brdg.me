@@ -17,3 +17,7 @@ func (c CardHeal) Cost() int {
 func (c CardHeal) Kind() int {
 	return CardKindDiscard
 }
+
+func (c CardHeal) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+	game.Boards[player].ModifyHealth(2)
+}
