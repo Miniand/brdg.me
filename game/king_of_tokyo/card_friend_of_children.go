@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardFriendOfChildren struct{}
 
@@ -21,4 +25,17 @@ func (c CardFriendOfChildren) Cost() int {
 
 func (c CardFriendOfChildren) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardFriendOfChildren) ModifyEnergy(game *Game, player, amount int) int {
+	if amount > 0 {
+		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s gains %s for gaining energy ({{b}}%s{{_b}})",
+			game.RenderName(player),
+			RenderEnergyChange(1),
+			c.Name(),
+		)))
+		amount += 1
+	}
+	return amount
 }

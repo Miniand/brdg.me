@@ -21,6 +21,12 @@ type DamageModifier interface {
 	ModifyDamage(game *Game, player, attacker, damage int) int
 }
 
+// EnergyModifier allows the monster to modify the energy amount when energy
+// is modified.
+type EnergyModifier interface {
+	ModifyEnergy(game *Game, player, amount int) int
+}
+
 type HasThings interface {
 	Things() Things
 }

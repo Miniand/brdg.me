@@ -148,7 +148,7 @@ func (g *Game) ResolveDice() {
 				g.Boards[g.CurrentPlayer].ModifyVP(d + count - 2)
 			}
 		case DieEnergy:
-			g.Boards[g.CurrentPlayer].ModifyEnergy(count)
+			g.ModifyEnergy(g.CurrentPlayer, count)
 		case DieAttack:
 			if count > 0 {
 				isAttacking = true
@@ -167,6 +167,15 @@ func (g *Game) ResolveDice() {
 	} else {
 		g.BuyPhase()
 	}
+}
+
+func (g *Game) ModifyEnergy(player, amount int) {
+	for _, t := range g.Boards[player].Things() {
+		if mod, ok := t.(EnergyModifier); ok {
+			amount = mod.ModifyEnergy(g, player, amount)
+		}
+	}
+	g.Boards[player].ModifyEnergy(amount)
 }
 
 func (g *Game) AttackPhase(players []int, damage int) {
