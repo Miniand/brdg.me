@@ -17,3 +17,8 @@ func (c CardFrenzy) Cost() int {
 func (c CardFrenzy) Kind() int {
 	return CardKindDiscard
 }
+
+func (c CardFrenzy) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+	// As per FAQ, restart turn immediately without the end of turn phase.
+	game.RollPhaceNDice(len(game.CurrentRoll))
+}
