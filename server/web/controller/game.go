@@ -110,6 +110,7 @@ func ApiGameShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Json(http.StatusOK, map[string]interface{}{
+		"id":         gm.Id,
 		"identifier": g.Identifier(),
 		"name":       g.Name(),
 		"isFinished": g.IsFinished(),
