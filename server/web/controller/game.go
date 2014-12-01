@@ -175,6 +175,16 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 		ApiInternalServerError(err.Error(), w, r)
 		return
 	}
+	// Mark log as read for player and resave
+	g.GameLog().MarkReadFor(authUser.Email)
+	if err := gm.UpdateState(g); err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
+	if err := gm.Save(); err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+		return
+	}
 	// Get output for return
 	gameOutput, err := g.RenderForPlayer(authUser.Email)
 	if err != nil {
