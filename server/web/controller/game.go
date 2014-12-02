@@ -16,6 +16,66 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func mergeMaps(in ...map[string]interface{}) map[string]interface{} {
+	var first map[string]interface{}
+	for _, i := range in {
+		if first == nil {
+			first = i
+			continue
+		}
+		for k, v := range i {
+			first[k] = v
+		}
+	}
+	return first
+}
+
+func GameData(gm *model.GameModel, g game.Playable) map[string]interface{} {
+	return map[string]interface{}{
+		"id":         gm.Id,
+		"name":       g.Name(),
+		"identifier": g.Identifier(),
+		"isFinished": gm.IsFinished,
+		"finishedAt": gm.FinishedAt,
+		"playerList": gm.PlayerList,
+		"whoseTurn":  gm.WhoseTurn,
+		"winners":    gm.Winners,
+	}
+}
+
+func GameOutput(
+	player string,
+	gm *model.GameModel,
+	g game.Playable,
+) (map[string]interface{}, error) {
+	gameOutput, err := g.RenderForPlayer(player)
+	if err != nil {
+		return nil, err
+	}
+	gameHtml, err := render.RenderHtml(gameOutput)
+	if err != nil {
+		return nil, err
+	}
+	logHtml, err := render.RenderHtml(
+		log.RenderMessages(g.GameLog().MessagesFor(player)))
+	if err != nil {
+		return nil, err
+	}
+	commandHtml, err := render.RenderHtml(
+		render.CommandUsages(command.CommandUsages(
+			player, g,
+			command.AvailableCommands(player, g,
+				append(g.Commands(), scommand.Commands(gm)...)))))
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"game":     gameHtml,
+		"log":      logHtml,
+		"commands": commandHtml,
+	}, nil
+}
+
 func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 	loggedIn, authUser := ApiMustAuthenticate(w, r)
 	if !loggedIn {
@@ -32,6 +92,8 @@ func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 		res, err = model.GamesForPlayer(authUser.Email)
 	case "active":
 		res, err = model.ActiveGamesForPlayer(authUser.Email)
+	case "recentlyFinished":
+		res, err = model.RecentlyFinishedGamesForPlayer(authUser.Email)
 	default:
 		res, err = model.CurrentTurnGamesForPlayer(authUser.Email)
 	}
@@ -39,20 +101,13 @@ func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 		ApiInternalServerError(err.Error(), w, r)
 		return
 	}
+	defer res.Close()
 	for res.Next(&gm) {
 		g, err := gm.ToGame()
 		if err != nil {
 			continue
 		}
-		games = append(games, map[string]interface{}{
-			"id":         gm.Id,
-			"name":       g.Name(),
-			"identifier": g.Identifier(),
-			"isFinished": gm.IsFinished,
-			"playerList": gm.PlayerList,
-			"whoseTurn":  gm.WhoseTurn,
-			"winners":    gm.Winners,
-		})
+		games = append(games, GameData(gm, g))
 	}
 	Json(http.StatusOK, games, w, r)
 }
@@ -84,43 +139,11 @@ func ApiGameShow(w http.ResponseWriter, r *http.Request) {
 		ApiInternalServerError(err.Error(), w, r)
 		return
 	}
-	gameOutput, err := g.RenderForPlayer(authUser.Email)
+	gameOutput, err := GameOutput(authUser.Email, gm, g)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
-		return
 	}
-	gameHtml, err := render.RenderHtml(gameOutput)
-	if err != nil {
-		ApiInternalServerError(err.Error(), w, r)
-		return
-	}
-	logHtml, err := render.RenderHtml(
-		log.RenderMessages(g.GameLog().MessagesFor(authUser.Email)))
-	if err != nil {
-		ApiInternalServerError(err.Error(), w, r)
-		return
-	}
-	commandHtml, err := render.RenderHtml(
-		render.CommandUsages(command.CommandUsages(
-			authUser.Email, g,
-			command.AvailableCommands(authUser.Email, g,
-				append(g.Commands(), scommand.Commands(gm)...)))))
-	if err != nil {
-		ApiInternalServerError(err.Error(), w, r)
-		return
-	}
-	Json(http.StatusOK, map[string]interface{}{
-		"id":         gm.Id,
-		"identifier": g.Identifier(),
-		"name":       g.Name(),
-		"isFinished": g.IsFinished(),
-		"whoseTurn":  g.WhoseTurn(),
-		"playerList": g.PlayerList(),
-		"winners":    g.Winners(),
-		"game":       gameHtml,
-		"log":        logHtml,
-		"commands":   commandHtml,
-	}, w, r)
+	Json(http.StatusOK, mergeMaps(GameData(gm, g), gameOutput), w, r)
 }
 
 func ApiGameCreate(w http.ResponseWriter, r *http.Request) {
@@ -186,45 +209,48 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get output for return
-	gameOutput, err := g.RenderForPlayer(authUser.Email)
+	gameOutput, err := GameOutput(authUser.Email, gm, g)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
+	}
+	Json(http.StatusOK, mergeMaps(GameData(gm, g), gameOutput), w, r)
+}
+
+func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
+	var gm *model.GameModel
+	loggedIn, authUser := ApiMustAuthenticate(w, r)
+	if !loggedIn {
 		return
 	}
-	gameHtml, err := render.RenderHtml(gameOutput)
+	resp := map[string][]map[string]interface{}{
+		"currentTurn":      []map[string]interface{}{},
+		"recentlyFinished": []map[string]interface{}{},
+	}
+	// Current turn
+	currentRes, err := model.CurrentTurnGamesForPlayer(authUser.Email)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
-		return
 	}
-	logHtml, err := render.RenderHtml(
-		log.RenderMessages(g.GameLog().MessagesFor(authUser.Email)))
+	defer currentRes.Close()
+	for currentRes.Next(&gm) {
+		g, err := gm.ToGame()
+		if err != nil {
+			continue
+		}
+		resp["currentTurn"] = append(resp["currentTurn"], GameData(gm, g))
+	}
+	// Recently finished
+	finishedRes, err := model.RecentlyFinishedGamesForPlayer(authUser.Email)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
-		return
 	}
-	commandHtml, err := render.RenderHtml(
-		render.CommandUsages(command.CommandUsages(
-			authUser.Email, g,
-			command.AvailableCommands(
-				authUser.Email,
-				g,
-				append(g.Commands(), scommand.Commands(gm)...),
-			),
-		)))
-	if err != nil {
-		ApiInternalServerError(err.Error(), w, r)
-		return
+	defer finishedRes.Close()
+	for finishedRes.Next(&gm) {
+		g, err := gm.ToGame()
+		if err != nil {
+			continue
+		}
+		resp["recentlyFinished"] = append(resp["recentlyFinished"], GameData(gm, g))
 	}
-	Json(http.StatusOK, map[string]interface{}{
-		"id":         gm.Id,
-		"identifier": g.Identifier(),
-		"name":       g.Name(),
-		"isFinished": g.IsFinished(),
-		"whoseTurn":  g.WhoseTurn(),
-		"playerList": g.PlayerList(),
-		"winners":    g.Winners(),
-		"game":       gameHtml,
-		"log":        logHtml,
-		"commands":   commandHtml,
-	}, w, r)
+	Json(http.StatusOK, resp, w, r)
 }

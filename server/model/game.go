@@ -10,14 +10,16 @@ import (
 )
 
 type GameModel struct {
-	Id         string `gorethink:"id,omitempty"`
-	PlayerList []string
-	Winners    []string
-	IsFinished bool
-	WhoseTurn  []string
-	Type       string
-	State      []byte
-	Restarted  bool
+	Id             string `gorethink:"id,omitempty"`
+	PlayerList     []string
+	Winners        []string
+	IsFinished     bool
+	FinishedAt     time.Time `gorethink:",omitempty"`
+	WhoseTurnSince map[string]time.Time
+	WhoseTurn      []string
+	Type           string
+	State          []byte
+	Restarted      bool
 }
 
 func GameTable() r.Term {
@@ -45,13 +47,7 @@ func GamesForPlayer(player string) (*r.Cursor, error) {
 		return nil, err
 	}
 	defer session.Close()
-	res, err := GameTable().Filter(func(row r.Term) interface{} {
-		return row.Field("PlayerList").Contains(player)
-	}).Run(session)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	return GameTable().GetAllByIndex("PlayerList", player).Run(session)
 }
 
 func ActiveGamesForPlayer(player string) (*r.Cursor, error) {
@@ -60,15 +56,10 @@ func ActiveGamesForPlayer(player string) (*r.Cursor, error) {
 		return nil, err
 	}
 	defer session.Close()
-	res, err := GameTable().Filter(map[string]interface{}{
-		"IsFinished": false,
-	}).Filter(func(row r.Term) interface{} {
-		return row.Field("PlayerList").Contains(player)
-	}).Run(session)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	return GameTable().GetAllByIndex(
+		"IsFinished:PlayerList",
+		[]interface{}{false, player},
+	).Run(session)
 }
 
 func CurrentTurnGamesForPlayer(player string) (*r.Cursor, error) {
@@ -77,15 +68,21 @@ func CurrentTurnGamesForPlayer(player string) (*r.Cursor, error) {
 		return nil, err
 	}
 	defer session.Close()
-	res, err := GameTable().Filter(map[string]interface{}{
-		"IsFinished": false,
-	}).Filter(func(row r.Term) interface{} {
-		return row.Field("WhoseTurn").Contains(player)
-	}).Run(session)
+	return GameTable().GetAllByIndex(
+		"IsFinished:WhoseTurn",
+		[]interface{}{false, player},
+	).OrderBy(r.Row.Field("WhoseTurnSince").Field(player)).Run(session)
+}
+
+func RecentlyFinishedGamesForPlayer(player string) (*r.Cursor, error) {
+	session, err := Connect()
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+	defer session.Close()
+	return GameTable().OrderBy(r.OrderByOpts{Index: r.Desc("FinishedAt")}).
+		Filter(r.Row.Field("IsFinished").Eq(true).And(
+		r.Row.Field("PlayerList").Contains(player))).Limit(5).Run(session)
 }
 
 func SaveGame(g game.Playable) (*GameModel, error) {
@@ -155,12 +152,34 @@ func (gm *GameModel) UpdateState(g game.Playable) error {
 	if err != nil {
 		return err
 	}
+	gm.State = state
+	gm.Type = g.Identifier()
 	gm.PlayerList = g.PlayerList()
 	gm.Winners = g.Winners()
-	gm.IsFinished = g.IsFinished()
+	// Cache whether the game is finished and generate the finish time if
+	// needed.
+	gm.IsFinished = gm.IsFinished || g.IsFinished()
+	if gm.IsFinished && gm.FinishedAt.IsZero() {
+		gm.FinishedAt = time.Now()
+	}
+	// Cache whose turn it is and set the time for people whose turn it has
+	// just become.
 	gm.WhoseTurn = g.WhoseTurn()
-	gm.Type = g.Identifier()
-	gm.State = state
+	if gm.WhoseTurnSince == nil {
+		gm.WhoseTurnSince = map[string]time.Time{}
+	}
+	whoseTurnMap := map[string]bool{}
+	for _, p := range gm.WhoseTurn {
+		whoseTurnMap[p] = true
+		if gm.WhoseTurnSince[p].IsZero() {
+			gm.WhoseTurnSince[p] = time.Now()
+		}
+	}
+	for p, _ := range gm.WhoseTurnSince {
+		if !whoseTurnMap[p] {
+			delete(gm.WhoseTurnSince, p)
+		}
+	}
 	return nil
 }
 
