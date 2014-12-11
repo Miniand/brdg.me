@@ -150,35 +150,65 @@ func (gm *GameModel) UpdateState(g game.Playable) error {
 	gm.State = state
 	gm.Type = g.Identifier()
 	gm.PlayerList = g.PlayerList()
-	gm.Winners = g.Winners()
-	if e, ok := g.(game.Eliminator); ok {
-		gm.EliminatedPlayerList = e.EliminatedPlayerList()
-	}
-	// Cache whether the game is finished and generate the finish time if
-	// needed.
 	gm.IsFinished = gm.IsFinished || g.IsFinished()
-	if gm.IsFinished && gm.FinishedAt.IsZero() {
-		gm.FinishedAt = time.Now()
-	}
-	// Cache whose turn it is and set the time for people whose turn it has
-	// just become.
-	gm.WhoseTurn = g.WhoseTurn()
-	if gm.WhoseTurnSince == nil {
+	if gm.IsFinished {
+		gm.WhoseTurn = []string{}
 		gm.WhoseTurnSince = map[string]time.Time{}
-	}
-	whoseTurnMap := map[string]bool{}
-	for _, p := range gm.WhoseTurn {
-		whoseTurnMap[p] = true
-		if gm.WhoseTurnSince[p].IsZero() {
-			gm.WhoseTurnSince[p] = time.Now()
+		if gm.FinishedAt.IsZero() {
+			gm.FinishedAt = time.Now()
 		}
-	}
-	for p, _ := range gm.WhoseTurnSince {
-		if !whoseTurnMap[p] {
-			delete(gm.WhoseTurnSince, p)
+	} else {
+		gm.Winners = g.Winners()
+		if e, ok := g.(game.Eliminator); ok {
+			gm.EliminatedPlayerList = e.EliminatedPlayerList()
+		}
+		// Cache whose turn it is and set the time for people whose turn it has
+		// just become.
+		if gm.IsConcedeVoting() {
+			gm.WhoseTurn = gm.RemainingConcedeVotePlayers()
+		} else {
+			gm.WhoseTurn = g.WhoseTurn()
+		}
+		if gm.WhoseTurnSince == nil {
+			gm.WhoseTurnSince = map[string]time.Time{}
+		}
+		whoseTurnMap := map[string]bool{}
+		for _, p := range gm.WhoseTurn {
+			whoseTurnMap[p] = true
+			if gm.WhoseTurnSince[p].IsZero() {
+				gm.WhoseTurnSince[p] = time.Now()
+			}
+		}
+		for p, _ := range gm.WhoseTurnSince {
+			if !whoseTurnMap[p] {
+				delete(gm.WhoseTurnSince, p)
+			}
 		}
 	}
 	return nil
+}
+
+func (gm *GameModel) IsConcedeVoting() bool {
+	return !gm.IsFinished && gm.ConcedeVote != nil
+}
+
+func (gm *GameModel) RemainingConcedeVotePlayers() []string {
+	remaining := []string{}
+	if !gm.IsConcedeVoting() {
+		return remaining
+	}
+	eliminated := map[string]bool{}
+	if gm.EliminatedPlayerList != nil {
+		for _, ep := range gm.EliminatedPlayerList {
+			eliminated[ep] = true
+		}
+	}
+	for _, p := range gm.PlayerList {
+		if _, ok := gm.ConcedeVote[p]; !ok && !eliminated[p] {
+			remaining = append(remaining, p)
+		}
+	}
+	return remaining
 }
 
 func (gm *GameModel) Load() error {

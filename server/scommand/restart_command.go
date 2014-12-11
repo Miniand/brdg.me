@@ -18,24 +18,23 @@ func (rc RestartCommand) Parse(input string) []string {
 }
 
 func (rc RestartCommand) CanCall(player string, context interface{}) bool {
-	g, ok := context.(game.Playable)
-	return ok && g.IsFinished() && rc.gameModel != nil && !rc.gameModel.Restarted
+	return rc.gameModel.IsFinished && !rc.gameModel.Restarted
 }
 
 func (rc RestartCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	if rc.gameModel == nil {
-		return "", errors.New("No game was passed in")
+		return "", errors.New("no game was passed in")
 	}
 	if rc.gameModel.Restarted {
-		return "", errors.New("The game has already been restarted")
+		return "", errors.New("the game has already been restarted")
 	}
 	g, ok := context.(game.Playable)
 	if !ok {
 		return "", errors.New("No game was passed in")
 	}
 	others := []string{}
-	for _, p := range g.PlayerList() {
+	for _, p := range rc.gameModel.PlayerList {
 		if p != player {
 			others = append(others, p)
 		}

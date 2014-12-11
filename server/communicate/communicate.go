@@ -4,18 +4,19 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/server/email"
+	"github.com/Miniand/brdg.me/server/model"
 )
 
 func Game(
-	id string,
 	g game.Playable,
+	gm *model.GameModel,
 	to []string,
 	commands []command.Command,
 	header string,
 	headerType string,
 	initial bool,
 ) error {
-	failed := wsSendGameMulti(to, id, header, headerType, g)
+	failed := wsSendGameMulti(to, header, headerType, g, gm)
 	if len(failed) == 0 {
 		return nil
 	}
@@ -23,9 +24,9 @@ func Game(
 	for p, _ := range failed {
 		emailTo = append(emailTo, p)
 	}
-	return email.SendGame(id, g, emailTo, commands, header, initial)
+	return email.SendGame(g, gm, emailTo, commands, header, initial)
 }
 
-func GameUpdate(id string, g game.Playable, to []string, text, msgType string) {
-	wsSendGameMulti(to, id, text, msgType, g)
+func GameUpdate(g game.Playable, gm *model.GameModel, to []string, text, msgType string) {
+	wsSendGameMulti(to, text, msgType, g, gm)
 }

@@ -44,9 +44,9 @@ func (nc NewCommand) Call(player string, context interface{},
 		return "", err
 	}
 	return "", communicate.Game(
-		gm.Id,
 		g,
-		g.PlayerList(),
+		gm,
+		gm.PlayerList,
 		CommandsForGame(gm, g),
 		"You have been invited by "+player+" to play "+g.Name()+"!",
 		MsgTypeInvite,

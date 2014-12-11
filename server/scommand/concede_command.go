@@ -36,7 +36,7 @@ func CanInitiateConcedeVote(player string, gm *model.GameModel) bool {
 }
 
 func CanConcedeVote(player string, gm *model.GameModel) bool {
-	for _, p := range RemainingConcedeVotePlayers(gm) {
+	for _, p := range gm.RemainingConcedeVotePlayers() {
 		if p == player {
 			return true
 		}
@@ -44,45 +44,25 @@ func CanConcedeVote(player string, gm *model.GameModel) bool {
 	return false
 }
 
-func IsConcedeVoting(gm *model.GameModel) bool {
-	return !gm.IsFinished && gm.ConcedeVote != nil
-}
-
-func RemainingConcedeVotePlayers(gm *model.GameModel) []string {
-	remaining := []string{}
-	if !IsConcedeVoting(gm) {
-		return remaining
-	}
-	eliminated := map[string]bool{}
-	if gm.EliminatedPlayerList != nil {
-		for _, ep := range gm.EliminatedPlayerList {
-			eliminated[ep] = true
-		}
-	}
-	for _, p := range gm.PlayerList {
-		if _, ok := gm.ConcedeVote[p]; !ok && !eliminated[p] {
-			remaining = append(remaining, p)
-		}
-	}
-	return remaining
-}
-
 func PassConcedeVote(gm *model.GameModel, g game.Playable) {
 	gm.IsFinished = true
 	gm.Winners = gm.ConcedePlayers
 	gm.ConcedePlayers = nil
 	gm.ConcedeVote = nil
-	g.GameLog().Add(log.NewPublicMessage("The game has been conceeded"))
+	g.GameLog().Add(log.NewPublicMessage(fmt.Sprintf(
+		"{{b}}The game has been conceeded to %s{{_b}}",
+		render.CommaList(render.PlayerNamesInPlayers(gm.Winners, gm.PlayerList)),
+	)))
 }
 
 func FailConcedeVote(gm *model.GameModel, g game.Playable) {
 	gm.ConcedePlayers = nil
 	gm.ConcedeVote = nil
-	g.GameLog().Add(log.NewPublicMessage("The vote failed"))
+	g.GameLog().Add(log.NewPublicMessage("{{b}}The vote failed{{_b}}"))
 }
 
 func (c ConcedeCommand) CanCall(player string, context interface{}) bool {
-	return c.gameModel != nil && CanInitiateConcedeVote(player, c.gameModel)
+	return CanInitiateConcedeVote(player, c.gameModel)
 }
 
 func (c ConcedeCommand) Call(player string, context interface{},
@@ -94,7 +74,8 @@ func (c ConcedeCommand) Call(player string, context interface{},
 	if !ok {
 		return "", errors.New("no game was passed in")
 	}
-	playerList := g.PlayerList()
+
+	playerList := c.gameModel.PlayerList
 	pNum, err := helper.StringInStrings(player, playerList)
 	if err != nil {
 		return "", err
@@ -102,15 +83,9 @@ func (c ConcedeCommand) Call(player string, context interface{},
 
 	a := command.ExtractNamedCommandArgs(args)
 	concedePlayers := []string{}
-	if len(a) > 0 {
-		l := len(playerList)
-		switch {
-		case l > 2:
-			return "", errors.New("you must specify which player(s) to concede to")
-		case l == 2:
-			// Two player, default to conceding to other player
-			concedePlayers = []string{playerList[(pNum+1)%2]}
-		}
+	if len(a) == 0 && len(playerList) == 2 {
+		// Two player, default to conceding to other player
+		concedePlayers = []string{playerList[(pNum+1)%2]}
 	} else {
 		matchedPlayers := map[string]bool{}
 		for _, p := range a {
@@ -124,6 +99,9 @@ func (c ConcedeCommand) Call(player string, context interface{},
 				concedePlayers = append(concedePlayers, concedePlayer)
 			}
 		}
+		if len(concedePlayers) == 0 {
+			return "", errors.New("you must specify a player to concede to")
+		}
 	}
 	c.gameModel.ConcedePlayers = concedePlayers
 	c.gameModel.ConcedeVote = map[string]bool{
@@ -134,7 +112,7 @@ func (c ConcedeCommand) Call(player string, context interface{},
 		c.gameModel.ConcedeVote[concedePlayers[0]] = true
 	}
 
-	if len(RemainingConcedeVotePlayers(c.gameModel)) == 0 {
+	if len(c.gameModel.RemainingConcedeVotePlayers()) == 0 {
 		PassConcedeVote(c.gameModel, g)
 	} else {
 		g.GameLog().Add(log.NewPublicMessage(fmt.Sprintf(
@@ -150,5 +128,5 @@ func (c ConcedeCommand) Call(player string, context interface{},
 }
 
 func (c ConcedeCommand) Usage(player string, context interface{}) string {
-	return "{{b}}concede (## ##){{_b}} to propose conceding the game to a player or players, eg. {{b}}concede michael steve{{_b}}.  In a two player game, calling concede without any names will concede the game immediately to your opponent."
+	return "{{b}}concede (## ##){{_b}} to concede to one or more other players"
 }

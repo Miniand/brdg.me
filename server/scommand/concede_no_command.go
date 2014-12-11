@@ -2,9 +2,12 @@ package scommand
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/model"
 )
 
@@ -17,7 +20,7 @@ func (c ConcedeNoCommand) Parse(input string) []string {
 }
 
 func (c ConcedeNoCommand) CanCall(player string, context interface{}) bool {
-	return c.gameModel != nil && CanConcedeVote(player, c.gameModel)
+	return CanConcedeVote(player, c.gameModel)
 }
 
 func (c ConcedeNoCommand) Call(player string, context interface{},
@@ -30,6 +33,10 @@ func (c ConcedeNoCommand) Call(player string, context interface{},
 		return "", errors.New("no game was passed in")
 	}
 
+	g.GameLog().Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s voted {{b}}no{{_b}}",
+		render.PlayerNameInPlayers(player, c.gameModel.PlayerList),
+	)))
 	FailConcedeVote(c.gameModel, g)
 	return "", nil
 }

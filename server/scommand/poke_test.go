@@ -5,6 +5,7 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/tic_tac_toe"
+	"github.com/Miniand/brdg.me/server/model"
 )
 
 func TestPokeCall(t *testing.T) {
@@ -16,7 +17,9 @@ func TestPokeCall(t *testing.T) {
 	g.CurrentlyMoving = "mick"
 	output, err := command.CallInCommands("steve", g, "   poke  ",
 		[]command.Command{
-			PokeCommand{},
+			PokeCommand{
+				gameModel: &model.GameModel{},
+			},
 		})
 	if err != nil {
 		t.Fatal(err)

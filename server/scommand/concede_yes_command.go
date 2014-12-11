@@ -2,9 +2,12 @@ package scommand
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/model"
 )
 
@@ -17,7 +20,7 @@ func (c ConcedeYesCommand) Parse(input string) []string {
 }
 
 func (c ConcedeYesCommand) CanCall(player string, context interface{}) bool {
-	return c.gameModel != nil && CanConcedeVote(player, c.gameModel)
+	return CanConcedeVote(player, c.gameModel)
 }
 
 func (c ConcedeYesCommand) Call(player string, context interface{},
@@ -31,7 +34,11 @@ func (c ConcedeYesCommand) Call(player string, context interface{},
 	}
 
 	c.gameModel.ConcedeVote[player] = true
-	if len(RemainingConcedeVotePlayers(c.gameModel)) == 0 {
+	g.GameLog().Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s voted {{b}}yes{{_b}}",
+		render.PlayerNameInPlayers(player, c.gameModel.PlayerList),
+	)))
+	if len(c.gameModel.RemainingConcedeVotePlayers()) == 0 {
 		PassConcedeVote(c.gameModel, g)
 	}
 	return "", nil

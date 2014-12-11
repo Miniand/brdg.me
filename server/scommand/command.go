@@ -8,7 +8,7 @@ import (
 
 func CommandsForGame(gm *model.GameModel, g game.Playable) []comm.Command {
 	c := []comm.Command{}
-	if !IsConcedeVoting(gm) {
+	if !gm.IsFinished && !gm.IsConcedeVoting() {
 		c = g.Commands()
 	}
 	c = append(c, Commands(gm)...)
@@ -16,27 +16,33 @@ func CommandsForGame(gm *model.GameModel, g game.Playable) []comm.Command {
 }
 
 func Commands(gm *model.GameModel) []comm.Command {
-	return []comm.Command{
-		ConcedeCommand{
-			gameModel: gm,
-		},
-		ConcedeYesCommand{
-			gameModel: gm,
-		},
-		ConcedeNoCommand{
-			gameModel: gm,
-		},
-		PokeCommand{
-			gameModel: gm,
-		},
-		SayCommand{
-			gameModel: gm,
-		},
+	c := []comm.Command{}
+	if gm != nil {
+		c = []comm.Command{
+			ConcedeYesCommand{
+				gameModel: gm,
+			},
+			ConcedeNoCommand{
+				gameModel: gm,
+			},
+			PokeCommand{
+				gameModel: gm,
+			},
+			SayCommand{
+				gameModel: gm,
+			},
+			ConcedeCommand{
+				gameModel: gm,
+			},
+			RestartCommand{
+				gameModel: gm,
+			},
+		}
+	}
+	c = append(c, []comm.Command{
 		NewCommand{},
-		RestartCommand{
-			gameModel: gm,
-		},
 		UnsubscribeCommand{},
 		SubscribeCommand{},
-	}
+	}...)
+	return c
 }

@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/communicate"
 	"github.com/Miniand/brdg.me/server/email"
@@ -84,13 +83,10 @@ func HandleCommandText(player, gameId, commandText string) error {
 			}
 			gameMut[gameId].Unlock()
 		}()
-		alreadyFinished := g.IsFinished()
+		alreadyFinished := gm.IsFinished
 		commands := scommand.CommandsForGame(gm, g)
-		initialWhoseTurn := g.WhoseTurn()
-		eliminator, isEliminator := g.(game.Eliminator)
-		if isEliminator {
-			initialEliminated = eliminator.EliminatedPlayerList()
-		}
+		initialWhoseTurn := gm.WhoseTurn
+		initialEliminated = gm.EliminatedPlayerList
 		msgType := MsgTypeSuccess
 		output, err := command.CallInCommandsPostHook(
 			player,
@@ -121,8 +117,8 @@ func HandleCommandText(player, gameId, commandText string) error {
 		}
 		commErrs := []string{}
 		commErr := communicate.Game(
-			gm.Id,
 			g,
+			gm,
 			[]string{player},
 			commands,
 			header,
@@ -138,10 +134,11 @@ func HandleCommandText(player, gameId, commandText string) error {
 			communicatedTo := []string{player}
 			// Email any players who now have a turn, or for ones who still have
 			// a turn but there are new logs
-			whoseTurnNow, remaining := WhoseTurnNow(g, initialWhoseTurn)
+			whoseTurnNow, remaining := FindNewStringsInSlice(
+				gm.WhoseTurn, initialWhoseTurn)
 			commErr = communicate.Game(
-				gm.Id,
 				g,
+				gm,
 				whoseTurnNow,
 				scommand.CommandsForGame(gm, g),
 				"",
@@ -160,8 +157,8 @@ func HandleCommandText(player, gameId, commandText string) error {
 				}
 			}
 			commErr = communicate.Game(
-				gm.Id,
 				g,
+				gm,
 				whoseTurnNewLogs,
 				scommand.CommandsForGame(gm, g),
 				"",
@@ -173,31 +170,29 @@ func HandleCommandText(player, gameId, commandText string) error {
 			}
 			communicatedTo = append(communicatedTo, whoseTurnNewLogs...)
 			// Email any players who were eliminated this turn
-			if isEliminator {
-				newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
-					eliminator.EliminatedPlayerList())
-				commErr = communicate.Game(
-					gm.Id,
-					g,
-					newlyEliminated,
-					scommand.CommandsForGame(gm, g),
-					"You have been eliminated from the game.",
-					MsgTypeElimitate,
-					false,
-				)
-				if commErr != nil {
-					commErrs = append(commErrs, commErr.Error())
-				}
-				communicatedTo = append(communicatedTo, newlyEliminated...)
+			newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
+				gm.EliminatedPlayerList)
+			commErr = communicate.Game(
+				g,
+				gm,
+				newlyEliminated,
+				scommand.CommandsForGame(gm, g),
+				"You have been eliminated from the game.",
+				MsgTypeElimitate,
+				false,
+			)
+			if commErr != nil {
+				commErrs = append(commErrs, commErr.Error())
 			}
+			communicatedTo = append(communicatedTo, newlyEliminated...)
 			uncommunicated, _ = FindNewStringsInSlice(communicatedTo,
-				g.PlayerList())
+				gm.PlayerList)
 			if len(uncommunicated) > 0 {
-				if !alreadyFinished && g.IsFinished() {
+				if !alreadyFinished && gm.IsFinished {
 					// If it's the end of the game and some people haven't been contacted
 					commErr = communicate.Game(
-						gm.Id,
 						g,
+						gm,
 						uncommunicated,
 						scommand.CommandsForGame(gm, g),
 						"",
@@ -207,7 +202,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				} else {
 					// We send updates to all remaining players via websockets so
 					// they can update.
-					communicate.GameUpdate(gm.Id, g, uncommunicated, "", MsgTypeUpdate)
+					communicate.GameUpdate(g, gm, uncommunicated, "", MsgTypeUpdate)
 				}
 			}
 		}
@@ -216,11 +211,6 @@ func HandleCommandText(player, gameId, commandText string) error {
 		}
 	}
 	return nil
-}
-
-func WhoseTurnNow(g game.Playable, initialWhoseTurn []string) ([]string,
-	[]string) {
-	return FindNewStringsInSlice(initialWhoseTurn, g.WhoseTurn())
 }
 
 func FindNewStringsInSlice(oldSlice, newSlice []string) (newStrings,
