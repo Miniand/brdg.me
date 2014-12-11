@@ -9,36 +9,15 @@ import (
 	r "github.com/dancannon/gorethink"
 )
 
-type GameModel struct {
-	Id             string `gorethink:"id,omitempty"`
-	PlayerList     []string
-	Winners        []string
-	IsFinished     bool
-	FinishedAt     time.Time `gorethink:",omitempty"`
-	WhoseTurnSince map[string]time.Time
-	WhoseTurn      []string
-	Type           string
-	State          []byte
-	Restarted      bool
-}
-
 func GameTable() r.Term {
 	return r.Table("games")
 }
 
 func LoadGame(id string) (*GameModel, error) {
-	session, err := Connect()
-	if err != nil {
-		return nil, err
+	m := &GameModel{
+		Id: id,
 	}
-	defer session.Close()
-	res, err := GameTable().Get(id).Run(session)
-	if err != nil {
-		return nil, err
-	}
-	m := &GameModel{}
-	err = res.One(m)
-	return m, err
+	return m, m.Load()
 }
 
 func GamesForPlayer(player string) (*r.Cursor, error) {
@@ -138,6 +117,22 @@ func GameToGameModel(g game.Playable) (*GameModel, error) {
 	return gm, nil
 }
 
+type GameModel struct {
+	Id                   string `gorethink:"id,omitempty"`
+	PlayerList           []string
+	Winners              []string
+	EliminatedPlayerList []string
+	IsFinished           bool
+	FinishedAt           time.Time `gorethink:",omitempty"`
+	WhoseTurnSince       map[string]time.Time
+	WhoseTurn            []string
+	Type                 string
+	State                []byte
+	Restarted            bool
+	ConcedePlayers       []string
+	ConcedeVote          map[string]bool
+}
+
 func (gm *GameModel) ToGame() (game.Playable, error) {
 	g := game.RawCollection()[gm.Type]
 	if g == nil {
@@ -156,6 +151,9 @@ func (gm *GameModel) UpdateState(g game.Playable) error {
 	gm.Type = g.Identifier()
 	gm.PlayerList = g.PlayerList()
 	gm.Winners = g.Winners()
+	if e, ok := g.(game.Eliminator); ok {
+		gm.EliminatedPlayerList = e.EliminatedPlayerList()
+	}
 	// Cache whether the game is finished and generate the finish time if
 	// needed.
 	gm.IsFinished = gm.IsFinished || g.IsFinished()
@@ -181,6 +179,19 @@ func (gm *GameModel) UpdateState(g game.Playable) error {
 		}
 	}
 	return nil
+}
+
+func (gm *GameModel) Load() error {
+	session, err := Connect()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	res, err := GameTable().Get(gm.Id).Run(session)
+	if err != nil {
+		return err
+	}
+	return res.One(gm)
 }
 
 func (gm *GameModel) Save() error {

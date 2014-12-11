@@ -36,7 +36,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if err != nil {
 			// Print help
 			body := bytes.NewBufferString("")
-			if err != command.NO_COMMAND_FOUND {
+			if err != command.ErrNoCommandFound {
 				body.WriteString(err.Error())
 				body.WriteString("\n\n")
 			}
@@ -85,14 +85,22 @@ func HandleCommandText(player, gameId, commandText string) error {
 			gameMut[gameId].Unlock()
 		}()
 		alreadyFinished := g.IsFinished()
-		commands := append(g.Commands(), scommand.Commands(gm)...)
+		commands := scommand.CommandsForGame(gm, g)
 		initialWhoseTurn := g.WhoseTurn()
 		eliminator, isEliminator := g.(game.Eliminator)
 		if isEliminator {
 			initialEliminated = eliminator.EliminatedPlayerList()
 		}
 		msgType := MsgTypeSuccess
-		output, err := command.CallInCommands(player, g, commandText, commands)
+		output, err := command.CallInCommandsPostHook(
+			player,
+			g,
+			commandText,
+			commands,
+			func() error {
+				return gm.UpdateState(g)
+			},
+		)
 		header := ""
 		if err != nil {
 			msgType = MsgTypeError
@@ -124,7 +132,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if commErr != nil {
 			commErrs = append(commErrs, commErr.Error())
 		}
-		if err != command.NO_COMMAND_FOUND {
+		if err != command.ErrNoCommandFound {
 			// Keep track who we've communicated to for if it's the end of the
 			// game.
 			communicatedTo := []string{player}
@@ -135,7 +143,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				gm.Id,
 				g,
 				whoseTurnNow,
-				append(g.Commands(), scommand.Commands(gm)...),
+				scommand.CommandsForGame(gm, g),
 				"",
 				MsgTypeYourTurn,
 				false,
@@ -155,7 +163,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				gm.Id,
 				g,
 				whoseTurnNewLogs,
-				append(g.Commands(), scommand.Commands(gm)...),
+				scommand.CommandsForGame(gm, g),
 				"",
 				MsgTypeNewLogs,
 				false,
@@ -172,7 +180,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 					gm.Id,
 					g,
 					newlyEliminated,
-					append(g.Commands(), scommand.Commands(gm)...),
+					scommand.CommandsForGame(gm, g),
 					"You have been eliminated from the game.",
 					MsgTypeElimitate,
 					false,
@@ -191,7 +199,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 						gm.Id,
 						g,
 						uncommunicated,
-						append(g.Commands(), scommand.Commands(gm)...),
+						scommand.CommandsForGame(gm, g),
 						"",
 						MsgTypeFinish,
 						false,

@@ -53,7 +53,7 @@ func (pc PokeCommand) Call(player string, context interface{},
 			pc.gameModel.Id,
 			g,
 			whoseTurn,
-			append(g.Commands(), Commands(pc.gameModel)...),
+			CommandsForGame(pc.gameModel, g),
 			fmt.Sprintf(
 				"%s wants to remind you it's your turn!",
 				render.PlayerNameInPlayers(player, g.PlayerList())),
