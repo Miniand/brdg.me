@@ -13,6 +13,7 @@ var migrations = []migration{
 	migration{"0001", migrationDefinition.CreateGames},
 	migration{"0002", migrationDefinition.CreateUsers},
 	migration{"0003", migrationDefinition.CreateAuthtokens},
+	migration{"0004", migrationDefinition.CreateGamesIndexes},
 }
 
 func DatabaseName() string {

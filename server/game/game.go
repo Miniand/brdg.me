@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/render"
 	"github.com/Miniand/brdg.me/server/communicate"
 	"github.com/Miniand/brdg.me/server/email"
@@ -36,7 +35,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if err != nil {
 			// Print help
 			body := bytes.NewBufferString("")
-			if err != command.NO_COMMAND_FOUND {
+			if err != command.ErrNoCommandFound {
 				body.WriteString(err.Error())
 				body.WriteString("\n\n")
 			}
@@ -84,15 +83,20 @@ func HandleCommandText(player, gameId, commandText string) error {
 			}
 			gameMut[gameId].Unlock()
 		}()
-		alreadyFinished := g.IsFinished()
-		commands := append(g.Commands(), scommand.Commands(gm)...)
-		initialWhoseTurn := g.WhoseTurn()
-		eliminator, isEliminator := g.(game.Eliminator)
-		if isEliminator {
-			initialEliminated = eliminator.EliminatedPlayerList()
-		}
+		alreadyFinished := gm.IsFinished
+		commands := scommand.CommandsForGame(gm, g)
+		initialWhoseTurn := gm.WhoseTurn
+		initialEliminated = gm.EliminatedPlayerList
 		msgType := MsgTypeSuccess
-		output, err := command.CallInCommands(player, g, commandText, commands)
+		output, err := command.CallInCommandsPostHook(
+			player,
+			g,
+			commandText,
+			commands,
+			func() error {
+				return gm.UpdateState(g)
+			},
+		)
 		header := ""
 		if err != nil {
 			msgType = MsgTypeError
@@ -113,8 +117,8 @@ func HandleCommandText(player, gameId, commandText string) error {
 		}
 		commErrs := []string{}
 		commErr := communicate.Game(
-			gm.Id,
 			g,
+			gm,
 			[]string{player},
 			commands,
 			header,
@@ -124,18 +128,19 @@ func HandleCommandText(player, gameId, commandText string) error {
 		if commErr != nil {
 			commErrs = append(commErrs, commErr.Error())
 		}
-		if err != command.NO_COMMAND_FOUND {
+		if err != command.ErrNoCommandFound {
 			// Keep track who we've communicated to for if it's the end of the
 			// game.
 			communicatedTo := []string{player}
 			// Email any players who now have a turn, or for ones who still have
 			// a turn but there are new logs
-			whoseTurnNow, remaining := WhoseTurnNow(g, initialWhoseTurn)
+			whoseTurnNow, remaining := FindNewStringsInSlice(
+				gm.WhoseTurn, initialWhoseTurn)
 			commErr = communicate.Game(
-				gm.Id,
 				g,
+				gm,
 				whoseTurnNow,
-				append(g.Commands(), scommand.Commands(gm)...),
+				scommand.CommandsForGame(gm, g),
 				"",
 				MsgTypeYourTurn,
 				false,
@@ -152,10 +157,10 @@ func HandleCommandText(player, gameId, commandText string) error {
 				}
 			}
 			commErr = communicate.Game(
-				gm.Id,
 				g,
+				gm,
 				whoseTurnNewLogs,
-				append(g.Commands(), scommand.Commands(gm)...),
+				scommand.CommandsForGame(gm, g),
 				"",
 				MsgTypeNewLogs,
 				false,
@@ -165,33 +170,31 @@ func HandleCommandText(player, gameId, commandText string) error {
 			}
 			communicatedTo = append(communicatedTo, whoseTurnNewLogs...)
 			// Email any players who were eliminated this turn
-			if isEliminator {
-				newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
-					eliminator.EliminatedPlayerList())
-				commErr = communicate.Game(
-					gm.Id,
-					g,
-					newlyEliminated,
-					append(g.Commands(), scommand.Commands(gm)...),
-					"You have been eliminated from the game.",
-					MsgTypeElimitate,
-					false,
-				)
-				if commErr != nil {
-					commErrs = append(commErrs, commErr.Error())
-				}
-				communicatedTo = append(communicatedTo, newlyEliminated...)
+			newlyEliminated, _ := FindNewStringsInSlice(initialEliminated,
+				gm.EliminatedPlayerList)
+			commErr = communicate.Game(
+				g,
+				gm,
+				newlyEliminated,
+				scommand.CommandsForGame(gm, g),
+				"You have been eliminated from the game.",
+				MsgTypeElimitate,
+				false,
+			)
+			if commErr != nil {
+				commErrs = append(commErrs, commErr.Error())
 			}
+			communicatedTo = append(communicatedTo, newlyEliminated...)
 			uncommunicated, _ = FindNewStringsInSlice(communicatedTo,
-				g.PlayerList())
+				gm.PlayerList)
 			if len(uncommunicated) > 0 {
-				if !alreadyFinished && g.IsFinished() {
+				if !alreadyFinished && gm.IsFinished {
 					// If it's the end of the game and some people haven't been contacted
 					commErr = communicate.Game(
-						gm.Id,
 						g,
+						gm,
 						uncommunicated,
-						append(g.Commands(), scommand.Commands(gm)...),
+						scommand.CommandsForGame(gm, g),
 						"",
 						MsgTypeFinish,
 						false,
@@ -199,7 +202,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				} else {
 					// We send updates to all remaining players via websockets so
 					// they can update.
-					communicate.GameUpdate(gm.Id, g, uncommunicated, "", MsgTypeUpdate)
+					communicate.GameUpdate(g, gm, uncommunicated, "", MsgTypeUpdate)
 				}
 			}
 		}
@@ -208,11 +211,6 @@ func HandleCommandText(player, gameId, commandText string) error {
 		}
 	}
 	return nil
-}
-
-func WhoseTurnNow(g game.Playable, initialWhoseTurn []string) ([]string,
-	[]string) {
-	return FindNewStringsInSlice(initialWhoseTurn, g.WhoseTurn())
 }
 
 func FindNewStringsInSlice(oldSlice, newSlice []string) (newStrings,

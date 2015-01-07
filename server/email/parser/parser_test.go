@@ -5,7 +5,6 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
-	"github.com/Miniand/brdg.me/server/scommand"
 )
 
 func TestParseFrom(t *testing.T) {
@@ -50,7 +49,7 @@ func TestTexasHoldemRaiseBelowMin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	commands := append(g.Commands(), scommand.Commands(nil)...)
+	commands := g.Commands()
 	_, err = command.CallInCommands(g.WhoseTurn()[0], g, "raise 1", commands)
 	if err == nil || err.Error() == "" {
 		t.Fatal("Did not get an error!")

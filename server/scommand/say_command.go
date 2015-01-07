@@ -37,23 +37,23 @@ func (sc SayCommand) Call(player string, context interface{},
 	}
 	message := fmt.Sprintf(
 		`{{b}}%s says: %s{{_b}}`,
-		render.PlayerNameInPlayers(player, g.PlayerList()),
+		render.PlayerNameInPlayers(player, sc.gameModel.PlayerList),
 		render.RenderPlain(args[1]),
 	)
 	g.GameLog().Add(log.NewPublicMessage(message))
-	if g.IsFinished() && sc.gameModel != nil {
+	if sc.gameModel.IsFinished {
 		// Just send it out to everyone.
 		otherPlayers := []string{}
-		for _, p := range g.PlayerList() {
+		for _, p := range sc.gameModel.PlayerList {
 			if p != player {
 				otherPlayers = append(otherPlayers, p)
 			}
 		}
 		communicate.Game(
-			sc.gameModel.Id,
 			g,
+			sc.gameModel,
 			otherPlayers,
-			append(g.Commands(), Commands(sc.gameModel)...),
+			CommandsForGame(sc.gameModel, g),
 			message,
 			MsgTypeSay,
 			false,

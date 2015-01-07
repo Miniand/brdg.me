@@ -125,6 +125,13 @@ func (g *Game) StartSellingRound() {
 	g.ClearBids()
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`Drew new cheques: %s`,
 		strings.Join(RenderCards(g.OpenCards, RenderCheque), " "))))
+	if g.Hands[0].Len() == 1 {
+		// Autoplay the final card
+		fmt.Println("autoplaying")
+		for p, _ := range g.Players {
+			g.Play(p, g.Hands[p][0].(card.SuitRankCard).Rank)
+		}
+	}
 }
 
 func (g *Game) ClearBids() {
