@@ -22,3 +22,13 @@ func (c CardJetFighters) Cost() int {
 func (c CardJetFighters) Kind() int {
 	return CardKindDiscard
 }
+
+func (c CardJetFighters) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
+	game.Boards[player].ModifyVP(5)
+	game.TakeDamage(player, 4)
+}
