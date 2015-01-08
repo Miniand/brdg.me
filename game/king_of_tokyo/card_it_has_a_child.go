@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CardItHasAChild struct{}
 
@@ -22,4 +26,18 @@ func (c CardItHasAChild) Cost() int {
 
 func (c CardItHasAChild) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardItHasAChild) HandleHealthZero(game *Game, player, zeroPlayer int) {
+	if player == zeroPlayer {
+		game.Discard = append(game.Discard, game.Boards[player].Cards...)
+		game.Boards[player].Cards = []CardBase{}
+		game.Boards[player].Health = 10
+		game.Boards[player].VP = 0
+		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s has been revived and has lost all their cards and VP ({{b}}%s{{_b}})",
+			game.RenderName(player),
+			c.Name(),
+		)))
+	}
 }
