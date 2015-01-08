@@ -43,6 +43,10 @@ type PostAttackHandler interface {
 	PostAttack(game *Game, player, damage int)
 }
 
+type DamageDealtHandler interface {
+	HandleDamageDealt(game *Game, target, damage int)
+}
+
 type ExtraReroller interface {
 	ExtraReroll(game *Game, player int, extra map[int]bool) map[int]bool
 }
@@ -53,6 +57,10 @@ type PreResolveDiceHandler interface {
 
 type HealthZeroHandler interface {
 	HealthZero(game *Game, player, zeroPlayer int)
+}
+
+type StartTurnHandler interface {
+	HandleStartTurn(game *Game, player int)
 }
 
 type EndTurnHandler interface {

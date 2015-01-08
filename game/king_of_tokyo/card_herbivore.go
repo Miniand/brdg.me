@@ -1,8 +1,14 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
 
-type CardHerbivore struct{}
+	"github.com/Miniand/brdg.me/game/log"
+)
+
+type CardHerbivore struct {
+	HasDealtDamage bool
+}
 
 func (c CardHerbivore) Name() string {
 	return "Herbivore"
@@ -21,4 +27,24 @@ func (c CardHerbivore) Cost() int {
 
 func (c CardHerbivore) Kind() int {
 	return CardKindKeep
+}
+
+func (c *CardHerbivore) HandleStartTurn(game *Game, player int) {
+	c.HasDealtDamage = false
+}
+
+func (c *CardHerbivore) HandleDamageDealt(game *Game, target, damage int) {
+	c.HasDealtDamage = true
+}
+
+func (c CardHerbivore) EndTurn(game *Game, player int) {
+	if !c.HasDealtDamage {
+		game.Boards[player].ModifyVP(1)
+		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s gained %s ({{b}}%s{{_b}})",
+			game.RenderName(player),
+			RenderVP(1),
+			c.Name(),
+		)))
+	}
 }

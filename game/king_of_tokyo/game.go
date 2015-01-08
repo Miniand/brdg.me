@@ -224,6 +224,11 @@ func (g *Game) DealDamage(attacker, target, damage int) {
 	}
 	if damage != 0 {
 		g.TakeDamage(target, damage)
+		for _, t := range g.Boards[attacker].Things() {
+			if handler, ok := t.(DamageDealtHandler); ok {
+				handler.HandleDamageDealt(g, target, damage)
+			}
+		}
 	}
 }
 
