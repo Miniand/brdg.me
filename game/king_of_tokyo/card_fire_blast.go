@@ -24,7 +24,12 @@ func (c CardFireBlast) Kind() int {
 	return CardKindDiscard
 }
 
-func (c CardFireBlast) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+func (c CardFireBlast) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s dealt 2 damage to all other monsters ({{b}}%s{{_b}})",
 		game.RenderName(player),

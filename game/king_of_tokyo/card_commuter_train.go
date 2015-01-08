@@ -24,7 +24,12 @@ func (c CardCommuterTrain) Kind() int {
 	return CardKindDiscard
 }
 
-func (c CardCommuterTrain) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+func (c CardCommuterTrain) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
 	game.Boards[player].ModifyVP(2)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",

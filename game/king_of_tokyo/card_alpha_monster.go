@@ -27,7 +27,7 @@ func (c CardAlphaMonster) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardAlphaMonster) PostAttack(game *Game, player, attack int) {
+func (c CardAlphaMonster) HandlePostAttack(game *Game, player, attack int) {
 	game.Boards[player].ModifyVP(1)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s for attacking ({{b}}%s{{_b}})",

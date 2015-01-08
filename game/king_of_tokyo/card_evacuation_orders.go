@@ -27,7 +27,12 @@ func (c CardEvacuationOrders) Kind() int {
 	return CardKindDiscard
 }
 
-func (c CardEvacuationOrders) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+func (c CardEvacuationOrders) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
 	for p, _ := range game.Players {
 		if p == player {
 			continue

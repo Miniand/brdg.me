@@ -24,7 +24,12 @@ func (c CardEnergize) Kind() int {
 	return CardKindDiscard
 }
 
-func (c CardEnergize) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+func (c CardEnergize) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
 	game.Boards[player].ModifyEnergy(9)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",

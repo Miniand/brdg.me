@@ -27,7 +27,12 @@ func (c CardDeathFromAbove) Kind() int {
 	return CardKindDiscard
 }
 
-func (c CardDeathFromAbove) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+func (c CardDeathFromAbove) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
 	game.Boards[player].ModifyVP(2)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",

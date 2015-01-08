@@ -36,15 +36,15 @@ type CardCostModifier interface {
 }
 
 type PostCardBuyHandler interface {
-	PostCardBuy(game *Game, player int, card CardBase, cost int)
+	HandlePostCardBuy(game *Game, player int, card CardBase, cost int)
 }
 
 type PostAttackHandler interface {
-	PostAttack(game *Game, player, damage int)
+	HandlePostAttack(game *Game, player, damage int)
 }
 
 type DamageDealtHandler interface {
-	HandleDamageDealt(game *Game, target, damage int)
+	HandleDamageDealt(game *Game, player, target, damage int)
 }
 
 type ExtraReroller interface {
@@ -52,11 +52,11 @@ type ExtraReroller interface {
 }
 
 type PreResolveDiceHandler interface {
-	PreResolveDice(game *Game, player int, dice []int) []int
+	HandlePreResolveDice(game *Game, player int, dice []int) []int
 }
 
 type HealthZeroHandler interface {
-	HealthZero(game *Game, player, zeroPlayer int)
+	HandleHealthZero(game *Game, player, zeroPlayer int)
 }
 
 type StartTurnHandler interface {
@@ -64,7 +64,7 @@ type StartTurnHandler interface {
 }
 
 type EndTurnHandler interface {
-	EndTurn(game *Game, player int)
+	HandleEndTurn(game *Game, player int)
 }
 
 type MaxHealthModifier interface {
@@ -72,7 +72,7 @@ type MaxHealthModifier interface {
 }
 
 type LeaveTokyoHandler interface {
-	LeaveTokyo(game *Game, location, player, enteringPlayer int)
+	HandleLeaveTokyo(game *Game, location, player, enteringPlayer int)
 }
 
 type DiceCountModifier interface {

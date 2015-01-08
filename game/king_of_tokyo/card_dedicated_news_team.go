@@ -27,7 +27,12 @@ func (c CardDedicatedNewsTeam) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardDedicatedNewsTeam) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+func (c CardDedicatedNewsTeam) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
 	game.Boards[player].ModifyVP(1)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",

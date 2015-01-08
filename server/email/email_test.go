@@ -2,7 +2,6 @@ package email
 
 import (
 	"os"
-	"testing"
 )
 
 func modelTestShouldRun() bool {

@@ -29,7 +29,11 @@ func (c CardGourmet) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardGourmet) PreResolveDice(game *Game, player int, dice []int) []int {
+func (c CardGourmet) HandlePreResolveDice(
+	game *Game,
+	player int,
+	dice []int,
+) []int {
 	count := 0
 	for _, d := range dice {
 		if d == Die1 {

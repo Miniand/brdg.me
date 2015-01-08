@@ -28,7 +28,10 @@ func (c CardEaterOfTheDead) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardEaterOfTheDead) HealthZero(game *Game, player, zeroPlayer int) {
+func (c CardEaterOfTheDead) HandleHealthZero(
+	game *Game,
+	player, zeroPlayer int,
+) {
 	game.Boards[player].ModifyVP(3)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",

@@ -35,7 +35,12 @@ func (c CardBurrowing) ModifyAttack(
 	return damage, attacked
 }
 
-func (c CardBurrowing) LeaveTokyo(game *Game, location, player, enteringPlayer int) {
+func (c CardBurrowing) HandleLeaveTokyo(
+	game *Game,
+	location,
+	player,
+	enteringPlayer int,
+) {
 	if enteringPlayer != TokyoEmpty {
 		game.TakeDamage(enteringPlayer, 1)
 		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(

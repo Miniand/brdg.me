@@ -33,11 +33,14 @@ func (c *CardHerbivore) HandleStartTurn(game *Game, player int) {
 	c.HasDealtDamage = false
 }
 
-func (c *CardHerbivore) HandleDamageDealt(game *Game, target, damage int) {
+func (c *CardHerbivore) HandleDamageDealt(
+	game *Game,
+	player, target, damage int,
+) {
 	c.HasDealtDamage = true
 }
 
-func (c CardHerbivore) EndTurn(game *Game, player int) {
+func (c CardHerbivore) HandleEndTurn(game *Game, player int) {
 	if !c.HasDealtDamage {
 		game.Boards[player].ModifyVP(1)
 		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(

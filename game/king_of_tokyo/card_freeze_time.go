@@ -28,7 +28,11 @@ func (c CardFreezeTime) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardFreezeTime) PreResolveDice(game *Game, player int, dice []int) []int {
+func (c CardFreezeTime) HandlePreResolveDice(
+	game *Game,
+	player int,
+	dice []int,
+) []int {
 	count := 0
 	for _, d := range dice {
 		if d == Die1 {

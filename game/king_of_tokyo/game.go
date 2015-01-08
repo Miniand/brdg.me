@@ -125,7 +125,7 @@ func (g *Game) ResolveDice() {
 	roll := g.CurrentRoll
 	for _, t := range things {
 		if preResolve, ok := t.(PreResolveDiceHandler); ok {
-			roll = preResolve.PreResolveDice(g, g.CurrentPlayer, roll)
+			roll = preResolve.HandlePreResolveDice(g, g.CurrentPlayer, roll)
 		}
 	}
 	// Handle dice
@@ -226,7 +226,7 @@ func (g *Game) DealDamage(attacker, target, damage int) {
 		g.TakeDamage(target, damage)
 		for _, t := range g.Boards[attacker].Things() {
 			if handler, ok := t.(DamageDealtHandler); ok {
-				handler.HandleDamageDealt(g, target, damage)
+				handler.HandleDamageDealt(g, attacker, target, damage)
 			}
 		}
 	}
@@ -242,7 +242,7 @@ func (g *Game) TakeDamage(player, damage int) {
 		for p, _ := range g.Players {
 			for _, t := range g.Boards[p].Things() {
 				if zero, ok := t.(HealthZeroHandler); ok {
-					zero.HealthZero(g, p, player)
+					zero.HandleHealthZero(g, p, player)
 				}
 			}
 		}
@@ -266,7 +266,7 @@ func (g *Game) EndAttackPhase() {
 			g.Tokyo[l] = TokyoEmpty
 			for _, t := range g.Boards[g.LeftPlayer].Things() {
 				if lt, ok := t.(LeaveTokyoHandler); ok {
-					lt.LeaveTokyo(g, l, tp, TokyoEmpty)
+					lt.HandleLeaveTokyo(g, l, tp, TokyoEmpty)
 				}
 			}
 		}
@@ -278,7 +278,7 @@ func (g *Game) EndAttackPhase() {
 			if g.LeftPlayer != TokyoEmpty {
 				for _, t := range g.Boards[g.LeftPlayer].Things() {
 					if lt, ok := t.(LeaveTokyoHandler); ok {
-						lt.LeaveTokyo(g, to, g.LeftPlayer, g.CurrentPlayer)
+						lt.HandleLeaveTokyo(g, to, g.LeftPlayer, g.CurrentPlayer)
 					}
 				}
 			}
@@ -287,7 +287,7 @@ func (g *Game) EndAttackPhase() {
 	}
 	for _, t := range g.Boards[g.CurrentPlayer].Things() {
 		if postAttack, ok := t.(PostAttackHandler); ok {
-			postAttack.PostAttack(g, g.CurrentPlayer, g.AttackDamage)
+			postAttack.HandlePostAttack(g, g.CurrentPlayer, g.AttackDamage)
 		}
 	}
 	g.NextPhase()
@@ -450,7 +450,7 @@ func (g *Game) Start(players []string) error {
 func (g *Game) NextTurn() {
 	for _, t := range g.Boards[g.CurrentPlayer].Things() {
 		if endTurn, ok := t.(EndTurnHandler); ok {
-			endTurn.EndTurn(g, g.CurrentPlayer)
+			endTurn.HandleEndTurn(g, g.CurrentPlayer)
 		}
 	}
 	if !g.IsFinished() {

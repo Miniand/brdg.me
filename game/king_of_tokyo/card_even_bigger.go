@@ -32,7 +32,12 @@ func (c CardEvenBigger) ModifyMaxHealth(health int) int {
 	return health + 2
 }
 
-func (c CardEvenBigger) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+func (c CardEvenBigger) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
 	game.Boards[player].ModifyHealth(2)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s gained %s ({{b}}%s{{_b}})",
@@ -42,7 +47,7 @@ func (c CardEvenBigger) PostCardBuy(game *Game, player int, card CardBase, cost 
 	)))
 }
 
-func (c CardEvenBigger) CardLost(game *Game, player int) {
+func (c CardEvenBigger) HandleCardLost(game *Game, player int) {
 	game.Boards[player].ModifyHealth(-2)
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s lost %s for losing a card ({{b}}%s{{_b}})",

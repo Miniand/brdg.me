@@ -33,7 +33,7 @@ func (c CardCompleteDestruction) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardCompleteDestruction) PreResolveDice(
+func (c CardCompleteDestruction) HandlePreResolveDice(
 	game *Game,
 	player int,
 	dice []int,

@@ -93,11 +93,11 @@ func (g *Game) Buy(player, cardNum int) error {
 		g.Deck = g.Deck[1:]
 	}
 	if postBuy, ok := c.(PostCardBuyHandler); ok {
-		postBuy.PostCardBuy(g, player, c, cost)
+		postBuy.HandlePostCardBuy(g, player, c, cost)
 	}
 	for _, t := range things {
 		if postBuy, ok := t.(PostCardBuyHandler); ok {
-			postBuy.PostCardBuy(g, player, c, cost)
+			postBuy.HandlePostCardBuy(g, player, c, cost)
 		}
 	}
 	return nil

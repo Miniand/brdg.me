@@ -27,7 +27,12 @@ func (c CardGasRefinery) Kind() int {
 	return CardKindDiscard
 }
 
-func (c CardGasRefinery) PostCardBuy(game *Game, player int, card CardBase, cost int) {
+func (c CardGasRefinery) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
 	game.Boards[player].ModifyVP(2)
 	for p, _ := range game.Players {
 		if p != player {
