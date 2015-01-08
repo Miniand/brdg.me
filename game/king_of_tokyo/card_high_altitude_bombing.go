@@ -17,3 +17,16 @@ func (c CardHighAltitudeBombing) Cost() int {
 func (c CardHighAltitudeBombing) Kind() int {
 	return CardKindDiscard
 }
+
+func (c CardHighAltitudeBombing) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
+	for p, _ := range game.Players {
+		if game.Boards[p].Health > 0 {
+			game.TakeDamage(p, 3)
+		}
+	}
+}
