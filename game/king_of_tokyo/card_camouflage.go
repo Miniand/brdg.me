@@ -27,7 +27,10 @@ func (c CardCamouflage) Kind() int {
 	return CardKindKeep
 }
 
-func (c CardCamouflage) ModifyDamage(game *Game, player, attacker, damage int) int {
+func (c CardCamouflage) ModifyDamage(
+	game *Game,
+	player, attacker, damage, defenderAction int,
+) int {
 	game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s is rolling to avoid damage ({{b}}%s{{_b}})",
 		game.RenderName(player),

@@ -47,6 +47,6 @@ func (g *Game) Leave(player int) error {
 		g.LeftPlayer = player
 	}
 	g.LeaveTokyo(player)
-	g.PostStayOrLeave()
+	g.PostStayOrLeave(DefenderActionLeaveTokyo)
 	return nil
 }

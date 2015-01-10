@@ -18,7 +18,10 @@ type AttackDamageForPlayerModifier interface {
 
 // DamageModifier allowed the attacked monster to modify damage.
 type DamageModifier interface {
-	ModifyDamage(game *Game, player, attacker, damage int) int
+	ModifyDamage(
+		game *Game,
+		player, attacker, damage, defenderAction int,
+	) int
 }
 
 // EnergyModifier allows the monster to modify the energy amount when energy

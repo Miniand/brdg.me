@@ -209,7 +209,7 @@ func (g *Game) AttackPhase(players []int, damage int) {
 	g.HandleAttackedPlayer()
 }
 
-func (g *Game) DealDamage(attacker, target, damage int) {
+func (g *Game) DealDamage(attacker, target, damage, defenderAction int) {
 	// First attacker modifies damage
 	for _, t := range g.Boards[attacker].Things() {
 		if damageMod, ok := t.(AttackDamageForPlayerModifier); ok {
@@ -219,7 +219,7 @@ func (g *Game) DealDamage(attacker, target, damage int) {
 	// Second attacked modifies damage
 	for _, t := range g.Boards[target].Things() {
 		if damageMod, ok := t.(DamageModifier); ok {
-			damage = damageMod.ModifyDamage(g, target, attacker, damage)
+			damage = damageMod.ModifyDamage(g, target, attacker, damage, defenderAction)
 		}
 	}
 	if damage != 0 {
@@ -343,7 +343,7 @@ func (g *Game) HandleAttackedPlayer() {
 	p := g.AttackPlayers[0]
 	damage := g.AttackDamage
 	if g.PlayerLocation(p) == LocationOutside {
-		g.DealDamage(g.CurrentPlayer, p, damage)
+		g.DealDamage(g.CurrentPlayer, p, damage, DefenderActionNone)
 		g.NextAttackedPlayer()
 	}
 }

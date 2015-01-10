@@ -6,6 +6,11 @@ import (
 	"github.com/Miniand/brdg.me/command"
 )
 
+const (
+	DefenderActionNone = iota
+	DefenderActionLeaveTokyo
+)
+
 type StayCommand struct{}
 
 func (c StayCommand) Parse(input string) []string {
@@ -43,13 +48,13 @@ func (g *Game) Stay(player int) error {
 	if !g.CanStay(player) {
 		return errors.New("you can't call stay at the moment")
 	}
-	g.PostStayOrLeave()
+	g.PostStayOrLeave(DefenderActionNone)
 	return nil
 }
 
-func (g *Game) PostStayOrLeave() {
+func (g *Game) PostStayOrLeave(defenderAction int) {
 	p := g.AttackPlayers[0]
 	damage := g.AttackDamage
-	g.DealDamage(g.CurrentPlayer, p, damage)
+	g.DealDamage(g.CurrentPlayer, p, damage, defenderAction)
 	g.NextAttackedPlayer()
 }
