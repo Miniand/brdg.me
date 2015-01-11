@@ -36,7 +36,7 @@ func (c BuyCommand) Call(player string, context interface{},
 		return "", errors.New("you must specify which card you want to buy")
 	}
 	cardNames := []string{}
-	for _, c := range g.Buyable {
+	for _, c := range g.Buyable(pNum) {
 		cardNames = append(cardNames, c.Name())
 	}
 	cNum, err := helper.MatchStringInStrings(strings.Join(a, " "), cardNames)
@@ -54,7 +54,7 @@ func (g *Game) CanBuy(player int) bool {
 	if g.CurrentPlayer != player {
 		return false
 	}
-	return g.Phase == PhaseBuy && len(g.Buyable) > 0
+	return g.Phase == PhaseBuy && len(g.Buyable(player)) > 0
 }
 
 func (g *Game) Buy(player, cardNum int) error {
@@ -64,11 +64,12 @@ func (g *Game) Buy(player, cardNum int) error {
 	if cardNum < 0 {
 		return errors.New("the card number must be positive")
 	}
-	if l := len(g.Buyable); cardNum >= l {
+	buyable := g.Buyable(player)
+	if l := len(buyable); cardNum >= l {
 		return fmt.Errorf("the card number must be less than %d", l)
 	}
 	things := g.Boards[player].Things()
-	c := g.Buyable[cardNum]
+	c := buyable[cardNum]
 	cost := c.Cost()
 	for _, t := range things {
 		if costMod, ok := t.(CardCostModifier); ok {
@@ -87,9 +88,12 @@ func (g *Game) Buy(player, cardNum int) error {
 		g.Discard = append(g.Discard, c)
 	}
 	g.Boards[player].Energy -= cost
-	g.Buyable = append(g.Buyable[:cardNum], g.Buyable[cardNum+1:]...)
+	if cardNum < len(g.FaceUpCards) {
+		g.FaceUpCards = append(g.FaceUpCards[:cardNum], g.FaceUpCards[cardNum+1:]...)
+	} else {
+	}
 	if len(g.Deck) > 0 {
-		g.Buyable = append(g.Buyable, g.Deck[0])
+		g.FaceUpCards = append(g.FaceUpCards, g.Deck[0])
 		g.Deck = g.Deck[1:]
 	}
 	if postBuy, ok := c.(PostCardBuyHandler); ok {
@@ -101,4 +105,19 @@ func (g *Game) Buy(player, cardNum int) error {
 		}
 	}
 	return nil
+}
+
+type BuyableCard struct {
+	Card     CardBase
+	FromText string
+}
+
+func (g *Game) Buyable(player int) []BuyableCard {
+	cards := []BuyableCard{}
+	for _, c := range g.FaceUpCards {
+		cards = append(cards, BuyableCard{
+			Card: c,
+		})
+	}
+	return cards
 }

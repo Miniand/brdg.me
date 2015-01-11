@@ -86,6 +86,10 @@ type RollCountModifier interface {
 	ModifyRollCount(game *Game, player, rollCount int) int
 }
 
+type BuyableModifier interface {
+	ModifyBuyable(game *Game, player int, buyable []CardBase) []CardBase
+}
+
 type Things []interface{}
 
 func (t Things) Len() int {

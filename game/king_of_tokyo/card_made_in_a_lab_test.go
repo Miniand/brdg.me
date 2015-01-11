@@ -12,5 +12,9 @@ func TestCardMadeInALab(t *testing.T) {
 	g.Boards[Mick].Cards = []CardBase{&CardMadeInALab{}}
 	g.Boards[Mick].Energy = 20
 	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "buy "+g.Deck[0].Name())
+
+	extraCard := g.Deck[0]
+	assert.Contains(t, g.Buyable(Mick), extraCard)
+	assert.NotContains(t, g.Buyable(Steve), extraCard)
+	cmd(t, g, Mick, "buy "+extraCard.Name())
 }

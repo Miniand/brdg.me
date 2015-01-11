@@ -40,7 +40,7 @@ type Game struct {
 	ExtraRollable  map[int]bool
 	RemainingRolls int
 	ExtraTurns     []int
-	Buyable        []CardBase
+	FaceUpCards    []CardBase
 	Deck           []CardBase
 	Discard        []CardBase
 	Boards         []*PlayerBoard
@@ -431,7 +431,7 @@ func (g *Game) Start(players []string) error {
 	g.Players = players
 	g.Log = log.New()
 	deck := Shuffle(Deck())
-	g.Buyable = deck[:3]
+	g.FaceUpCards = deck[:3]
 	g.Deck = deck[3:]
 	g.ExtraTurns = []int{}
 	g.Discard = []CardBase{}
