@@ -11,8 +11,8 @@ func TestCardApartmentBuilding(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	g.Boards[Mick].Cards = []CardBase{}
 	g.Boards[Mick].Energy = 5
-	g.Buyable = []CardBase{&CardApartmentBuilding{}}
+	g.FaceUpCards = []CardBase{&CardApartmentBuilding{}}
 	g.Phase = PhaseBuy
-	cmd(t, g, Mick, "buy apartment building")
+	assert.NoError(t, cmd(g, Mick, "buy apartment building"))
 	assert.Equal(t, 3, g.Boards[Mick].VP)
 }

@@ -14,8 +14,8 @@ func TestCardJets_Stay(t *testing.T) {
 	g.CurrentRoll = []int{
 		DieAttack,
 	}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Steve, "stay")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Steve, "stay"))
 	assert.Equal(t, 9, g.Boards[Steve].Health)
 }
 
@@ -27,7 +27,7 @@ func TestCardJets_Leave(t *testing.T) {
 	g.CurrentRoll = []int{
 		DieAttack,
 	}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Steve, "leave")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Steve, "leave"))
 	assert.Equal(t, 10, g.Boards[Steve].Health)
 }

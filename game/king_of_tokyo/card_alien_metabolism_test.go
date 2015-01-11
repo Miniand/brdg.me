@@ -11,15 +11,15 @@ func TestCardAlienMetabolism(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	g.Boards[Mick].Cards = []CardBase{}
 	g.Boards[Mick].Energy = 8
-	g.Buyable = []CardBase{
+	g.FaceUpCards = []CardBase{
 		&CardAlienMetabolism{},
 		&CardAlienMetabolism{},
 	}
 	g.Phase = PhaseBuy
 	// First purchase shouldn't be discounted
-	cmd(t, g, Mick, "buy alien metabolism")
+	assert.NoError(t, cmd(g, Mick, "buy alien metabolism"))
 	assert.Equal(t, 5, g.Boards[Mick].Energy)
 	// Second should
-	cmd(t, g, Mick, "buy alien metabolism")
+	assert.NoError(t, cmd(g, Mick, "buy alien metabolism"))
 	assert.Equal(t, 3, g.Boards[Mick].Energy)
 }

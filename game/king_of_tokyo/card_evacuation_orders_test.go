@@ -14,9 +14,9 @@ func TestCardEvacuationOrders(t *testing.T) {
 	g.Boards[Mick].VP = 5
 	g.Boards[Steve].VP = 7
 	g.Boards[BJ].VP = 3
-	g.Buyable = []CardBase{&CardEvacuationOrders{}}
+	g.FaceUpCards = []CardBase{&CardEvacuationOrders{}}
 	g.Phase = PhaseBuy
-	cmd(t, g, Mick, "buy evacuation orders")
+	assert.NoError(t, cmd(g, Mick, "buy evacuation orders"))
 	assert.Equal(t, 5, g.Boards[Mick].VP)
 	assert.Equal(t, 2, g.Boards[Steve].VP)
 	assert.Equal(t, 0, g.Boards[BJ].VP)

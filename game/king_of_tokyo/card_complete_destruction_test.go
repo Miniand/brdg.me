@@ -20,7 +20,7 @@ func TestCardCompleteDestructionIncorrectDice(t *testing.T) {
 		DieHeal,
 		DieHeal,
 	}
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, 0, g.Boards[Mick].VP)
 }
 
@@ -38,6 +38,6 @@ func TestCardCompleteDestructionCorrectDice(t *testing.T) {
 		DieHeal,
 		DieAttack,
 	}
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, 9, g.Boards[Mick].VP)
 }

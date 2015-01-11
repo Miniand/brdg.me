@@ -9,7 +9,7 @@ import (
 func TestCardItHasAChild(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Buyable = []CardBase{&CardItHasAChild{}}
+	g.FaceUpCards = []CardBase{&CardItHasAChild{}}
 	g.Boards[Mick].Energy = 5
 	g.Boards[Mick].VP = 5
 	g.CurrentRoll = []int{
@@ -22,9 +22,9 @@ func TestCardItHasAChild(t *testing.T) {
 		DieEnergy,
 		DieAttack,
 	}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "buy it has")
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Mick, "buy it has"))
+	assert.NoError(t, cmd(g, Mick, "done"))
 	assert.Equal(t, Mick, g.Tokyo[LocationTokyoCity])
 	g.CurrentRoll = []int{
 		DieAttack,
@@ -38,8 +38,8 @@ func TestCardItHasAChild(t *testing.T) {
 		DieAttack,
 		DieAttack,
 	}
-	cmd(t, g, Steve, "keep")
-	cmd(t, g, Mick, "leave")
+	assert.NoError(t, cmd(g, Steve, "keep"))
+	assert.NoError(t, cmd(g, Mick, "leave"))
 	assert.Equal(t, 10, g.Boards[Mick].Health)
 	assert.Len(t, g.Boards[Mick].Cards, 0)
 	assert.Equal(t, 5, g.Boards[Mick].Energy)

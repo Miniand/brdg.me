@@ -21,8 +21,8 @@ func (c CardMadeInALab) Kind() int {
 func (c CardMadeInALab) ModifyBuyable(
 	game *Game,
 	player int,
-	buyable []CardBase,
-) []CardBase {
+	buyable []BuyableCard,
+) []BuyableCard {
 	if player != game.CurrentPlayer || game.Phase != PhaseBuy ||
 		len(game.Deck) == 0 {
 		return buyable
@@ -31,9 +31,12 @@ func (c CardMadeInALab) ModifyBuyable(
 	// We only allow peeking the first card, even with mimic, so check if it's
 	// already there.
 	for _, c := range buyable {
-		if c == extraCard {
+		if c.Card == extraCard {
 			return buyable
 		}
 	}
-	return append(buyable, game.Deck[0])
+	return append(buyable, BuyableCard{
+		Card: game.Deck[0],
+		From: BuyFromDeck,
+	})
 }

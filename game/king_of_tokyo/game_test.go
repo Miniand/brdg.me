@@ -1,11 +1,6 @@
 package king_of_tokyo
 
-import (
-	"testing"
-
-	"github.com/Miniand/brdg.me/command"
-	"github.com/stretchr/testify/assert"
-)
+import "github.com/Miniand/brdg.me/command"
 
 const (
 	Mick = iota
@@ -16,7 +11,7 @@ const (
 
 var names = []string{"Mick", "Steve", "BJ", "Walas"}
 
-func cmd(t *testing.T, g *Game, player int, input string) {
+func cmd(g *Game, player int, input string) error {
 	_, err := command.CallInCommands(g.Players[player], g, input, g.Commands())
-	assert.NoError(t, err)
+	return err
 }

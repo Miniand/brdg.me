@@ -18,6 +18,6 @@ func TestCardCamouflage(t *testing.T) {
 		g.CurrentRoll = append(g.CurrentRoll, DieAttack)
 	}
 	g.Boards[Steve].Health = attack + 1
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.NotEqual(t, 1, g.Boards[Steve].Health)
 }

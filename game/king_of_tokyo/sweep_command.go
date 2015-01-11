@@ -43,7 +43,7 @@ func (g *Game) CanSweep(player int) bool {
 	if g.CurrentPlayer != player {
 		return false
 	}
-	return g.Phase == PhaseBuy && len(g.Buyable) > 0 &&
+	return g.Phase == PhaseBuy && len(g.FaceUpCards) > 0 &&
 		g.Boards[player].Energy >= 2
 }
 
@@ -56,8 +56,8 @@ func (g *Game) Sweep(player int) error {
 		n = l
 	}
 	g.Boards[player].Energy -= 2
-	g.Discard = append(g.Discard, g.Buyable...)
-	g.Buyable = g.Deck[:n]
+	g.Discard = append(g.Discard, g.FaceUpCards...)
+	g.FaceUpCards = g.Deck[:n]
 	g.Deck = g.Deck[n:]
 	return nil
 }

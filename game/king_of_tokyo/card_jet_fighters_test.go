@@ -9,7 +9,7 @@ import (
 func TestCardJetFighters(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Buyable = []CardBase{&CardJetFighters{}}
+	g.FaceUpCards = []CardBase{&CardJetFighters{}}
 	g.CurrentRoll = []int{
 		DieEnergy,
 		DieEnergy,
@@ -17,8 +17,8 @@ func TestCardJetFighters(t *testing.T) {
 		DieEnergy,
 		DieEnergy,
 	}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "buy jet")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Mick, "buy jet"))
 	assert.Equal(t, 6, g.Boards[Mick].Health)
 	assert.Equal(t, 5, g.Boards[Mick].VP)
 }

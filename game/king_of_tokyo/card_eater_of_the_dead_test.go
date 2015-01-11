@@ -19,7 +19,7 @@ func TestCardEaterOfTheDead(t *testing.T) {
 		DieAttack,
 		DieAttack,
 	}
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, 3, g.Boards[Steve].VP)
 	assert.Equal(t, 3, g.Boards[BJ].VP)
 }

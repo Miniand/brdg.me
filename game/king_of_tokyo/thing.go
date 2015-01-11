@@ -87,7 +87,7 @@ type RollCountModifier interface {
 }
 
 type BuyableModifier interface {
-	ModifyBuyable(game *Game, player int, buyable []CardBase) []CardBase
+	ModifyBuyable(game *Game, player int, buyable []BuyableCard) []BuyableCard
 }
 
 type Things []interface{}

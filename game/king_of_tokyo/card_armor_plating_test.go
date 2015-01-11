@@ -16,7 +16,7 @@ func TestCardArmorPlatingModifyDamage1AttackDice(t *testing.T) {
 		DieAttack,
 	}
 	startingHealth := g.Boards[Steve].Health
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, startingHealth, g.Boards[Steve].Health)
 }
 
@@ -31,6 +31,6 @@ func TestCardArmorPlatingModifyDamage2AttackDice(t *testing.T) {
 		DieAttack,
 	}
 	startingHealth := g.Boards[Steve].Health
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, startingHealth-2, g.Boards[Steve].Health)
 }

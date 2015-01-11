@@ -82,6 +82,29 @@ func RenderCardTable(cards []CardBase) string {
 	return render.Table(cells, 0, 2)
 }
 
+func RenderBuyCardTable(g *Game, cards []BuyableCard) string {
+	cells := [][]interface{}{}
+	for _, bc := range cards {
+		c := bc.Card
+		cells = append(cells, [][]interface{}{
+			{
+				RenderEnergy(c.Cost()),
+				fmt.Sprintf(
+					"%s (%s) %s",
+					render.Bold(c.Name()),
+					RenderCardKind(c.Kind()),
+					bc.FromString(g),
+				),
+			},
+			{
+				"",
+				render.Unbounded(render.Markup(c.Description(), "gray", false)),
+			},
+		}...)
+	}
+	return render.Table(cells, 0, 2)
+}
+
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
@@ -120,7 +143,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString("\n\n")
 	// Shop
 	buf.WriteString("{{b}}Available cards:{{_b}}\n")
-	buf.WriteString(RenderCardTable(g.Buyable))
+	buf.WriteString(RenderBuyCardTable(g, g.Buyable(pNum)))
 	// Player boards
 	for p, _ := range g.Players {
 		if len(g.Boards[p].Cards) > 0 {

@@ -22,7 +22,7 @@ func TestCardEnergyHoarder(t *testing.T) {
 		g.Boards[Mick].Cards = []CardBase{&CardEnergyHoarder{}}
 		g.Boards[Mick].Energy = cas.energy
 		g.Phase = PhaseBuy
-		cmd(t, g, Mick, "done")
+		assert.NoError(t, cmd(g, Mick, "done"))
 		assert.Equal(t, cas.expectedVP, g.Boards[Mick].VP)
 	}
 }

@@ -15,8 +15,8 @@ func TestCardHerbivore_VP(t *testing.T) {
 		Die2,
 		Die3,
 	}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Mick, "done"))
 	assert.Equal(t, 1, g.Boards[Mick].VP)
 }
 
@@ -30,7 +30,7 @@ func TestCardHerbivore_NoVP(t *testing.T) {
 		Die1,
 		Die1,
 	}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Mick, "done"))
 	assert.Equal(t, 0, g.Boards[Mick].VP)
 }

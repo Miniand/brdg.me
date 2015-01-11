@@ -14,7 +14,7 @@ func TestCardAcidAttackModifyAttackNoAttackDice(t *testing.T) {
 	g.Boards[Mick].Cards = []CardBase{&CardAcidAttack{}}
 	g.CurrentRoll = []int{}
 	startingHealth := g.Boards[Steve].Health
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, startingHealth-1, g.Boards[Steve].Health)
 }
 
@@ -29,6 +29,6 @@ func TestCardAcidAttackModifyAttackWithAttackDice(t *testing.T) {
 		DieAttack,
 	}
 	startingHealth := g.Boards[Steve].Health
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, startingHealth-3, g.Boards[Steve].Health)
 }

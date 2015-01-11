@@ -14,6 +14,6 @@ func TestCardFriendOfChildren(t *testing.T) {
 		DieEnergy,
 		DieEnergy,
 	}
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, 3, g.Boards[Mick].Energy)
 }

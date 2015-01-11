@@ -12,6 +12,6 @@ func TestCardExtraHead(t *testing.T) {
 	assert.Len(t, g.CurrentRoll, 6)
 	g.Boards[Steve].Cards = []CardBase{&CardExtraHead{}}
 	g.Phase = PhaseBuy
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "done"))
 	assert.Len(t, g.CurrentRoll, 7)
 }

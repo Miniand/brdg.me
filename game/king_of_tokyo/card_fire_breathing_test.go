@@ -13,7 +13,7 @@ func TestCardFireBreathingModifyAttackNoAttackDice(t *testing.T) {
 	g.Tokyo[LocationTokyoCity] = Mick
 	g.Boards[Mick].Cards = []CardBase{&CardFireBreathing{}}
 	g.CurrentRoll = []int{}
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, 10, g.Boards[Steve].Health)
 	assert.Equal(t, 10, g.Boards[BJ].Health)
 	assert.Equal(t, 10, g.Boards[Walas].Health)
@@ -29,7 +29,7 @@ func TestCardFireBreathingModifyAttackWithAttackDice(t *testing.T) {
 		DieAttack,
 		DieAttack,
 	}
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, 7, g.Boards[Steve].Health)
 	assert.Equal(t, 8, g.Boards[BJ].Health)
 	assert.Equal(t, 7, g.Boards[Walas].Health)

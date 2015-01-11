@@ -15,6 +15,6 @@ func TestCardGourmet(t *testing.T) {
 		Die1,
 		Die1,
 	}
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, 3, g.Boards[Mick].VP)
 }

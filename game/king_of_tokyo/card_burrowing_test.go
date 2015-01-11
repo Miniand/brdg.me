@@ -17,8 +17,8 @@ func TestCardBurrowingModifyAttackOutsideTokyo(t *testing.T) {
 		DieAttack,
 	}
 	startingHealth := g.Boards[Steve].Health
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Steve, "stay")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Steve, "stay"))
 	assert.Equal(t, startingHealth-2, g.Boards[Steve].Health)
 }
 
@@ -33,7 +33,7 @@ func TestCardBurrowingModifyAttackInTokyo(t *testing.T) {
 		DieAttack,
 	}
 	startingHealth := g.Boards[Steve].Health
-	cmd(t, g, Mick, "keep")
+	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, startingHealth-3, g.Boards[Steve].Health)
 }
 
@@ -48,7 +48,7 @@ func TestCardBurrowingDamageWhenLeavingTokyo(t *testing.T) {
 		DieAttack,
 	}
 	startingHealth := g.Boards[Mick].Health
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Steve, "leave")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Steve, "leave"))
 	assert.Equal(t, startingHealth-1, g.Boards[Mick].Health)
 }

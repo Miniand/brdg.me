@@ -11,8 +11,8 @@ func TestCardCornerStore(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	g.Boards[Mick].Cards = []CardBase{}
 	g.Boards[Mick].Energy = 3
-	g.Buyable = []CardBase{&CardCornerStore{}}
+	g.FaceUpCards = []CardBase{&CardCornerStore{}}
 	g.Phase = PhaseBuy
-	cmd(t, g, Mick, "buy corner store")
+	assert.NoError(t, cmd(g, Mick, "buy corner store"))
 	assert.Equal(t, 1, g.Boards[Mick].VP)
 }

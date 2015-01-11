@@ -13,8 +13,8 @@ func TestCardFreezeTimeWithout111(t *testing.T) {
 	g.Tokyo[LocationTokyoCity] = Mick
 	g.Boards[Mick].Cards = []CardBase{&CardFreezeTime{}}
 	g.CurrentRoll = []int{}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Mick, "done"))
 	assert.NotEqual(t, Mick, g.CurrentPlayer)
 }
 
@@ -32,8 +32,8 @@ func TestCardFreezeTimeWith111(t *testing.T) {
 		Die2,
 		Die3,
 	}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Mick, "done"))
 	assert.Equal(t, Mick, g.CurrentPlayer)
 	assert.Len(t, g.CurrentRoll, 5)
 	g.CurrentRoll = []int{
@@ -43,12 +43,12 @@ func TestCardFreezeTimeWith111(t *testing.T) {
 		Die2,
 		Die3,
 	}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Mick, "done"))
 	assert.Equal(t, Mick, g.CurrentPlayer)
 	assert.Len(t, g.CurrentRoll, 4)
 	g.CurrentRoll = []int{}
-	cmd(t, g, Mick, "keep")
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "keep"))
+	assert.NoError(t, cmd(g, Mick, "done"))
 	assert.NotEqual(t, Mick, g.CurrentPlayer)
 }

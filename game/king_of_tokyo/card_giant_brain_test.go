@@ -11,8 +11,8 @@ func TestCardGiantBrain(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	g.Boards[Mick].Cards = []CardBase{&CardGiantBrain{}}
 	g.RollPhase()
-	cmd(t, g, Mick, "roll 1 2 3")
-	cmd(t, g, Mick, "roll 1 2 3")
-	cmd(t, g, Mick, "roll 1 2 3")
-	cmd(t, g, Mick, "done")
+	assert.NoError(t, cmd(g, Mick, "roll 1 2 3"))
+	assert.NoError(t, cmd(g, Mick, "roll 1 2 3"))
+	assert.NoError(t, cmd(g, Mick, "roll 1 2 3"))
+	assert.NoError(t, cmd(g, Mick, "done"))
 }
