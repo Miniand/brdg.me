@@ -14,7 +14,7 @@ type Cost map[int]int
 type Card struct {
 	Resource int
 	Prestige int
-	Cost     map[int]int
+	Cost     Cost
 }
 
 func Level1Cards() []Card {
