@@ -1,6 +1,7 @@
 package splendor
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -51,6 +52,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 
+	output := bytes.NewBuffer([]byte{})
+
 	// Board
 	longestRow := 0
 	for _, r := range g.Board {
@@ -76,11 +79,31 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			upper = append(upper, render.Centred(
 				render.Markup(RenderCardBonusVP(c), "", canAfford)))
 			lower = append(lower, render.Centred(
-				render.Markup(RenderCardCost(c), "", canAfford)))
+				render.Markup(RenderAmount(c.Cost), "", canAfford)))
 		}
 		table = append(table, upper, lower, []interface{}{})
 	}
-	return render.Table(table, 0, 3), nil
+	output.WriteString(render.Table(table, 0, 3))
+	output.WriteString("\n\n")
+
+	// Nobles
+	nobleHeader := []interface{}{""}
+	nobleRow := []interface{}{render.Colour(fmt.Sprintf(
+		"Nobles (%s each)",
+		render.Bold(RenderResourceColour(3, Prestige)),
+	), render.Gray)}
+	for i, n := range g.Nobles {
+		nobleHeader = append(nobleHeader,
+			render.Centred(render.Colour(i+1, render.Gray)))
+		nobleRow = append(nobleRow, render.Bold(RenderAmount(n.Cost)))
+	}
+	table = [][]interface{}{
+		nobleHeader,
+		nobleRow,
+	}
+	output.WriteString(render.Table(table, 0, 3))
+
+	return output.String(), nil
 }
 
 func RenderResourceColour(v interface{}, r int) string {
@@ -97,12 +120,16 @@ func RenderCardBonusVP(c Card) string {
 	return strings.Join(parts, " ")
 }
 
-func RenderCardCost(c Card) string {
+func RenderAmount(a Amount) string {
 	parts := []string{}
 	for _, r := range Resources {
-		if c.Cost[r] > 0 {
-			parts = append(parts, RenderResourceColour(c.Cost[r], r))
+		if a[r] > 0 {
+			parts = append(parts, RenderResourceColour(a[r], r))
 		}
 	}
 	return strings.Join(parts, "")
+}
+
+func RenderNobleHeader(n Noble) string {
+	return RenderResourceColour(n.Prestige, Prestige)
 }

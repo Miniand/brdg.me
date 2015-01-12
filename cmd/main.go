@@ -5,13 +5,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
-	"io/ioutil"
-	"os"
-	"strings"
 )
 
 const FILE = ".game"
@@ -53,6 +54,7 @@ func main() {
 func RenderForPlayer(g game.Playable, p string) (string, error) {
 	logOutput := "\n\n{{b}}Since last time:{{_b}}:\n" +
 		log.RenderMessages(g.GameLog().NewMessagesFor(p))
+	g.GameLog().MarkReadFor(p)
 	rawOutput, err := g.RenderForPlayer(p)
 	if err != nil {
 		return "", err
