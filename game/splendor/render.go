@@ -3,6 +3,7 @@ package splendor
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Miniand/brdg.me/render"
@@ -138,32 +139,33 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	)
 	tokensRow := []interface{}{render.Markup("Tokens", render.Gray, true)}
 	for _, gem := range Gems {
-		tokensRow = append(tokensRow, render.Centred(render.Bold(g.Tokens[gem])))
+		tokensRow = append(tokensRow, render.Centred(strconv.Itoa(g.Tokens[gem])))
 	}
 	tokensRow = append(
 		tokensRow,
-		render.Centred(render.Bold(g.Tokens[Gold])),
+		render.Centred(strconv.Itoa(g.Tokens[Gold])),
 		render.Centred(render.Colour("-", render.Gray)),
 		render.Centred(render.Colour("-", render.Gray)),
 	)
 	table = [][]interface{}{header, tokensRow}
 	for p, _ := range g.Players {
+		bold := p == pNum
 		pb := g.PlayerBoards[p]
 		bonuses := pb.Bonuses()
 		row := []interface{}{g.RenderName(p)}
 		for _, gem := range Gems {
-			gemBuf := bytes.NewBufferString(render.Bold(
-				bonuses[gem]))
+			gemBuf := bytes.NewBufferString(strconv.Itoa(bonuses[gem]))
 			if n := pb.Tokens[gem]; n > 0 {
 				gemBuf.WriteString(fmt.Sprintf("+%d", n))
 			}
-			row = append(row, render.Centred(gemBuf.String()))
+			row = append(row, render.Centred(render.Markup(
+				gemBuf.String(), "", bold)))
 		}
 		row = append(
 			row,
-			render.Centred(render.Bold(pb.Tokens[Gold])),
-			render.Centred(render.Bold(len(pb.Reserve))),
-			render.Centred(render.Bold(pb.Prestige())),
+			render.Centred(render.Markup(pb.Tokens[Gold], "", bold)),
+			render.Centred(render.Markup(len(pb.Reserve), "", bold)),
+			render.Centred(render.Markup(pb.Prestige(), "", bold)),
 		)
 		table = append(table, row)
 	}
