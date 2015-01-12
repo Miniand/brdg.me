@@ -53,6 +53,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", err
 	}
 	pb := g.PlayerBoards[pNum]
+	bonuses := pb.Bonuses()
 
 	output := bytes.NewBuffer([]byte{})
 
@@ -99,8 +100,10 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		for _, c := range r {
 			upperBuf := bytes.NewBuffer([]byte{})
-			if g.PlayerBoards[pNum].CanAfford(c.Cost) {
+			if bonuses.CanAfford(c.Cost) {
 				upperBuf.WriteString(render.Markup("✔ ", render.Green, true))
+			} else if g.PlayerBoards[pNum].CanAfford(c.Cost) {
+				upperBuf.WriteString(render.Markup("✔ ", render.Yellow, true))
 			}
 			upperBuf.WriteString(RenderCardBonusVP(c))
 			upper = append(upper, render.Centred(upperBuf.String()))
@@ -131,7 +134,6 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	tableHeader := []interface{}{""}
 	yourTokenRow := []interface{}{render.Bold("You have")}
 	availTokenRow := []interface{}{render.Bold("Tokens left")}
-	bonuses := pb.Bonuses()
 	for _, gem := range append(Gems, Gold) {
 		var yourTokenCell string
 		tableHeader = append(tableHeader,
