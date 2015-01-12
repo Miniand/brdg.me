@@ -41,13 +41,13 @@ func RenderHtml(tmpl string) (string, error) {
 
 func HtmlColours() map[string]string {
 	return map[string]string{
-		"black":   "rgb(0,0,1)",
-		"red":     "rgb(187,0,0)",
-		"green":   "rgb(0,187,0)",
-		"yellow":  "rgb(187,187,0)",
-		"blue":    "rgb(0,0,187)",
-		"magenta": "rgb(187,0,187)",
-		"cyan":    "rgb(0,187,187)",
-		"gray":    "rgb(100,100,100)",
+		Black:   "rgb(0,0,1)",
+		Red:     "rgb(187,0,0)",
+		Green:   "rgb(0,187,0)",
+		Yellow:  "rgb(187,187,0)",
+		Blue:    "rgb(0,0,187)",
+		Magenta: "rgb(187,0,187)",
+		Cyan:    "rgb(0,187,187)",
+		Gray:    "rgb(100,100,100)",
 	}
 }
