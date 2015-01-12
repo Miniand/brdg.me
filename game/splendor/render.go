@@ -61,6 +61,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			longestRow = l
 		}
 	}
+	if l := len(g.PlayerBoards[pNum].Reserve); l > longestRow {
+		longestRow = l
+	}
 	header := []interface{}{""}
 	for i := 0; i < longestRow; i++ {
 		header = append(header, render.Centred(
@@ -83,6 +86,20 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		table = append(table, upper, lower, []interface{}{})
 	}
+	upper := []interface{}{
+		render.Colour("Level 4", render.Gray),
+	}
+	lower := []interface{}{
+		render.Colour("Reserved", render.Gray),
+	}
+	for _, c := range g.PlayerBoards[pNum].Reserve {
+		canAfford := g.PlayerBoards[pNum].CanAfford(c.Cost)
+		upper = append(upper, render.Centred(
+			render.Markup(RenderCardBonusVP(c), "", canAfford)))
+		lower = append(lower, render.Centred(
+			render.Markup(RenderAmount(c.Cost), "", canAfford)))
+	}
+	table = append(table, upper, lower)
 	output.WriteString(render.Table(table, 0, 3))
 	output.WriteString("\n\n")
 
@@ -105,7 +122,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString("\n\n\n")
 
 	// Player table
-	header = []interface{}{render.Bold("Player")}
+	header = []interface{}{""}
 	for _, gem := range Gems {
 		header = append(header, render.Centred(render.Bold(
 			RenderResourceColour(ResourceAbbr[gem], gem))))
@@ -119,7 +136,17 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		render.Centred(render.Bold(
 			RenderResourceColour(ResourceAbbr[Prestige], Prestige))),
 	)
-	table = [][]interface{}{header}
+	tokensRow := []interface{}{render.Markup("Tokens", render.Gray, true)}
+	for _, gem := range Gems {
+		tokensRow = append(tokensRow, render.Centred(render.Bold(g.Tokens[gem])))
+	}
+	tokensRow = append(
+		tokensRow,
+		render.Centred(render.Bold(g.Tokens[Gold])),
+		render.Centred(render.Colour("-", render.Gray)),
+		render.Centred(render.Colour("-", render.Gray)),
+	)
+	table = [][]interface{}{header, tokensRow}
 	for p, _ := range g.Players {
 		pb := g.PlayerBoards[p]
 		bonuses := pb.Bonuses()
