@@ -35,7 +35,7 @@ var ResourceAbbr = map[int]string{
 	Ruby:     "Ru",
 	Onyx:     "On",
 	Gold:     "Go",
-	Prestige: "Pr",
+	Prestige: "VP",
 }
 
 func splitCards(cards []Card, n int) [][]Card {
@@ -102,6 +102,45 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		nobleRow,
 	}
 	output.WriteString(render.Table(table, 0, 3))
+	output.WriteString("\n\n\n")
+
+	// Player table
+	header = []interface{}{render.Bold("Player")}
+	for _, gem := range Gems {
+		header = append(header, render.Centred(render.Bold(
+			RenderResourceColour(ResourceAbbr[gem], gem))))
+	}
+	header = append(
+		header,
+		render.Centred(render.Bold(
+			RenderResourceColour(ResourceAbbr[Gold], Gold))),
+		render.Centred(render.Bold(
+			render.Colour("Res", render.Cyan))),
+		render.Centred(render.Bold(
+			RenderResourceColour(ResourceAbbr[Prestige], Prestige))),
+	)
+	table = [][]interface{}{header}
+	for p, _ := range g.Players {
+		pb := g.PlayerBoards[p]
+		bonuses := pb.Bonuses()
+		row := []interface{}{g.RenderName(p)}
+		for _, gem := range Gems {
+			gemBuf := bytes.NewBufferString(render.Bold(
+				bonuses[gem]))
+			if n := pb.Tokens[gem]; n > 0 {
+				gemBuf.WriteString(fmt.Sprintf("+%d", n))
+			}
+			row = append(row, render.Centred(gemBuf.String()))
+		}
+		row = append(
+			row,
+			render.Centred(render.Bold(pb.Tokens[Gold])),
+			render.Centred(render.Bold(len(pb.Reserve))),
+			render.Centred(render.Bold(pb.Tokens[Prestige])),
+		)
+		table = append(table, row)
+	}
+	output.WriteString(render.Table(table, 0, 2))
 
 	return output.String(), nil
 }
@@ -132,4 +171,8 @@ func RenderAmount(a Amount) string {
 
 func RenderNobleHeader(n Noble) string {
 	return RenderResourceColour(n.Prestige, Prestige)
+}
+
+func (g *Game) RenderName(player int) string {
+	return render.PlayerName(player, g.Players[player])
 }
