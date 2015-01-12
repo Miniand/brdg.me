@@ -21,6 +21,11 @@ func TestParseLoc(t *testing.T) {
 	assert.Equal(t, 3, row)
 	assert.Equal(t, 8, col)
 
+	row, col, err = ParseLoc("i4")
+	assert.NoError(t, err)
+	assert.Equal(t, 3, row)
+	assert.Equal(t, 8, col)
+
 	row, col, err = ParseLoc("0B")
 	assert.Error(t, err)
 

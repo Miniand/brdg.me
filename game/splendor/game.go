@@ -39,7 +39,7 @@ type Game struct {
 	Ended        bool
 }
 
-var LocRegexp = regexp.MustCompile(`^(\d)([A-Z])$`)
+var LocRegexp = regexp.MustCompile(`^([\dA-Z])([\dA-Z])$`)
 
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
@@ -238,6 +238,10 @@ func ParseLoc(loc string) (row int, col int, err error) {
 	matches := LocRegexp.FindStringSubmatch(strings.ToUpper(strings.TrimSpace(loc)))
 	if matches == nil {
 		return 0, 0, errors.New("invalid location, must be a number and a letter with no spaces")
+	}
+	if matches[2][0] >= '0' && matches[2][0] <= '9' {
+		// Reversed order, swap back
+		matches[1], matches[2] = matches[2], matches[1]
 	}
 	row, err = strconv.Atoi(matches[1])
 	row -= 1

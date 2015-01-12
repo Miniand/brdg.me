@@ -30,12 +30,12 @@ var ResourceStrings = map[int]string{
 }
 
 var ResourceAbbr = map[int]string{
-	Diamond:  "Di",
-	Sapphire: "Sa",
-	Emerald:  "Em",
-	Ruby:     "Ru",
-	Onyx:     "On",
-	Gold:     "Go",
+	Diamond:  "Diam",
+	Sapphire: "Saph",
+	Emerald:  "Emer",
+	Ruby:     "Ruby",
+	Onyx:     "Onyx",
+	Gold:     "Gold",
 	Prestige: "VP",
 }
 
@@ -52,8 +52,27 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	pb := g.PlayerBoards[pNum]
 
 	output := bytes.NewBuffer([]byte{})
+
+	// Nobles
+	nobleHeader := []interface{}{""}
+	nobleRow := []interface{}{render.Colour(fmt.Sprintf(
+		"Nobles (%s each)",
+		render.Bold(RenderResourceColour(3, Prestige)),
+	), render.Gray)}
+	for i, n := range g.Nobles {
+		nobleHeader = append(nobleHeader,
+			render.Centred(render.Colour(i+1, render.Gray)))
+		nobleRow = append(nobleRow, render.Bold(RenderAmount(n.Cost)))
+	}
+	table := [][]interface{}{
+		nobleHeader,
+		nobleRow,
+	}
+	output.WriteString(render.Table(table, 0, 2))
+	output.WriteString("\n\n")
 
 	// Board
 	longestRow := 0
@@ -68,56 +87,74 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	header := []interface{}{""}
 	for i := 0; i < longestRow; i++ {
 		header = append(header, render.Centred(
-			render.Colour(fmt.Sprintf("%c", 'A'+i), render.Gray)))
+			render.Colour(fmt.Sprintf("{{b}}%c{{_b}}", 'A'+i), render.Gray)))
 	}
-	table := [][]interface{}{header}
+	table = [][]interface{}{header}
 	for l, r := range g.Board {
 		upper := []interface{}{
-			render.Colour(fmt.Sprintf("Level %d", l+1), render.Gray),
+			render.Colour(fmt.Sprintf("Level {{b}}%d{{_b}}", l+1), render.Gray),
 		}
 		lower := []interface{}{
 			"",
 		}
 		for _, c := range r {
-			canAfford := g.PlayerBoards[pNum].CanAfford(c.Cost)
-			upper = append(upper, render.Centred(
-				render.Markup(RenderCardBonusVP(c), "", canAfford)))
-			lower = append(lower, render.Centred(
-				render.Markup(RenderAmount(c.Cost), "", canAfford)))
+			upperBuf := bytes.NewBuffer([]byte{})
+			if g.PlayerBoards[pNum].CanAfford(c.Cost) {
+				upperBuf.WriteString(render.Markup("✔ ", render.Green, true))
+			}
+			upperBuf.WriteString(RenderCardBonusVP(c))
+			upper = append(upper, render.Centred(upperBuf.String()))
+			lower = append(lower, render.Centred(RenderAmount(c.Cost)))
 		}
 		table = append(table, upper, lower, []interface{}{})
 	}
 	upper := []interface{}{
-		render.Colour("Level 4", render.Gray),
+		render.Colour("Level {{b}}4{{_b}}", render.Gray),
 	}
 	lower := []interface{}{
 		render.Colour("Reserved", render.Gray),
 	}
 	for _, c := range g.PlayerBoards[pNum].Reserve {
-		canAfford := g.PlayerBoards[pNum].CanAfford(c.Cost)
-		upper = append(upper, render.Centred(
-			render.Markup(RenderCardBonusVP(c), "", canAfford)))
-		lower = append(lower, render.Centred(
-			render.Markup(RenderAmount(c.Cost), "", canAfford)))
+		upperBuf := bytes.NewBuffer([]byte{})
+		if g.PlayerBoards[pNum].CanAfford(c.Cost) {
+			upperBuf.WriteString(render.Markup("✔ ", render.Green, true))
+		}
+		upperBuf.WriteString(RenderCardBonusVP(c))
+		upper = append(upper, render.Centred(upperBuf.String()))
+		lower = append(lower, render.Centred(RenderAmount(c.Cost)))
 	}
 	table = append(table, upper, lower)
 	output.WriteString(render.Table(table, 0, 3))
-	output.WriteString("\n\n")
+	output.WriteString("\n\n\n")
 
-	// Nobles
-	nobleHeader := []interface{}{""}
-	nobleRow := []interface{}{render.Colour(fmt.Sprintf(
-		"Nobles (%s each)",
-		render.Bold(RenderResourceColour(3, Prestige)),
-	), render.Gray)}
-	for i, n := range g.Nobles {
-		nobleHeader = append(nobleHeader,
-			render.Centred(render.Colour(i+1, render.Gray)))
-		nobleRow = append(nobleRow, render.Bold(RenderAmount(n.Cost)))
+	// Tokens
+	tableHeader := []interface{}{""}
+	yourTokenRow := []interface{}{render.Bold("You have")}
+	availTokenRow := []interface{}{render.Bold("Tokens left")}
+	bonuses := pb.Bonuses()
+	for _, gem := range append(Gems, Gold) {
+		var yourTokenCell string
+		tableHeader = append(tableHeader,
+			render.Centred(render.Bold(RenderResourceColour(ResourceAbbr[gem], gem))))
+		yourTokenCell = render.Bold(strconv.Itoa(bonuses[gem]))
+		if gem == Gold {
+			yourTokenCell = render.Bold(strconv.Itoa(pb.Tokens[Gold]))
+		} else if pb.Tokens[gem] > 0 {
+			yourTokenCell = fmt.Sprintf(
+				"{{b}}%d{{_b}} (%d+%d)",
+				bonuses[gem]+pb.Tokens[gem],
+				bonuses[gem],
+				pb.Tokens[gem],
+			)
+		}
+		yourTokenRow = append(yourTokenRow, render.Centred(yourTokenCell))
+		availTokenRow = append(availTokenRow,
+			render.Centred(strconv.Itoa(g.Tokens[gem])))
 	}
 	table = [][]interface{}{
-		nobleHeader,
-		nobleRow,
+		tableHeader,
+		yourTokenRow,
+		availTokenRow,
 	}
 	output.WriteString(render.Table(table, 0, 3))
 	output.WriteString("\n\n\n")
@@ -137,17 +174,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		render.Centred(render.Bold(
 			RenderResourceColour(ResourceAbbr[Prestige], Prestige))),
 	)
-	tokensRow := []interface{}{render.Markup("Tokens", render.Gray, true)}
-	for _, gem := range Gems {
-		tokensRow = append(tokensRow, render.Centred(strconv.Itoa(g.Tokens[gem])))
-	}
-	tokensRow = append(
-		tokensRow,
-		render.Centred(strconv.Itoa(g.Tokens[Gold])),
-		render.Centred(render.Colour("-", render.Gray)),
-		render.Centred(render.Colour("-", render.Gray)),
-	)
-	table = [][]interface{}{header, tokensRow}
+	table = [][]interface{}{header}
 	for p, _ := range g.Players {
 		bold := p == pNum
 		pb := g.PlayerBoards[p]
@@ -185,17 +212,17 @@ func RenderCardBonusVP(c Card) string {
 	if c.Prestige > 0 {
 		parts = append(parts, RenderResourceColour(c.Prestige, Prestige))
 	}
-	return strings.Join(parts, " ")
+	return render.Bold(strings.Join(parts, " "))
 }
 
 func RenderAmount(a Amount) string {
 	parts := []string{}
 	for _, r := range Resources {
 		if a[r] > 0 {
-			parts = append(parts, RenderResourceColour(a[r], r))
+			parts = append(parts, render.Bold(RenderResourceColour(a[r], r)))
 		}
 	}
-	return strings.Join(parts, "")
+	return strings.Join(parts, "-")
 }
 
 func RenderNobleHeader(n Noble) string {
