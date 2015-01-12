@@ -33,6 +33,9 @@ type Game struct {
 
 	CurrentPlayer int
 	Phase         int
+
+	EndTriggered bool
+	Ended        bool
 }
 
 var LocRegexp = regexp.MustCompile(`^(\d)([A-Z])$`)
@@ -40,6 +43,7 @@ var LocRegexp = regexp.MustCompile(`^(\d)([A-Z])$`)
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		BuyCommand{},
+		TakeCommand{},
 		ReserveCommand{},
 		VisitCommand{},
 	}
@@ -114,11 +118,41 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.Ended
+}
+
+func (g *Game) CheckEndTriggered() {
+	if g.EndTriggered {
+		return
+	}
+	for p, _ := range g.Players {
+		if g.PlayerBoards[p].Prestige() >= 15 {
+			g.EndTriggered = true
+			return
+		}
+	}
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	winners := []string{}
+	prestige := 0
+	cards := 0
+	for p, name := range g.Players {
+		pp := g.PlayerBoards[p].Prestige()
+		pc := len(g.PlayerBoards[p].Cards)
+		if pp > prestige || (pp == prestige && pc < cards) {
+			winners = []string{}
+			prestige = pp
+			cards = len(g.PlayerBoards[p].Cards)
+		}
+		if pp == prestige && pc == cards {
+			winners = append(winners, name)
+		}
+	}
+	return winners
 }
 
 func (g *Game) WhoseTurn() []string {
@@ -160,7 +194,12 @@ func (g *Game) VisitPhase() {
 }
 
 func (g *Game) NextPlayer() {
+	g.CheckEndTriggered()
 	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+	if g.EndTriggered && g.CurrentPlayer == 0 {
+		g.Ended = true
+		return
+	}
 	g.MainPhase()
 }
 

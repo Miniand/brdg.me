@@ -38,12 +38,12 @@ var ResourceAbbr = map[int]string{
 	Prestige: "VP",
 }
 
-func splitCards(cards []Card, n int) [][]Card {
-	rows := [][]Card{}
-	for i := 0; i < len(cards)/n; i++ {
-		rows = append(rows, cards[n*i:n*(i+1)])
+func GemStrings() map[int]string {
+	strs := map[int]string{}
+	for _, g := range Gems {
+		strs[g] = ResourceStrings[g]
 	}
-	return rows
+	return strs
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
