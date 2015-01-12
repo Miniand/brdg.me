@@ -38,7 +38,11 @@ type Game struct {
 var LocRegexp = regexp.MustCompile(`^(\d)([A-Z])$`)
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		BuyCommand{},
+		ReserveCommand{},
+		VisitCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -118,7 +122,7 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+	return []string{g.Players[g.CurrentPlayer]}
 }
 
 func (g *Game) GameLog() *log.Log {
@@ -162,6 +166,29 @@ func (g *Game) NextPlayer() {
 
 func (g *Game) MainPhase() {
 	g.Phase = PhaseMain
+}
+
+func (g *Game) Pay(player int, amount Amount) error {
+	if !g.PlayerBoards[player].CanAfford(amount) {
+		return errors.New("can't afford that")
+	}
+	offset := g.PlayerBoards[player].Bonuses().Subtract(amount)
+	for _, gem := range Gems {
+		if offset[gem] < 0 {
+			// Player didn't have enough just with bonuses
+			g.PlayerBoards[player].Tokens[gem] += offset[gem]
+			g.Tokens[gem] -= offset[gem]
+			if g.PlayerBoards[player].Tokens[gem] < 0 {
+				// Player didn't have enough normal tokens either, use gold
+				g.PlayerBoards[player].Tokens[Gold] +=
+					g.PlayerBoards[player].Tokens[gem]
+				g.Tokens[gem] += g.PlayerBoards[player].Tokens[gem]
+				g.Tokens[Gold] -= g.PlayerBoards[player].Tokens[gem]
+				g.PlayerBoards[player].Tokens[gem] = 0
+			}
+		}
+	}
+	return nil
 }
 
 func ParseLoc(loc string) (row int, col int, err error) {

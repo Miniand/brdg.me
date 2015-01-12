@@ -16,7 +16,7 @@ func (c VisitCommand) Parse(input string) []string {
 func (c VisitCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
-	return err != nil && g.CanVisit(pNum)
+	return err == nil && g.CanVisit(pNum)
 }
 
 func (c VisitCommand) Call(player string, context interface{},
@@ -49,7 +49,7 @@ func (g *Game) Visit(player, noble int) error {
 	if !g.CanVisit(player) {
 		return errors.New("unable to visit right now")
 	}
-	if noble < 0 || noble > len(g.Nobles) {
+	if noble < 0 || noble >= len(g.Nobles) {
 		return errors.New("that is not a valid noble number")
 	}
 	g.PlayerBoards[player].Nobles = append(g.PlayerBoards[player].Nobles,

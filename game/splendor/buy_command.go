@@ -15,7 +15,7 @@ func (c BuyCommand) Parse(input string) []string {
 func (c BuyCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
-	return err != nil && g.CanBuy(pNum)
+	return err == nil && g.CanBuy(pNum)
 }
 
 func (c BuyCommand) Call(player string, context interface{},
@@ -51,13 +51,13 @@ func (g *Game) Buy(player, row, col int) error {
 	pb := g.PlayerBoards[player]
 	switch row {
 	case 0, 1, 2:
-		if col < 0 || col > len(g.Board[row]) {
+		if col < 0 || col >= len(g.Board[row]) {
 			return errors.New("that is not a valid card")
 		}
 		if !pb.CanAfford(g.Board[row][col].Cost) {
 			return errors.New("you can't afford that card")
 		}
-		g.PlayerBoards[player].Pay(g.Board[row][col].Cost)
+		g.Pay(player, g.Board[row][col].Cost)
 		g.PlayerBoards[player].Cards = append(
 			g.PlayerBoards[player].Cards,
 			g.Board[row][col],
@@ -72,13 +72,13 @@ func (g *Game) Buy(player, row, col int) error {
 			)
 		}
 	case 3:
-		if col < 0 || col > len(pb.Reserve) {
+		if col < 0 || col >= len(pb.Reserve) {
 			return errors.New("that is not a valid reserve card")
 		}
 		if !pb.CanAfford(pb.Reserve[col].Cost) {
 			return errors.New("you can't afford that card")
 		}
-		g.PlayerBoards[player].Pay(pb.Reserve[col].Cost)
+		g.Pay(player, pb.Reserve[col].Cost)
 		g.PlayerBoards[player].Cards = append(
 			g.PlayerBoards[player].Cards,
 			pb.Reserve[col],
