@@ -2,9 +2,12 @@ package splendor
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type TakeCommand struct{}
@@ -58,7 +61,13 @@ func (g *Game) Take(player int, tokens []int) error {
 		if g.Tokens[tokens[0]] < 4 {
 			return errors.New("can only take two when there are four or more remaining")
 		}
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s took {{b}}2 %s{{_b}}",
+			g.RenderName(player),
+			RenderResourceColour(ResourceStrings[tokens[0]], tokens[0]),
+		)))
 	case 3:
+		tokenStrs := []string{}
 		for i, t := range tokens {
 			if t == tokens[(i+1)%l] {
 				return errors.New("must take different tokens when taking three")
@@ -66,7 +75,14 @@ func (g *Game) Take(player int, tokens []int) error {
 			if g.Tokens[t] == 0 {
 				return errors.New("there aren't enough tokens remaning to take that")
 			}
+			tokenStrs = append(tokenStrs, render.Bold(
+				RenderResourceColour(ResourceStrings[t], t)))
 		}
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s took %s",
+			g.RenderName(player),
+			render.CommaList(tokenStrs),
+		)))
 	default:
 		return errors.New("can only take two or three tokens")
 	}

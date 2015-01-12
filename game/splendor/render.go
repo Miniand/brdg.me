@@ -205,3 +205,19 @@ func RenderNobleHeader(n Noble) string {
 func (g *Game) RenderName(player int) string {
 	return render.PlayerName(player, g.Players[player])
 }
+
+func RenderCard(c Card) string {
+	return render.Bold(fmt.Sprintf(
+		"%s (%s)",
+		RenderCardBonusVP(c),
+		RenderAmount(c.Cost),
+	))
+}
+
+func RenderNoble(n Noble) string {
+	return render.Bold(fmt.Sprintf(
+		"%s (%s)",
+		RenderNobleHeader(n),
+		RenderAmount(n.Cost),
+	))
+}

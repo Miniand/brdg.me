@@ -2,8 +2,10 @@ package splendor
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type ReserveCommand struct{}
@@ -55,6 +57,11 @@ func (g *Game) Reserve(player, row, col int) error {
 	if col < 0 || col >= len(g.Board[row]) {
 		return errors.New("that is not a valid card")
 	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s reserved %s",
+		g.RenderName(player),
+		RenderCard(g.Board[row][col]),
+	)))
 	g.PlayerBoards[player].Reserve = append(
 		g.PlayerBoards[player].Reserve,
 		g.Board[row][col],

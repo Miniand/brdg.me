@@ -9,6 +9,7 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 const (
@@ -127,6 +128,9 @@ func (g *Game) CheckEndTriggered() {
 	}
 	for p, _ := range g.Players {
 		if g.PlayerBoards[p].Prestige() >= 15 {
+			g.Log.Add(log.NewPublicMessage(render.Bold(
+				"The end of the game has been triggered",
+			)))
 			g.EndTriggered = true
 			return
 		}

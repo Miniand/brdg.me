@@ -2,8 +2,10 @@ package splendor
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type BuyCommand struct{}
@@ -57,11 +59,10 @@ func (g *Game) Buy(player, row, col int) error {
 		if !pb.CanAfford(g.Board[row][col].Cost) {
 			return errors.New("you can't afford that card")
 		}
-		g.Pay(player, g.Board[row][col].Cost)
+		c := g.Board[row][col]
+		g.Pay(player, c.Cost)
 		g.PlayerBoards[player].Cards = append(
-			g.PlayerBoards[player].Cards,
-			g.Board[row][col],
-		)
+			g.PlayerBoards[player].Cards, c)
 		if len(g.Decks[row]) > 0 {
 			g.Board[row][col] = g.Decks[row][0]
 			g.Decks[row] = g.Decks[row][1:]
@@ -71,6 +72,11 @@ func (g *Game) Buy(player, row, col int) error {
 				g.Board[row][col+1:]...,
 			)
 		}
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s bought %s from the board",
+			g.RenderName(player),
+			RenderCard(c),
+		)))
 	case 3:
 		if col < 0 || col >= len(pb.Reserve) {
 			return errors.New("that is not a valid reserve card")
@@ -78,15 +84,19 @@ func (g *Game) Buy(player, row, col int) error {
 		if !pb.CanAfford(pb.Reserve[col].Cost) {
 			return errors.New("you can't afford that card")
 		}
-		g.Pay(player, pb.Reserve[col].Cost)
+		c := pb.Reserve[col]
+		g.Pay(player, c.Cost)
 		g.PlayerBoards[player].Cards = append(
-			g.PlayerBoards[player].Cards,
-			pb.Reserve[col],
-		)
+			g.PlayerBoards[player].Cards, c)
 		g.PlayerBoards[player].Reserve = append(
 			g.PlayerBoards[player].Reserve[:col],
 			g.PlayerBoards[player].Reserve[col+1:]...,
 		)
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s bought %s from their reserve",
+			g.RenderName(player),
+			RenderCard(c),
+		)))
 	default:
 		return errors.New("that is not a valid row")
 	}

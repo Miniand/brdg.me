@@ -2,9 +2,11 @@ package splendor
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type VisitCommand struct{}
@@ -54,6 +56,11 @@ func (g *Game) Visit(player, noble int) error {
 	}
 	g.PlayerBoards[player].Nobles = append(g.PlayerBoards[player].Nobles,
 		g.Nobles[noble])
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s was visited by %s",
+		g.RenderName(player),
+		RenderNoble(g.Nobles[noble]),
+	)))
 	g.Nobles = append(g.Nobles[:noble], g.Nobles[noble+1:]...)
 	g.NextPhase()
 	return nil
