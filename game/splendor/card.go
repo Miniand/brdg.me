@@ -15,8 +15,6 @@ const (
 	Prestige
 )
 
-type Amount map[int]int
-
 type Card struct {
 	Resource int
 	Prestige int

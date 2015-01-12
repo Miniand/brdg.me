@@ -16,24 +16,18 @@ func NewPlayerBoard() PlayerBoard {
 	}
 }
 
-func (pb PlayerBoard) BuyingPower() Amount {
-	power := Amount{}
-	for _, r := range Resources {
-		power[r] = pb.Tokens[r]
-	}
+func (pb PlayerBoard) Bonuses() Amount {
+	bonuses := Amount{}
 	for _, c := range pb.Cards {
-		power[c.Resource]++
+		bonuses[c.Resource]++
 	}
-	return power
+	return bonuses
 }
 
-func (pb PlayerBoard) CanAfford(amount Amount) bool {
-	buyingPower := pb.BuyingPower()
-	short := 0
-	for r, n := range amount {
-		if buyingPower[r] < n {
-			short += n - buyingPower[r]
-		}
-	}
-	return short <= buyingPower[Gold]
+func (pb PlayerBoard) BuyingPower() Amount {
+	return pb.Bonuses().Add(pb.Tokens)
+}
+
+func (pb PlayerBoard) CanAfford(cost Amount) bool {
+	return pb.BuyingPower().CanAfford(cost)
 }
