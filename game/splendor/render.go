@@ -163,7 +163,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			row,
 			render.Centred(render.Bold(pb.Tokens[Gold])),
 			render.Centred(render.Bold(len(pb.Reserve))),
-			render.Centred(render.Bold(pb.Tokens[Prestige])),
+			render.Centred(render.Bold(pb.Prestige())),
 		)
 		table = append(table, row)
 	}

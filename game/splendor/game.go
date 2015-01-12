@@ -2,6 +2,9 @@ package splendor
 
 import (
 	"errors"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
@@ -10,6 +13,11 @@ import (
 
 const (
 	MaxGold = 5
+)
+
+const (
+	PhaseMain = iota
+	PhaseVisit
 )
 
 type Game struct {
@@ -22,7 +30,12 @@ type Game struct {
 	Tokens Amount
 
 	PlayerBoards []PlayerBoard
+
+	CurrentPlayer int
+	Phase         int
 }
+
+var LocRegexp = regexp.MustCompile(`^(\d)([A-Z])$`)
 
 func (g *Game) Commands() []command.Command {
 	return []command.Command{}
@@ -114,4 +127,53 @@ func (g *Game) GameLog() *log.Log {
 
 func (g *Game) PlayerNum(player string) (int, error) {
 	return helper.StringInStrings(player, g.Players)
+}
+
+func (g *Game) NextPhase() {
+	switch g.Phase {
+	case PhaseMain:
+		g.VisitPhase()
+	case PhaseVisit:
+		g.NextPlayer()
+	}
+}
+
+func (g *Game) VisitPhase() {
+	g.Phase = PhaseVisit
+	pb := g.PlayerBoards[g.CurrentPlayer]
+	canVisit := []int{}
+	for i, n := range g.Nobles {
+		if pb.Bonuses().CanAfford(n.Cost) {
+			canVisit = append(canVisit, i)
+		}
+	}
+	switch len(canVisit) {
+	case 0:
+		g.NextPhase()
+	case 1:
+		g.Visit(g.CurrentPlayer, canVisit[0])
+	}
+}
+
+func (g *Game) NextPlayer() {
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+	g.MainPhase()
+}
+
+func (g *Game) MainPhase() {
+	g.Phase = PhaseMain
+}
+
+func ParseLoc(loc string) (row int, col int, err error) {
+	matches := LocRegexp.FindStringSubmatch(strings.ToUpper(strings.TrimSpace(loc)))
+	if matches == nil {
+		return 0, 0, errors.New("invalid location, must be a number and a letter with no spaces")
+	}
+	row, err = strconv.Atoi(matches[1])
+	row -= 1
+	if row < 0 || row > 3 {
+		err = errors.New("row must be between 0 and 3")
+	}
+	col = int(matches[2][0] - 'A')
+	return
 }
