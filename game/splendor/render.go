@@ -66,7 +66,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	for i, n := range g.Nobles {
 		nobleHeader = append(nobleHeader,
 			render.Centred(render.Colour(i+1, render.Gray)))
-		nobleRow = append(nobleRow, render.Bold(RenderAmount(n.Cost)))
+		nobleRow = append(nobleRow, RenderAmount(n.Cost))
 	}
 	table := [][]interface{}{
 		nobleHeader,
@@ -224,7 +224,7 @@ func RenderAmount(a Amount) string {
 			parts = append(parts, render.Bold(RenderResourceColour(a[r], r)))
 		}
 	}
-	return strings.Join(parts, "-")
+	return strings.Join(parts, render.Colour("-", render.Gray))
 }
 
 func RenderNobleHeader(n Noble) string {
