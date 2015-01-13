@@ -20,13 +20,13 @@ var ResourceColours = map[int]string{
 }
 
 var ResourceStrings = map[int]string{
-	Diamond:  "diamond",
-	Sapphire: "sapphire",
-	Emerald:  "emerald",
-	Ruby:     "ruby",
-	Onyx:     "onyx",
-	Gold:     "gold",
-	Prestige: "prestige",
+	Diamond:  "Diamond",
+	Sapphire: "Sapphire",
+	Emerald:  "Emerald",
+	Ruby:     "Ruby",
+	Onyx:     "Onyx",
+	Gold:     "Gold",
+	Prestige: "Prestige",
 }
 
 var ResourceAbbr = map[int]string{
@@ -143,7 +143,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			yourTokenCell = render.Bold(strconv.Itoa(pb.Tokens[Gold]))
 		} else if pb.Tokens[gem] > 0 {
 			yourTokenCell = fmt.Sprintf(
-				"{{b}}%d{{_b}} (%d+%d)",
+				"{{b}}%d{{_b}} {{c \"gray\"}}(%d+%d){{_c}}",
 				bonuses[gem]+pb.Tokens[gem],
 				bonuses[gem],
 				pb.Tokens[gem],
@@ -236,11 +236,11 @@ func (g *Game) RenderName(player int) string {
 }
 
 func RenderCard(c Card) string {
-	return render.Bold(fmt.Sprintf(
+	return fmt.Sprintf(
 		"%s (%s)",
 		RenderCardBonusVP(c),
 		RenderAmount(c.Cost),
-	))
+	)
 }
 
 func RenderNoble(n Noble) string {
