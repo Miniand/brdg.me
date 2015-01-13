@@ -133,29 +133,31 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	// Tokens
 	tableHeader := []interface{}{""}
 	yourTokenRow := []interface{}{render.Bold("You have")}
+	yourTokenDescRow := []interface{}{render.Markup(
+		"(card+token)", render.Gray, true)}
 	availTokenRow := []interface{}{render.Bold("Tokens left")}
 	for _, gem := range append(Gems, Gold) {
-		var yourTokenCell string
-		tableHeader = append(tableHeader,
-			render.Centred(render.Bold(RenderResourceColour(ResourceAbbr[gem], gem))))
-		yourTokenCell = render.Bold(strconv.Itoa(bonuses[gem]))
-		if gem == Gold {
-			yourTokenCell = render.Bold(strconv.Itoa(pb.Tokens[Gold]))
-		} else if pb.Tokens[gem] > 0 {
-			yourTokenCell = fmt.Sprintf(
-				"{{b}}%d{{_b}} {{c \"gray\"}}(%d+%d){{_c}}",
-				bonuses[gem]+pb.Tokens[gem],
+		var yourTokenDescCell string
+		tableHeader = append(tableHeader, render.Centred(render.Bold(
+			RenderResourceColour(ResourceAbbr[gem], gem))))
+		yourTokenRow = append(yourTokenRow, render.Centred(render.Bold(
+			strconv.Itoa(bonuses[gem]+pb.Tokens[gem]))))
+		if gem != Gold && pb.Tokens[gem] > 0 {
+			yourTokenDescCell = fmt.Sprintf(
+				"{{c \"gray\"}}(%d+%d){{_c}}",
 				bonuses[gem],
 				pb.Tokens[gem],
 			)
 		}
-		yourTokenRow = append(yourTokenRow, render.Centred(yourTokenCell))
+		yourTokenDescRow = append(yourTokenDescRow,
+			render.Centred(yourTokenDescCell))
 		availTokenRow = append(availTokenRow,
 			render.Centred(strconv.Itoa(g.Tokens[gem])))
 	}
 	table = [][]interface{}{
 		tableHeader,
 		yourTokenRow,
+		yourTokenDescRow,
 		availTokenRow,
 	}
 	output.WriteString(render.Table(table, 0, 3))
