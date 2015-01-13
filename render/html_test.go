@@ -10,7 +10,7 @@ func TestHtmlRender(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if output != `<span style="font-size:1.6em;"><span style="color:rgb(0,0,187);"><b>hello</b></span></span>` {
+	if output != `<span style="font-size:1.6em;"><span style="color:rgb(25,118,210);"><strong>hello</strong></span></span>` {
 		t.Error("Output was", output)
 		return
 	}

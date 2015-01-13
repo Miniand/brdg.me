@@ -62,13 +62,13 @@ func RenderTerminal(tmpl string) (string, error) {
 
 func TerminalColours() map[string]string {
 	return map[string]string{
-		"black":   "\x1b[30",
-		"red":     "\x1b[31",
-		"green":   "\x1b[32",
-		"yellow":  "\x1b[33",
-		"blue":    "\x1b[34",
-		"magenta": "\x1b[35",
-		"cyan":    "\x1b[36",
-		"gray":    "\x1b[37",
+		Black:   "\x1b[30",
+		Red:     "\x1b[31",
+		Green:   "\x1b[32",
+		Yellow:  "\x1b[33",
+		Blue:    "\x1b[34",
+		Magenta: "\x1b[35",
+		Cyan:    "\x1b[36",
+		Gray:    "\x1b[37",
 	}
 }

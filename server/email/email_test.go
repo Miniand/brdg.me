@@ -1,8 +1,6 @@
 package email
 
-import (
-	"os"
-)
+import "os"
 
 func modelTestShouldRun() bool {
 	return os.Getenv("TEST_DATABASE") != ""

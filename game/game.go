@@ -14,6 +14,7 @@ import (
 	"github.com/Miniand/brdg.me/game/modern_art"
 	"github.com/Miniand/brdg.me/game/no_thanks"
 	"github.com/Miniand/brdg.me/game/roll_through_the_ages"
+	"github.com/Miniand/brdg.me/game/splendor"
 	"github.com/Miniand/brdg.me/game/starship_catan"
 	"github.com/Miniand/brdg.me/game/sushizock"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
@@ -58,6 +59,7 @@ func gameList() []Playable {
 		&modern_art.Game{},
 		&no_thanks.Game{},
 		&roll_through_the_ages.Game{},
+		&splendor.Game{},
 		&starship_catan.Game{},
 		&sushizock.Game{},
 		&texas_holdem.Game{},

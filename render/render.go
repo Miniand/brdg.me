@@ -1,5 +1,16 @@
 package render
 
+const (
+	Black   = "black"
+	Red     = "red"
+	Green   = "green"
+	Yellow  = "yellow"
+	Blue    = "blue"
+	Magenta = "magenta"
+	Cyan    = "cyan"
+	Gray    = "gray"
+)
+
 type Markupper interface {
 	StartColour(string) interface{}
 	EndColour() interface{}
@@ -14,14 +25,14 @@ type Context struct{}
 // @see http://en.wikipedia.org/wiki/ANSI_escape_code#Colours
 func ValidColours() []string {
 	return []string{
-		"black",
-		"red",
-		"green",
-		"yellow",
-		"blue",
-		"magenta",
-		"cyan",
-		"gray",
+		Black,
+		Red,
+		Green,
+		Yellow,
+		Blue,
+		Magenta,
+		Cyan,
+		Gray,
 	}
 }
 

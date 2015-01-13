@@ -3,12 +3,13 @@ package email
 import (
 	"bytes"
 	"fmt"
-	"github.com/Miniand/brdg.me/render"
 	"mime/multipart"
 	"net/smtp"
 	"net/textproto"
 	"os"
 	"strings"
+
+	"github.com/Miniand/brdg.me/render"
 )
 
 func FromAddr() string {
@@ -58,7 +59,7 @@ func SendRichMail(to []string, subject string, body string,
 		return err
 	}
 	_, err = htmlW.Write([]byte(fmt.Sprintf(
-		`<pre style="color:#000001;font-size:13px;line-height:17px;font-family:monospace,Segoe UI Symbol;white-space:pre-wrap;">%s`,
+		`<pre style="font-size:13px;line-height:17px;font-family:DejaVu Sans Mono,monospace,Segoe UI Symbol;white-space:pre-wrap;">%s`,
 		htmlOutput)))
 	if err != nil {
 		return err

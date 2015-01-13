@@ -17,6 +17,8 @@ import (
 
 const FILE = ".game"
 
+var renderer = render.RenderTerminal
+
 func Actions() map[string](func([]string) error) {
 	return map[string](func([]string) error){
 		"new":  NewAction,
@@ -28,7 +30,12 @@ func Actions() map[string](func([]string) error) {
 }
 
 func main() {
+	var html bool
+	flag.BoolVar(&html, "html", false, "output html")
 	flag.Parse()
+	if html {
+		renderer = render.RenderHtml
+	}
 	if flag.NArg() == 0 {
 		fmt.Println("Available actions are:")
 		for aName, _ := range Actions() {
@@ -59,7 +66,7 @@ func RenderForPlayer(g game.Playable, p string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return render.RenderTerminal(logOutput + "\n\n" + rawOutput)
+	return renderer(logOutput + "\n\n" + rawOutput)
 }
 
 func NewAction(args []string) error {

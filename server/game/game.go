@@ -135,7 +135,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			// Email any players who now have a turn, or for ones who still have
 			// a turn but there are new logs
 			whoseTurnNow, remaining := FindNewStringsInSlice(
-				gm.WhoseTurn, initialWhoseTurn)
+				initialWhoseTurn, gm.WhoseTurn)
 			commErr = communicate.Game(
 				g,
 				gm,
