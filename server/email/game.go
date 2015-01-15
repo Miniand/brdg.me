@@ -68,7 +68,7 @@ func SendGame(
 %s
 
 
-You can also <a href="http://baconheist.com/brdgme/game.html?id=%s">continue playing this game live in your browser</a>.`,
+You can also <a href="http://brdg.me/game.html?id=%s">continue playing this game live in your browser</a>.`,
 			pHeader,
 			rawOutput,
 			gm.Id,
