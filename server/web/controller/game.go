@@ -30,17 +30,49 @@ func mergeMaps(in ...map[string]interface{}) map[string]interface{} {
 	return first
 }
 
-func GameData(gm *model.GameModel, g game.Playable) map[string]interface{} {
-	return map[string]interface{}{
+func GameData(
+	gm *model.GameModel,
+	g game.Playable,
+	renderer render.Renderer,
+) (data map[string]interface{}, err error) {
+	playerList := gm.PlayerList
+	if playerList != nil {
+		if playerList, err = render.RenderTemplates(render.PlayerNamesInPlayers(
+			playerList,
+			gm.PlayerList,
+		), renderer); err != nil {
+			return
+		}
+	}
+	whoseTurn := gm.WhoseTurn
+	if whoseTurn != nil {
+		if whoseTurn, err = render.RenderTemplates(render.PlayerNamesInPlayers(
+			whoseTurn,
+			gm.PlayerList,
+		), renderer); err != nil {
+			return
+		}
+	}
+	winners := gm.Winners
+	if winners != nil {
+		if winners, err = render.RenderTemplates(render.PlayerNamesInPlayers(
+			winners,
+			gm.PlayerList,
+		), renderer); err != nil {
+			return
+		}
+	}
+	data = map[string]interface{}{
 		"id":         gm.Id,
 		"name":       g.Name(),
 		"identifier": g.Identifier(),
 		"isFinished": gm.IsFinished,
 		"finishedAt": gm.FinishedAt,
-		"playerList": gm.PlayerList,
-		"whoseTurn":  gm.WhoseTurn,
-		"winners":    gm.Winners,
+		"playerList": playerList,
+		"whoseTurn":  whoseTurn,
+		"winners":    winners,
 	}
+	return
 }
 
 func GameOutput(
@@ -107,7 +139,11 @@ func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		games = append(games, GameData(gm, g))
+		gd, err := GameData(gm, g, render.RenderHtml)
+		if err != nil {
+			continue
+		}
+		games = append(games, gd)
 	}
 	Json(http.StatusOK, games, w, r)
 }
@@ -143,7 +179,11 @@ func ApiGameShow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 	}
-	Json(http.StatusOK, mergeMaps(GameData(gm, g), gameOutput), w, r)
+	gd, err := GameData(gm, g, render.RenderHtml)
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+	}
+	Json(http.StatusOK, mergeMaps(gd, gameOutput), w, r)
 }
 
 func ApiGameCreate(w http.ResponseWriter, r *http.Request) {
@@ -213,7 +253,11 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 	}
-	Json(http.StatusOK, mergeMaps(GameData(gm, g), gameOutput), w, r)
+	gd, err := GameData(gm, g, render.RenderHtml)
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+	}
+	Json(http.StatusOK, mergeMaps(gd, gameOutput), w, r)
 }
 
 func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
@@ -237,7 +281,11 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		resp["currentTurn"] = append(resp["currentTurn"], GameData(gm, g))
+		gd, err := GameData(gm, g, render.RenderHtml)
+		if err != nil {
+			ApiInternalServerError(err.Error(), w, r)
+		}
+		resp["currentTurn"] = append(resp["currentTurn"], gd)
 	}
 	// Recently finished
 	finishedRes, err := model.RecentlyFinishedGamesForPlayer(authUser.Email)
@@ -250,7 +298,11 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		resp["recentlyFinished"] = append(resp["recentlyFinished"], GameData(gm, g))
+		gd, err := GameData(gm, g, render.RenderHtml)
+		if err != nil {
+			continue
+		}
+		resp["recentlyFinished"] = append(resp["recentlyFinished"], gd)
 	}
 	Json(http.StatusOK, resp, w, r)
 }

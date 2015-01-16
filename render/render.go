@@ -11,6 +11,8 @@ const (
 	Gray    = "gray"
 )
 
+type Renderer func(string) (string, error)
+
 type Markupper interface {
 	StartColour(string) interface{}
 	EndColour() interface{}
@@ -68,4 +70,14 @@ func AttachTemplateFuncs(to map[string]interface{}, m Markupper) map[string]inte
 		return m.EndLarge()
 	}
 	return to
+}
+
+func RenderTemplates(tmpls []string, renderer Renderer) (ret []string, err error) {
+	ret = make([]string, len(tmpls))
+	for i, t := range tmpls {
+		if ret[i], err = renderer(t); err != nil {
+			return
+		}
+	}
+	return
 }
