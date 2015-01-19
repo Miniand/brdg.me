@@ -2,11 +2,12 @@ package controller
 
 import (
 	"fmt"
+	"math"
 	"net/http"
+	"time"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
-	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 	sgame "github.com/Miniand/brdg.me/server/game"
 	"github.com/Miniand/brdg.me/server/model"
@@ -88,8 +89,18 @@ func GameOutput(
 	if err != nil {
 		return nil, err
 	}
-	logHtml, err := render.RenderHtml(
-		log.RenderMessages(g.GameLog().MessagesFor(player)))
+	logs := []map[string]interface{}{}
+	for _, l := range g.GameLog().MessagesFor(player) {
+		logHtml, err := render.RenderHtml(l.Text)
+		if err != nil {
+			return nil, err
+		}
+		t := time.Unix(l.Time/int64(math.Pow10(9)), 0)
+		logs = append(logs, map[string]interface{}{
+			"time": t.UTC().Format(time.RFC3339),
+			"text": logHtml,
+		})
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +114,7 @@ func GameOutput(
 	}
 	return map[string]interface{}{
 		"game":     gameHtml,
-		"log":      logHtml,
+		"log":      logs,
 		"commands": commandHtml,
 	}, nil
 }
