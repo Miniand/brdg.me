@@ -280,6 +280,7 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 	resp := map[string][]map[string]interface{}{
 		"currentTurn":      []map[string]interface{}{},
 		"recentlyFinished": []map[string]interface{}{},
+		"otherActive":      []map[string]interface{}{},
 	}
 	// Current turn
 	currentRes, err := model.CurrentTurnGamesForPlayer(authUser.Email)
@@ -314,6 +315,23 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		resp["recentlyFinished"] = append(resp["recentlyFinished"], gd)
+	}
+	// Other active
+	otherRes, err := model.NotCurrentTurnGamesForPlayer(authUser.Email)
+	if err != nil {
+		ApiInternalServerError(err.Error(), w, r)
+	}
+	defer otherRes.Close()
+	for otherRes.Next(&gm) {
+		g, err := gm.ToGame()
+		if err != nil {
+			continue
+		}
+		gd, err := GameData(gm, g, render.RenderHtml)
+		if err != nil {
+			continue
+		}
+		resp["otherActive"] = append(resp["otherActive"], gd)
 	}
 	Json(http.StatusOK, resp, w, r)
 }
