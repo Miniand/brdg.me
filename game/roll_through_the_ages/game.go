@@ -193,6 +193,9 @@ func (g *Game) RollPhase() {
 
 func (g *Game) RollExtraPhase() {
 	g.Phase = PhaseExtraRoll
+	// Can reroll anything
+	g.RolledDice = append(g.RolledDice, g.KeptDice...)
+	g.KeptDice = []int{}
 	if !g.Boards[g.CurrentPlayer].Developments[DevelopmentLeadership] {
 		g.NextPhase()
 	}
