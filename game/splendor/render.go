@@ -142,7 +142,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			RenderResourceColour(ResourceAbbr[gem], gem))))
 		yourTokenRow = append(yourTokenRow, render.Centred(render.Bold(
 			strconv.Itoa(bonuses[gem]+pb.Tokens[gem]))))
-		if gem != Gold && pb.Tokens[gem] > 0 {
+		if gem != Gold {
 			yourTokenDescCell = fmt.Sprintf(
 				"{{c \"gray\"}}(%d+%d){{_c}}",
 				bonuses[gem],
