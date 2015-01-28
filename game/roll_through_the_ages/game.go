@@ -379,9 +379,7 @@ func (g *Game) InvadePhase() {
 
 func (g *Game) BuildPhase() {
 	g.Phase = PhaseBuild
-	if !g.CanBuild(g.CurrentPlayer) &&
-		!g.CanBuildShip(g.CurrentPlayer) &&
-		!g.CanTrade(g.CurrentPlayer) {
+	if !g.CanBuildAnything(g.CurrentPlayer) {
 		g.NextPhase()
 	}
 }
