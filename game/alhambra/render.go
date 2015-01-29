@@ -3,7 +3,11 @@ package alhambra
 import (
 	"bytes"
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
+
+	"github.com/Miniand/brdg.me/render"
 )
 
 const (
@@ -12,6 +16,13 @@ const (
 	DirLeft
 	DirRight
 )
+
+var Dirs = []int{
+	DirUp,
+	DirDown,
+	DirLeft,
+	DirRight,
+}
 
 var NoTileStr = `{{c "gray"}}░{{_c}}`
 
@@ -35,36 +46,24 @@ var WallStrs = map[int]string{
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	gr := Grid{}
-	gr[Vect{0, 0}] = Tile{
-		Type: TileTypeBlah,
-		Walls: map[int]bool{
-			DirUp:    true,
-			DirRight: true,
-		},
-	}
-	gr[Vect{0, 1}] = Tile{
-		Type: TileTypeBlah,
-		Walls: map[int]bool{
-			DirDown: true,
-		},
-	}
-	gr[Vect{1, 1}] = Tile{
-		Type: TileTypeBlah,
-		Walls: map[int]bool{
-			DirUp:    true,
-			DirRight: true,
-			DirDown:  true,
-		},
-	}
-	gr[Vect{4, 1}] = Tile{
-		Type: TileTypeBlah,
-		Walls: map[int]bool{
-			DirUp:    true,
-			DirRight: true,
-			DirDown:  true,
-		},
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < 100; i++ {
+		walls := map[int]bool{}
+		for _, d := range Dirs {
+			if r.Int()%10 > 6 {
+				walls[d] = true
+			}
+		}
+		gr[Vect{r.Int() % 10, r.Int() % 10}] = Tile{
+			Type:  r.Int()%(TileTypeTower-TileTypePavillion+1) + TileTypePavillion,
+			Walls: walls,
+		}
 	}
 	return gr.Render(), nil
+}
+
+func RenderTileAbbr(tileType int) string {
+	return render.Markup(TileAbbrs[tileType], TileColours[tileType], true)
 }
 
 func (g Grid) Render() string {
@@ -132,7 +131,7 @@ func (g Grid) Render() string {
 					r = " "
 				}
 			}
-			l1.WriteString(r)
+			l1.WriteString(strings.Repeat(r, TileAbbrLen))
 			// Left pixel
 			r = NoTileStr
 			if ct.Type != TileTypeEmpty || lt.Type != TileTypeEmpty {
@@ -147,9 +146,9 @@ func (g Grid) Render() string {
 			}
 			l2.WriteString(r)
 			// Centre pixel
-			r = NoTileStr
+			r = strings.Repeat(NoTileStr, TileAbbrLen)
 			if ct.Type != TileTypeEmpty {
-				r = TileStrs[ct.Type]
+				r = RenderTileAbbr(ct.Type)
 			}
 			l2.WriteString(r)
 		}
@@ -158,6 +157,6 @@ func (g Grid) Render() string {
 		output.WriteString(l2.String())
 		output.WriteString(fmt.Sprintf("%s\n", NoTileStr))
 	}
-	output.WriteString(strings.Repeat(NoTileStr, (max.X-min.X+3)*2+1))
+	output.WriteString(strings.Repeat(NoTileStr, (max.X-min.X+3)*(TileAbbrLen+1)+1))
 	return output.String()
 }
