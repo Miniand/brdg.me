@@ -5,9 +5,9 @@ const (
 	TileTypeBlah
 )
 
-var TileRunes = map[int]rune{
-	TileTypeEmpty: ' ',
-	TileTypeBlah:  'B',
+var TileStrs = map[int]string{
+	TileTypeEmpty: " ",
+	TileTypeBlah:  "B",
 }
 
 type Tile struct {

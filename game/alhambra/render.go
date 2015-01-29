@@ -1,6 +1,10 @@
 package alhambra
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+	"strings"
+)
 
 const (
 	DirUp = 1 << iota
@@ -9,22 +13,24 @@ const (
 	DirRight
 )
 
-var WallRunes = map[int]rune{
-	DirUp | DirDown | DirLeft | DirRight: '╬',
-	DirUp | DirDown | DirLeft:            '╣',
-	DirUp | DirDown | DirRight:           '╠',
-	DirUp | DirLeft | DirRight:           '╩',
-	DirDown | DirLeft | DirRight:         '╦',
-	DirUp | DirLeft:                      '╝',
-	DirUp | DirRight:                     '╚',
-	DirDown | DirLeft:                    '╗',
-	DirDown | DirRight:                   '╔',
-	DirLeft | DirRight:                   '═',
-	DirLeft:                              '═',
-	DirRight:                             '═',
-	DirUp | DirDown:                      '║',
-	DirUp:                                '║',
-	DirDown:                              '║',
+var NoTileStr = `{{c "gray"}}░{{_c}}`
+
+var WallStrs = map[int]string{
+	DirUp | DirDown | DirLeft | DirRight: "╬",
+	DirUp | DirDown | DirLeft:            "╣",
+	DirUp | DirDown | DirRight:           "╠",
+	DirUp | DirLeft | DirRight:           "╩",
+	DirDown | DirLeft | DirRight:         "╦",
+	DirUp | DirLeft:                      "╝",
+	DirUp | DirRight:                     "╚",
+	DirDown | DirLeft:                    "╗",
+	DirDown | DirRight:                   "╔",
+	DirLeft | DirRight:                   "═",
+	DirLeft:                              "═",
+	DirRight:                             "═",
+	DirUp | DirDown:                      "║",
+	DirUp:                                "║",
+	DirDown:                              "║",
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
@@ -50,10 +56,19 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			DirDown:  true,
 		},
 	}
+	gr[Vect{4, 1}] = Tile{
+		Type: TileTypeBlah,
+		Walls: map[int]bool{
+			DirUp:    true,
+			DirRight: true,
+			DirDown:  true,
+		},
+	}
 	return gr.Render(), nil
 }
 
 func (g Grid) Render() string {
+	var ok bool
 	min := Vect{}
 	max := Vect{}
 	first := true
@@ -73,61 +88,76 @@ func (g Grid) Render() string {
 		first = false
 	}
 	output := bytes.NewBuffer([]byte{})
-	for y := min.Y; y <= max.Y+1; y++ {
+	for y := min.Y - 1; y <= max.Y+1; y++ {
 		l1 := bytes.NewBuffer([]byte{})
 		l2 := bytes.NewBuffer([]byte{})
-		for x := min.X; x <= max.X+1; x++ {
+		for x := min.X - 1; x <= max.X+1; x++ {
 			v := Vect{x, y}
 			ct := g.TileAt(v)
 			ut := g.TileAt(v.Add(VectUp))
 			lt := g.TileAt(v.Add(VectLeft))
 			dt := g.TileAt(v.Add(VectUpLeft))
 			// Upper left pixel
-			wallType := 0
-			if dt.Walls[DirRight] || ut.Walls[DirLeft] {
-				wallType |= DirUp
+			r := NoTileStr
+			if ct.Type != TileTypeEmpty || ut.Type != TileTypeEmpty ||
+				lt.Type != TileTypeEmpty || dt.Type != TileTypeEmpty {
+				wallType := 0
+				if dt.Walls[DirRight] || ut.Walls[DirLeft] {
+					wallType |= DirUp
+				}
+				if lt.Walls[DirRight] || ct.Walls[DirLeft] {
+					wallType |= DirDown
+				}
+				if dt.Walls[DirDown] || lt.Walls[DirUp] {
+					wallType |= DirLeft
+				}
+				if ut.Walls[DirDown] || ct.Walls[DirUp] {
+					wallType |= DirRight
+				}
+				r, ok = WallStrs[wallType]
+				if !ok {
+					r = " "
+				}
 			}
-			if lt.Walls[DirRight] || ct.Walls[DirLeft] {
-				wallType |= DirDown
-			}
-			if dt.Walls[DirDown] || lt.Walls[DirUp] {
-				wallType |= DirLeft
-			}
-			if ut.Walls[DirDown] || ct.Walls[DirUp] {
-				wallType |= DirRight
-			}
-			r, ok := WallRunes[wallType]
-			if !ok {
-				r = ' '
-			}
-			l1.WriteRune(r)
+			l1.WriteString(r)
 			// Upper pixel
-			wallType = 0
-			if ct.Walls[DirUp] || ut.Walls[DirDown] {
-				wallType = DirLeft | DirRight
+			r = NoTileStr
+			if ct.Type != TileTypeEmpty || ut.Type != TileTypeEmpty {
+				wallType := 0
+				if ct.Walls[DirUp] || ut.Walls[DirDown] {
+					wallType = DirLeft | DirRight
+				}
+				r, ok = WallStrs[wallType]
+				if !ok {
+					r = " "
+				}
 			}
-			r, ok = WallRunes[wallType]
-			if !ok {
-				r = ' '
-			}
-			l1.WriteRune(r)
+			l1.WriteString(r)
 			// Left pixel
-			wallType = 0
-			if ct.Walls[DirLeft] || lt.Walls[DirRight] {
-				wallType = DirUp | DirDown
+			r = NoTileStr
+			if ct.Type != TileTypeEmpty || lt.Type != TileTypeEmpty {
+				wallType := 0
+				if ct.Walls[DirLeft] || lt.Walls[DirRight] {
+					wallType = DirUp | DirDown
+				}
+				r, ok = WallStrs[wallType]
+				if !ok {
+					r = " "
+				}
 			}
-			r, ok = WallRunes[wallType]
-			if !ok {
-				r = ' '
-			}
-			l2.WriteRune(r)
+			l2.WriteString(r)
 			// Centre pixel
-			l2.WriteRune(TileRunes[ct.Type])
+			r = NoTileStr
+			if ct.Type != TileTypeEmpty {
+				r = TileStrs[ct.Type]
+			}
+			l2.WriteString(r)
 		}
 		output.WriteString(l1.String())
-		output.WriteRune('\n')
+		output.WriteString(fmt.Sprintf("%s\n", NoTileStr))
 		output.WriteString(l2.String())
-		output.WriteRune('\n')
+		output.WriteString(fmt.Sprintf("%s\n", NoTileStr))
 	}
+	output.WriteString(strings.Repeat(NoTileStr, (max.X-min.X+3)*2+1))
 	return output.String()
 }
