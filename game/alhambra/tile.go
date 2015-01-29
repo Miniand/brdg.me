@@ -13,13 +13,13 @@ const (
 )
 
 var TileAbbrs = map[int]string{
-	TileTypeEmpty:     "  ",
-	TileTypePavillion: "Pa",
-	TileTypeSeraglio:  "Se",
-	TileTypeArcades:   "Ar",
-	TileTypeChambers:  "Ch",
-	TileTypeGarden:    "Ga",
-	TileTypeTower:     "To",
+	TileTypeEmpty:     "   ",
+	TileTypePavillion: "Pav",
+	TileTypeSeraglio:  "Ser",
+	TileTypeArcades:   "Arc",
+	TileTypeChambers:  "Cha",
+	TileTypeGarden:    "Gar",
+	TileTypeTower:     "Tow",
 }
 
 var TileColours = map[int]string{
