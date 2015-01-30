@@ -94,7 +94,7 @@ func (g *Game) Start(players []string) error {
 
 	g.CurrentPlayer = minPlayer
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s is the starting player as they had the fewest cards",
+		"%s is the starting player as they got the fewest cards",
 		g.PlayerName(minPlayer),
 	)))
 
@@ -114,7 +114,7 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+	return []string{g.Players[g.CurrentPlayer]}
 }
 
 func (g *Game) GameLog() *log.Log {
