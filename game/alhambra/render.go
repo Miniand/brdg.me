@@ -10,20 +10,6 @@ import (
 	"github.com/Miniand/brdg.me/render"
 )
 
-const (
-	DirUp = 1 << iota
-	DirDown
-	DirLeft
-	DirRight
-)
-
-var Dirs = []int{
-	DirUp,
-	DirDown,
-	DirLeft,
-	DirRight,
-}
-
 var NoTileStr = `{{c "gray"}}░{{_c}}`
 
 var WallStrs = map[int]string{
@@ -68,24 +54,7 @@ func RenderTileAbbr(tileType int) string {
 
 func (g Grid) Render() string {
 	var ok bool
-	min := Vect{}
-	max := Vect{}
-	first := true
-	for v := range g {
-		if first || v.X < min.X {
-			min.X = v.X
-		}
-		if first || v.Y < min.Y {
-			min.Y = v.Y
-		}
-		if first || v.X > max.X {
-			max.X = v.X
-		}
-		if first || v.Y > max.Y {
-			max.Y = v.Y
-		}
-		first = false
-	}
+	min, max := g.Bounds()
 	output := bytes.NewBuffer([]byte{})
 	for y := min.Y - 1; y <= max.Y+1; y++ {
 		l1 := bytes.NewBuffer([]byte{})

@@ -22,7 +22,7 @@ func MatchStringInStrings(input string, strs []string) (int, error) {
 	in := strings.ToLower(input)
 	lowerStrs := make([]string, len(strs))
 	for i, s := range strs {
-		lowerStrs[i] = strings.ToLower(s)
+		lowerStrs[i] = strings.ToLower(strings.TrimSpace(s))
 	}
 	// Check for exact matches
 	for i, s := range lowerStrs {
@@ -36,7 +36,7 @@ func MatchStringInStrings(input string, strs []string) (int, error) {
 		found := 0
 		foundStr := 0
 		for s, str := range lowerStrs {
-			if skipped[s] || b != str[i] {
+			if skipped[s] || i >= len(str) || b != str[i] {
 				skipped[s] = true
 				continue
 			}

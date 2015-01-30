@@ -18,10 +18,12 @@ func parseGrid(t *testing.T, input string) Grid {
 		t.Fatal("Unable to match input")
 	}
 	lines := strings.Split(matches[1], "\n")
-	t.Log(lines)
 
 	for y := 1; y < len(lines); y += 2 {
 		for x := 1; x < len(lines[y]); x += 2 {
+			if lines[y][x] == ' ' {
+				continue
+			}
 			tileType, err := helper.MatchStringInStringMap(
 				string(lines[y][x]),
 				TileAbbrs,
@@ -71,15 +73,23 @@ func TestParseGrid(t *testing.T) {
 
 	assert.Equal(t, Grid{
 		Vect{0, 0}: Tile{
-			Type: TileTypeArcades,
+			Type: TileTypeFountain,
 			Walls: map[int]bool{
 				DirUp:   true,
+				DirDown: true,
 				DirLeft: true,
+			},
+		},
+		Vect{0, 1}: Tile{
+			Type: TileTypeSeraglio,
+			Walls: map[int]bool{
+				DirUp: true,
 			},
 		},
 	}, parseGrid(t, `
 +-+
-|A 
-+  
+|F 
++-+
+ S
 `))
 }

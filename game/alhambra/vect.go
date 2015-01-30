@@ -1,5 +1,26 @@
 package alhambra
 
+const (
+	DirUp = 1 << iota
+	DirDown
+	DirLeft
+	DirRight
+)
+
+var Dirs = []int{
+	DirUp,
+	DirDown,
+	DirLeft,
+	DirRight,
+}
+
+var DirInverse = map[int]int{
+	DirUp:    DirDown,
+	DirDown:  DirUp,
+	DirLeft:  DirRight,
+	DirRight: DirLeft,
+}
+
 type Vect struct {
 	X, Y int
 }
@@ -23,4 +44,11 @@ func (v Vect) Add(other Vect) Vect {
 
 func (v Vect) Sub(other Vect) Vect {
 	return v.Add(other.Inverse())
+}
+
+var DirVectMap = map[int]Vect{
+	DirUp:    VectUp,
+	DirDown:  VectDown,
+	DirLeft:  VectLeft,
+	DirRight: VectRight,
 }

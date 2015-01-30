@@ -4,6 +4,7 @@ import "github.com/Miniand/brdg.me/render"
 
 const (
 	TileTypeEmpty = iota
+	TileTypeFountain
 	TileTypePavillion
 	TileTypeSeraglio
 	TileTypeArcades
@@ -14,6 +15,7 @@ const (
 
 var TileAbbrs = map[int]string{
 	TileTypeEmpty:     "   ",
+	TileTypeFountain:  " F ",
 	TileTypePavillion: "Pav",
 	TileTypeSeraglio:  "Ser",
 	TileTypeArcades:   "Arc",
@@ -24,6 +26,7 @@ var TileAbbrs = map[int]string{
 
 var TileColours = map[int]string{
 	TileTypeEmpty:     render.Black,
+	TileTypeFountain:  render.Gray,
 	TileTypePavillion: render.Cyan,
 	TileTypeSeraglio:  render.Red,
 	TileTypeArcades:   render.Blue,
