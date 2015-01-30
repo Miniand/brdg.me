@@ -10,35 +10,35 @@ import (
 const (
 	CurrencyBlue = iota
 	CurrencyGreen
-	CurrencyOrange
+	CurrencyRed
 	CurrencyYellow
 )
 
 var Currencies = []int{
 	CurrencyBlue,
 	CurrencyGreen,
-	CurrencyOrange,
+	CurrencyRed,
 	CurrencyYellow,
 }
 
 var CurrencyNames = map[int]string{
 	CurrencyBlue:   "blue",
 	CurrencyGreen:  "green",
-	CurrencyOrange: "orange",
+	CurrencyRed:    "red",
 	CurrencyYellow: "yellow",
 }
 
 var CurrencyAbbr = map[int]string{
 	CurrencyBlue:   "B",
 	CurrencyGreen:  "G",
-	CurrencyOrange: "O",
+	CurrencyRed:    "R",
 	CurrencyYellow: "Y",
 }
 
 var CurrencyColours = map[int]string{
 	CurrencyBlue:   render.Blue,
 	CurrencyGreen:  render.Green,
-	CurrencyOrange: render.Red,
+	CurrencyRed:    render.Red,
 	CurrencyYellow: render.Yellow,
 }
 
