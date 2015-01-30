@@ -1,8 +1,10 @@
 package alhambra
 
 import (
-	"math/rand"
-	"time"
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/render"
 )
 
 const (
@@ -19,28 +21,56 @@ var Currencies = []int{
 	CurrencyYellow,
 }
 
+var CurrencyNames = map[int]string{
+	CurrencyBlue:   "blue",
+	CurrencyGreen:  "green",
+	CurrencyOrange: "orange",
+	CurrencyYellow: "yellow",
+}
+
+var CurrencyAbbr = map[int]string{
+	CurrencyBlue:   "B",
+	CurrencyGreen:  "G",
+	CurrencyOrange: "O",
+	CurrencyYellow: "Y",
+}
+
+var CurrencyColours = map[int]string{
+	CurrencyBlue:   render.Blue,
+	CurrencyGreen:  render.Green,
+	CurrencyOrange: render.Red,
+	CurrencyYellow: render.Yellow,
+}
+
 type Card struct {
 	Currency, Value int
 }
 
-func Deck() []Card {
-	deck := []Card{}
+func (c Card) Compare(other card.Comparer) (int, bool) {
+	oc := other.(Card)
+	curDiff := c.Currency - oc.Currency
+	if curDiff != 0 {
+		return curDiff, true
+	}
+	return c.Value - oc.Value, true
+}
+
+func (c Card) String() string {
+	return render.Markup(fmt.Sprintf(
+		"%s%d",
+		CurrencyAbbr[c.Currency],
+		c.Value,
+	), CurrencyColours[c.Currency], true)
+}
+
+func Deck() card.Deck {
+	deck := card.Deck{}
 	for _, c := range Currencies {
 		for v := 1; v <= 9; v++ {
 			for i := 0; i < 3; i++ {
-				deck = append(deck, Card{c, v})
+				deck = deck.Push(Card{c, v})
 			}
 		}
 	}
 	return deck
-}
-
-func ShuffleCards(cards []Card) []Card {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	l := len(cards)
-	shuffled := make([]Card, l)
-	for i, k := range r.Perm(l) {
-		shuffled[i] = cards[k]
-	}
-	return shuffled
 }

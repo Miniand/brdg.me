@@ -2,10 +2,9 @@ package alhambra
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/Miniand/brdg.me/render"
 )
@@ -31,21 +30,11 @@ var WallStrs = map[int]string{
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	gr := Grid{}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < 100; i++ {
-		walls := map[int]bool{}
-		for _, d := range Dirs {
-			if r.Int()%10 > 6 {
-				walls[d] = true
-			}
-		}
-		gr[Vect{r.Int() % 10, r.Int() % 10}] = Tile{
-			Type:  r.Int()%(TileTypeTower-TileTypePavillion+1) + TileTypePavillion,
-			Walls: walls,
-		}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("could not find player")
 	}
-	return gr.Render(), nil
+	return g.Boards[pNum].Grid.Render(), nil
 }
 
 func RenderTileAbbr(tileType int) string {
@@ -128,4 +117,8 @@ func (g Grid) Render() string {
 	}
 	output.WriteString(strings.Repeat(NoTileStr, (max.X-min.X+3)*(TileAbbrLen+1)+1))
 	return output.String()
+}
+
+func (g *Game) PlayerName(player int) string {
+	return render.PlayerName(player, g.Players[player])
 }

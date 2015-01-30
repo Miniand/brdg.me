@@ -9,6 +9,12 @@ const (
 
 type Grid map[Vect]Tile
 
+func NewGrid() Grid {
+	return Grid{
+		Vect{0, 0}: NewTile(TileTypeFountain, 0),
+	}
+}
+
 func (g Grid) TileAt(v Vect) Tile {
 	t := g[v]
 	if t.Walls == nil {
