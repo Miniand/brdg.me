@@ -1,5 +1,10 @@
 package alhambra
 
+import (
+	"math/rand"
+	"time"
+)
+
 const (
 	CurrencyBlue = iota
 	CurrencyGreen
@@ -28,4 +33,14 @@ func Deck() []Card {
 		}
 	}
 	return deck
+}
+
+func ShuffleCards(cards []Card) []Card {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	l := len(cards)
+	shuffled := make([]Card, l)
+	for i, k := range r.Perm(l) {
+		shuffled[i] = cards[k]
+	}
+	return shuffled
 }

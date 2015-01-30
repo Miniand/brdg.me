@@ -1,6 +1,11 @@
 package alhambra
 
-import "github.com/Miniand/brdg.me/render"
+import (
+	"math/rand"
+	"time"
+
+	"github.com/Miniand/brdg.me/render"
+)
 
 const (
 	TileTypeEmpty = iota
@@ -41,4 +46,14 @@ type Tile struct {
 	Type  int
 	Cost  int
 	Walls map[int]bool
+}
+
+func ShuffleTiles(tiles []Tile) []Tile {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	l := len(tiles)
+	shuffled := make([]Tile, l)
+	for i, k := range r.Perm(l) {
+		shuffled[i] = tiles[k]
+	}
+	return shuffled
 }
