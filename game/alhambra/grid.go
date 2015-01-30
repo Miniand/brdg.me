@@ -9,3 +9,11 @@ func (g Grid) TileAt(v Vect) Tile {
 	}
 	return t
 }
+
+func (g Grid) Clone() Grid {
+	ng := Grid{}
+	for v, t := range g {
+		ng[v] = t
+	}
+	return ng
+}
