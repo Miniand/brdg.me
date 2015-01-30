@@ -2,23 +2,42 @@ package alhambra
 
 const (
 	DirUp = 1 << iota
+	DirRight
 	DirDown
 	DirLeft
-	DirRight
 )
 
 var Dirs = []int{
 	DirUp,
+	DirRight,
 	DirDown,
 	DirLeft,
-	DirRight,
 }
 
 var DirInverse = map[int]int{
 	DirUp:    DirDown,
+	DirRight: DirLeft,
 	DirDown:  DirUp,
 	DirLeft:  DirRight,
-	DirRight: DirLeft,
+}
+
+func RotDir(dir, n int) int {
+	if n == 0 {
+		return dir
+	}
+	for n < 0 {
+		n += 4
+	}
+	next := DirUp
+	switch dir {
+	case DirUp:
+		next = DirRight
+	case DirRight:
+		next = DirDown
+	case DirDown:
+		next = DirLeft
+	}
+	return RotDir(next, n-1)
 }
 
 type Vect struct {
@@ -34,6 +53,24 @@ var VectUpRight = VectUp.Add(VectRight)
 var VectDownLeft = VectDown.Add(VectLeft)
 var VectDownRight = VectDown.Add(VectRight)
 
+var VectDirsOrth = []Vect{
+	VectUp,
+	VectRight,
+	VectDown,
+	VectLeft,
+}
+
+var VectDirsAll = []Vect{
+	VectUp,
+	VectUpRight,
+	VectRight,
+	VectDownRight,
+	VectDown,
+	VectDownLeft,
+	VectLeft,
+	VectUpLeft,
+}
+
 func (v Vect) Inverse() Vect {
 	return Vect{-v.X, -v.Y}
 }
@@ -44,6 +81,20 @@ func (v Vect) Add(other Vect) Vect {
 
 func (v Vect) Sub(other Vect) Vect {
 	return v.Add(other.Inverse())
+}
+
+func (v Vect) RotAll(n int) Vect {
+	l := len(VectDirsAll)
+	for i, uv := range VectDirsAll {
+		if v == uv {
+			ni := i + n
+			for ni < 0 {
+				ni += l
+			}
+			return VectDirsAll[ni%l]
+		}
+	}
+	panic("Can only call on unit vector")
 }
 
 var DirVectMap = map[int]Vect{

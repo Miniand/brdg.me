@@ -69,3 +69,26 @@ func TestGrid_IsValid_invalidGap(t *testing.T) {
 	assert.False(t, valid)
 	assert.Equal(t, GridInvalidGap, reason)
 }
+
+func TestGrid_LongestExtWall(t *testing.T) {
+	assert.Equal(t, 5, parseGrid(t, `
++-
+|A A A
+     -+
+ A A A|
+     -+
+ A A A|
+ -----+-+
+       A|
+       -+
+`).LongestExtWall())
+	assert.Equal(t, 12, parseGrid(t, `
++-----+
+|A A A|
+|    -+
+|A A A|
+|  ---+
+|A A A|
++-----+
+`).LongestExtWall())
+}

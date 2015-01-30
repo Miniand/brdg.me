@@ -139,3 +139,70 @@ func (g Grid) IsValid() (bool, string) {
 
 	return true, ""
 }
+
+type VectDir struct {
+	Vect
+	Dir int
+}
+
+func (g Grid) LongestExtWall() int {
+	visited := map[VectDir]bool{}
+	longest := 0
+
+	for v, t := range g {
+		for _, d := range Dirs {
+			if !t.Walls[d] {
+				continue
+			}
+			vd := VectDir{v, d}
+			if visited[vd] || g.IsInternalWall(vd) {
+				continue
+			}
+
+			visited[vd] = true
+			wall := 1
+			for _, rotDir := range []int{1, -1} {
+				cur := vd
+				for {
+					// See if the wall continues in this direction.
+					pivot := cur.Add(DirVectMap[cur.Dir])
+					found := false
+					for rotNum := 0; rotNum < 3; rotNum++ {
+						nextWall := VectDir{
+							pivot.Add(DirVectMap[cur.Dir].RotAll((rotNum + 2) * rotDir)),
+							RotDir(cur.Dir, (rotNum-1)*rotDir),
+						}
+						if g.TileAt(nextWall.Vect).Type == TileTypeEmpty {
+							continue
+						}
+						if !visited[nextWall] && g.IsWall(nextWall) &&
+							!g.IsInternalWall(nextWall) {
+							wall++
+							visited[nextWall] = true
+							found = true
+							cur = nextWall
+						}
+						break
+					}
+					if !found {
+						break
+					}
+				}
+			}
+
+			if wall > longest {
+				longest = wall
+			}
+		}
+	}
+
+	return longest
+}
+
+func (g Grid) IsWall(vd VectDir) bool {
+	return g.TileAt(vd.Vect).Walls[vd.Dir]
+}
+
+func (g Grid) IsInternalWall(vd VectDir) bool {
+	return g.TileAt(vd.Add(DirVectMap[vd.Dir])).Walls[DirInverse[vd.Dir]]
+}
