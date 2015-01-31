@@ -64,6 +64,28 @@ func HeaderRowNum(n int) string {
 	})
 }
 
+func EmptyBorder(grid string) string {
+	lines := strings.Split(grid, "\n")
+	width := 0
+	for _, l := range lines {
+		if ll := render.StrLen(l); ll > width {
+			width = ll
+		}
+	}
+	lineFormat := fmt.Sprintf("%%-%ds", width)
+	top := strings.Repeat(NoTileStr, width+2)
+	output := bytes.NewBufferString(top)
+	for _, l := range lines {
+		output.WriteRune('\n')
+		output.WriteString(NoTileStr)
+		output.WriteString(fmt.Sprintf(lineFormat, l))
+		output.WriteString(NoTileStr)
+	}
+	output.WriteRune('\n')
+	output.WriteString(top)
+	return output.String()
+}
+
 func AddCoordsToGrid(grid string) string {
 	if grid == "" {
 		return grid
