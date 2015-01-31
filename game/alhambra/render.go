@@ -10,24 +10,24 @@ import (
 	"github.com/Miniand/brdg.me/render"
 )
 
-var NoTileStr = `{{c "gray"}}░{{_c}}`
+var NoTileStr = `{{c "gray"}}▒{{_c}}`
 
 var WallStrs = map[int]string{
-	DirUp | DirDown | DirLeft | DirRight: "╬",
-	DirUp | DirDown | DirLeft:            "╣",
-	DirUp | DirDown | DirRight:           "╠",
-	DirUp | DirLeft | DirRight:           "╩",
-	DirDown | DirLeft | DirRight:         "╦",
-	DirUp | DirLeft:                      "╝",
-	DirUp | DirRight:                     "╚",
-	DirDown | DirLeft:                    "╗",
-	DirDown | DirRight:                   "╔",
-	DirLeft | DirRight:                   "═",
-	DirLeft:                              "═",
-	DirRight:                             "═",
-	DirUp | DirDown:                      "║",
-	DirUp:                                "║",
-	DirDown:                              "║",
+	DirUp | DirDown | DirLeft | DirRight: render.Bold("╬"),
+	DirUp | DirDown | DirLeft:            render.Bold("╣"),
+	DirUp | DirDown | DirRight:           render.Bold("╠"),
+	DirUp | DirLeft | DirRight:           render.Bold("╩"),
+	DirDown | DirLeft | DirRight:         render.Bold("╦"),
+	DirUp | DirLeft:                      render.Bold("╝"),
+	DirUp | DirRight:                     render.Bold("╚"),
+	DirDown | DirLeft:                    render.Bold("╗"),
+	DirDown | DirRight:                   render.Bold("╔"),
+	DirLeft | DirRight:                   render.Bold("═"),
+	DirLeft:                              render.Bold("═"),
+	DirRight:                             render.Bold("═"),
+	DirUp | DirDown:                      render.Bold("║"),
+	DirUp:                                render.Bold("║"),
+	DirDown:                              render.Bold("║"),
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
@@ -36,31 +36,53 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	output := bytes.NewBuffer([]byte{})
-	output.WriteString(AddCoordsToGrid(g.Boards[pNum].Grid.Render(1)))
-	output.WriteString(render.Bold("\n\nTiles available for purchase\n"))
-	output.WriteString(g.RenderTiles())
-	return output.String(), nil
-}
-
-func (g *Game) RenderTiles() string {
-	gr := Grid{}
-	for i, t := range g.Tiles {
-		gr[Vect{i * 2, 0}] = t
-	}
-	output := bytes.NewBufferString(EmptyBorder(gr.Render(0)))
-	output.WriteString("\n ")
-	output.WriteString(HeaderRow(len(g.Tiles)*2, func(i int) string {
-		if i%2 == 1 {
-			return ""
-		}
-		ti := i / 2
-		t := g.Tiles[ti]
+	// Current player board
+	output.WriteString(g.RenderPlayerGrid(pNum))
+	// Purchase tiles
+	output.WriteString(render.Bold("\n\nTiles available for purchase:\n\n"))
+	output.WriteString(g.RenderTiles(g.Tiles, func(i int) string {
+		t := g.Tiles[i]
 		if t.Type == TileTypeEmpty {
 			return ""
 		}
-		c := Card{ti, t.Cost}
+		c := Card{i, t.Cost}
 		return c.String()
 	}))
+	// Player table
+	// Other player boards
+	return output.String(), nil
+}
+
+func (g *Game) RenderPlayerGrid(player int) string {
+	output := bytes.NewBuffer([]byte{})
+	output.WriteString(AddCoordsToGrid(g.Boards[player].Grid.Render(1)))
+	if len(g.Boards[player].Reserve) > 0 {
+		output.WriteString(render.Bold("\n\nReserved tiles:\n\n"))
+		output.WriteString(g.RenderTiles(
+			g.Boards[player].Reserve,
+			func(i int) string {
+				return render.Markup(strconv.Itoa(i+1), render.Gray, true)
+			},
+		))
+	}
+	return output.String()
+}
+
+func (g *Game) RenderTiles(tiles []Tile, footer func(i int) string) string {
+	gr := Grid{}
+	for i, t := range tiles {
+		gr[Vect{i * 2, 0}] = t
+	}
+	output := bytes.NewBufferString(gr.Render(0))
+	if footer != nil {
+		output.WriteRune('\n')
+		output.WriteString(HeaderRow(len(tiles)*2-1, func(i int) string {
+			if i%2 == 1 {
+				return ""
+			}
+			return footer(i / 2)
+		}))
+	}
 	return output.String()
 }
 
@@ -88,28 +110,6 @@ func HeaderRowNum(n int) string {
 	})
 }
 
-func EmptyBorder(grid string) string {
-	lines := strings.Split(grid, "\n")
-	width := 0
-	for _, l := range lines {
-		if ll := render.StrLen(l); ll > width {
-			width = ll
-		}
-	}
-	lineFormat := fmt.Sprintf("%%-%ds", width)
-	top := strings.Repeat(NoTileStr, width+2)
-	output := bytes.NewBufferString(top)
-	for _, l := range lines {
-		output.WriteRune('\n')
-		output.WriteString(NoTileStr)
-		output.WriteString(fmt.Sprintf(lineFormat, l))
-		output.WriteString(NoTileStr)
-	}
-	output.WriteRune('\n')
-	output.WriteString(top)
-	return output.String()
-}
-
 func AddCoordsToGrid(grid string) string {
 	if grid == "" {
 		return grid
@@ -122,12 +122,21 @@ func AddCoordsToGrid(grid string) string {
 		case 0:
 			lines[i] = fmt.Sprintf("    %s", l)
 		case 1:
-			n := (i + 1) / 2
-			lines[i] = fmt.Sprintf("%3d %s %-3d", n, l, n)
+			n := render.Markup(strconv.Itoa((i+1)/2), render.Gray, true)
+			lines[i] = fmt.Sprintf(
+				`%s %s %s`,
+				render.Right(n, 3),
+				l,
+				render.Padded(n, 3),
+			)
 		}
 	}
 	// Top and bottom
-	header := "    " + HeaderRowAlpha(width/TileWidth)
+	header := "    " + render.Markup(
+		HeaderRowAlpha(width/TileWidth),
+		render.Gray,
+		true,
+	)
 	lines = append([]string{header}, append(lines, header)...)
 	return strings.Join(lines, "\n")
 }

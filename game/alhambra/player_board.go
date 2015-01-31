@@ -10,8 +10,10 @@ type PlayerBoard struct {
 
 func NewPlayerBoard() PlayerBoard {
 	return PlayerBoard{
-		Grid:    NewGrid(),
-		Reserve: []Tile{},
-		Cards:   card.Deck{},
+		Grid: NewGrid(),
+		Reserve: []Tile{
+			NewTile(TileTypeTower, 9, DirUp, DirRight),
+		},
+		Cards: card.Deck{},
 	}
 }
