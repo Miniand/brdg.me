@@ -37,7 +37,31 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	output := bytes.NewBuffer([]byte{})
 	output.WriteString(AddCoordsToGrid(g.Boards[pNum].Grid.Render(1)))
+	output.WriteString(render.Bold("\n\nTiles for purchase\n\n"))
+	output.WriteString(g.RenderTiles())
 	return output.String(), nil
+}
+
+func (g *Game) RenderTiles() string {
+	gr := Grid{}
+	for i, t := range g.Tiles {
+		gr[Vect{i * 2, 0}] = t
+	}
+	output := bytes.NewBufferString(EmptyBorder(gr.Render(0)))
+	output.WriteString("\n ")
+	output.WriteString(HeaderRow(len(g.Tiles)*2, func(i int) string {
+		if i%2 == 1 {
+			return ""
+		}
+		ti := i / 2
+		t := g.Tiles[ti]
+		if t.Type == TileTypeEmpty {
+			return ""
+		}
+		c := Card{ti, t.Cost}
+		return c.String()
+	}))
+	return output.String()
 }
 
 func RenderTileAbbr(tileType int) string {

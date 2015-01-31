@@ -62,6 +62,7 @@ func (g *Game) Start(players []string) error {
 
 	g.DrawCards = Deck().Shuffle()
 	g.DrawTiles = ShuffleTiles(Tiles)
+	g.Tiles, g.DrawTiles = g.DrawTiles[:4], g.DrawTiles[4:]
 
 	g.Boards = make([]PlayerBoard, len(g.Players))
 	var (
