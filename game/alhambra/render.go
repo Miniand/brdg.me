@@ -37,7 +37,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	output := bytes.NewBuffer([]byte{})
 	output.WriteString(AddCoordsToGrid(g.Boards[pNum].Grid.Render(1)))
-	output.WriteString(render.Bold("\n\nTiles for purchase\n\n"))
+	output.WriteString(render.Bold("\n\nTiles available for purchase\n"))
 	output.WriteString(g.RenderTiles())
 	return output.String(), nil
 }
