@@ -36,7 +36,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	output := bytes.NewBuffer([]byte{})
-	output.WriteString(AddCoordsToGrid(g.Boards[pNum].Grid.Render()))
+	output.WriteString(AddCoordsToGrid(g.Boards[pNum].Grid.Render(1)))
 	return output.String(), nil
 }
 
@@ -86,14 +86,19 @@ func AddCoordsToGrid(grid string) string {
 	return strings.Join(lines, "\n")
 }
 
-func (g Grid) Render() string {
+func (g Grid) Render(border int) string {
 	var ok bool
 	min, max := g.Bounds()
 	output := bytes.NewBuffer([]byte{})
-	for y := min.Y - 1; y <= max.Y+1; y++ {
+	firstRow := true
+	for y := min.Y - border; y <= max.Y+border+1; y++ {
+		if !firstRow {
+			output.WriteRune('\n')
+		}
+		firstRow = false
 		l1 := bytes.NewBuffer([]byte{})
 		l2 := bytes.NewBuffer([]byte{})
-		for x := min.X - 1; x <= max.X+1; x++ {
+		for x := min.X - border; x <= max.X+border+1; x++ {
 			v := Vect{x, y}
 			ct := g.TileAt(v)
 			ut := g.TileAt(v.Add(VectUp))
@@ -122,45 +127,51 @@ func (g Grid) Render() string {
 				}
 			}
 			l1.WriteString(r)
-			// Upper pixel
-			r = NoTileStr
-			if ct.Type != TileTypeEmpty || ut.Type != TileTypeEmpty {
-				wallType := 0
-				if ct.Walls[DirUp] || ut.Walls[DirDown] {
-					wallType = DirLeft | DirRight
+			if x <= max.X+border {
+				// Upper pixel
+				r = NoTileStr
+				if ct.Type != TileTypeEmpty || ut.Type != TileTypeEmpty {
+					wallType := 0
+					if ct.Walls[DirUp] || ut.Walls[DirDown] {
+						wallType = DirLeft | DirRight
+					}
+					r, ok = WallStrs[wallType]
+					if !ok {
+						r = " "
+					}
 				}
-				r, ok = WallStrs[wallType]
-				if !ok {
-					r = " "
-				}
+				l1.WriteString(strings.Repeat(r, TileAbbrLen))
 			}
-			l1.WriteString(strings.Repeat(r, TileAbbrLen))
-			// Left pixel
-			r = NoTileStr
-			if ct.Type != TileTypeEmpty || lt.Type != TileTypeEmpty {
-				wallType := 0
-				if ct.Walls[DirLeft] || lt.Walls[DirRight] {
-					wallType = DirUp | DirDown
+			if y <= max.Y+border {
+				// Left pixel
+				r = NoTileStr
+				if ct.Type != TileTypeEmpty || lt.Type != TileTypeEmpty {
+					wallType := 0
+					if ct.Walls[DirLeft] || lt.Walls[DirRight] {
+						wallType = DirUp | DirDown
+					}
+					r, ok = WallStrs[wallType]
+					if !ok {
+						r = " "
+					}
 				}
-				r, ok = WallStrs[wallType]
-				if !ok {
-					r = " "
+				l2.WriteString(r)
+			}
+			if x <= max.X+border && y <= max.Y+border {
+				// Centre pixel
+				r = strings.Repeat(NoTileStr, TileAbbrLen)
+				if ct.Type != TileTypeEmpty {
+					r = RenderTileAbbr(ct.Type)
 				}
+				l2.WriteString(r)
 			}
-			l2.WriteString(r)
-			// Centre pixel
-			r = strings.Repeat(NoTileStr, TileAbbrLen)
-			if ct.Type != TileTypeEmpty {
-				r = RenderTileAbbr(ct.Type)
-			}
-			l2.WriteString(r)
 		}
 		output.WriteString(l1.String())
-		output.WriteString(fmt.Sprintf("%s\n", NoTileStr))
-		output.WriteString(l2.String())
-		output.WriteString(fmt.Sprintf("%s\n", NoTileStr))
+		if y <= max.Y+border {
+			output.WriteRune('\n')
+			output.WriteString(l2.String())
+		}
 	}
-	output.WriteString(strings.Repeat(NoTileStr, (max.X-min.X+3)*(TileAbbrLen+1)+1))
 	return output.String()
 }
 
