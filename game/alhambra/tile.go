@@ -41,6 +41,7 @@ var TileColours = map[int]string{
 }
 
 var TileAbbrLen = len(TileAbbrs[TileTypeEmpty])
+var TileWidth = TileAbbrLen + 1
 
 type Tile struct {
 	Type  int

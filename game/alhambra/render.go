@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Miniand/brdg.me/render"
@@ -34,11 +35,55 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if !ok {
 		return "", errors.New("could not find player")
 	}
-	return g.Boards[pNum].Grid.Render(), nil
+	output := bytes.NewBuffer([]byte{})
+	output.WriteString(AddCoordsToGrid(g.Boards[pNum].Grid.Render()))
+	return output.String(), nil
 }
 
 func RenderTileAbbr(tileType int) string {
 	return render.Markup(TileAbbrs[tileType], TileColours[tileType], true)
+}
+
+func HeaderRow(n int, gen func(i int) string) string {
+	output := bytes.NewBuffer([]byte{})
+	for i := 0; i < n; i++ {
+		output.WriteString(render.Centre(gen(i), TileWidth))
+	}
+	return output.String()
+}
+
+func HeaderRowAlpha(n int) string {
+	return HeaderRow(n, func(i int) string {
+		return fmt.Sprintf("%c", 'A'+i)
+	})
+}
+
+func HeaderRowNum(n int) string {
+	return HeaderRow(n, func(i int) string {
+		return strconv.Itoa(i + 1)
+	})
+}
+
+func AddCoordsToGrid(grid string) string {
+	if grid == "" {
+		return grid
+	}
+	lines := strings.Split(grid, "\n")
+	width := render.StrLen(lines[0])
+	// Left and right
+	for i, l := range lines {
+		switch i % 2 {
+		case 0:
+			lines[i] = fmt.Sprintf("    %s", l)
+		case 1:
+			n := (i + 1) / 2
+			lines[i] = fmt.Sprintf("%3d %s %-3d", n, l, n)
+		}
+	}
+	// Top and bottom
+	header := "    " + HeaderRowAlpha(width/TileWidth)
+	lines = append([]string{header}, append(lines, header)...)
+	return strings.Join(lines, "\n")
 }
 
 func (g Grid) Render() string {
