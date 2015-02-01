@@ -13,6 +13,7 @@ import (
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
+	"github.com/davecgh/go-spew/spew"
 )
 
 const FILE = ".game"
@@ -225,7 +226,7 @@ func DumpAction(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", g)
+	spew.Dump(g)
 	return nil
 }
 

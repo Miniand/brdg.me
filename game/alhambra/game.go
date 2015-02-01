@@ -4,9 +4,11 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"math/rand"
 	"regexp"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
@@ -65,6 +67,7 @@ func (g *Game) Identifier() string {
 
 func RegisterGobTypes() {
 	gob.Register(Card{})
+	gob.Register(ScoringCard{})
 }
 
 func (g *Game) Encode() ([]byte, error) {
@@ -127,6 +130,19 @@ func (g *Game) Start(players []string) error {
 		"%s is the starting player as they got the fewest cards",
 		g.PlayerName(minPlayer),
 	)))
+
+	// Inject scoring cards
+	subSize := len(g.CardPile) / 5
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for _, pos := range []int{
+		subSize + r.Int()%subSize,       // In the 2nd 5th of cards
+		3*subSize + r.Int()%subSize + 1, // In the 4th 5th of cards
+	} {
+		h2 := append(card.Deck{}, g.CardPile[pos:]...)
+		g.CardPile = append(card.Deck{}, g.CardPile[:pos]...)
+		g.CardPile = append(g.CardPile, ScoringCard{})
+		g.CardPile = append(g.CardPile, h2...)
+	}
 
 	return nil
 }

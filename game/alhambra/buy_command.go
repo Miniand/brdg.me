@@ -89,6 +89,7 @@ func (g *Game) Buy(player int, cards card.Deck) error {
 	for _, c := range cards {
 		g.Boards[player].Cards, _ = g.Boards[player].Cards.Remove(c, 1)
 	}
+	g.DiscardPile = g.DiscardPile.PushMany(cards)
 	g.Boards[player].Place = append(g.Boards[player].Place, tile)
 	g.Tiles[currency] = Tile{}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
