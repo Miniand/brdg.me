@@ -5,9 +5,28 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/stretchr/testify/assert"
 )
+
+const (
+	Mick = iota
+	Steve
+	BJ
+)
+
+var players = []string{"Mick", "Steve", "BJ"}
+
+func cmd(g *Game, player int, input string) error {
+	_, err := command.CallInCommands(
+		players[player],
+		g,
+		input,
+		g.Commands(),
+	)
+	return err
+}
 
 var parseGridRegexp = regexp.MustCompile("(?ms)^\n?(.*)\n?$")
 

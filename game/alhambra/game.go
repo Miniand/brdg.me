@@ -39,6 +39,7 @@ func (g *Game) Commands() []command.Command {
 		BuyCommand{},
 		TakeCommand{},
 		PlaceCommand{},
+		RemoveCommand{},
 		DoneCommand{},
 	}
 }
