@@ -25,6 +25,10 @@ const (
 	PhaseEnd
 )
 
+const (
+	Dirk = 2
+)
+
 var RoundScores = map[int][]int{
 	TileTypePavillion: []int{1, 8, 16},
 	TileTypeSeraglio:  []int{2, 9, 17},
@@ -35,8 +39,9 @@ var RoundScores = map[int][]int{
 }
 
 type Game struct {
-	Players []string
-	Log     *log.Log
+	HumanPlayers []string
+	AllPlayers   []string
+	Log          *log.Log
 
 	CurrentPlayer int
 	Phase         int
@@ -86,24 +91,33 @@ func (g *Game) Start(players []string) error {
 	if l := len(players); l < 2 || l > 6 {
 		return errors.New("Alhambra requires between 2 and 6 players")
 	}
-	g.Players = players
 	g.Log = log.New()
+	g.HumanPlayers = players
+	g.AllPlayers = players
+	if len(players) == 2 {
+		// Dirk is crunchy.
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"As you only have 2 players, you will be joined by %s!",
+			g.PlayerName(Dirk),
+		)))
+		g.AllPlayers = append(g.AllPlayers, "Dirk")
+	}
 
 	g.Round = 1
 
-	g.CardPile = Deck().Shuffle()
+	g.CardPile = Deck(len(players)).Shuffle()
 	g.Cards = g.DrawCards(4)
 	g.DiscardPile = card.Deck{}
 
 	g.TileBag = ShuffleTiles(Tiles)
 	g.Tiles, g.TileBag = g.TileBag[:4], g.TileBag[4:]
 
-	g.Boards = make([]PlayerBoard, len(g.Players))
+	g.Boards = make([]PlayerBoard, len(g.AllPlayers))
 	var (
 		c                             card.Card
 		minPlayer, minCards, minValue int
 	)
-	for pNum, _ := range g.Players {
+	for pNum, _ := range g.HumanPlayers {
 		g.Boards[pNum] = NewPlayerBoard()
 		cards := 0
 		value := 0
@@ -133,6 +147,11 @@ func (g *Game) Start(players []string) error {
 		g.PlayerName(minPlayer),
 	)))
 
+	// Set up Dirk
+	if len(g.HumanPlayers) == 2 {
+		g.DirkDrawTiles(6)
+	}
+
 	// Inject scoring cards
 	subSize := len(g.CardPile) / 5
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -147,6 +166,19 @@ func (g *Game) Start(players []string) error {
 	}
 
 	return nil
+}
+
+func (g *Game) DirkDrawTiles(n int) {
+	for i := 0; i < n; i++ {
+		g.Boards[Dirk].Grid[Vect{len(g.Boards[Dirk].Grid), 0}] =
+			g.TileBag[0]
+		g.TileBag = g.TileBag[1:]
+	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s took {{b}}%d tiles{{_b}}",
+		g.PlayerName(Dirk),
+		n,
+	)))
 }
 
 func (g *Game) DrawCards(n int) card.Deck {
@@ -198,7 +230,7 @@ func (g *Game) ScoreRound() {
 		}
 	}
 	output.WriteString("\n{{b}}Scoring walls{{_b}}")
-	for p := range g.Players {
+	for p := range g.HumanPlayers {
 		wall := g.Boards[p].Grid.LongestExtWall()
 		g.Boards[p].Points += wall
 		output.WriteString(fmt.Sprintf(
@@ -207,14 +239,24 @@ func (g *Game) ScoreRound() {
 			wall,
 		))
 	}
+	g.Log.Add(log.NewPublicMessage(output.String()))
+
+	if len(g.HumanPlayers) == 2 {
+		switch g.Round {
+		case 1:
+			g.DirkDrawTiles(6)
+		case 2:
+			g.DirkDrawTiles(len(g.TileBag) / 3)
+		}
+	}
+
 	if g.Round < 3 {
 		g.Round++
 	}
-	g.Log.Add(log.NewPublicMessage(output.String()))
 }
 
 func (g *Game) PlayerList() []string {
-	return g.Players
+	return g.HumanPlayers
 }
 
 func (g *Game) IsFinished() bool {
@@ -227,12 +269,13 @@ func (g *Game) Winners() []string {
 	}
 	winners := []string{}
 	score := 0
-	for p, name := range g.Players {
+	for p, name := range g.AllPlayers {
 		if g.Boards[p].Points > score {
 			winners = []string{}
 			score = g.Boards[p].Points
 		}
-		if g.Boards[p].Points == score {
+		if g.Boards[p].Points == score &&
+			(len(g.HumanPlayers) > 2 || p != Dirk) {
 			winners = append(winners, name)
 		}
 	}
@@ -243,7 +286,7 @@ func (g *Game) WhoseTurn() []string {
 	if g.IsFinished() {
 		return []string{}
 	}
-	return []string{g.Players[g.CurrentPlayer]}
+	return []string{g.HumanPlayers[g.CurrentPlayer]}
 }
 
 func (g *Game) GameLog() *log.Log {
@@ -253,7 +296,7 @@ func (g *Game) GameLog() *log.Log {
 var ErrCouldNotFindPlayer = errors.New("could not find player")
 
 func (g *Game) PlayerNum(player string) (int, bool) {
-	for pNum, p := range g.Players {
+	for pNum, p := range g.HumanPlayers {
 		if p == player {
 			return pNum, true
 		}
@@ -270,7 +313,7 @@ func (g *Game) NextPhase() {
 	case PhaseFinalPlace:
 		nextPlayer := g.CurrentPlayer
 		for {
-			nextPlayer = (nextPlayer + 1) % len(g.Players)
+			nextPlayer = (nextPlayer + 1) % len(g.HumanPlayers)
 			if nextPlayer == g.CurrentPlayer {
 				// Everyone has placed, final scoring
 				g.Phase = PhaseEnd
@@ -317,7 +360,7 @@ func (g *Game) NextPlayer() {
 		g.Cards = g.Cards.PushMany(g.DrawCards(4 - l))
 	}
 	// Move to next player
-	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.HumanPlayers)
 	g.ActionPhase()
 }
 
@@ -341,7 +384,7 @@ func (g *Game) ScoreType(tileType, round int) []RoundTypeScore {
 	// Group players by tile count
 	byCount := map[int][]int{}
 	counts := []int{}
-	for p, _ := range g.Players {
+	for p, _ := range g.AllPlayers {
 		count := g.Boards[p].TileCounts()[tileType]
 		if count == 0 {
 			continue

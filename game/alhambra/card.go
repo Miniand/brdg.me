@@ -69,11 +69,15 @@ func (c Card) String() string {
 	), CurrencyColours[c.Currency], true)
 }
 
-func Deck() card.Deck {
+func Deck(players int) card.Deck {
 	deck := card.Deck{}
+	n := 3
+	if players == 2 {
+		n = 2
+	}
 	for _, c := range Currencies {
 		for v := 1; v <= 9; v++ {
-			for i := 0; i < 3; i++ {
+			for i := 0; i < n; i++ {
 				deck = deck.Push(Card{c, v})
 			}
 		}

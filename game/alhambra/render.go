@@ -92,7 +92,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		render.Bold("Pts"),
 	)
 	cells := [][]interface{}{header}
-	for pNum, _ := range g.Players {
+	for pNum, _ := range g.AllPlayers {
 		row := []interface{}{g.PlayerName(pNum)}
 		counts := g.Boards[pNum].TileCounts()
 		for _, t := range ScoringTileTypes {
@@ -109,7 +109,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString("\n\n")
 	output.WriteString(render.Table(cells, 0, 1))
 	// Other player boards
-	for p := range g.Players {
+	for p := range g.HumanPlayers {
 		if p == pNum {
 			continue
 		}
@@ -313,5 +313,5 @@ func (g Grid) Render(border int) string {
 }
 
 func (g *Game) PlayerName(player int) string {
-	return render.PlayerName(player, g.Players[player])
+	return render.PlayerName(player, g.AllPlayers[player])
 }
