@@ -38,48 +38,48 @@ func TestGame_ScoreType(t *testing.T) {
 	}
 
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick}, 1},
+		{[]int{Mick}, 1, 1},
 	}, g.ScoreType(TileTypePavillion, 1))
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick}, 8},
+		{[]int{Mick}, 1, 8},
 	}, g.ScoreType(TileTypePavillion, 2))
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick}, 16},
+		{[]int{Mick}, 1, 16},
 	}, g.ScoreType(TileTypePavillion, 3))
 
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick}, 2},
+		{[]int{Mick}, 2, 2},
 	}, g.ScoreType(TileTypeSeraglio, 1))
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick}, 9},
-		{[]int{Steve}, 2},
+		{[]int{Mick}, 2, 9},
+		{[]int{Steve}, 1, 2},
 	}, g.ScoreType(TileTypeSeraglio, 2))
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick}, 17},
-		{[]int{Steve}, 9},
+		{[]int{Mick}, 2, 17},
+		{[]int{Steve}, 1, 9},
 	}, g.ScoreType(TileTypeSeraglio, 3))
 
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Steve}, 3},
+		{[]int{Steve}, 3, 3},
 	}, g.ScoreType(TileTypeArcades, 1))
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Steve}, 10},
-		{[]int{BJ}, 3},
+		{[]int{Steve}, 3, 10},
+		{[]int{BJ}, 2, 3},
 	}, g.ScoreType(TileTypeArcades, 2))
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Steve}, 18},
-		{[]int{BJ}, 10},
-		{[]int{Mick}, 3},
+		{[]int{Steve}, 3, 18},
+		{[]int{BJ}, 2, 10},
+		{[]int{Mick}, 1, 3},
 	}, g.ScoreType(TileTypeArcades, 3))
 
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick, Steve}, 2},
+		{[]int{Mick, Steve}, 2, 2},
 	}, g.ScoreType(TileTypeChambers, 1))
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick, Steve}, 7},
+		{[]int{Mick, Steve}, 2, 7},
 	}, g.ScoreType(TileTypeChambers, 2))
 	assert.Equal(t, []RoundTypeScore{
-		{[]int{Mick, Steve}, 15},
-		{[]int{BJ}, 4},
+		{[]int{Mick, Steve}, 2, 15},
+		{[]int{BJ}, 1, 4},
 	}, g.ScoreType(TileTypeChambers, 3))
 }

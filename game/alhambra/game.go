@@ -1,6 +1,7 @@
 package alhambra
 
 import (
+	"bytes"
 	"encoding/gob"
 	"errors"
 	"fmt"
@@ -20,6 +21,7 @@ import (
 const (
 	PhaseAction = iota
 	PhasePlace
+	PhaseFinalPlace
 	PhaseEnd
 )
 
@@ -172,6 +174,43 @@ func (g *Game) DrawCards(n int) card.Deck {
 }
 
 func (g *Game) ScoreRound() {
+	output := bytes.NewBufferString(fmt.Sprintf(
+		"{{b}}It is now scoring round %d{{_b}}",
+		g.Round,
+	))
+	for _, t := range ScoringTileTypes {
+		output.WriteString(fmt.Sprintf(
+			"\n{{b}}Scoring %s{{_b}}",
+			RenderTileAbbr(t),
+		))
+		for _, rs := range g.ScoreType(t, g.Round) {
+			playerStrs := []string{}
+			for _, p := range rs.Players {
+				g.Boards[p].Points += rs.Points
+				playerStrs = append(playerStrs, g.PlayerName(p))
+			}
+			output.WriteString(fmt.Sprintf(
+				"\n%s scored %d for having %d",
+				render.CommaList(playerStrs),
+				rs.Points,
+				rs.TileCount,
+			))
+		}
+	}
+	output.WriteString("\n{{b}}Scoring walls{{_b}}")
+	for p := range g.Players {
+		wall := g.Boards[p].Grid.LongestExtWall()
+		g.Boards[p].Points += wall
+		output.WriteString(fmt.Sprintf(
+			"\n%s scored %d for their wall",
+			g.PlayerName(p),
+			wall,
+		))
+	}
+	if g.Round < 3 {
+		g.Round++
+	}
+	g.Log.Add(log.NewPublicMessage(output.String()))
 }
 
 func (g *Game) PlayerList() []string {
@@ -179,14 +218,31 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.Phase == PhaseEnd
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	winners := []string{}
+	score := 0
+	for p, name := range g.Players {
+		if g.Boards[p].Points > score {
+			winners = []string{}
+			score = g.Boards[p].Points
+		}
+		if g.Boards[p].Points == score {
+			winners = append(winners, name)
+		}
+	}
+	return winners
 }
 
 func (g *Game) WhoseTurn() []string {
+	if g.IsFinished() {
+		return []string{}
+	}
 	return []string{g.Players[g.CurrentPlayer]}
 }
 
@@ -211,6 +267,21 @@ func (g *Game) NextPhase() {
 		g.PlacePhase()
 	case PhasePlace:
 		g.NextPlayer()
+	case PhaseFinalPlace:
+		nextPlayer := g.CurrentPlayer
+		for {
+			nextPlayer = (nextPlayer + 1) % len(g.Players)
+			if nextPlayer == g.CurrentPlayer {
+				// Everyone has placed, final scoring
+				g.Phase = PhaseEnd
+				g.ScoreRound()
+				break
+			}
+			if len(NotEmpty(g.Boards[nextPlayer].Place)) > 0 {
+				g.CurrentPlayer = nextPlayer
+				break
+			}
+		}
 	}
 }
 
@@ -262,8 +333,8 @@ func (g *Game) PlacePhase() {
 }
 
 type RoundTypeScore struct {
-	Players []int
-	Points  int
+	Players           []int
+	TileCount, Points int
 }
 
 func (g *Game) ScoreType(tileType, round int) []RoundTypeScore {
@@ -299,6 +370,7 @@ func (g *Game) ScoreType(tileType, round int) []RoundTypeScore {
 		for _, r := range rewards[len(rewards)-n:] {
 			points += r
 		}
+		rts.TileCount = counts[0]
 		rts.Points = points / len(rts.Players)
 
 		scores = append(scores, rts)

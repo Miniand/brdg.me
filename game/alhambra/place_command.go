@@ -64,7 +64,8 @@ func (c PlaceCommand) Usage(player string, context interface{}) string {
 func (g *Game) CanPlace(player int) bool {
 	return g.CurrentPlayer == player &&
 		(g.Phase == PhaseAction && len(g.Boards[player].Reserve) > 0 ||
-			g.Phase == PhasePlace && len(g.Boards[player].Place) > 0)
+			(g.Phase == PhasePlace || g.Phase == PhaseFinalPlace) &&
+				len(g.Boards[player].Place) > 0)
 }
 
 func (g *Game) Place(player, n int, v Vect) error {

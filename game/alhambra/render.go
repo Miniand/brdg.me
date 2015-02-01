@@ -52,10 +52,23 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			},
 		))
 	}
+	if len(g.Boards[pNum].Reserve) > 0 {
+		output.WriteString("\n\n")
+		output.WriteString(g.RenderReserve(pNum))
+	}
 	output.WriteString(render.Bold("\n\nYour cards:\n"))
 	output.WriteString(RenderCards(g.Boards[pNum].Cards))
 	// Purchase tiles
-	output.WriteString(render.Bold("\n\nTiles available for purchase:\n"))
+	output.WriteString("\n\n")
+	output.WriteString(render.Rule)
+	output.WriteString(fmt.Sprintf(
+		"\n\nIs is currently {{b}}round %d{{_b}}",
+		g.Round,
+	))
+	output.WriteString(render.Bold(fmt.Sprintf(
+		"\n\nTiles available for purchase (%d remaining):\n",
+		len(g.TileBag),
+	)))
 	output.WriteString(g.RenderTiles(g.Tiles, func(i int) string {
 		t := g.Tiles[i]
 		if t.Type == TileTypeEmpty {
@@ -96,16 +109,20 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString("\n\n")
 	output.WriteString(render.Table(cells, 0, 1))
 	// Other player boards
-	for p, _ := range g.Players {
+	for p := range g.Players {
 		if p == pNum {
 			continue
 		}
 		output.WriteString(fmt.Sprintf(
 			"\n\n%s\n\nPlayer board for %s\n\n",
-			strings.Repeat("=", 80),
+			render.Rule,
 			g.PlayerName(p),
 		))
 		output.WriteString(g.RenderPlayerGrid(p))
+		if len(g.Boards[p].Reserve) > 0 {
+			output.WriteString("\n\n")
+			output.WriteString(g.RenderReserve(p))
+		}
 	}
 	return output.String(), nil
 }
@@ -119,17 +136,17 @@ func RenderCards(cards card.Deck) string {
 }
 
 func (g *Game) RenderPlayerGrid(player int) string {
-	output := bytes.NewBuffer([]byte{})
-	output.WriteString(AddCoordsToGrid(g.Boards[player].Grid.Render(1)))
-	if len(g.Boards[player].Reserve) > 0 {
-		output.WriteString(render.Bold("\n\nReserved tiles:\n"))
-		output.WriteString(g.RenderTiles(
-			g.Boards[player].Reserve,
-			func(i int) string {
-				return render.Markup(strconv.Itoa(i+1), render.Gray, true)
-			},
-		))
-	}
+	return AddCoordsToGrid(g.Boards[player].Grid.Render(1))
+}
+
+func (g *Game) RenderReserve(player int) string {
+	output := bytes.NewBufferString(render.Bold("Reserved tiles:\n"))
+	output.WriteString(g.RenderTiles(
+		g.Boards[player].Reserve,
+		func(i int) string {
+			return render.Markup(strconv.Itoa(i+1), render.Gray, true)
+		},
+	))
 	return output.String()
 }
 

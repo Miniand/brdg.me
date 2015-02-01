@@ -35,7 +35,8 @@ func (c DoneCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanDone(player int) bool {
-	return g.CurrentPlayer == player && g.Phase == PhasePlace
+	return g.CurrentPlayer == player &&
+		(g.Phase == PhasePlace || g.Phase == PhaseFinalPlace)
 }
 
 func (g *Game) Done(player int) error {

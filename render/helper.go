@@ -12,6 +12,8 @@ type Centred string
 type RightAligned string
 type Unbounded string
 
+var Rule = strings.Repeat("=", 80)
+
 func PlayerColour(playerNum int) string {
 	colours := []string{
 		"green",
