@@ -4,6 +4,8 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
@@ -12,11 +14,18 @@ import (
 	"github.com/Miniand/brdg.me/render"
 )
 
+const (
+	PhaseAction = iota
+	PhasePlace
+	PhaseEnd
+)
+
 type Game struct {
 	Players []string
 	Log     *log.Log
 
 	CurrentPlayer int
+	Phase         int
 	Round         int
 
 	Boards []PlayerBoard
@@ -26,7 +35,9 @@ type Game struct {
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		BuyCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -152,6 +163,8 @@ func (g *Game) GameLog() *log.Log {
 	return g.Log
 }
 
+var ErrCouldNotFindPlayer = errors.New("could not find player")
+
 func (g *Game) PlayerNum(player string) (int, bool) {
 	for pNum, p := range g.Players {
 		if p == player {
@@ -159,4 +172,47 @@ func (g *Game) PlayerNum(player string) (int, bool) {
 		}
 	}
 	return 0, false
+}
+
+func (g *Game) NextPhase() {
+	switch g.Phase {
+	case PhaseAction:
+		g.PlacePhase()
+	case PhasePlace:
+		g.NextPlayer()
+	}
+}
+
+func (g *Game) NextPlayer() {
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
+	g.ActionPhase()
+}
+
+func (g *Game) ActionPhase() {
+	g.Phase = PhaseAction
+}
+
+func (g *Game) PlacePhase() {
+	g.Phase = PhasePlace
+	if len(g.Boards[g.CurrentPlayer].Place) == 0 {
+		g.NextPhase()
+	}
+}
+
+var ParseCardRegexp = regexp.MustCompile(`(?i)^([a-z])([0-9]+)$`)
+
+func ParseCard(input string) (Card, error) {
+	matches := ParseCardRegexp.FindStringSubmatch(input)
+	if matches == nil {
+		return Card{}, errors.New("cards must be a letter followed by a number, such as R10")
+	}
+	currency, err := helper.MatchStringInStringMap(matches[1], CurrencyAbbr)
+	if err != nil {
+		return Card{}, err
+	}
+	value, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return Card{}, err
+	}
+	return Card{currency, value}, nil
 }

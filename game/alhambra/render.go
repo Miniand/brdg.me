@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/render"
 )
 
@@ -38,6 +39,21 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output := bytes.NewBuffer([]byte{})
 	// Current player board
 	output.WriteString(g.RenderPlayerGrid(pNum))
+	if len(g.Boards[pNum].Place) > 0 {
+		output.WriteString(render.Bold("\n\nTiles to be placed:\n"))
+		output.WriteString(g.RenderTiles(
+			g.Boards[pNum].Place,
+			func(i int) string {
+				t := g.Tiles[i]
+				if t.Type == TileTypeEmpty {
+					return ""
+				}
+				return render.Colour(strconv.Itoa(i+1), render.Gray)
+			},
+		))
+	}
+	output.WriteString(render.Bold("\n\nYour cards:\n"))
+	output.WriteString(RenderCards(g.Boards[pNum].Cards))
 	// Purchase tiles
 	output.WriteString(render.Bold("\n\nTiles available for purchase:\n"))
 	output.WriteString(g.RenderTiles(g.Tiles, func(i int) string {
@@ -50,11 +66,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}))
 	// Draw cards
 	output.WriteString(render.Bold("\n\nMoney available for taking:\n"))
-	cardStrs := []string{}
-	for _, c := range g.Cards {
-		cardStrs = append(cardStrs, c.(Card).String())
-	}
-	output.WriteString(strings.Join(cardStrs, "  "))
+	output.WriteString(RenderCards(g.Cards))
 	// Player table
 	header := []interface{}{render.Bold("Player")}
 	for _, t := range ScoringTileTypes {
@@ -96,6 +108,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		output.WriteString(g.RenderPlayerGrid(p))
 	}
 	return output.String(), nil
+}
+
+func RenderCards(cards card.Deck) string {
+	cardStrs := []string{}
+	for _, c := range cards.Sort() {
+		cardStrs = append(cardStrs, c.(Card).String())
+	}
+	return strings.Join(cardStrs, "  ")
 }
 
 func (g *Game) RenderPlayerGrid(player int) string {
