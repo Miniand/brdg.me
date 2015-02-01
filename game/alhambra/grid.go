@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	GridInvalidNoFountain = "there is no fountain"
+	GridInvalidNoFountain = "must not be missing the fountain tile"
 	GridInvalidWall       = "adjoining tile sides must match, either both walls or both not walls"
-	GridInvalidCannotWalk = "you must be able to walk from the fountain to all other tiles"
-	GridInvalidGap        = "you are not allowed to create empty gaps"
+	GridInvalidCannotWalk = "must be able to walk from the fountain to all other tiles"
+	GridInvalidGap        = "not allowed to create empty gaps"
 )
 
 type Grid map[Vect]Tile
