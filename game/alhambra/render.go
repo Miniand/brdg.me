@@ -39,7 +39,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	// Current player board
 	output.WriteString(g.RenderPlayerGrid(pNum))
 	// Purchase tiles
-	output.WriteString(render.Bold("\n\nTiles available for purchase:\n\n"))
+	output.WriteString(render.Bold("\n\nTiles available for purchase:\n"))
 	output.WriteString(g.RenderTiles(g.Tiles, func(i int) string {
 		t := g.Tiles[i]
 		if t.Type == TileTypeEmpty {
@@ -48,8 +48,53 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		c := Card{i, t.Cost}
 		return c.String()
 	}))
+	// Draw cards
+	output.WriteString(render.Bold("\n\nMoney available for taking:\n"))
+	cardStrs := []string{}
+	for _, c := range g.Cards {
+		cardStrs = append(cardStrs, c.(Card).String())
+	}
+	output.WriteString(strings.Join(cardStrs, "  "))
 	// Player table
+	header := []interface{}{render.Bold("Player")}
+	for _, t := range ScoringTileTypes {
+		header = append(header, RenderTileAbbr(t))
+	}
+	header = append(
+		header,
+		render.Bold("Wall"),
+		render.Bold("Cards"),
+		render.Bold("Pts"),
+	)
+	cells := [][]interface{}{header}
+	for pNum, _ := range g.Players {
+		row := []interface{}{g.PlayerName(pNum)}
+		counts := g.Boards[pNum].TileCounts()
+		for _, t := range ScoringTileTypes {
+			row = append(row, render.Centred(strconv.Itoa(counts[t])))
+		}
+		row = append(
+			row,
+			render.Centred(strconv.Itoa(g.Boards[pNum].Grid.LongestExtWall())),
+			render.Centred(strconv.Itoa(len(g.Boards[pNum].Cards))),
+			render.Centred(strconv.Itoa(g.Boards[pNum].Points)),
+		)
+		cells = append(cells, row)
+	}
+	output.WriteString("\n\n")
+	output.WriteString(render.Table(cells, 0, 1))
 	// Other player boards
+	for p, _ := range g.Players {
+		if p == pNum {
+			continue
+		}
+		output.WriteString(fmt.Sprintf(
+			"\n\n%s\n\nPlayer board for %s\n\n",
+			strings.Repeat("=", 80),
+			g.PlayerName(p),
+		))
+		output.WriteString(g.RenderPlayerGrid(p))
+	}
 	return output.String(), nil
 }
 
@@ -57,7 +102,7 @@ func (g *Game) RenderPlayerGrid(player int) string {
 	output := bytes.NewBuffer([]byte{})
 	output.WriteString(AddCoordsToGrid(g.Boards[player].Grid.Render(1)))
 	if len(g.Boards[player].Reserve) > 0 {
-		output.WriteString(render.Bold("\n\nReserved tiles:\n\n"))
+		output.WriteString(render.Bold("\n\nReserved tiles:\n"))
 		output.WriteString(g.RenderTiles(
 			g.Boards[player].Reserve,
 			func(i int) string {

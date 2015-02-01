@@ -17,14 +17,12 @@ type Game struct {
 	Log     *log.Log
 
 	CurrentPlayer int
+	Round         int
 
 	Boards []PlayerBoard
 
-	Cards card.Deck
-	Tiles []Tile
-
-	DrawCards card.Deck
-	DrawTiles []Tile
+	Cards, CardPile, DiscardPile card.Deck
+	Tiles, TileBag               []Tile
 }
 
 func (g *Game) Commands() []command.Command {
@@ -60,9 +58,14 @@ func (g *Game) Start(players []string) error {
 	g.Players = players
 	g.Log = log.New()
 
-	g.DrawCards = Deck().Shuffle()
-	g.DrawTiles = ShuffleTiles(Tiles)
-	g.Tiles, g.DrawTiles = g.DrawTiles[:4], g.DrawTiles[4:]
+	g.Round = 1
+
+	g.CardPile = Deck().Shuffle()
+	g.Cards = g.DrawCards(4)
+	g.DiscardPile = card.Deck{}
+
+	g.TileBag = ShuffleTiles(Tiles)
+	g.Tiles, g.TileBag = g.TileBag[:4], g.TileBag[4:]
 
 	g.Boards = make([]PlayerBoard, len(g.Players))
 	var (
@@ -75,7 +78,7 @@ func (g *Game) Start(players []string) error {
 		value := 0
 		cardStrs := []string{}
 		for value < 20 {
-			c, g.DrawCards = g.DrawCards.Pop()
+			c = g.DrawCards(1)[0]
 			cards++
 			value += c.(Card).Value
 			cardStrs = append(cardStrs, c.(Card).String())
@@ -100,6 +103,33 @@ func (g *Game) Start(players []string) error {
 	)))
 
 	return nil
+}
+
+func (g *Game) DrawCards(n int) card.Deck {
+	var c card.Card
+	if n <= 0 {
+		return card.Deck{}
+	}
+	if g.CardPile.Len() == 0 {
+		if g.DiscardPile.Len() == 0 {
+			return card.Deck{}
+		}
+		g.CardPile = g.DiscardPile.Shuffle()
+		g.DiscardPile = card.Deck{}
+	}
+	c, g.CardPile = g.CardPile.Pop()
+	switch c.(type) {
+	case Card:
+		return (card.Deck{c}).PushMany(g.DrawCards(n - 1))
+	case ScoringCard:
+		g.ScoreRound()
+		return g.DrawCards(n)
+	default:
+		panic("Unknown card")
+	}
+}
+
+func (g *Game) ScoreRound() {
 }
 
 func (g *Game) PlayerList() []string {

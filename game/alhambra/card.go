@@ -55,6 +55,12 @@ func (c Card) Compare(other card.Comparer) (int, bool) {
 	return c.Value - oc.Value, true
 }
 
+type ScoringCard struct{}
+
+func (c ScoringCard) Compare(other card.Comparer) (int, bool) {
+	return 0, false
+}
+
 func (c Card) String() string {
 	return render.Markup(fmt.Sprintf(
 		"%s%d",

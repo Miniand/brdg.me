@@ -40,6 +40,15 @@ var TileColours = map[int]string{
 	TileTypeTower:     render.Magenta,
 }
 
+var ScoringTileTypes = []int{
+	TileTypePavillion,
+	TileTypeSeraglio,
+	TileTypeArcades,
+	TileTypeChambers,
+	TileTypeGarden,
+	TileTypeTower,
+}
+
 var TileAbbrLen = len(TileAbbrs[TileTypeEmpty])
 var TileWidth = TileAbbrLen + 1
 
