@@ -1,5 +1,12 @@
 package alhambra
 
+import (
+	"errors"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
 const (
 	GridInvalidNoFountain = "there is no fountain"
 	GridInvalidWall       = "adjoining tile sides must match, either both walls or both not walls"
@@ -211,4 +218,49 @@ func (g Grid) IsWall(vd VectDir) bool {
 
 func (g Grid) IsInternalWall(vd VectDir) bool {
 	return g.TileAt(vd.Add(DirVectMap[vd.Dir])).Walls[DirInverse[vd.Dir]]
+}
+
+var ParseCoordAlphaNumRegexp = regexp.MustCompile(`(?i)^([a-z])([0-9]+)$`)
+var ParseCoordNumAlphaRegexp = regexp.MustCompile(`(?i)^([0-9]+)([a-z])$`)
+
+func (g Grid) ParseCoord(input string) (Vect, error) {
+	if vect, err := g.ParseCoordAlphaNum(input); err == nil {
+		return vect, nil
+	}
+	if vect, err := g.ParseCoordNumAlpha(input); err == nil {
+		return vect, nil
+	}
+	return Vect{}, errors.New("coord must be numbers and letters, like a4 or 4a")
+}
+
+func (g Grid) ParseCoordAlphaNum(input string) (Vect, error) {
+	matches := ParseCoordAlphaNumRegexp.FindStringSubmatch(input)
+	if matches == nil {
+		return Vect{}, errors.New("coord must be a letter followed by numbers")
+	}
+	n, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return Vect{}, err
+	}
+	min, _ := g.Bounds()
+	return Vect{
+		int(strings.ToUpper(matches[1])[0]-'A') + min.X - 1,
+		n + min.Y - 2,
+	}, nil
+}
+
+func (g Grid) ParseCoordNumAlpha(input string) (Vect, error) {
+	matches := ParseCoordNumAlphaRegexp.FindStringSubmatch(input)
+	if matches == nil {
+		return Vect{}, errors.New("coord must be numbers followed by a letter")
+	}
+	n, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return Vect{}, err
+	}
+	min, _ := g.Bounds()
+	return Vect{
+		int(strings.ToUpper(matches[2])[0]-'A') + min.X - 1,
+		n + min.Y - 2,
+	}, nil
 }

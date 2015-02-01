@@ -37,6 +37,8 @@ type Game struct {
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		BuyCommand{},
+		PlaceCommand{},
+		DoneCommand{},
 	}
 }
 
@@ -184,6 +186,25 @@ func (g *Game) NextPhase() {
 }
 
 func (g *Game) NextPlayer() {
+	// Clean up existing turn
+	for _, t := range g.Boards[g.CurrentPlayer].Place {
+		if t.Type != TileTypeEmpty {
+			g.Boards[g.CurrentPlayer].Reserve = append(
+				g.Boards[g.CurrentPlayer].Reserve, t)
+		}
+	}
+	g.Boards[g.CurrentPlayer].Place = []Tile{}
+	for i, t := range g.Tiles {
+		if t.Type == TileTypeEmpty {
+			if len(g.TileBag) > 0 {
+				g.Tiles[i] = g.TileBag[0]
+				g.TileBag = g.TileBag[1:]
+			} else {
+				// End of the game
+			}
+		}
+	}
+	// Move to next player
 	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
 	g.ActionPhase()
 }

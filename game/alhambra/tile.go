@@ -67,3 +67,13 @@ func ShuffleTiles(tiles []Tile) []Tile {
 	}
 	return shuffled
 }
+
+func NotEmpty(tiles []Tile) []Tile {
+	notEmpty := []Tile{}
+	for _, t := range tiles {
+		if t.Type != TileTypeEmpty {
+			notEmpty = append(notEmpty, t)
+		}
+	}
+	return notEmpty
+}

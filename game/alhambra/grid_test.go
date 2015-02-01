@@ -92,3 +92,24 @@ func TestGrid_LongestExtWall(t *testing.T) {
 +-----+
 `).LongestExtWall())
 }
+
+func TestGrid_ParseCoord(t *testing.T) {
+	g := Grid{
+		Vect{-2, -3}: NewTile(TileTypePavillion, 5),
+	}
+	v, err := g.ParseCoord("a1")
+	assert.NoError(t, err)
+	assert.Equal(t, Vect{-3, -4}, v)
+	v, err = g.ParseCoord("1a")
+	assert.NoError(t, err)
+	assert.Equal(t, Vect{-3, -4}, v)
+	v, err = g.ParseCoord("2a")
+	assert.NoError(t, err)
+	assert.Equal(t, Vect{-3, -3}, v)
+	v, err = g.ParseCoord("2b")
+	assert.NoError(t, err)
+	assert.Equal(t, Vect{-2, -3}, v)
+	v, err = g.ParseCoord("b2")
+	assert.NoError(t, err)
+	assert.Equal(t, Vect{-2, -3}, v)
+}

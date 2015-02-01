@@ -44,7 +44,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		output.WriteString(g.RenderTiles(
 			g.Boards[pNum].Place,
 			func(i int) string {
-				t := g.Tiles[i]
+				t := g.Boards[pNum].Place[i]
 				if t.Type == TileTypeEmpty {
 					return ""
 				}

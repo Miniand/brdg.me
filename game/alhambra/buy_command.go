@@ -43,7 +43,7 @@ func (c BuyCommand) Call(player string, context interface{},
 }
 
 func (c BuyCommand) Usage(player string, context interface{}) string {
-	return "{{b}}buy ## (##){{_b}} to buy a tile using cards of a single currency, eg. {{b}}buy r3 r4"
+	return "{{b}}buy ## (##){{_b}} to buy a tile using cards of a single currency, eg. {{b}}buy r3 r4{{_b}}"
 }
 
 func (g *Game) CanBuy(player int) bool {
