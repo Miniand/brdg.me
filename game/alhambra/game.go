@@ -96,11 +96,11 @@ func (g *Game) Start(players []string) error {
 	g.AllPlayers = players
 	if len(players) == 2 {
 		// Dirk is crunchy.
+		g.AllPlayers = append(g.AllPlayers, "Dirk")
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"As you only have 2 players, you will be joined by %s!",
 			g.PlayerName(Dirk),
 		)))
-		g.AllPlayers = append(g.AllPlayers, "Dirk")
 	}
 
 	g.Round = 1
@@ -117,8 +117,12 @@ func (g *Game) Start(players []string) error {
 		c                             card.Card
 		minPlayer, minCards, minValue int
 	)
-	for pNum, _ := range g.HumanPlayers {
+	for pNum, _ := range g.AllPlayers {
 		g.Boards[pNum] = NewPlayerBoard()
+		if len(g.HumanPlayers) == 2 && pNum == Dirk {
+			// Dirk doesn't get cards
+			continue
+		}
 		cards := 0
 		value := 0
 		cardStrs := []string{}

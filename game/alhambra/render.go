@@ -98,10 +98,16 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		for _, t := range ScoringTileTypes {
 			row = append(row, render.Centred(strconv.Itoa(counts[t])))
 		}
+		wall := render.Markup("N/A", render.Gray, false)
+		cards := render.Markup("N/A", render.Gray, false)
+		if len(g.HumanPlayers) > 2 || pNum != Dirk {
+			wall = strconv.Itoa(g.Boards[pNum].Grid.LongestExtWall())
+			cards = strconv.Itoa(len(g.Boards[pNum].Cards))
+		}
 		row = append(
 			row,
-			render.Centred(strconv.Itoa(g.Boards[pNum].Grid.LongestExtWall())),
-			render.Centred(strconv.Itoa(len(g.Boards[pNum].Cards))),
+			render.Centred(wall),
+			render.Centred(cards),
 			render.Centred(strconv.Itoa(g.Boards[pNum].Points)),
 		)
 		cells = append(cells, row)
