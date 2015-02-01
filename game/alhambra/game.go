@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
@@ -19,6 +20,15 @@ const (
 	PhasePlace
 	PhaseEnd
 )
+
+var RoundScores = map[int][]int{
+	TileTypePavillion: []int{1, 8, 16},
+	TileTypeSeraglio:  []int{2, 9, 17},
+	TileTypeArcades:   []int{3, 10, 18},
+	TileTypeChambers:  []int{4, 11, 19},
+	TileTypeGarden:    []int{5, 12, 20},
+	TileTypeTower:     []int{6, 13, 21},
+}
 
 type Game struct {
 	Players []string
@@ -233,6 +243,53 @@ func (g *Game) PlacePhase() {
 	if len(g.Boards[g.CurrentPlayer].Place) == 0 {
 		g.NextPhase()
 	}
+}
+
+type RoundTypeScore struct {
+	Players []int
+	Points  int
+}
+
+func (g *Game) ScoreType(tileType, round int) []RoundTypeScore {
+	// Group players by tile count
+	byCount := map[int][]int{}
+	counts := []int{}
+	for p, _ := range g.Players {
+		count := g.Boards[p].TileCounts()[tileType]
+		if count == 0 {
+			continue
+		}
+		if byCount[count] == nil {
+			byCount[count] = []int{}
+			counts = append(counts, count)
+		}
+		byCount[count] = append(byCount[count], p)
+	}
+
+	// Loop through counts and assign points
+	sort.Sort(sort.Reverse(sort.IntSlice(counts)))
+	rewards := RoundScores[tileType][:round]
+	scores := []RoundTypeScore{}
+	for len(rewards) > 0 && len(counts) > 0 {
+		rts := RoundTypeScore{
+			Players: byCount[counts[0]],
+		}
+
+		n := len(rts.Players)
+		if l := len(rewards); n > l {
+			n = l
+		}
+		points := 0
+		for _, r := range rewards[len(rewards)-n:] {
+			points += r
+		}
+		rts.Points = points / len(rts.Players)
+
+		scores = append(scores, rts)
+		rewards = rewards[:len(rewards)-n]
+		counts = counts[1:]
+	}
+	return scores
 }
 
 var ParseCardRegexp = regexp.MustCompile(`(?i)^([a-z])([0-9]+)$`)
