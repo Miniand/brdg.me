@@ -37,6 +37,7 @@ type Game struct {
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		BuyCommand{},
+		TakeCommand{},
 		PlaceCommand{},
 		DoneCommand{},
 	}
@@ -187,11 +188,20 @@ func (g *Game) NextPhase() {
 
 func (g *Game) NextPlayer() {
 	// Clean up existing turn
+	reserved := []string{}
 	for _, t := range g.Boards[g.CurrentPlayer].Place {
 		if t.Type != TileTypeEmpty {
+			reserved = append(reserved, RenderTileAbbr(t.Type))
 			g.Boards[g.CurrentPlayer].Reserve = append(
 				g.Boards[g.CurrentPlayer].Reserve, t)
 		}
+	}
+	if len(reserved) > 0 {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s added %s to their reserve",
+			g.PlayerName(g.CurrentPlayer),
+			render.CommaList(reserved),
+		)))
 	}
 	g.Boards[g.CurrentPlayer].Place = []Tile{}
 	for i, t := range g.Tiles {
@@ -203,6 +213,9 @@ func (g *Game) NextPlayer() {
 				// End of the game
 			}
 		}
+	}
+	if l := g.Cards.Len(); l < 4 {
+		g.Cards = g.Cards.PushMany(g.DrawCards(4 - l))
 	}
 	// Move to next player
 	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)

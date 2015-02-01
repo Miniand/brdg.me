@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type PlaceCommand struct{}
@@ -95,8 +96,13 @@ func (g *Game) Place(player, n int, v Vect) error {
 	if valid, reason := testG.IsValid(); !valid {
 		return errors.New(reason)
 	}
-
 	g.Boards[player].Grid = testG
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s placed %s in their Alhambra",
+		g.PlayerName(player),
+		RenderTileAbbr(t.Type),
+	)))
+
 	switch g.Phase {
 	case PhaseAction:
 		g.Boards[player].Reserve = append(

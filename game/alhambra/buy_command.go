@@ -6,6 +6,7 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type BuyCommand struct{}
@@ -90,6 +91,13 @@ func (g *Game) Buy(player int, cards card.Deck) error {
 	}
 	g.Boards[player].Place = append(g.Boards[player].Place, tile)
 	g.Tiles[currency] = Tile{}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s bought %s (cost %d) using %s",
+		g.PlayerName(player),
+		RenderTileAbbr(tile.Type),
+		tile.Cost,
+		RenderCards(cards),
+	)))
 
 	if total != tile.Cost {
 		g.NextPhase()
