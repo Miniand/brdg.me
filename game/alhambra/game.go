@@ -55,7 +55,7 @@ type Game struct {
 
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
-		BuyCommand{},
+		SpendCommand{},
 		TakeCommand{},
 		PlaceCommand{},
 		SwapCommand{},
@@ -375,7 +375,7 @@ func (g *Game) FinalPlacePhase() {
 	// Give out remaining tiles.
 	output := bytes.NewBufferString("{{b}}Giving remaining tiles to the player with the most money cards of that currency{{_b}}")
 	for _, c := range Currencies {
-		if g.Tiles[c].Type == TileTypeEmpty {
+		if g.Tiles[c].Type != TileTypeEmpty {
 			value := 0
 			players := []int{}
 			for p := range g.HumanPlayers {

@@ -9,19 +9,19 @@ import (
 	"github.com/Miniand/brdg.me/game/log"
 )
 
-type BuyCommand struct{}
+type SpendCommand struct{}
 
-func (c BuyCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("buy", 1, -1, input)
+func (c SpendCommand) Parse(input string) []string {
+	return command.ParseNamedCommandRangeArgs("spend", 1, -1, input)
 }
 
-func (c BuyCommand) CanCall(player string, context interface{}) bool {
+func (c SpendCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanBuy(pNum)
+	return ok && g.CanSpend(pNum)
 }
 
-func (c BuyCommand) Call(player string, context interface{},
+func (c SpendCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
@@ -40,23 +40,23 @@ func (c BuyCommand) Call(player string, context interface{},
 		}
 		cards = cards.Push(c)
 	}
-	return "", g.Buy(pNum, cards)
+	return "", g.Spend(pNum, cards)
 }
 
-func (c BuyCommand) Usage(player string, context interface{}) string {
-	return "{{b}}buy ## (##){{_b}} to buy a tile using cards of a single currency, eg. {{b}}buy r3 r4{{_b}}"
+func (c SpendCommand) Usage(player string, context interface{}) string {
+	return "{{b}}spend ## (##){{_b}} to spend cards of a single currency to buy a tile, eg. {{b}}spend r3 r4{{_b}}"
 }
 
-func (g *Game) CanBuy(player int) bool {
+func (g *Game) CanSpend(player int) bool {
 	return g.CurrentPlayer == player && g.Phase == PhaseAction
 }
 
-func (g *Game) Buy(player int, cards card.Deck) error {
-	if !g.CanBuy(player) {
-		return errors.New("unable to buy right now")
+func (g *Game) Spend(player int, cards card.Deck) error {
+	if !g.CanSpend(player) {
+		return errors.New("unable to spend right now")
 	}
 	if cards.Len() == 0 {
-		return errors.New("must specify at least one card to buy with")
+		return errors.New("must specify at least one card to spend")
 	}
 	currency := 0
 	total := 0
@@ -70,7 +70,7 @@ func (g *Game) Buy(player int, cards card.Deck) error {
 			currency = crd.Currency
 		} else {
 			if crd.Currency != currency {
-				return errors.New("you can only buy using cards of the same currency")
+				return errors.New("you can only spend using cards of the same currency")
 			}
 		}
 	}
@@ -80,7 +80,7 @@ func (g *Game) Buy(player int, cards card.Deck) error {
 	}
 	if tile.Cost > total {
 		return fmt.Errorf(
-			"you require %d to buy that card",
+			"you require %d to spend that card",
 			tile.Cost,
 		)
 	}
