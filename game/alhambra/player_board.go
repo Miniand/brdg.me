@@ -29,3 +29,14 @@ func (b PlayerBoard) TileCounts() map[int]int {
 	}
 	return counts
 }
+
+func (b PlayerBoard) CurrencyValue(currency int) int {
+	value := 0
+	for _, c := range b.Cards {
+		crd := c.(Card)
+		if crd.Currency == currency {
+			value += crd.Value
+		}
+	}
+	return value
+}

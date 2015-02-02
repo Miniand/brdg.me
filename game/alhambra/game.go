@@ -357,6 +357,8 @@ func (g *Game) NextPlayer() {
 				g.TileBag = g.TileBag[1:]
 			} else {
 				// End of the game
+				g.FinalPlacePhase()
+				return
 			}
 		}
 	}
@@ -366,6 +368,60 @@ func (g *Game) NextPlayer() {
 	// Move to next player
 	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.HumanPlayers)
 	g.ActionPhase()
+}
+
+func (g *Game) FinalPlacePhase() {
+	g.Phase = PhaseFinalPlace
+	// Give out remaining tiles.
+	output := bytes.NewBufferString("{{b}}Giving remaining tiles to the player with the most money cards of that currency{{_b}}")
+	for _, c := range Currencies {
+		if g.Tiles[c].Type == TileTypeEmpty {
+			value := 0
+			players := []int{}
+			for p := range g.HumanPlayers {
+				v := g.Boards[p].CurrencyValue(c)
+				if v > value {
+					value = v
+					players = []int{}
+				}
+				if v == value {
+					players = append(players, p)
+				}
+			}
+			if len(players) == 1 {
+				output.WriteString(fmt.Sprintf(
+					"\n\n%s had the most money for %s with {{b}}%d{{_b}} and got %s",
+					g.PlayerName(players[0]),
+					render.Markup(
+						CurrencyNames[c],
+						CurrencyColours[c],
+						true,
+					),
+					value,
+					RenderTileAbbr(g.Tiles[c].Type),
+				))
+				g.Boards[players[0]].Place = append(
+					g.Boards[players[0]].Place,
+					g.Tiles[c],
+				)
+				g.Tiles[c] = Tile{}
+			} else {
+				output.WriteString(fmt.Sprintf(
+					"\n\nNobody had the most money for %s",
+					render.Markup(
+						CurrencyNames[c],
+						CurrencyColours[c],
+						true,
+					),
+				))
+			}
+		}
+	}
+	g.Log.Add(log.NewPublicMessage(output.String()))
+
+	if len(g.Boards[g.CurrentPlayer].Place) == 0 {
+		g.NextPhase()
+	}
 }
 
 func (g *Game) ActionPhase() {
