@@ -390,7 +390,7 @@ func (g *Game) FinalPlacePhase() {
 			}
 			if len(players) == 1 {
 				output.WriteString(fmt.Sprintf(
-					"\n\n%s had the most money for %s with {{b}}%d{{_b}} and got %s",
+					"\n%s had the most money for %s with {{b}}%d{{_b}} and got %s",
 					g.PlayerName(players[0]),
 					render.Markup(
 						CurrencyNames[c],
