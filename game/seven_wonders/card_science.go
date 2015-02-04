@@ -22,7 +22,7 @@ type CardScience struct {
 func NewCardScience(
 	name string,
 	cost Cost,
-	fields []int,
+	field int,
 	freeWith, makesFree []string,
 	players ...int,
 ) card.Deck {
@@ -37,7 +37,7 @@ func NewCardScience(
 	) {
 		d = d.Push(CardScience{
 			c.(Card),
-			fields,
+			[]int{field},
 		})
 	}
 	return nil

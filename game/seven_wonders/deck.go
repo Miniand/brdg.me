@@ -218,6 +218,114 @@ func DeckAge2() card.Deck {
 	return d
 }
 
+func DeckAge3() card.Deck {
+	d := card.Deck{}
+	for _, c := range []card.Deck{
+		// Civilian structures
+		NewCardCivilian(CardPantheon, Cost{
+			GoodClay:    2,
+			GoodOre:     1,
+			GoodGlass:   1,
+			GoodPapyrus: 1,
+			GoodTextile: 1,
+		}, 7, []string{CardTemple}, nil, 3, 6),
+		NewCardCivilian(CardGardens, Cost{
+			GoodClay: 2,
+			GoodWood: 1,
+		}, 5, []string{CardStatue}, nil, 3, 4),
+		NewCardCivilian(CardTownHall, Cost{
+			GoodStone: 2,
+			GoodOre:   1,
+			GoodGlass: 1,
+		}, 6, nil, nil, 3, 5, 6),
+		NewCardCivilian(CardPalace, Cost{
+			GoodStone:   1,
+			GoodOre:     1,
+			GoodWood:    1,
+			GoodClay:    1,
+			GoodGlass:   1,
+			GoodPapyrus: 1,
+			GoodTextile: 1,
+		}, 8, nil, nil, 3, 7),
+		NewCardCivilian(CardSenate, Cost{
+			GoodWood:  2,
+			GoodStone: 1,
+			GoodOre:   1,
+		}, 6, []string{CardLibrary}, nil, 3, 5),
+
+		// Commercial structures
+		NewCardBonus(CardHaven, CardKindCommercial, Cost{
+			GoodWood:    1,
+			GoodOre:     1,
+			GoodTextile: 1,
+		}, []int{CardKindRaw}, DirSelf, 1, 1, []string{CardForum}, nil, 3, 4),
+		NewCardBonus(CardLighthouse, CardKindCommercial, Cost{
+			GoodStone: 1,
+			GoodGlass: 1,
+		}, []int{CardKindCommercial}, DirSelf, 1, 1, []string{
+			CardCaravansery,
+		}, nil, 3, 6),
+		NewCardBonus(CardChamberOfCommerce, CardKindCommercial, Cost{
+			GoodClay:    2,
+			GoodPapyrus: 1,
+		}, []int{CardKindManufactured}, DirSelf, 2, 2, nil, nil, 4, 6),
+		NewCardBonus(CardArena, CardKindCommercial, Cost{
+			GoodStone: 2,
+			GoodOre:   1,
+		}, []int{WonderStage}, DirSelf, 1, 3, []string{
+			CardDispensary,
+		}, nil, 3, 5, 7),
+
+		// Military structures
+		NewCardMilitary(CardFortifications, Cost{
+			GoodOre:   3,
+			GoodStone: 1,
+		}, 3, []string{CardWalls}, nil, 3, 7),
+		NewCardMilitary(CardCircus, Cost{
+			GoodStone: 3,
+			GoodOre:   1,
+		}, 3, []string{CardTrainingGround}, nil, 4, 5, 6),
+		NewCardMilitary(CardArsenal, Cost{
+			GoodWood:    2,
+			GoodOre:     1,
+			GoodTextile: 1,
+		}, 3, nil, nil, 3, 4, 7),
+		NewCardMilitary(CardSiegeWorkshop, Cost{
+			GoodClay: 3,
+			GoodWood: 1,
+		}, 3, []string{CardLaboratory}, nil, 3, 5),
+
+		// Scientific structures
+		NewCardScience(CardLodge, Cost{
+			GoodClay:    2,
+			GoodPapyrus: 1,
+			GoodTextile: 1,
+		}, FieldMathematics, []string{CardDispensary}, nil, 3, 6),
+		NewCardScience(CardObservatory, Cost{
+			GoodOre:     2,
+			GoodGlass:   1,
+			GoodTextile: 1,
+		}, FieldEngineering, []string{CardLaboratory}, nil, 3, 7),
+		NewCardScience(CardUniversity, Cost{
+			GoodWood:    2,
+			GoodPapyrus: 1,
+			GoodGlass:   1,
+		}, FieldTheology, []string{CardLibrary}, nil, 3, 4),
+		NewCardScience(CardAcademy, Cost{
+			GoodStone: 3,
+			GoodGlass: 1,
+		}, FieldMathematics, []string{CardSchool}, nil, 3, 7),
+		NewCardScience(CardStudy, Cost{
+			GoodWood:    1,
+			GoodPapyrus: 1,
+			GoodTextile: 1,
+		}, FieldEngineering, []string{CardSchool}, nil, 3, 5),
+	} {
+		d = d.PushMany(c)
+	}
+	return d
+}
+
 func DeckGuild() card.Deck {
 	return card.Deck{
 		NewCardBonus(CardWorkersGuild, CardKindGuild, Cost{
