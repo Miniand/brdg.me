@@ -4,7 +4,14 @@ import "github.com/Miniand/brdg.me/game/card"
 
 const (
 	DirLeft  = -1
+	DirDown  = 0
 	DirRight = 1
+)
+
+var (
+	DirAll        = []int{DirLeft, DirDown, DirRight}
+	DirNeighbours = []int{DirLeft, DirRight}
+	DirSelf       = []int{DirDown}
 )
 
 type CardCommercialTrade struct {

@@ -10,6 +10,9 @@ const (
 	CardKindCommercial
 	CardKindMilitary
 	CardKindGuild
+	TokenVictory
+	TokenDefeat
+	WonderStage
 )
 
 type Cost map[int]int

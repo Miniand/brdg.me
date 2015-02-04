@@ -38,6 +38,7 @@ func NewCardGood(
 	cost Cost,
 	goods []int,
 	amount int,
+	freeWith, makesFree []string,
 	players ...int,
 ) card.Deck {
 	d := card.Deck{}
@@ -48,8 +49,8 @@ func NewCardGood(
 		name,
 		kind,
 		cost,
-		nil,
-		nil,
+		freeWith,
+		makesFree,
 		players...,
 	) {
 		d = d.Push(CardGood{
@@ -58,7 +59,7 @@ func NewCardGood(
 			amount,
 		})
 	}
-	return nil
+	return d
 }
 
 func NewCardGoodRaw(
@@ -74,6 +75,8 @@ func NewCardGoodRaw(
 		cost,
 		goods,
 		amount,
+		nil,
+		nil,
 		players...,
 	)
 }
@@ -91,6 +94,28 @@ func NewCardGoodManufactured(
 		cost,
 		goods,
 		amount,
+		nil,
+		nil,
+		players...,
+	)
+}
+
+func NewCardGoodCommercial(
+	name string,
+	cost Cost,
+	goods []int,
+	amount int,
+	freeWith, makesFree []string,
+	players ...int,
+) card.Deck {
+	return NewCardGood(
+		name,
+		CardKindCommercial,
+		cost,
+		goods,
+		amount,
+		freeWith,
+		makesFree,
 		players...,
 	)
 }
