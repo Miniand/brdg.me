@@ -8,15 +8,21 @@ const (
 	FieldTheology
 )
 
+var AllFields = []int{
+	FieldMathematics,
+	FieldEngineering,
+	FieldTheology,
+}
+
 type CardScience struct {
 	Card
-	Field int
+	Fields []int
 }
 
 func NewCardScience(
 	name string,
 	cost Cost,
-	field int,
+	fields []int,
 	freeWith, makesFree []string,
 	players ...int,
 ) card.Deck {
@@ -29,9 +35,9 @@ func NewCardScience(
 		makesFree,
 		players...,
 	) {
-		d = d.Push(CardMilitary{
+		d = d.Push(CardScience{
 			c.(Card),
-			field,
+			fields,
 		})
 	}
 	return nil

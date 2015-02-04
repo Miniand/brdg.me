@@ -217,3 +217,71 @@ func DeckAge2() card.Deck {
 	}
 	return d
 }
+
+func DeckGuild() card.Deck {
+	return card.Deck{
+		NewCardBonus(CardWorkersGuild, CardKindGuild, Cost{
+			GoodOre:   2,
+			GoodClay:  1,
+			GoodStone: 1,
+			GoodWood:  1,
+		}, []int{CardKindRaw}, DirNeighbours, 1, 0, nil, nil, 3)[0],
+		NewCardBonus(CardCraftsmensGuild, CardKindGuild, Cost{
+			GoodOre:   2,
+			GoodStone: 2,
+		}, []int{CardKindManufactured}, DirNeighbours, 2, 0, nil, nil, 3)[0],
+		NewCardBonus(CardTradersGuild, CardKindGuild, Cost{
+			GoodGlass:   1,
+			GoodTextile: 1,
+			GoodPapyrus: 1,
+		}, []int{CardKindCommercial}, DirNeighbours, 1, 0, nil, nil, 3)[0],
+		NewCardBonus(CardPhilosophersGuild, CardKindGuild, Cost{
+			GoodClay:    3,
+			GoodPapyrus: 1,
+			GoodTextile: 1,
+		}, []int{CardKindScientific}, DirNeighbours, 1, 0, nil, nil, 3)[0],
+		NewCardBonus(CardSpiesGuild, CardKindGuild, Cost{
+			GoodClay:  3,
+			GoodGlass: 1,
+		}, []int{CardKindMilitary}, DirNeighbours, 1, 0, nil, nil, 3)[0],
+		NewCardBonus(CardStrategistsGuild, CardKindGuild, Cost{
+			GoodOre:     2,
+			GoodStone:   1,
+			GoodTextile: 1,
+		}, []int{TokenDefeat}, DirNeighbours, 1, 0, nil, nil, 3)[0],
+		NewCardBonus(CardShipownersGuild, CardKindGuild, Cost{
+			GoodWood:    3,
+			GoodGlass:   1,
+			GoodPapyrus: 1,
+		}, []int{
+			CardKindRaw,
+			CardKindManufactured,
+			CardKindGuild,
+		}, DirSelf, 1, 0, nil, nil, 3)[0],
+		CardScience{
+			Card{
+				CardScientistsGuild,
+				CardKindGuild,
+				Cost{
+					GoodWood:    2,
+					GoodOre:     2,
+					GoodPapyrus: 1,
+				},
+				nil,
+				nil,
+				3,
+			},
+			AllFields,
+		},
+		NewCardBonus(CardMagistratesGuild, CardKindGuild, Cost{
+			GoodWood:    3,
+			GoodStone:   1,
+			GoodTextile: 1,
+		}, []int{CardKindCivilian}, DirNeighbours, 1, 0, nil, nil, 3)[0],
+		NewCardBonus(CardBuildersGuild, CardKindGuild, Cost{
+			GoodStone: 2,
+			GoodClay:  2,
+			GoodGlass: 1,
+		}, []int{WonderStage}, DirAll, 1, 0, nil, nil, 3)[0],
+	}
+}
