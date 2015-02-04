@@ -28,5 +28,9 @@ func NewCardCivilian(
 			vp,
 		})
 	}
-	return nil
+	return d
+}
+
+func (c CardCivilian) GetCard() Card {
+	return c.Card
 }

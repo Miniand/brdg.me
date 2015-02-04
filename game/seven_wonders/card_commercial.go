@@ -45,6 +45,10 @@ func NewCardCommercialTrade(
 	return d
 }
 
+func (c CardCommercialTrade) GetCard() Card {
+	return c.Card
+}
+
 type CardCommercialTavern struct {
 	Card
 }
@@ -62,4 +66,8 @@ func NewCardCommercialTavern(players ...int) card.Deck {
 		d = d.Push(CardCommercialTavern{c.(Card)})
 	}
 	return d
+}
+
+func (c CardCommercialTavern) GetCard() Card {
+	return c.Card
 }

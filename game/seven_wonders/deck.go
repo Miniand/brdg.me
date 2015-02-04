@@ -2,6 +2,16 @@ package seven_wonders
 
 import "github.com/Miniand/brdg.me/game/card"
 
+func FilterDeck(deck card.Deck, players int) card.Deck {
+	d := card.Deck{}
+	for _, c := range deck {
+		if c.(Carder).GetCard().MinPlayers <= players {
+			d = d.Push(c)
+		}
+	}
+	return d
+}
+
 func DeckAge1() card.Deck {
 	d := card.Deck{}
 	for _, c := range []card.Deck{

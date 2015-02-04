@@ -44,3 +44,7 @@ func NewCardBonus(
 	}
 	return d
 }
+
+func (c CardBonus) GetCard() Card {
+	return c.Card
+}

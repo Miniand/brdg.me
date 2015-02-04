@@ -28,5 +28,9 @@ func NewCardMilitary(
 			strength,
 		})
 	}
-	return nil
+	return d
+}
+
+func (c CardMilitary) GetCard() Card {
+	return c.Card
 }

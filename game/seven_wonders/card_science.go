@@ -40,5 +40,9 @@ func NewCardScience(
 			[]int{field},
 		})
 	}
-	return nil
+	return d
+}
+
+func (c CardScience) GetCard() Card {
+	return c.Card
 }

@@ -15,6 +15,10 @@ const (
 	WonderStage
 )
 
+type Carder interface {
+	GetCard() Card
+}
+
 type Cost map[int]int
 
 type Card struct {
@@ -24,21 +28,6 @@ type Card struct {
 	FreeWith   []string
 	MakesFree  []string
 	MinPlayers int
-}
-
-func (c Card) Compare(other card.Comparer) (int, bool) {
-	oc, ok := other.(Card)
-	if !ok {
-		return 0, false
-	}
-	switch {
-	case c.Name < oc.Name:
-		return -1, true
-	case c.Name == oc.Name:
-		return 0, true
-	default:
-		return 1, true
-	}
 }
 
 func NewCard(
@@ -69,4 +58,19 @@ func NewCard(
 		})
 	}
 	return d
+}
+
+func (c Card) Compare(other card.Comparer) (int, bool) {
+	oc, ok := other.(Card)
+	if !ok {
+		return 0, false
+	}
+	switch {
+	case c.Name < oc.Name:
+		return -1, true
+	case c.Name == oc.Name:
+		return 0, true
+	default:
+		return 1, true
+	}
 }

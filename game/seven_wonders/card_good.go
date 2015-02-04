@@ -62,6 +62,10 @@ func NewCardGood(
 	return d
 }
 
+func (c CardGood) GetCard() Card {
+	return c.Card
+}
+
 func NewCardGoodRaw(
 	name string,
 	cost Cost,
