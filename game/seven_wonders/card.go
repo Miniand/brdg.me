@@ -2,19 +2,6 @@ package seven_wonders
 
 import "github.com/Miniand/brdg.me/game/card"
 
-const (
-	CardKindRaw = iota
-	CardKindManufactured
-	CardKindCivilian
-	CardKindScientific
-	CardKindCommercial
-	CardKindMilitary
-	CardKindGuild
-	TokenVictory
-	TokenDefeat
-	WonderStage
-)
-
 type Carder interface {
 	GetCard() Card
 }
@@ -64,6 +51,10 @@ func (c Card) Compare(other card.Comparer) (int, bool) {
 	oc, ok := other.(Card)
 	if !ok {
 		return 0, false
+	}
+	kindDiff := c.Kind - oc.Kind
+	if kindDiff != 0 {
+		return kindDiff, true
 	}
 	switch {
 	case c.Name < oc.Name:

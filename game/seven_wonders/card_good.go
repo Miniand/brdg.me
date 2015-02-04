@@ -2,30 +2,6 @@ package seven_wonders
 
 import "github.com/Miniand/brdg.me/game/card"
 
-const (
-	GoodCoin = iota
-	GoodWood
-	GoodStone
-	GoodOre
-	GoodClay
-	GoodPapyrus
-	GoodTextile
-	GoodGlass
-)
-
-var RawGoods = []int{
-	GoodWood,
-	GoodStone,
-	GoodOre,
-	GoodClay,
-}
-
-var ManufacturedGoods = []int{
-	GoodPapyrus,
-	GoodTextile,
-	GoodGlass,
-}
-
 type CardGood struct {
 	Card
 	Goods  []int

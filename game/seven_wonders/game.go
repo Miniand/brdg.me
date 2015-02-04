@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 )
@@ -11,6 +12,9 @@ import (
 type Game struct {
 	Players []string
 	Log     *log.Log
+
+	Round int
+	Hands []card.Deck
 }
 
 func (g *Game) Commands() []command.Command {
@@ -31,10 +35,6 @@ func (g *Game) Encode() ([]byte, error) {
 
 func (g *Game) Decode(data []byte) error {
 	return helper.Decode(g, data)
-}
-
-func (g *Game) RenderForPlayer(player string) (string, error) {
-	return "", nil
 }
 
 func (g *Game) Start(players []string) error {
