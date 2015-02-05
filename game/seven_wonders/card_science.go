@@ -1,9 +1,15 @@
 package seven_wonders
 
+import "encoding/gob"
+
 var AllFields = []int{
 	FieldMathematics,
 	FieldEngineering,
 	FieldTheology,
+}
+
+func init() {
+	gob.Register(CardScience{})
 }
 
 type CardScience struct {

@@ -1,8 +1,14 @@
 package seven_wonders
 
+import "encoding/gob"
+
 type CardCivilian struct {
 	Card
 	VP int
+}
+
+func init() {
+	gob.Register(CardCivilian{})
 }
 
 func NewCardCivilian(

@@ -2,10 +2,10 @@ package seven_wonders
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/render"
 )
 
@@ -122,31 +122,27 @@ func RenderCard(c Carder) string {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("could not find player")
+	}
 	output := bytes.NewBuffer([]byte{})
-	for _, d := range []card.Deck{
-		DeckAge1(7),
-		DeckAge2(7),
-		DeckAge3(7),
-		DeckGuild,
-	} {
-		for _, c := range d {
-			crd := c.(Carder)
-			costStrs := []string{crd.GetCard().Cost.String()}
-			for _, f := range crd.GetCard().FreeWith {
-				costStrs = append(costStrs, RenderCardName(Cards[f]))
-			}
+	for _, c := range g.Hands[pNum].Sort() {
+		crd := c.(Carder)
+		costStrs := []string{crd.GetCard().Cost.String()}
+		for _, f := range crd.GetCard().FreeWith {
+			costStrs = append(costStrs, RenderCardName(Cards[f]))
+		}
+		output.WriteString(fmt.Sprintf(
+			"%s\n    Cost: %s\n",
+			RenderCard(crd),
+			strings.Join(costStrs, render.Colour("  or  ", render.Gray)),
+		))
+		for _, f := range crd.GetCard().MakesFree {
 			output.WriteString(fmt.Sprintf(
-				"%s\n    Cost: %s\n",
-				RenderCard(crd),
-				strings.Join(costStrs, render.Colour("  or  ", render.Gray)),
+				"    Makes free: %s\n",
+				RenderCard(Cards[f]),
 			))
-			for _, f := range crd.GetCard().MakesFree {
-				output.WriteString(fmt.Sprintf(
-					"    Makes free: %s\n",
-					RenderCard(Cards[f]),
-				))
-			}
-			output.WriteString("\n")
 		}
 		output.WriteString("\n")
 	}

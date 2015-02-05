@@ -1,6 +1,14 @@
 package seven_wonders
 
-import "github.com/Miniand/brdg.me/game/card"
+import (
+	"encoding/gob"
+
+	"github.com/Miniand/brdg.me/game/card"
+)
+
+func init() {
+	gob.Register(Card{})
+}
 
 type Carder interface {
 	card.Comparer
@@ -45,18 +53,19 @@ func NewCard(
 }
 
 func (c Card) Compare(other card.Comparer) (int, bool) {
-	oc, ok := other.(Card)
+	oc, ok := other.(Carder)
 	if !ok {
 		return 0, false
 	}
-	kindDiff := c.Kind - oc.Kind
+	otherCard := oc.GetCard()
+	kindDiff := c.Kind - otherCard.Kind
 	if kindDiff != 0 {
 		return kindDiff, true
 	}
 	switch {
-	case c.Name < oc.Name:
+	case c.Name < otherCard.Name:
 		return -1, true
-	case c.Name == oc.Name:
+	case c.Name == otherCard.Name:
 		return 0, true
 	default:
 		return 1, true

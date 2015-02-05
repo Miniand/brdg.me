@@ -1,6 +1,7 @@
 package seven_wonders
 
 import (
+	"encoding/gob"
 	"strings"
 
 	"github.com/Miniand/brdg.me/render"
@@ -23,6 +24,11 @@ var (
 	DirNeighbours = []int{DirLeft, DirRight}
 	DirSelf       = []int{DirDown}
 )
+
+func init() {
+	gob.Register(CardCommercialTrade{})
+	gob.Register(CardCommercialTavern{})
+}
 
 type CardCommercialTrade struct {
 	Card

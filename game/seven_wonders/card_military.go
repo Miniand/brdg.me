@@ -1,9 +1,14 @@
 package seven_wonders
 
 import (
+	"encoding/gob"
 	"fmt"
 	"strings"
 )
+
+func init() {
+	gob.Register(CardMilitary{})
+}
 
 type CardMilitary struct {
 	Card

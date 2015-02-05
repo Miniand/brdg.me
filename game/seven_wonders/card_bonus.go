@@ -1,6 +1,13 @@
 package seven_wonders
 
-import "strings"
+import (
+	"encoding/gob"
+	"strings"
+)
+
+func init() {
+	gob.Register(CardBonus{})
+}
 
 type CardBonus struct {
 	Card
