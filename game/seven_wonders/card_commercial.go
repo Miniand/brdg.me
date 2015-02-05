@@ -1,7 +1,5 @@
 package seven_wonders
 
-import "github.com/Miniand/brdg.me/game/card"
-
 const (
 	DirLeft  = -1
 	DirDown  = 0
@@ -25,49 +23,26 @@ func NewCardCommercialTrade(
 	cost Cost,
 	directions, goods []int,
 	freeWith, makesFree []string,
-	players ...int,
-) card.Deck {
-	d := card.Deck{}
-	for _, c := range NewCard(
-		name,
-		CardKindCommercial,
-		cost,
-		freeWith,
-		makesFree,
-		players...,
-	) {
-		d = d.Push(CardCommercialTrade{
-			c.(Card),
-			directions,
-			goods,
-		})
+) CardCommercialTrade {
+	if directions == nil || len(directions) == 0 {
+		panic("no directions")
 	}
-	return d
-}
-
-func (c CardCommercialTrade) GetCard() Card {
-	return c.Card
+	if goods == nil || len(goods) == 0 {
+		panic("no goods")
+	}
+	return CardCommercialTrade{
+		NewCard(name, CardKindCommercial, cost, freeWith, makesFree),
+		directions,
+		goods,
+	}
 }
 
 type CardCommercialTavern struct {
 	Card
 }
 
-func NewCardCommercialTavern(players ...int) card.Deck {
-	d := card.Deck{}
-	for _, c := range NewCard(
-		CardTavern,
-		CardKindCommercial,
-		nil,
-		nil,
-		nil,
-		players...,
-	) {
-		d = d.Push(CardCommercialTavern{c.(Card)})
+func NewCardCommercialTavern() CardCommercialTavern {
+	return CardCommercialTavern{
+		NewCard(CardTavern, CardKindCommercial, nil, nil, nil),
 	}
-	return d
-}
-
-func (c CardCommercialTavern) GetCard() Card {
-	return c.Card
 }

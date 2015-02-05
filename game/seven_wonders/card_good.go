@@ -1,7 +1,5 @@
 package seven_wonders
 
-import "github.com/Miniand/brdg.me/game/card"
-
 type CardGood struct {
 	Card
 	Goods  []int
@@ -15,31 +13,15 @@ func NewCardGood(
 	goods []int,
 	amount int,
 	freeWith, makesFree []string,
-	players ...int,
-) card.Deck {
-	d := card.Deck{}
+) CardGood {
 	if goods == nil || len(goods) == 0 {
 		panic("no goods")
 	}
-	for _, c := range NewCard(
-		name,
-		kind,
-		cost,
-		freeWith,
-		makesFree,
-		players...,
-	) {
-		d = d.Push(CardGood{
-			c.(Card),
-			goods,
-			amount,
-		})
+	return CardGood{
+		NewCard(name, kind, cost, freeWith, makesFree),
+		goods,
+		amount,
 	}
-	return d
-}
-
-func (c CardGood) GetCard() Card {
-	return c.Card
 }
 
 func NewCardGoodRaw(
@@ -47,8 +29,7 @@ func NewCardGoodRaw(
 	cost Cost,
 	goods []int,
 	amount int,
-	players ...int,
-) card.Deck {
+) CardGood {
 	return NewCardGood(
 		name,
 		CardKindRaw,
@@ -57,7 +38,6 @@ func NewCardGoodRaw(
 		amount,
 		nil,
 		nil,
-		players...,
 	)
 }
 
@@ -66,8 +46,7 @@ func NewCardGoodManufactured(
 	cost Cost,
 	goods []int,
 	amount int,
-	players ...int,
-) card.Deck {
+) CardGood {
 	return NewCardGood(
 		name,
 		CardKindManufactured,
@@ -76,7 +55,6 @@ func NewCardGoodManufactured(
 		amount,
 		nil,
 		nil,
-		players...,
 	)
 }
 
@@ -86,8 +64,7 @@ func NewCardGoodCommercial(
 	goods []int,
 	amount int,
 	freeWith, makesFree []string,
-	players ...int,
-) card.Deck {
+) CardGood {
 	return NewCardGood(
 		name,
 		CardKindCommercial,
@@ -96,6 +73,5 @@ func NewCardGoodCommercial(
 		amount,
 		freeWith,
 		makesFree,
-		players...,
 	)
 }

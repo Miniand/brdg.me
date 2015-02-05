@@ -3,18 +3,23 @@ package seven_wonders
 import "github.com/Miniand/brdg.me/game/card"
 
 type Carder interface {
+	card.Comparer
 	GetCard() Card
+}
+
+type CardForPlayers struct {
+	Card    string
+	Players []int
 }
 
 type Cost map[int]int
 
 type Card struct {
-	Name       string
-	Kind       int
-	Cost       Cost
-	FreeWith   []string
-	MakesFree  []string
-	MinPlayers int
+	Name      string
+	Kind      int
+	Cost      Cost
+	FreeWith  []string
+	MakesFree []string
 }
 
 func NewCard(
@@ -22,9 +27,7 @@ func NewCard(
 	kind int,
 	cost Cost,
 	freeWith, makesFree []string,
-	players ...int,
-) card.Deck {
-	d := card.Deck{}
+) Card {
 	if cost == nil {
 		cost = Cost{}
 	}
@@ -34,17 +37,13 @@ func NewCard(
 	if makesFree == nil {
 		makesFree = []string{}
 	}
-	for _, p := range players {
-		d = d.Push(Card{
-			name,
-			kind,
-			cost,
-			freeWith,
-			makesFree,
-			p,
-		})
+	return Card{
+		name,
+		kind,
+		cost,
+		freeWith,
+		makesFree,
 	}
-	return d
 }
 
 func (c Card) Compare(other card.Comparer) (int, bool) {
@@ -64,4 +63,8 @@ func (c Card) Compare(other card.Comparer) (int, bool) {
 	default:
 		return 1, true
 	}
+}
+
+func (c Card) GetCard() Card {
+	return c
 }

@@ -90,10 +90,10 @@ func RenderCardName(c Carder) string {
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	output := bytes.NewBuffer([]byte{})
 	for _, d := range []card.Deck{
-		DeckAge1(),
-		DeckAge2(),
-		DeckAge3(),
-		DeckGuild(),
+		DeckAge1(7),
+		DeckAge2(7),
+		DeckAge3(7),
+		DeckGuild,
 	} {
 		for _, c := range d {
 			output.WriteString(fmt.Sprintf("%s\n", RenderCardName(c.(Carder))))

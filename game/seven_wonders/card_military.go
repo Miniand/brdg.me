@@ -1,7 +1,5 @@
 package seven_wonders
 
-import "github.com/Miniand/brdg.me/game/card"
-
 type CardMilitary struct {
 	Card
 	Strength int
@@ -12,25 +10,9 @@ func NewCardMilitary(
 	cost Cost,
 	strength int,
 	freeWith, makesFree []string,
-	players ...int,
-) card.Deck {
-	d := card.Deck{}
-	for _, c := range NewCard(
-		name,
-		CardKindMilitary,
-		cost,
-		freeWith,
-		makesFree,
-		players...,
-	) {
-		d = d.Push(CardMilitary{
-			c.(Card),
-			strength,
-		})
+) CardMilitary {
+	return CardMilitary{
+		NewCard(name, CardKindMilitary, cost, freeWith, makesFree),
+		strength,
 	}
-	return d
-}
-
-func (c CardMilitary) GetCard() Card {
-	return c.Card
 }
