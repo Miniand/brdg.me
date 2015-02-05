@@ -1,5 +1,7 @@
 package seven_wonders
 
+import "strings"
+
 type CardBonus struct {
 	Card
 	TargetKinds []int
@@ -29,4 +31,22 @@ func NewCardBonus(
 		vp,
 		coins,
 	}
+}
+
+func (c CardBonus) SuppString() string {
+	reward := []string{}
+	if c.VP > 0 {
+		reward = append(reward, RenderVP(c.VP))
+	}
+	if c.Coins > 0 {
+		reward = append(reward, RenderMoney(c.Coins))
+	}
+	parts := []string{
+		strings.Join(reward, " and "),
+		"for each",
+		RenderResourceList(c.TargetKinds, " "),
+		"owned by",
+		RenderDirections(c.Directions),
+	}
+	return strings.Join(parts, " ")
 }

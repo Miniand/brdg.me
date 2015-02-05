@@ -16,3 +16,7 @@ func NewCardCivilian(
 		vp,
 	}
 }
+
+func (c CardCivilian) SuppString() string {
+	return RenderVP(c.VP)
+}

@@ -12,8 +12,6 @@ type CardForPlayers struct {
 	Players []int
 }
 
-type Cost map[int]int
-
 type Card struct {
 	Name      string
 	Kind      int

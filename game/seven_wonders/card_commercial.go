@@ -1,10 +1,22 @@
 package seven_wonders
 
+import (
+	"strings"
+
+	"github.com/Miniand/brdg.me/render"
+)
+
 const (
 	DirLeft  = -1
 	DirDown  = 0
 	DirRight = 1
 )
+
+var DirStrings = map[int]string{
+	DirLeft:  render.Bold("<"),
+	DirDown:  render.Bold("v"),
+	DirRight: render.Bold(">"),
+}
 
 var (
 	DirAll        = []int{DirLeft, DirDown, DirRight}
@@ -37,6 +49,17 @@ func NewCardCommercialTrade(
 	}
 }
 
+func (c CardCommercialTrade) SuppString() string {
+	parts := []string{
+		RenderMoney(1),
+		"for",
+		RenderResourceList(c.Goods, "/"),
+		"from",
+		RenderDirections(c.Directions),
+	}
+	return strings.Join(parts, " ")
+}
+
 type CardCommercialTavern struct {
 	Card
 }
@@ -45,4 +68,8 @@ func NewCardCommercialTavern() CardCommercialTavern {
 	return CardCommercialTavern{
 		NewCard(CardTavern, CardKindCommercial, nil, nil, nil),
 	}
+}
+
+func (c CardCommercialTavern) SuppString() string {
+	return RenderMoney(5)
 }

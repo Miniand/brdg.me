@@ -1,11 +1,5 @@
 package seven_wonders
 
-const (
-	FieldMathematics = iota
-	FieldEngineering
-	FieldTheology
-)
-
 var AllFields = []int{
 	FieldMathematics,
 	FieldEngineering,
@@ -27,4 +21,8 @@ func NewCardScience(
 		NewCard(name, CardKindScientific, cost, freeWith, makesFree),
 		[]int{field},
 	}
+}
+
+func (c CardScience) SuppString() string {
+	return RenderResourceList(c.Fields, "/")
 }

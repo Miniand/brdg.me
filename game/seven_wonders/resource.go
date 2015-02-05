@@ -18,10 +18,17 @@ const (
 	CardKindMilitary
 	CardKindGuild
 
+	FieldMathematics
+	FieldEngineering
+	FieldTheology
+
+	AttackStrength
 	TokenVictory
 	TokenDefeat
 
 	WonderStage
+
+	VP
 )
 
 var RawGoods = []int{

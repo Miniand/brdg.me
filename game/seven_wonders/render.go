@@ -3,6 +3,7 @@ package seven_wonders
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/render"
@@ -26,10 +27,17 @@ var ResourceColours = map[int]string{
 	CardKindMilitary:     render.Red,
 	CardKindGuild:        render.Magenta,
 
-	TokenVictory: render.Red,
-	TokenDefeat:  render.Gray,
+	FieldMathematics: render.Red,
+	FieldEngineering: render.Green,
+	FieldTheology:    render.Blue,
+
+	AttackStrength: render.Red,
+	TokenVictory:   render.Red,
+	TokenDefeat:    render.Gray,
 
 	WonderStage: render.Yellow,
+
+	VP: render.Green,
 }
 
 const (
@@ -37,7 +45,7 @@ const (
 )
 
 var ResourceSymbols = map[int]string{
-	GoodCoin:    "Co",
+	GoodCoin:    "$",
 	GoodWood:    "Wo",
 	GoodStone:   "St",
 	GoodOre:     "Or",
@@ -54,10 +62,17 @@ var ResourceSymbols = map[int]string{
 	CardKindMilitary:     CardSymbol,
 	CardKindGuild:        CardSymbol,
 
-	TokenVictory: "V",
-	TokenDefeat:  "X",
+	FieldMathematics: "Ma",
+	FieldEngineering: "En",
+	FieldTheology:    "Th",
+
+	AttackStrength: "X",
+	TokenVictory:   "V",
+	TokenDefeat:    "X",
 
 	WonderStage: "▲",
+
+	VP: "VP",
 }
 
 func String(in interface{}) string {
@@ -70,21 +85,40 @@ func String(in interface{}) string {
 	return fmt.Sprintf("%v", in)
 }
 
-func RenderResource(str interface{}, resource int, bold bool) string {
+func RenderResourceColour(str interface{}, resource int, bold bool) string {
 	return render.Markup(String(str), ResourceColours[resource], bold)
 }
 
 func RenderResourceSymbol(resource int) string {
-	return RenderResource(ResourceSymbols[resource], resource, true)
+	return RenderResourceColour(ResourceSymbols[resource], resource, true)
+}
+
+func RenderResourceWithSymbol(text string, resource int) string {
+	return RenderResourceColour(
+		fmt.Sprintf("%s%s", text, ResourceSymbols[resource]),
+		resource,
+		true,
+	)
 }
 
 func RenderCardName(c Carder) string {
 	ca := c.GetCard()
-	return RenderResource(
-		fmt.Sprintf("%s %s", ResourceSymbols[ca.Kind], ca.Name),
-		ca.Kind,
-		true,
-	)
+	return strings.Join([]string{
+		RenderResourceSymbol(ca.Kind),
+		ca.Name,
+	}, " ")
+}
+
+type SuppStringer interface {
+	SuppString() string
+}
+
+func RenderCard(c Carder) string {
+	parts := []string{RenderCardName(c.(Carder))}
+	if ss, ok := c.(SuppStringer); ok {
+		parts = append(parts, ss.SuppString())
+	}
+	return strings.Join(parts, "  ")
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
@@ -96,8 +130,81 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		DeckGuild,
 	} {
 		for _, c := range d {
-			output.WriteString(fmt.Sprintf("%s\n", RenderCardName(c.(Carder))))
+			crd := c.(Carder)
+			costStrs := []string{crd.GetCard().Cost.String()}
+			for _, f := range crd.GetCard().FreeWith {
+				costStrs = append(costStrs, RenderCardName(Cards[f]))
+			}
+			output.WriteString(fmt.Sprintf(
+				"%s\n    Cost: %s\n",
+				RenderCard(crd),
+				strings.Join(costStrs, render.Colour("  or  ", render.Gray)),
+			))
+			for _, f := range crd.GetCard().MakesFree {
+				output.WriteString(fmt.Sprintf(
+					"    Makes free: %s\n",
+					RenderCard(Cards[f]),
+				))
+			}
+			output.WriteString("\n")
 		}
+		output.WriteString("\n")
 	}
 	return output.String(), nil
+}
+
+func RenderMoney(n int) string {
+	return RenderResourceColour(
+		fmt.Sprintf("%s%d", ResourceSymbols[GoodCoin], n),
+		GoodCoin,
+		true,
+	)
+}
+
+func RenderVP(n int) string {
+	return RenderResourceWithSymbol(
+		fmt.Sprintf("%d ", n),
+		VP,
+	)
+}
+
+func RenderResourceList(goods []int, sep string) string {
+	goodStrs := []string{}
+	for _, g := range goods {
+		goodStrs = append(goodStrs, RenderResourceSymbol(g))
+	}
+	return strings.Join(goodStrs, sep)
+}
+
+func RenderDirections(directions []int) string {
+	dirStrs := []string{}
+	for _, d := range directions {
+		dirStrs = append(dirStrs, DirStrings[d])
+	}
+	return render.Bold(strings.Join(dirStrs, " "))
+}
+
+func (c Cost) String() string {
+	if len(c) == 0 {
+		return "free"
+	}
+	n := 0
+	l := len(c)
+	count := 0
+	parts := []string{}
+	for count < l {
+		if amount, ok := c[n]; ok {
+			switch n {
+			case GoodCoin:
+				parts = append(parts, RenderMoney(amount))
+			default:
+				for i := 0; i < amount; i++ {
+					parts = append(parts, RenderResourceSymbol(n))
+				}
+			}
+			count++
+		}
+		n++
+	}
+	return strings.Join(parts, " ")
 }

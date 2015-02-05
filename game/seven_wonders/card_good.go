@@ -1,5 +1,10 @@
 package seven_wonders
 
+import (
+	"fmt"
+	"strings"
+)
+
 type CardGood struct {
 	Card
 	Goods  []int
@@ -74,4 +79,15 @@ func NewCardGoodCommercial(
 		freeWith,
 		makesFree,
 	)
+}
+
+func (c CardGood) SuppString() string {
+	parts := []string{}
+	for _, g := range c.Goods {
+		parts = append(parts, strings.TrimSpace(strings.Repeat(
+			fmt.Sprintf("%s ", RenderResourceSymbol(g)),
+			c.Amount,
+		)))
+	}
+	return strings.Join(parts, "/")
 }
