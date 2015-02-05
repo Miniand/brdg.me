@@ -2,6 +2,7 @@ package email
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"mime/multipart"
 	"net/smtp"
@@ -42,25 +43,34 @@ func SendRichMail(to []string, subject string, body string,
 	data := multipart.NewWriter(buf)
 	// Write plain version
 	plainW, err := data.CreatePart(textproto.MIMEHeader{
-		"Content-Type": []string{"text/plain"},
+		"Content-Type":              []string{"text/plain"},
+		"Content-Transfer-Encoding": []string{"base64"},
 	})
 	if err != nil {
 		return err
 	}
-	_, err = plainW.Write([]byte(terminalOutput))
+	src := []byte(terminalOutput)
+	dst := make([]byte, base64.StdEncoding.EncodedLen(len(src)))
+	base64.StdEncoding.Encode(dst, src)
+	_, err = plainW.Write(dst)
 	if err != nil {
 		return err
 	}
 	// Write HTML version
 	htmlW, err := data.CreatePart(textproto.MIMEHeader{
-		"Content-Type": []string{`text/html; charset="UTF-8"`},
+		"Content-Type":              []string{`text/html; charset="UTF-8"`},
+		"Content-Transfer-Encoding": []string{"base64"},
 	})
 	if err != nil {
 		return err
 	}
-	_, err = htmlW.Write([]byte(fmt.Sprintf(
+	src = []byte(fmt.Sprintf(
 		`<pre style="font-size:13px;line-height:17px;font-family:DejaVu Sans Mono,monospace,Segoe UI Symbol;white-space:pre-wrap;">%s`,
-		htmlOutput)))
+		htmlOutput,
+	))
+	dst = make([]byte, base64.StdEncoding.EncodedLen(len(src)))
+	base64.StdEncoding.Encode(dst, src)
+	_, err = htmlW.Write(dst)
 	if err != nil {
 		return err
 	}
