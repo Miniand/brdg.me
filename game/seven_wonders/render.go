@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math/rand"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Miniand/brdg.me/render"
 )
@@ -44,8 +47,16 @@ const (
 	CardSymbol = "##"
 )
 
+var CanBuySymbol = render.Markup("✔", render.Green, true)
+var CanBuyWithCoinSymbol = render.Markup(
+	ResourceSymbols[GoodCoin],
+	render.Yellow,
+	true,
+)
+var CannotBuySymbol = render.Markup("✘", render.Red, true)
+
 var ResourceSymbols = map[int]string{
-	GoodCoin:    "$",
+	GoodCoin:    "●",
 	GoodWood:    "Wo",
 	GoodStone:   "St",
 	GoodOre:     "Or",
@@ -127,20 +138,36 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	output := bytes.NewBuffer([]byte{})
-	for _, c := range g.Hands[pNum].Sort() {
+	for i, c := range g.Hands[pNum].Sort() {
 		crd := c.(Carder)
 		costStrs := []string{crd.GetCard().Cost.String()}
 		for _, f := range crd.GetCard().FreeWith {
 			costStrs = append(costStrs, RenderCardName(Cards[f]))
 		}
+		afford := "  "
+		switch rand.New(rand.NewSource(time.Now().UnixNano())).Int() % 4 {
+		case 0:
+			afford = fmt.Sprintf("%s ", CanBuySymbol)
+		case 1:
+			afford = RenderMoney(1)
+		case 2:
+			afford = fmt.Sprintf("%s ", CannotBuySymbol)
+		}
 		output.WriteString(fmt.Sprintf(
-			"%s\n    Cost: %s\n",
+			"(%s) %s %s\n          Cost: %s\n",
+			render.Markup(strconv.Itoa(i+1), render.Gray, true),
+			afford,
 			RenderCard(crd),
 			strings.Join(costStrs, render.Colour("  or  ", render.Gray)),
 		))
-		for _, f := range crd.GetCard().MakesFree {
+		for fi, f := range crd.GetCard().MakesFree {
+			prefix := "          Leads to: "
+			if fi > 0 {
+				prefix = "                    "
+			}
 			output.WriteString(fmt.Sprintf(
-				"    Makes free: %s\n",
+				"%s%s\n",
+				prefix,
 				RenderCard(Cards[f]),
 			))
 		}
@@ -150,16 +177,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 }
 
 func RenderMoney(n int) string {
-	return RenderResourceColour(
-		fmt.Sprintf("%s%d", ResourceSymbols[GoodCoin], n),
+	return RenderResourceWithSymbol(
+		fmt.Sprintf("%d", n),
 		GoodCoin,
-		true,
 	)
 }
 
 func RenderVP(n int) string {
 	return RenderResourceWithSymbol(
-		fmt.Sprintf("%d ", n),
+		fmt.Sprintf("%d", n),
 		VP,
 	)
 }
@@ -182,7 +208,7 @@ func RenderDirections(directions []int) string {
 
 func (c Cost) String() string {
 	if len(c) == 0 {
-		return "free"
+		return render.Markup("free", render.Gray, true)
 	}
 	n := 0
 	l := len(c)
