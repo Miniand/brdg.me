@@ -1,4 +1,4 @@
-package seven_wonders
+package cost
 
 type Cost map[int]int
 
@@ -36,6 +36,7 @@ func (c Cost) Sub(oc Cost) Cost {
 
 // SignSplit breaks down a cost into positive and negative components.
 func (c Cost) SignSplit() (pos, neg Cost) {
+	pos, neg = Cost{}, Cost{}
 	for k, v := range c {
 		switch {
 		case v > 0:
