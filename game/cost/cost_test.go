@@ -9,6 +9,9 @@ import (
 const (
 	TestRes1 = iota
 	TestRes2
+	TestRes3
+	TestRes4
+	TestRes5
 )
 
 func TestCost_Clone(t *testing.T) {
@@ -69,7 +72,7 @@ func TestCost_SignSplit(t *testing.T) {
 		TestRes1: 4,
 		TestRes2: -5,
 	}
-	pos, neg := c.SignSplit()
+	pos, neg := c.PosNeg()
 	assert.Equal(t, Cost{
 		TestRes1: 4,
 	}, pos)

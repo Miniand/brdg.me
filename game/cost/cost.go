@@ -34,8 +34,8 @@ func (c Cost) Sub(oc Cost) Cost {
 	return c.Add(oc.Inv())
 }
 
-// SignSplit breaks down a cost into positive and negative components.
-func (c Cost) SignSplit() (pos, neg Cost) {
+// PosNeg breaks down a cost into positive and negative components.
+func (c Cost) PosNeg() (pos, neg Cost) {
 	pos, neg = Cost{}, Cost{}
 	for k, v := range c {
 		switch {
@@ -50,14 +50,14 @@ func (c Cost) SignSplit() (pos, neg Cost) {
 
 // CanAfford returns whether the cost can afford another cost.
 func (c Cost) CanAfford(oc Cost) bool {
-	_, neg := c.Sub(oc).SignSplit()
+	_, neg := c.Sub(oc).PosNeg()
 	return len(neg) == 0
 }
 
 // Take returns a new Cost with only the specified keys.
 func (c Cost) Take(keys ...int) Cost {
 	nc := Cost{}
-	for k := range keys {
+	for _, k := range keys {
 		nc[k] = c[k]
 	}
 	return nc
@@ -72,6 +72,38 @@ func (c Cost) Drop(keys ...int) Cost {
 	nc := Cost{}
 	for k, v := range c {
 		if !dm[k] {
+			nc[k] = v
+		}
+	}
+	return nc
+}
+
+// Keys gets all keys for non-zero values.
+func (c Cost) Keys() []int {
+	keys := []int{}
+	for k, v := range c {
+		if v != 0 {
+			keys = append(keys, k)
+		}
+	}
+	return keys
+}
+
+// IsZero returns whether this cost only contains zero values.
+func (c Cost) IsZero() bool {
+	for _, v := range c {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// Trim removes any zero values.
+func (c Cost) Trim() Cost {
+	nc := Cost{}
+	for k, v := range c {
+		if v != 0 {
 			nc[k] = v
 		}
 	}
