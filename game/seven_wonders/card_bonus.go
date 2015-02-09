@@ -3,6 +3,8 @@ package seven_wonders
 import (
 	"encoding/gob"
 	"strings"
+
+	"github.com/Miniand/brdg.me/game/cost"
 )
 
 func init() {
@@ -20,7 +22,7 @@ type CardBonus struct {
 func NewCardBonus(
 	name string,
 	kind int,
-	cost Cost,
+	cost cost.Cost,
 	targetKinds, directions []int,
 	vp, coins int,
 	freeWith, makesFree []string,

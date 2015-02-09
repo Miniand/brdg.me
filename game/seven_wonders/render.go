@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/render"
 )
 
@@ -140,7 +141,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output := bytes.NewBuffer([]byte{})
 	for i, c := range g.Hands[pNum].Sort() {
 		crd := c.(Carder)
-		costStrs := []string{crd.GetCard().Cost.String()}
+		costStrs := []string{CostString(crd.GetCard().Cost)}
 		for _, f := range crd.GetCard().FreeWith {
 			costStrs = append(costStrs, RenderCardName(Cards[f]))
 		}
@@ -206,7 +207,7 @@ func RenderDirections(directions []int) string {
 	return render.Bold(strings.Join(dirStrs, " "))
 }
 
-func (c Cost) String() string {
+func CostString(c cost.Cost) string {
 	if len(c) == 0 {
 		return render.Markup("free", render.Gray, true)
 	}

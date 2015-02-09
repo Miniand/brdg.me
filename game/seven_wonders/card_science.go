@@ -1,6 +1,10 @@
 package seven_wonders
 
-import "encoding/gob"
+import (
+	"encoding/gob"
+
+	"github.com/Miniand/brdg.me/game/cost"
+)
 
 var AllFields = []int{
 	FieldMathematics,
@@ -19,7 +23,7 @@ type CardScience struct {
 
 func NewCardScience(
 	name string,
-	cost Cost,
+	cost cost.Cost,
 	field int,
 	freeWith, makesFree []string,
 ) CardScience {

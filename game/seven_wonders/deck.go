@@ -1,6 +1,9 @@
 package seven_wonders
 
-import "github.com/Miniand/brdg.me/game/card"
+import (
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/cost"
+)
 
 var Cards = map[string]Carder{
 	// Age 1
@@ -10,22 +13,22 @@ var Cards = map[string]Carder{
 	CardStonePit:   NewCardGoodRaw(CardStonePit, nil, []int{GoodStone}, 1),
 	CardClayPool:   NewCardGoodRaw(CardClayPool, nil, []int{GoodClay}, 1),
 	CardOreVein:    NewCardGoodRaw(CardOreVein, nil, []int{GoodOre}, 1),
-	CardTreeFarm: NewCardGoodRaw(CardTreeFarm, Cost{
+	CardTreeFarm: NewCardGoodRaw(CardTreeFarm, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodWood, GoodClay}, 1),
-	CardExcavation: NewCardGoodRaw(CardExcavation, Cost{
+	CardExcavation: NewCardGoodRaw(CardExcavation, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodStone, GoodClay}, 1),
-	CardClayPit: NewCardGoodRaw(CardClayPit, Cost{
+	CardClayPit: NewCardGoodRaw(CardClayPit, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodClay, GoodOre}, 1),
-	CardTimberYard: NewCardGoodRaw(CardTimberYard, Cost{
+	CardTimberYard: NewCardGoodRaw(CardTimberYard, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodStone, GoodWood}, 1),
-	CardForestCave: NewCardGoodRaw(CardForestCave, Cost{
+	CardForestCave: NewCardGoodRaw(CardForestCave, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodWood, GoodOre}, 1),
-	CardMine: NewCardGoodRaw(CardMine, Cost{
+	CardMine: NewCardGoodRaw(CardMine, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodStone, GoodOre}, 1),
 
@@ -36,7 +39,7 @@ var Cards = map[string]Carder{
 
 	// Civilian structures
 	CardPawnshop: NewCardCivilian(CardPawnshop, nil, 3, nil, nil),
-	CardBaths: NewCardCivilian(CardBaths, Cost{
+	CardBaths: NewCardCivilian(CardBaths, cost.Cost{
 		GoodStone: 1,
 	}, 3, nil, []string{CardAqueduct}),
 	CardAltar:   NewCardCivilian(CardAltar, nil, 2, nil, []string{CardTemple}),
@@ -70,30 +73,30 @@ var Cards = map[string]Carder{
 	),
 
 	// Military structures
-	CardStockade: NewCardMilitary(CardStockade, Cost{
+	CardStockade: NewCardMilitary(CardStockade, cost.Cost{
 		GoodWood: 1,
 	}, 1, nil, nil),
-	CardBarracks: NewCardMilitary(CardBarracks, Cost{
+	CardBarracks: NewCardMilitary(CardBarracks, cost.Cost{
 		GoodOre: 1,
 	}, 1, nil, nil),
-	CardGuardTower: NewCardMilitary(CardGuardTower, Cost{
+	CardGuardTower: NewCardMilitary(CardGuardTower, cost.Cost{
 		GoodClay: 1,
 	}, 1, nil, nil),
 
 	// Scientific structures
-	CardApothecary: NewCardScience(CardApothecary, Cost{
+	CardApothecary: NewCardScience(CardApothecary, cost.Cost{
 		GoodTextile: 1,
 	}, FieldMathematics, nil, []string{
 		CardStables,
 		CardDispensary,
 	}),
-	CardWorkshop: NewCardScience(CardWorkshop, Cost{
+	CardWorkshop: NewCardScience(CardWorkshop, cost.Cost{
 		GoodGlass: 1,
 	}, FieldEngineering, nil, []string{
 		CardLaboratory,
 		CardArcheryRange,
 	}),
-	CardScriptorium: NewCardScience(CardScriptorium, Cost{
+	CardScriptorium: NewCardScience(CardScriptorium, cost.Cost{
 		GoodPapyrus: 1,
 	}, FieldTheology, nil, []string{
 		CardCourthouse,
@@ -103,45 +106,45 @@ var Cards = map[string]Carder{
 	// Age 2
 
 	// Raw goods
-	CardSawmill: NewCardGoodRaw(CardSawmill, Cost{
+	CardSawmill: NewCardGoodRaw(CardSawmill, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodWood}, 2),
-	CardQuarry: NewCardGoodRaw(CardQuarry, Cost{
+	CardQuarry: NewCardGoodRaw(CardQuarry, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodStone}, 2),
-	CardBrickyard: NewCardGoodRaw(CardBrickyard, Cost{
+	CardBrickyard: NewCardGoodRaw(CardBrickyard, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodClay}, 2),
-	CardFoundry: NewCardGoodRaw(CardFoundry, Cost{
+	CardFoundry: NewCardGoodRaw(CardFoundry, cost.Cost{
 		GoodCoin: 1,
 	}, []int{GoodOre}, 2),
 
 	// Civilian structures
-	CardAqueduct: NewCardCivilian(CardAqueduct, Cost{
+	CardAqueduct: NewCardCivilian(CardAqueduct, cost.Cost{
 		GoodStone: 3,
 	}, 5, []string{CardBaths}, nil),
-	CardTemple: NewCardCivilian(CardTemple, Cost{
+	CardTemple: NewCardCivilian(CardTemple, cost.Cost{
 		GoodWood:  1,
 		GoodClay:  1,
 		GoodGlass: 1,
 	}, 3, []string{CardAltar}, []string{CardPantheon}),
-	CardStatue: NewCardCivilian(CardStatue, Cost{
+	CardStatue: NewCardCivilian(CardStatue, cost.Cost{
 		GoodOre:  2,
 		GoodWood: 1,
 	}, 4, []string{CardTheater}, []string{CardGardens}),
-	CardCourthouse: NewCardCivilian(CardCourthouse, Cost{
+	CardCourthouse: NewCardCivilian(CardCourthouse, cost.Cost{
 		GoodClay:    2,
 		GoodTextile: 1,
 	}, 4, []string{CardScriptorium}, nil),
 
 	// Commercial structures
-	CardForum: NewCardGoodCommercial(CardForum, Cost{
+	CardForum: NewCardGoodCommercial(CardForum, cost.Cost{
 		GoodClay: 2,
 	}, ManufacturedGoods, 1, []string{
 		CardEastTradingPost,
 		CardWestTradingPost,
 	}, []string{CardHaven}),
-	CardCaravansery: NewCardGoodCommercial(CardCaravansery, Cost{
+	CardCaravansery: NewCardGoodCommercial(CardCaravansery, cost.Cost{
 		GoodWood: 2,
 	}, RawGoods, 1, []string{CardMarketplace}, []string{CardLighthouse}),
 	CardVineyard: NewCardBonus(CardVineyard, CardKindCommercial, nil, []int{
@@ -152,46 +155,46 @@ var Cards = map[string]Carder{
 	}, DirAll, 0, 2, nil, nil),
 
 	// Military structures
-	CardWalls: NewCardMilitary(CardWalls, Cost{
+	CardWalls: NewCardMilitary(CardWalls, cost.Cost{
 		GoodStone: 3,
 	}, 2, nil, []string{CardFortifications}),
-	CardTrainingGround: NewCardMilitary(CardTrainingGround, Cost{
+	CardTrainingGround: NewCardMilitary(CardTrainingGround, cost.Cost{
 		GoodOre:  2,
 		GoodWood: 1,
 	}, 2, nil, []string{CardCircus}),
-	CardStables: NewCardMilitary(CardStables, Cost{
+	CardStables: NewCardMilitary(CardStables, cost.Cost{
 		GoodClay: 1,
 		GoodWood: 1,
 		GoodOre:  1,
 	}, 2, []string{CardApothecary}, nil),
-	CardArcheryRange: NewCardMilitary(CardArcheryRange, Cost{
+	CardArcheryRange: NewCardMilitary(CardArcheryRange, cost.Cost{
 		GoodWood: 2,
 		GoodOre:  1,
 	}, 2, []string{CardWorkshop}, nil),
 
 	// Scientific structures
-	CardDispensary: NewCardScience(CardDispensary, Cost{
+	CardDispensary: NewCardScience(CardDispensary, cost.Cost{
 		GoodOre:   2,
 		GoodGlass: 1,
 	}, FieldMathematics, []string{CardApothecary}, []string{
 		CardLodge,
 		CardArena,
 	}),
-	CardLaboratory: NewCardScience(CardLaboratory, Cost{
+	CardLaboratory: NewCardScience(CardLaboratory, cost.Cost{
 		GoodClay:    2,
 		GoodPapyrus: 1,
 	}, FieldEngineering, []string{CardWorkshop}, []string{
 		CardObservatory,
 		CardSiegeWorkshop,
 	}),
-	CardLibrary: NewCardScience(CardLibrary, Cost{
+	CardLibrary: NewCardScience(CardLibrary, cost.Cost{
 		GoodStone:   2,
 		GoodTextile: 1,
 	}, FieldTheology, []string{CardScriptorium}, []string{
 		CardSenate,
 		CardUniversity,
 	}),
-	CardSchool: NewCardScience(CardSchool, Cost{
+	CardSchool: NewCardScience(CardSchool, cost.Cost{
 		GoodWood:    1,
 		GoodPapyrus: 1,
 	}, FieldTheology, nil, []string{
@@ -202,23 +205,23 @@ var Cards = map[string]Carder{
 	// Age 3
 
 	// Civilian structures
-	CardPantheon: NewCardCivilian(CardPantheon, Cost{
+	CardPantheon: NewCardCivilian(CardPantheon, cost.Cost{
 		GoodClay:    2,
 		GoodOre:     1,
 		GoodGlass:   1,
 		GoodPapyrus: 1,
 		GoodTextile: 1,
 	}, 7, []string{CardTemple}, nil),
-	CardGardens: NewCardCivilian(CardGardens, Cost{
+	CardGardens: NewCardCivilian(CardGardens, cost.Cost{
 		GoodClay: 2,
 		GoodWood: 1,
 	}, 5, []string{CardStatue}, nil),
-	CardTownHall: NewCardCivilian(CardTownHall, Cost{
+	CardTownHall: NewCardCivilian(CardTownHall, cost.Cost{
 		GoodStone: 2,
 		GoodOre:   1,
 		GoodGlass: 1,
 	}, 6, nil, nil),
-	CardPalace: NewCardCivilian(CardPalace, Cost{
+	CardPalace: NewCardCivilian(CardPalace, cost.Cost{
 		GoodStone:   1,
 		GoodOre:     1,
 		GoodWood:    1,
@@ -227,29 +230,29 @@ var Cards = map[string]Carder{
 		GoodPapyrus: 1,
 		GoodTextile: 1,
 	}, 8, nil, nil),
-	CardSenate: NewCardCivilian(CardSenate, Cost{
+	CardSenate: NewCardCivilian(CardSenate, cost.Cost{
 		GoodWood:  2,
 		GoodStone: 1,
 		GoodOre:   1,
 	}, 6, []string{CardLibrary}, nil),
 
 	// Commercial structures
-	CardHaven: NewCardBonus(CardHaven, CardKindCommercial, Cost{
+	CardHaven: NewCardBonus(CardHaven, CardKindCommercial, cost.Cost{
 		GoodWood:    1,
 		GoodOre:     1,
 		GoodTextile: 1,
 	}, []int{CardKindRaw}, DirSelf, 1, 1, []string{CardForum}, nil),
-	CardLighthouse: NewCardBonus(CardLighthouse, CardKindCommercial, Cost{
+	CardLighthouse: NewCardBonus(CardLighthouse, CardKindCommercial, cost.Cost{
 		GoodStone: 1,
 		GoodGlass: 1,
 	}, []int{CardKindCommercial}, DirSelf, 1, 1, []string{
 		CardCaravansery,
 	}, nil),
-	CardChamberOfCommerce: NewCardBonus(CardChamberOfCommerce, CardKindCommercial, Cost{
+	CardChamberOfCommerce: NewCardBonus(CardChamberOfCommerce, CardKindCommercial, cost.Cost{
 		GoodClay:    2,
 		GoodPapyrus: 1,
 	}, []int{CardKindManufactured}, DirSelf, 2, 2, nil, nil),
-	CardArena: NewCardBonus(CardArena, CardKindCommercial, Cost{
+	CardArena: NewCardBonus(CardArena, CardKindCommercial, cost.Cost{
 		GoodStone: 2,
 		GoodOre:   1,
 	}, []int{WonderStage}, DirSelf, 1, 3, []string{
@@ -257,45 +260,45 @@ var Cards = map[string]Carder{
 	}, nil),
 
 	// Military structures
-	CardFortifications: NewCardMilitary(CardFortifications, Cost{
+	CardFortifications: NewCardMilitary(CardFortifications, cost.Cost{
 		GoodOre:   3,
 		GoodStone: 1,
 	}, 3, []string{CardWalls}, nil),
-	CardCircus: NewCardMilitary(CardCircus, Cost{
+	CardCircus: NewCardMilitary(CardCircus, cost.Cost{
 		GoodStone: 3,
 		GoodOre:   1,
 	}, 3, []string{CardTrainingGround}, nil),
-	CardArsenal: NewCardMilitary(CardArsenal, Cost{
+	CardArsenal: NewCardMilitary(CardArsenal, cost.Cost{
 		GoodWood:    2,
 		GoodOre:     1,
 		GoodTextile: 1,
 	}, 3, nil, nil),
-	CardSiegeWorkshop: NewCardMilitary(CardSiegeWorkshop, Cost{
+	CardSiegeWorkshop: NewCardMilitary(CardSiegeWorkshop, cost.Cost{
 		GoodClay: 3,
 		GoodWood: 1,
 	}, 3, []string{CardLaboratory}, nil),
 
 	// Scientific structures
-	CardLodge: NewCardScience(CardLodge, Cost{
+	CardLodge: NewCardScience(CardLodge, cost.Cost{
 		GoodClay:    2,
 		GoodPapyrus: 1,
 		GoodTextile: 1,
 	}, FieldMathematics, []string{CardDispensary}, nil),
-	CardObservatory: NewCardScience(CardObservatory, Cost{
+	CardObservatory: NewCardScience(CardObservatory, cost.Cost{
 		GoodOre:     2,
 		GoodGlass:   1,
 		GoodTextile: 1,
 	}, FieldEngineering, []string{CardLaboratory}, nil),
-	CardUniversity: NewCardScience(CardUniversity, Cost{
+	CardUniversity: NewCardScience(CardUniversity, cost.Cost{
 		GoodWood:    2,
 		GoodPapyrus: 1,
 		GoodGlass:   1,
 	}, FieldTheology, []string{CardLibrary}, nil),
-	CardAcademy: NewCardScience(CardAcademy, Cost{
+	CardAcademy: NewCardScience(CardAcademy, cost.Cost{
 		GoodStone: 3,
 		GoodGlass: 1,
 	}, FieldMathematics, []string{CardSchool}, nil),
-	CardStudy: NewCardScience(CardStudy, Cost{
+	CardStudy: NewCardScience(CardStudy, cost.Cost{
 		GoodWood:    1,
 		GoodPapyrus: 1,
 		GoodTextile: 1,
@@ -303,36 +306,36 @@ var Cards = map[string]Carder{
 
 	// Guilds
 
-	CardWorkersGuild: NewCardBonus(CardWorkersGuild, CardKindGuild, Cost{
+	CardWorkersGuild: NewCardBonus(CardWorkersGuild, CardKindGuild, cost.Cost{
 		GoodOre:   2,
 		GoodClay:  1,
 		GoodStone: 1,
 		GoodWood:  1,
 	}, []int{CardKindRaw}, DirNeighbours, 1, 0, nil, nil),
-	CardCraftsmensGuild: NewCardBonus(CardCraftsmensGuild, CardKindGuild, Cost{
+	CardCraftsmensGuild: NewCardBonus(CardCraftsmensGuild, CardKindGuild, cost.Cost{
 		GoodOre:   2,
 		GoodStone: 2,
 	}, []int{CardKindManufactured}, DirNeighbours, 2, 0, nil, nil),
-	CardTradersGuild: NewCardBonus(CardTradersGuild, CardKindGuild, Cost{
+	CardTradersGuild: NewCardBonus(CardTradersGuild, CardKindGuild, cost.Cost{
 		GoodGlass:   1,
 		GoodTextile: 1,
 		GoodPapyrus: 1,
 	}, []int{CardKindCommercial}, DirNeighbours, 1, 0, nil, nil),
-	CardPhilosophersGuild: NewCardBonus(CardPhilosophersGuild, CardKindGuild, Cost{
+	CardPhilosophersGuild: NewCardBonus(CardPhilosophersGuild, CardKindGuild, cost.Cost{
 		GoodClay:    3,
 		GoodPapyrus: 1,
 		GoodTextile: 1,
 	}, []int{CardKindScientific}, DirNeighbours, 1, 0, nil, nil),
-	CardSpiesGuild: NewCardBonus(CardSpiesGuild, CardKindGuild, Cost{
+	CardSpiesGuild: NewCardBonus(CardSpiesGuild, CardKindGuild, cost.Cost{
 		GoodClay:  3,
 		GoodGlass: 1,
 	}, []int{CardKindMilitary}, DirNeighbours, 1, 0, nil, nil),
-	CardStrategistsGuild: NewCardBonus(CardStrategistsGuild, CardKindGuild, Cost{
+	CardStrategistsGuild: NewCardBonus(CardStrategistsGuild, CardKindGuild, cost.Cost{
 		GoodOre:     2,
 		GoodStone:   1,
 		GoodTextile: 1,
 	}, []int{TokenDefeat}, DirNeighbours, 1, 0, nil, nil),
-	CardShipownersGuild: NewCardBonus(CardShipownersGuild, CardKindGuild, Cost{
+	CardShipownersGuild: NewCardBonus(CardShipownersGuild, CardKindGuild, cost.Cost{
 		GoodWood:    3,
 		GoodGlass:   1,
 		GoodPapyrus: 1,
@@ -345,7 +348,7 @@ var Cards = map[string]Carder{
 		Card{
 			CardScientistsGuild,
 			CardKindGuild,
-			Cost{
+			cost.Cost{
 				GoodWood:    2,
 				GoodOre:     2,
 				GoodPapyrus: 1,
@@ -355,12 +358,12 @@ var Cards = map[string]Carder{
 		},
 		AllFields,
 	},
-	CardMagistratesGuild: NewCardBonus(CardMagistratesGuild, CardKindGuild, Cost{
+	CardMagistratesGuild: NewCardBonus(CardMagistratesGuild, CardKindGuild, cost.Cost{
 		GoodWood:    3,
 		GoodStone:   1,
 		GoodTextile: 1,
 	}, []int{CardKindCivilian}, DirNeighbours, 1, 0, nil, nil),
-	CardBuildersGuild: NewCardBonus(CardBuildersGuild, CardKindGuild, Cost{
+	CardBuildersGuild: NewCardBonus(CardBuildersGuild, CardKindGuild, cost.Cost{
 		GoodStone: 2,
 		GoodClay:  2,
 		GoodGlass: 1,

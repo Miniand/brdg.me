@@ -103,3 +103,19 @@ func (g *Game) PlayerNum(player string) (int, bool) {
 func (g *Game) PlayerName(player int) string {
 	return render.PlayerName(player, g.Players[player])
 }
+
+func (g *Game) NumFromPlayer(player, n int) int {
+	newP := (player + n) % len(g.Players)
+	if newP < 0 {
+		newP += len(g.Players)
+	}
+	return newP
+}
+
+func (g *Game) PlayerLeft(player int) int {
+	return g.NumFromPlayer(player, DirLeft)
+}
+
+func (g *Game) PlayerRight(player int) int {
+	return g.NumFromPlayer(player, DirRight)
+}

@@ -1,6 +1,10 @@
 package seven_wonders
 
-import "encoding/gob"
+import (
+	"encoding/gob"
+
+	"github.com/Miniand/brdg.me/game/cost"
+)
 
 type CardCivilian struct {
 	Card
@@ -13,7 +17,7 @@ func init() {
 
 func NewCardCivilian(
 	name string,
-	cost Cost,
+	cost cost.Cost,
 	vp int,
 	freeWith, makesFree []string,
 ) CardCivilian {

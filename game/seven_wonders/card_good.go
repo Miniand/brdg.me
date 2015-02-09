@@ -4,6 +4,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"strings"
+
+	"github.com/Miniand/brdg.me/game/cost"
 )
 
 func init() {
@@ -19,7 +21,7 @@ type CardGood struct {
 func NewCardGood(
 	name string,
 	kind int,
-	cost Cost,
+	cost cost.Cost,
 	goods []int,
 	amount int,
 	freeWith, makesFree []string,
@@ -36,7 +38,7 @@ func NewCardGood(
 
 func NewCardGoodRaw(
 	name string,
-	cost Cost,
+	cost cost.Cost,
 	goods []int,
 	amount int,
 ) CardGood {
@@ -53,7 +55,7 @@ func NewCardGoodRaw(
 
 func NewCardGoodManufactured(
 	name string,
-	cost Cost,
+	cost cost.Cost,
 	goods []int,
 	amount int,
 ) CardGood {
@@ -70,7 +72,7 @@ func NewCardGoodManufactured(
 
 func NewCardGoodCommercial(
 	name string,
-	cost Cost,
+	cost cost.Cost,
 	goods []int,
 	amount int,
 	freeWith, makesFree []string,

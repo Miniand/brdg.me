@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 
 	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/cost"
 )
 
 func init() {
@@ -23,7 +24,7 @@ type CardForPlayers struct {
 type Card struct {
 	Name      string
 	Kind      int
-	Cost      Cost
+	Cost      cost.Cost
 	FreeWith  []string
 	MakesFree []string
 }
@@ -31,11 +32,11 @@ type Card struct {
 func NewCard(
 	name string,
 	kind int,
-	cost Cost,
+	c cost.Cost,
 	freeWith, makesFree []string,
 ) Card {
-	if cost == nil {
-		cost = Cost{}
+	if c == nil {
+		c = cost.Cost{}
 	}
 	if freeWith == nil {
 		freeWith = []string{}
@@ -46,7 +47,7 @@ func NewCard(
 	return Card{
 		name,
 		kind,
-		cost,
+		c,
 		freeWith,
 		makesFree,
 	}

@@ -4,6 +4,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"strings"
+
+	"github.com/Miniand/brdg.me/game/cost"
 )
 
 func init() {
@@ -17,7 +19,7 @@ type CardMilitary struct {
 
 func NewCardMilitary(
 	name string,
-	cost Cost,
+	cost cost.Cost,
 	strength int,
 	freeWith, makesFree []string,
 ) CardMilitary {

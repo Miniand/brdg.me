@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"strings"
 
+	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/render"
 )
 
@@ -38,7 +39,7 @@ type CardCommercialTrade struct {
 
 func NewCardCommercialTrade(
 	name string,
-	cost Cost,
+	cost cost.Cost,
 	directions, goods []int,
 	freeWith, makesFree []string,
 ) CardCommercialTrade {
