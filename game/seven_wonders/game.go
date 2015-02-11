@@ -16,6 +16,9 @@ type Game struct {
 
 	Round int
 	Hands []card.Deck
+
+	Cards []card.Deck
+	Coins []int
 }
 
 func (g *Game) Commands() []command.Command {
@@ -39,11 +42,19 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) Start(players []string) error {
-	if l := len(players); l < 3 || l > 7 {
+	pLen := len(players)
+	if pLen < 3 || pLen > 7 {
 		return errors.New("7 Wonders is 3 to 7 player")
 	}
 	g.Players = players
 	g.Log = log.New()
+
+	g.Cards = make([]card.Deck, pLen)
+	g.Coins = make([]int, pLen)
+	for i := 0; i < pLen; i++ {
+		g.Cards[i] = card.Deck{}
+		g.Coins[i] = 3
+	}
 
 	g.StartRound(1)
 
