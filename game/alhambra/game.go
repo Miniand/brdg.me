@@ -315,6 +315,7 @@ func (g *Game) NextPhase() {
 	case PhasePlace:
 		g.NextPlayer()
 	case PhaseFinalPlace:
+		g.ReserveTiles()
 		nextPlayer := g.CurrentPlayer
 		for {
 			nextPlayer = (nextPlayer + 1) % len(g.HumanPlayers)
@@ -332,8 +333,7 @@ func (g *Game) NextPhase() {
 	}
 }
 
-func (g *Game) NextPlayer() {
-	// Clean up existing turn
+func (g *Game) ReserveTiles() {
 	reserved := []string{}
 	for _, t := range g.Boards[g.CurrentPlayer].Place {
 		if t.Type != TileTypeEmpty {
@@ -350,6 +350,11 @@ func (g *Game) NextPlayer() {
 		)))
 	}
 	g.Boards[g.CurrentPlayer].Place = []Tile{}
+}
+
+func (g *Game) NextPlayer() {
+	// Clean up existing turn
+	g.ReserveTiles()
 	for i, t := range g.Tiles {
 		if t.Type == TileTypeEmpty {
 			if len(g.TileBag) > 0 {
