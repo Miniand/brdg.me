@@ -78,7 +78,7 @@ func (a *BuildAction) Execute(player int, g *Game) {
 
 func (a *BuildAction) Output(player int, g *Game) string {
 	c := g.Hands[player][a.Card].(Carder)
-	buf := bytes.NewBufferString("Building: ")
+	buf := bytes.NewBufferString("{{b}}Building:{{_b}} ")
 	buf.WriteString(RenderCard(c))
 	buf.WriteString("\n")
 	_, coins := g.CanBuildCard(player, c)

@@ -137,10 +137,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	output := bytes.NewBuffer([]byte{})
+	// Action output
 	if g.Actions[pNum] != nil {
 		output.WriteString(g.Actions[pNum].Output(pNum, g))
 		output.WriteString("\n\n")
 	}
+	// Hand
 	output.WriteString(render.Bold("Your hand:\n\n"))
 	for i, c := range g.Hands[pNum] {
 		crd := c.(Carder)
@@ -182,6 +184,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		output.WriteString("\n")
 	}
+	// Discard
+	output.WriteString(fmt.Sprintf(
+		"\n{{b}}Discard pile:{{_b}} %d",
+		len(g.Discard),
+	))
 	return output.String(), nil
 }
 

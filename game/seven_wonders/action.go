@@ -1,11 +1,6 @@
 package seven_wonders
 
-import (
-	"encoding/gob"
-	"fmt"
-
-	"github.com/Miniand/brdg.me/game/log"
-)
+import "encoding/gob"
 
 func init() {
 	gob.Register(&BuildAction{})
@@ -36,25 +31,4 @@ func (a WonderAction) IsComplete() bool {
 
 func (a WonderAction) DealOptions(player int, g *Game) []map[int]int {
 	return nil
-}
-
-type DiscardAction struct {
-	Card int
-}
-
-func (a DiscardAction) IsComplete() bool {
-	return true
-}
-
-func (a DiscardAction) Execute(player int, g *Game) {
-	g.Cards[player] = append(
-		g.Cards[player][:a.Card],
-		g.Cards[player][a.Card+1:]...,
-	)
-	g.Coins[player] += 3
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s discarded a card for %s",
-		g.PlayerName(player),
-		RenderMoney(3),
-	)))
 }
