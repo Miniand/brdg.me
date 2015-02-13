@@ -59,3 +59,9 @@ func (c CardBonus) SuppString() string {
 	}
 	return strings.Join(parts, " ")
 }
+
+func (c CardBonus) HandlePostBuild(player int, g *Game) {
+	if c.Coins == 0 {
+		return
+	}
+}

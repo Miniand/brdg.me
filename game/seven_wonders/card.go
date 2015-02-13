@@ -16,6 +16,10 @@ type Carder interface {
 	GetCard() Card
 }
 
+type PostBuildHandler interface {
+	HandlePostBuild(player int, g *Game)
+}
+
 type CardForPlayers struct {
 	Card    string
 	Players []int
