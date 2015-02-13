@@ -2,6 +2,7 @@ package seven_wonders
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
@@ -69,6 +70,12 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) StartRound(round int) {
+	if round < 4 {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"It is now {{b}}round %d{{_b}}",
+			round,
+		)))
+	}
 	g.Round = round
 	players := len(g.Players)
 	switch round {
@@ -89,6 +96,7 @@ func (g *Game) DealHands(cards card.Deck) {
 	per := cards.Len() / players
 	for p := range g.Players {
 		g.Hands[p], cards = cards.PopN(per)
+		g.Hands[p] = g.Hands[p].Sort()
 	}
 	g.StartHand()
 }
@@ -120,7 +128,7 @@ func (g *Game) CheckHandComplete() {
 			newHands = append(newHands, g.Hands[:last]...)
 			g.Hands = newHands
 		} else {
-			g.Log.Add(log.NewPublicMessage("Passing hands anti-clockwise"))
+			g.Log.Add(log.NewPublicMessage("Passing hands anticlockwise"))
 			newHands := append([]card.Deck{}, g.Hands[1:]...)
 			newHands = append(newHands, g.Hands[0])
 			g.Hands = newHands
@@ -188,4 +196,14 @@ func (g *Game) PlayerLeft(player int) int {
 
 func (g *Game) PlayerRight(player int) int {
 	return g.NumFromPlayer(player, DirRight)
+}
+
+func TrimIntMap(m map[int]int) map[int]int {
+	n := map[int]int{}
+	for k, v := range m {
+		if v != 0 {
+			n[k] = v
+		}
+	}
+	return n
 }

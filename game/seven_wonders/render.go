@@ -137,7 +137,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	output := bytes.NewBuffer([]byte{})
-	for i, c := range g.Hands[pNum].Sort() {
+	if g.Actions[pNum] != nil {
+		output.WriteString(g.Actions[pNum].Output(pNum, g))
+		output.WriteString("\n\n")
+	}
+	output.WriteString(render.Bold("Your hand:\n\n"))
+	for i, c := range g.Hands[pNum] {
 		crd := c.(Carder)
 		costStrs := []string{CostString(crd.GetCard().Cost)}
 		for _, f := range crd.GetCard().FreeWith {
@@ -233,4 +238,30 @@ func CostString(c cost.Cost) string {
 		n++
 	}
 	return strings.Join(parts, " ")
+}
+
+func (g *Game) RenderDeal(player int, deal map[int]int) string {
+	parts := []string{}
+	for _, dir := range DirNeighbours {
+		if deal[dir] != 0 {
+			parts = append(parts, fmt.Sprintf(
+				"%s %s",
+				g.PlayerName(g.NumFromPlayer(player, dir)),
+				RenderMoney(deal[dir]),
+			))
+		}
+	}
+	return fmt.Sprintf("pay %s", render.CommaList(parts))
+}
+
+func (g *Game) RenderDeals(player int, deals []map[int]int) string {
+	parts := []string{}
+	for i, d := range deals {
+		parts = append(parts, fmt.Sprintf(
+			"({{b}}%d{{_b}}) %s",
+			i+1,
+			g.RenderDeal(player, d),
+		))
+	}
+	return strings.Join(parts, "\n")
 }

@@ -2,6 +2,7 @@ package seven_wonders
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
 )
@@ -24,16 +25,19 @@ func (c DealCommand) CanCall(player string, context interface{}) bool {
 func (c DealCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	_, ok := g.PlayerNum(player)
+	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {
-		return "", errors.New("you must specify the numbered deal")
+		return "", errors.New("you must specify the numbered deal you want to choose")
 	}
-	// TODO finish
-	return "", nil
+	dealNum, err := strconv.Atoi(a[0])
+	if err != nil {
+		return "", errors.New("you must specify the numbered deal you want to choose")
+	}
+	return "", g.Deal(pNum, dealNum-1)
 }
 
 func (c DealCommand) Usage(player string, context interface{}) string {
@@ -49,5 +53,8 @@ func (g *Game) CanDeal(player int) bool {
 }
 
 func (g *Game) Deal(player, deal int) error {
-	return nil
+	if !g.CanDeal(player) {
+		return errors.New("can't choose a deal right now")
+	}
+	return g.Actions[player].(DealOptioner).ChooseDeal(player, g, deal)
 }

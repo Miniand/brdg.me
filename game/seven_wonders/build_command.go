@@ -157,7 +157,7 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 			}
 		}
 		// Check if we can afford them.
-		canAfford, canWith := cost.CanAffordPerm(c, with)
+		canAfford, canWith := cost.CanAffordPerm(c.Drop(GoodCoin), with)
 		if !canAfford {
 			return
 		}
@@ -178,6 +178,7 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 				sumCoins += amt
 				curCoins[owner] += amt
 			}
+			curCoins = TrimIntMap(curCoins)
 			if first || sumCoins < minSumCoins ||
 				sumCoins == minSumCoins && curCoins[favour] > maxToPriority {
 				minSumCoins = sumCoins
@@ -217,7 +218,7 @@ func (g *Game) Build(player, cardNum int) error {
 	if !can {
 		return errors.New("cannot buy that card")
 	}
-	action := BuildAction{
+	action := &BuildAction{
 		Card: cardNum,
 	}
 	if len(coins) <= 1 {
