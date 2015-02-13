@@ -3,6 +3,7 @@ package seven_wonders
 import (
 	"errors"
 	"reflect"
+	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/cost"
@@ -26,7 +27,7 @@ func (c BuildCommand) CanCall(player string, context interface{}) bool {
 func (c BuildCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	_, ok := g.PlayerNum(player)
+	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
 	}
@@ -34,8 +35,11 @@ func (c BuildCommand) Call(player string, context interface{},
 	if len(a) < 1 {
 		return "", errors.New("you must specify which numbered card to build")
 	}
-	// TODO finish
-	return "", nil
+	cardNum, err := strconv.Atoi(a[0])
+	if err != nil || cardNum < 1 || cardNum > len(g.Hands[pNum]) {
+		return "", errors.New("that is not a valid card number")
+	}
+	return "", g.Build(pNum, cardNum-1)
 }
 
 func (c BuildCommand) Usage(player string, context interface{}) string {
@@ -43,7 +47,7 @@ func (c BuildCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanBuild(player int) bool {
-	return true
+	return !g.HasChosenAction(player)
 }
 
 func (g *Game) CanBuildCard(player int, carder Carder) (
@@ -68,6 +72,10 @@ func (g *Game) CanBuildCard(player int, carder Carder) (
 }
 
 func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int) {
+	// If it costs more coin than we have, bad luck.
+	if c[GoodCoin] > g.Coins[player] {
+		return
+	}
 	// Find out if we get goods cheaper from neighbours.
 	discounts := map[int]map[int]bool{
 		DirLeft:  {},
@@ -183,7 +191,7 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 			can = true
 			return
 		}
-		if minSumCoins > g.Coins[player] {
+		if minSumCoins > g.Coins[player]-c[GoodCoin] {
 			// Can't afford that many coins.
 			can = false
 			return
@@ -203,6 +211,19 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 	return
 }
 
-func (g *Game) Build(player int, card Carder) error {
+func (g *Game) Build(player, cardNum int) error {
+	crd := g.Hands[player][cardNum].(Carder)
+	can, coins := g.CanBuildCard(player, crd)
+	if !can {
+		return errors.New("cannot buy that card")
+	}
+	action := BuildAction{
+		Card: cardNum,
+	}
+	if len(coins) <= 1 {
+		action.Chosen = true
+	}
+	g.Actions[player] = action
+	g.CheckHandComplete()
 	return nil
 }

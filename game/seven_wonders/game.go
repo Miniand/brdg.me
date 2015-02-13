@@ -14,15 +14,21 @@ type Game struct {
 	Players []string
 	Log     *log.Log
 
-	Round int
-	Hands []card.Deck
+	Round   int
+	Hands   []card.Deck
+	Actions []Actioner
 
 	Cards []card.Deck
 	Coins []int
+
+	WonderStages []int
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		BuildCommand{},
+		DealCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -51,6 +57,7 @@ func (g *Game) Start(players []string) error {
 
 	g.Cards = make([]card.Deck, pLen)
 	g.Coins = make([]int, pLen)
+	g.WonderStages = make([]int, pLen)
 	for i := 0; i < pLen; i++ {
 		g.Cards[i] = card.Deck{}
 		g.Coins[i] = 3
@@ -62,6 +69,7 @@ func (g *Game) Start(players []string) error {
 }
 
 func (g *Game) StartRound(round int) {
+	g.Round = round
 	players := len(g.Players)
 	switch round {
 	case 1:
@@ -70,6 +78,8 @@ func (g *Game) StartRound(round int) {
 		g.DealHands(DeckAge2(players).Shuffle())
 	case 3:
 		g.DealHands(DeckAge3(players).Shuffle())
+	case 4:
+		// End of game
 	}
 }
 
@@ -79,6 +89,43 @@ func (g *Game) DealHands(cards card.Deck) {
 	per := cards.Len() / players
 	for p := range g.Players {
 		g.Hands[p], cards = cards.PopN(per)
+	}
+	g.StartHand()
+}
+
+func (g *Game) StartHand() {
+	g.Actions = make([]Actioner, len(g.Players))
+}
+
+func (g *Game) HasChosenAction(player int) bool {
+	return g.Actions[player] != nil
+}
+
+func (g *Game) CheckHandComplete() {
+	for p := range g.Players {
+		if g.Actions[p] == nil || !g.Actions[p].IsComplete() {
+			return
+		}
+	}
+	for p := range g.Players {
+		g.Actions[p].Execute(p, g)
+	}
+	if len(g.Hands[0]) == 1 {
+		g.StartRound(g.Round + 1)
+	} else {
+		if g.Round%2 == 1 {
+			g.Log.Add(log.NewPublicMessage("Passing hands clockwise"))
+			last := len(g.Hands) - 1
+			newHands := []card.Deck{g.Hands[last]}
+			newHands = append(newHands, g.Hands[:last]...)
+			g.Hands = newHands
+		} else {
+			g.Log.Add(log.NewPublicMessage("Passing hands anti-clockwise"))
+			newHands := append([]card.Deck{}, g.Hands[1:]...)
+			newHands = append(newHands, g.Hands[0])
+			g.Hands = newHands
+		}
+		g.StartHand()
 	}
 }
 
@@ -91,11 +138,23 @@ func (g *Game) IsFinished() bool {
 }
 
 func (g *Game) Winners() []string {
+	if !g.IsFinished() {
+		return []string{}
+	}
 	return []string{}
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+	if g.IsFinished() {
+		return []string{}
+	}
+	whose := []string{}
+	for pNum, p := range g.Players {
+		if g.Actions[pNum] == nil || !g.Actions[pNum].IsComplete() {
+			whose = append(whose, p)
+		}
+	}
+	return whose
 }
 
 func (g *Game) GameLog() *log.Log {
