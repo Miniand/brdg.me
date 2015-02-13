@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/render"
@@ -139,20 +137,30 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	output := bytes.NewBuffer([]byte{})
-	for i, c := range g.Hands[pNum].Sort() {
+	if g.Actions[pNum] != nil {
+		output.WriteString(g.Actions[pNum].Output(pNum, g))
+		output.WriteString("\n\n")
+	}
+	output.WriteString(render.Bold("Your hand:\n\n"))
+	for i, c := range g.Hands[pNum] {
 		crd := c.(Carder)
 		costStrs := []string{CostString(crd.GetCard().Cost)}
 		for _, f := range crd.GetCard().FreeWith {
 			costStrs = append(costStrs, RenderCardName(Cards[f]))
 		}
+		canBuild, coins := g.CanBuildCard(pNum, crd)
 		afford := "  "
-		switch rand.New(rand.NewSource(time.Now().UnixNano())).Int() % 4 {
-		case 0:
-			afford = fmt.Sprintf("%s ", CanBuySymbol)
-		case 1:
-			afford = RenderMoney(1)
-		case 2:
+		switch {
+		case !canBuild:
 			afford = fmt.Sprintf("%s ", CannotBuySymbol)
+		case canBuild && len(coins) == 0:
+			afford = fmt.Sprintf("%s ", CanBuySymbol)
+		default:
+			sum := 0
+			for _, coin := range coins[0] {
+				sum += coin
+			}
+			afford = RenderMoney(sum)
 		}
 		output.WriteString(fmt.Sprintf(
 			"(%s) %s %s\n          Cost: %s\n",
@@ -230,4 +238,30 @@ func CostString(c cost.Cost) string {
 		n++
 	}
 	return strings.Join(parts, " ")
+}
+
+func (g *Game) RenderDeal(player int, deal map[int]int) string {
+	parts := []string{}
+	for _, dir := range DirNeighbours {
+		if deal[dir] != 0 {
+			parts = append(parts, fmt.Sprintf(
+				"%s %s",
+				g.PlayerName(g.NumFromPlayer(player, dir)),
+				RenderMoney(deal[dir]),
+			))
+		}
+	}
+	return fmt.Sprintf("pay %s", render.CommaList(parts))
+}
+
+func (g *Game) RenderDeals(player int, deals []map[int]int) string {
+	parts := []string{}
+	for i, d := range deals {
+		parts = append(parts, fmt.Sprintf(
+			"({{b}}%d{{_b}}) %s",
+			i+1,
+			g.RenderDeal(player, d),
+		))
+	}
+	return strings.Join(parts, "\n")
 }

@@ -1,5 +1,7 @@
 package cost
 
+import "sort"
+
 type Cost map[int]int
 
 // Clone returns a clone of the cost.
@@ -108,4 +110,26 @@ func (c Cost) Trim() Cost {
 		}
 	}
 	return nc
+}
+
+// Ints returns an int slice of the cost keys, repeated based on the value and
+// sorted.
+func (c Cost) Ints() []int {
+	ints := []int{}
+	for k, v := range c {
+		for i := 0; i < v; i++ {
+			ints = append(ints, k)
+		}
+	}
+	sort.Ints(ints)
+	return ints
+}
+
+// Sum is a sum of all of the values in the cost.
+func (c Cost) Sum() int {
+	sum := 0
+	for _, v := range c {
+		sum += v
+	}
+	return sum
 }

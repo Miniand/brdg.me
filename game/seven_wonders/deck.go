@@ -9,33 +9,65 @@ var Cards = map[string]Carder{
 	// Age 1
 
 	// Raw goods
-	CardLumberYard: NewCardGoodRaw(CardLumberYard, nil, []int{GoodWood}, 1),
-	CardStonePit:   NewCardGoodRaw(CardStonePit, nil, []int{GoodStone}, 1),
-	CardClayPool:   NewCardGoodRaw(CardClayPool, nil, []int{GoodClay}, 1),
-	CardOreVein:    NewCardGoodRaw(CardOreVein, nil, []int{GoodOre}, 1),
+	CardLumberYard: NewCardGoodRaw(CardLumberYard, nil, []cost.Cost{
+		{GoodWood: 1},
+	}),
+	CardStonePit: NewCardGoodRaw(CardStonePit, nil, []cost.Cost{
+		{GoodStone: 1},
+	}),
+	CardClayPool: NewCardGoodRaw(CardClayPool, nil, []cost.Cost{
+		{GoodClay: 1},
+	}),
+	CardOreVein: NewCardGoodRaw(CardOreVein, nil, []cost.Cost{
+		{GoodOre: 1},
+	}),
 	CardTreeFarm: NewCardGoodRaw(CardTreeFarm, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodWood, GoodClay}, 1),
+	}, []cost.Cost{
+		{GoodWood: 1},
+		{GoodClay: 1},
+	}),
 	CardExcavation: NewCardGoodRaw(CardExcavation, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodStone, GoodClay}, 1),
+	}, []cost.Cost{
+		{GoodStone: 1},
+		{GoodClay: 1},
+	}),
 	CardClayPit: NewCardGoodRaw(CardClayPit, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodClay, GoodOre}, 1),
+	}, []cost.Cost{
+		{GoodClay: 1},
+		{GoodOre: 1},
+	}),
 	CardTimberYard: NewCardGoodRaw(CardTimberYard, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodStone, GoodWood}, 1),
+	}, []cost.Cost{
+		{GoodStone: 1},
+		{GoodWood: 1},
+	}),
 	CardForestCave: NewCardGoodRaw(CardForestCave, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodWood, GoodOre}, 1),
+	}, []cost.Cost{
+		{GoodWood: 1},
+		{GoodOre: 1},
+	}),
 	CardMine: NewCardGoodRaw(CardMine, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodStone, GoodOre}, 1),
+	}, []cost.Cost{
+		{GoodStone: 1},
+		{GoodOre: 1},
+	}),
 
 	// Manufactured goods
-	CardLoom:       NewCardGoodManufactured(CardLoom, nil, []int{GoodTextile}, 1),
-	CardGlassworks: NewCardGoodManufactured(CardGlassworks, nil, []int{GoodGlass}, 1),
-	CardPress:      NewCardGoodManufactured(CardPress, nil, []int{GoodPapyrus}, 1),
+	CardLoom: NewCardGoodManufactured(CardLoom, nil, []cost.Cost{
+		{GoodTextile: 1},
+	}),
+	CardGlassworks: NewCardGoodManufactured(CardGlassworks, nil, []cost.Cost{
+		{GoodGlass: 1},
+	}),
+	CardPress: NewCardGoodManufactured(CardPress, nil, []cost.Cost{
+		{GoodPapyrus: 1},
+	}),
 
 	// Civilian structures
 	CardPawnshop: NewCardCivilian(CardPawnshop, nil, 3, nil, nil),
@@ -108,16 +140,24 @@ var Cards = map[string]Carder{
 	// Raw goods
 	CardSawmill: NewCardGoodRaw(CardSawmill, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodWood}, 2),
+	}, []cost.Cost{
+		{GoodWood: 2},
+	}),
 	CardQuarry: NewCardGoodRaw(CardQuarry, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodStone}, 2),
+	}, []cost.Cost{
+		{GoodStone: 2},
+	}),
 	CardBrickyard: NewCardGoodRaw(CardBrickyard, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodClay}, 2),
+	}, []cost.Cost{
+		{GoodClay: 2},
+	}),
 	CardFoundry: NewCardGoodRaw(CardFoundry, cost.Cost{
 		GoodCoin: 1,
-	}, []int{GoodOre}, 2),
+	}, []cost.Cost{
+		{GoodOre: 2},
+	}),
 
 	// Civilian structures
 	CardAqueduct: NewCardCivilian(CardAqueduct, cost.Cost{
@@ -140,13 +180,13 @@ var Cards = map[string]Carder{
 	// Commercial structures
 	CardForum: NewCardGoodCommercial(CardForum, cost.Cost{
 		GoodClay: 2,
-	}, ManufacturedGoods, 1, []string{
+	}, SliceToCost(ManufacturedGoods), []string{
 		CardEastTradingPost,
 		CardWestTradingPost,
 	}, []string{CardHaven}),
 	CardCaravansery: NewCardGoodCommercial(CardCaravansery, cost.Cost{
 		GoodWood: 2,
-	}, RawGoods, 1, []string{CardMarketplace}, []string{CardLighthouse}),
+	}, SliceToCost(RawGoods), []string{CardMarketplace}, []string{CardLighthouse}),
 	CardVineyard: NewCardBonus(CardVineyard, CardKindCommercial, nil, []int{
 		CardKindRaw,
 	}, DirAll, 0, 1, nil, nil),
