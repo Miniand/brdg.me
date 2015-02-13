@@ -17,6 +17,7 @@ type Game struct {
 
 	Round   int
 	Hands   []card.Deck
+	Discard card.Deck
 	Actions []Actioner
 
 	Cards []card.Deck
@@ -56,6 +57,8 @@ func (g *Game) Start(players []string) error {
 	g.Players = players
 	g.Log = log.New()
 
+	g.Discard = card.Deck{}
+
 	g.Cards = make([]card.Deck, pLen)
 	g.Coins = make([]int, pLen)
 	g.WonderStages = make([]int, pLen)
@@ -91,6 +94,11 @@ func (g *Game) StartRound(round int) {
 }
 
 func (g *Game) DealHands(cards card.Deck) {
+	// Discard any leftover cards.
+	for _, hand := range g.Hands {
+		g.Discard = g.Discard.PushMany(hand)
+	}
+	// Create new hands.
 	players := len(g.Players)
 	g.Hands = make([]card.Deck, players)
 	per := cards.Len() / players
