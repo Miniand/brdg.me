@@ -115,3 +115,28 @@ func TestCost_Drop(t *testing.T) {
 		TestRes2: 5,
 	}, c.Drop(TestRes1))
 }
+
+func TestCost_Ints(t *testing.T) {
+	c := Cost{
+		TestRes1: 2,
+		TestRes2: 1,
+		TestRes3: 3,
+	}
+	assert.Equal(t, []int{
+		TestRes1,
+		TestRes1,
+		TestRes2,
+		TestRes3,
+		TestRes3,
+		TestRes3,
+	}, c.Ints())
+}
+
+func TestCost_Sum(t *testing.T) {
+	c := Cost{
+		TestRes1: 2,
+		TestRes2: 1,
+		TestRes3: 3,
+	}
+	assert.Equal(t, 6, c.Sum())
+}

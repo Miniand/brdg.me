@@ -2,7 +2,6 @@ package seven_wonders
 
 import (
 	"encoding/gob"
-	"fmt"
 	"strings"
 
 	"github.com/Miniand/brdg.me/game/cost"
@@ -12,18 +11,24 @@ func init() {
 	gob.Register(CardGood{})
 }
 
+type GoodsProducer interface {
+	GoodsProduced() []cost.Cost
+}
+
+type GoodsTrader interface {
+	GoodsTraded() []cost.Cost
+}
+
 type CardGood struct {
 	Card
-	Goods  []int
-	Amount int
+	Goods []cost.Cost
 }
 
 func NewCardGood(
 	name string,
 	kind int,
 	cost cost.Cost,
-	goods []int,
-	amount int,
+	goods []cost.Cost,
 	freeWith, makesFree []string,
 ) CardGood {
 	if goods == nil || len(goods) == 0 {
@@ -32,22 +37,19 @@ func NewCardGood(
 	return CardGood{
 		NewCard(name, kind, cost, freeWith, makesFree),
 		goods,
-		amount,
 	}
 }
 
 func NewCardGoodRaw(
 	name string,
 	cost cost.Cost,
-	goods []int,
-	amount int,
+	goods []cost.Cost,
 ) CardGood {
 	return NewCardGood(
 		name,
 		CardKindRaw,
 		cost,
 		goods,
-		amount,
 		nil,
 		nil,
 	)
@@ -56,15 +58,13 @@ func NewCardGoodRaw(
 func NewCardGoodManufactured(
 	name string,
 	cost cost.Cost,
-	goods []int,
-	amount int,
+	goods []cost.Cost,
 ) CardGood {
 	return NewCardGood(
 		name,
 		CardKindManufactured,
 		cost,
 		goods,
-		amount,
 		nil,
 		nil,
 	)
@@ -73,8 +73,7 @@ func NewCardGoodManufactured(
 func NewCardGoodCommercial(
 	name string,
 	cost cost.Cost,
-	goods []int,
-	amount int,
+	goods []cost.Cost,
 	freeWith, makesFree []string,
 ) CardGood {
 	return NewCardGood(
@@ -82,7 +81,6 @@ func NewCardGoodCommercial(
 		CardKindCommercial,
 		cost,
 		goods,
-		amount,
 		freeWith,
 		makesFree,
 	)
@@ -91,10 +89,19 @@ func NewCardGoodCommercial(
 func (c CardGood) SuppString() string {
 	parts := []string{}
 	for _, g := range c.Goods {
-		parts = append(parts, strings.TrimSpace(strings.Repeat(
-			fmt.Sprintf("%s ", RenderResourceSymbol(g)),
-			c.Amount,
-		)))
+		parts = append(parts, RenderResourceList(g.Ints(), " "))
 	}
 	return strings.Join(parts, "/")
+}
+
+func (c CardGood) GoodsProduced() []cost.Cost {
+	return c.Goods
+}
+
+func (c CardGood) GoodsTraded() []cost.Cost {
+	if c.Card.Kind == CardKindCommercial {
+		// Commercial cards don't trade to neighbours.
+		return []cost.Cost{}
+	}
+	return c.Goods
 }

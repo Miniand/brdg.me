@@ -31,6 +31,10 @@ func init() {
 	gob.Register(CardCommercialTavern{})
 }
 
+type TradeDiscounter interface {
+	TradeDiscount() (dirs []int, goods []int)
+}
+
 type CardCommercialTrade struct {
 	Card
 	Directions []int
@@ -65,6 +69,10 @@ func (c CardCommercialTrade) SuppString() string {
 		RenderDirections(c.Directions),
 	}
 	return strings.Join(parts, " ")
+}
+
+func (c CardCommercialTrade) TradeDiscount() (dirs []int, goods []int) {
+	return c.Directions, c.Goods
 }
 
 type CardCommercialTavern struct {

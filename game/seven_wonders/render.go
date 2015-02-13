@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/render"
@@ -145,14 +143,19 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		for _, f := range crd.GetCard().FreeWith {
 			costStrs = append(costStrs, RenderCardName(Cards[f]))
 		}
+		canBuild, coins := g.CanBuildCard(pNum, crd)
 		afford := "  "
-		switch rand.New(rand.NewSource(time.Now().UnixNano())).Int() % 4 {
-		case 0:
-			afford = fmt.Sprintf("%s ", CanBuySymbol)
-		case 1:
-			afford = RenderMoney(1)
-		case 2:
+		switch {
+		case !canBuild:
 			afford = fmt.Sprintf("%s ", CannotBuySymbol)
+		case canBuild && len(coins) == 0:
+			afford = fmt.Sprintf("%s ", CanBuySymbol)
+		default:
+			sum := 0
+			for _, coin := range coins[0] {
+				sum += coin
+			}
+			afford = RenderMoney(sum)
 		}
 		output.WriteString(fmt.Sprintf(
 			"(%s) %s %s\n          Cost: %s\n",
