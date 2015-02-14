@@ -6,13 +6,13 @@ import (
 	"github.com/Miniand/brdg.me/game/cost"
 )
 
-type CardCivilian struct {
+type CardVP struct {
 	Card
 	VP int
 }
 
 func init() {
-	gob.Register(CardCivilian{})
+	gob.Register(CardVP{})
 }
 
 func NewCardCivilian(
@@ -20,17 +20,28 @@ func NewCardCivilian(
 	cost cost.Cost,
 	vp int,
 	freeWith, makesFree []string,
-) CardCivilian {
-	return CardCivilian{
+) CardVP {
+	return CardVP{
 		NewCard(name, CardKindCivilian, cost, freeWith, makesFree),
 		vp,
 	}
 }
 
-func (c CardCivilian) SuppString() string {
+func NewCardWonderVP(
+	name string,
+	cost cost.Cost,
+	vp int,
+) CardVP {
+	return CardVP{
+		NewCard(name, CardKindWonder, cost, nil, nil),
+		vp,
+	}
+}
+
+func (c CardVP) SuppString() string {
 	return RenderVP(c.VP)
 }
 
-func (c CardCivilian) VictoryPoints(player int, g *Game) int {
+func (c CardVP) VictoryPoints(player int, g *Game) int {
 	return c.VP
 }
