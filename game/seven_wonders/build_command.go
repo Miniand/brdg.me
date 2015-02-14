@@ -93,9 +93,12 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 	}
 	// Do a perm check on affordability, first favouring left, then favouring
 	// right.
-	for favour, dirs := range map[int][]int{
-		DirLeft:  []int{DirLeft, DirRight},
-		DirRight: []int{DirRight, DirLeft},
+	for _, mode := range []struct {
+		Favour int
+		Dirs   []int
+	}{
+		{DirLeft, []int{DirLeft, DirRight}},
+		{DirRight, []int{DirRight, DirLeft}},
 	} {
 		with := [][]cost.Cost{}
 		ownerMap := map[int]int{}
@@ -120,7 +123,7 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 			DirLeft:  {},
 			DirRight: {},
 		}
-		for _, dir := range dirs {
+		for _, dir := range mode.Dirs {
 			for _, pc := range g.Cards[g.NumFromPlayer(player, dir)] {
 				if trade, ok := pc.(GoodsTrader); ok {
 					goods := trade.GoodsTraded()
@@ -139,7 +142,7 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 			}
 		}
 		// Add all the discounted goods to the with slice to prioritise them.
-		for _, dir := range dirs {
+		for _, dir := range mode.Dirs {
 			for _, g := range discounted[dir] {
 				with = append(with, g)
 				ownerMap[i] = dir
@@ -148,7 +151,7 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 			}
 		}
 		// Add all the full price goods last after discounted ones.
-		for _, dir := range dirs {
+		for _, dir := range mode.Dirs {
 			for _, g := range fullPrice[dir] {
 				with = append(with, g)
 				ownerMap[i] = dir
@@ -180,9 +183,9 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 			}
 			curCoins = TrimIntMap(curCoins)
 			if first || sumCoins < minSumCoins ||
-				sumCoins == minSumCoins && curCoins[favour] > maxToPriority {
+				sumCoins == minSumCoins && curCoins[mode.Favour] > maxToPriority {
 				minSumCoins = sumCoins
-				maxToPriority = curCoins[favour]
+				maxToPriority = curCoins[mode.Favour]
 				minCoins = curCoins
 			}
 			first = false

@@ -82,7 +82,8 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 	case resource == TokenDefeat:
 		return g.DefeatTokens[player]
 	case resource == VP:
-		sum := 0
+		sum := g.VictoryTokens[player] - g.DefeatTokens[player] +
+			g.Coins[player]/3
 		for _, c := range g.Cards[player] {
 			if vp, ok := c.(VictoryPointer); ok {
 				sum += vp.VictoryPoints(player, g)
@@ -125,6 +126,15 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 			}
 		}
 		return sum
+	case resource == WonderStage:
+		sum := 0
+		for _, c := range g.Cards[player] {
+			if ws, ok := c.(WonderStager); ok {
+				sum += ws.WonderStages()
+			}
+		}
+		return sum
+
 	default:
 		panic(fmt.Sprintf("Good %d not implemented", resource))
 	}

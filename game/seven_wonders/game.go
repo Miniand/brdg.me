@@ -3,6 +3,8 @@ package seven_wonders
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
@@ -15,10 +17,11 @@ type Game struct {
 	Players []string
 	Log     *log.Log
 
-	Round   int
-	Hands   []card.Deck
-	Discard card.Deck
-	Actions []Actioner
+	Round    int
+	Finished bool
+	Hands    []card.Deck
+	Discard  card.Deck
+	Actions  []Actioner
 
 	Cards         []card.Deck
 	Coins         []int
@@ -74,13 +77,21 @@ func (g *Game) Start(players []string) error {
 	return nil
 }
 
-func (g *Game) StartRound(round int) {
-	if round < 4 {
-		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-			"It is now {{b}}round %d{{_b}}",
-			round,
-		)))
+func (g *Game) EndRound() {
+	g.Conflicts()
+	if g.Round < 3 {
+		g.StartRound(g.Round + 1)
+	} else {
+		g.Actions = make([]Actioner, len(g.Players))
+		g.Finished = true
 	}
+}
+
+func (g *Game) StartRound(round int) {
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"It is now {{b}}round %d{{_b}}",
+		round,
+	)))
 	g.Round = round
 	players := len(g.Players)
 	switch round {
@@ -90,8 +101,6 @@ func (g *Game) StartRound(round int) {
 		g.DealHands(DeckAge2(players).Shuffle())
 	case 3:
 		g.DealHands(DeckAge3(players).Shuffle())
-	case 4:
-		// End of game
 	}
 }
 
@@ -139,7 +148,7 @@ func (g *Game) CheckHandComplete() {
 		}
 	}
 	if len(g.Hands[0]) == 1 {
-		g.StartRound(g.Round + 1)
+		g.EndRound()
 	} else {
 		if g.Round%2 == 1 {
 			g.Log.Add(log.NewPublicMessage("Passing hands clockwise"))
@@ -157,19 +166,75 @@ func (g *Game) CheckHandComplete() {
 	}
 }
 
+func (g *Game) Conflicts() {
+	tokens := g.Round*2 - 1
+	lines := []string{render.Bold(fmt.Sprintf(
+		"Resolving conflicts, {{b}}%d{{_b}} tokens for a victory",
+		tokens,
+	))}
+	strengths := map[int]int{}
+	for p := range g.Players {
+		strengths[p] = g.PlayerResourceCount(p, AttackStrength)
+	}
+	for p := range g.Players {
+		other := g.PlayerRight(p)
+		if strengths[p] == strengths[other] {
+			lines = append(lines, fmt.Sprintf(
+				"%s (%s) tied with %s (%s)",
+				g.PlayerName(p),
+				RenderResourceWithSymbol(strconv.Itoa(strengths[p]), AttackStrength),
+				g.PlayerName(other),
+				RenderResourceWithSymbol(strconv.Itoa(strengths[other]), AttackStrength),
+			))
+			continue
+		}
+		winner := p
+		loser := other
+		if strengths[other] > strengths[p] {
+			winner = other
+			loser = p
+		}
+		g.VictoryTokens[winner] += tokens
+		g.DefeatTokens[loser]++
+		lines = append(lines, fmt.Sprintf(
+			"%s (%s) defeated %s (%s)",
+			g.PlayerName(winner),
+			RenderResourceWithSymbol(strconv.Itoa(strengths[winner]), AttackStrength),
+			g.PlayerName(loser),
+			RenderResourceWithSymbol(strconv.Itoa(strengths[loser]), AttackStrength),
+		))
+	}
+	g.Log.Add(log.NewPublicMessage(strings.Join(lines, "\n")))
+}
+
 func (g *Game) PlayerList() []string {
-	return nil
+	return g.Players
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.Finished
 }
 
 func (g *Game) Winners() []string {
 	if !g.IsFinished() {
 		return []string{}
 	}
-	return []string{}
+	winners := []string{}
+	maxVP := 0
+	maxCoins := 0
+	for p, pName := range g.Players {
+		vp := g.PlayerResourceCount(p, VP)
+		coins := g.Coins[p]
+		if vp > maxVP || vp == maxVP && coins > maxCoins {
+			winners = []string{}
+			maxVP = vp
+			maxCoins = coins
+		}
+		if vp == maxVP && coins == maxCoins {
+			winners = append(winners, pName)
+		}
+	}
+	return winners
 }
 
 func (g *Game) WhoseTurn() []string {

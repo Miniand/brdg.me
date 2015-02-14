@@ -284,7 +284,7 @@ func (g *Game) RenderStatTable(player int) string {
 	}{
 		{
 			"General",
-			[]int{GoodCoin, VP},
+			[]int{GoodCoin, VP, WonderStage},
 		},
 		{
 			"Goods",

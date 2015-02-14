@@ -30,3 +30,7 @@ func NewCardCivilian(
 func (c CardCivilian) SuppString() string {
 	return RenderVP(c.VP)
 }
+
+func (c CardCivilian) VictoryPoints(player int, g *Game) int {
+	return c.VP
+}
