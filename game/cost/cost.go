@@ -88,6 +88,7 @@ func (c Cost) Keys() []int {
 			keys = append(keys, k)
 		}
 	}
+	sort.Ints(keys)
 	return keys
 }
 
