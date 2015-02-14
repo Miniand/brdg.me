@@ -16,8 +16,16 @@ type Carder interface {
 	GetCard() Card
 }
 
-type PostBuildHandler interface {
-	HandlePostBuild(player int, g *Game)
+type PreActionExecuteHandler interface {
+	HandlePreActionExecute(player int, g *Game)
+}
+
+type PostActionExecuteHandler interface {
+	HandlePostActionExecute(player int, g *Game)
+}
+
+type VictoryPointer interface {
+	VictoryPoints(player int, g *Game) int
 }
 
 type CardForPlayers struct {

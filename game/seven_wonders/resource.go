@@ -1,6 +1,6 @@
 package seven_wonders
 
-import "github.com/Miniand/brdg.me/game/cost"
+import "fmt"
 
 const (
 	GoodCoin = iota
@@ -19,6 +19,7 @@ const (
 	CardKindCommercial
 	CardKindMilitary
 	CardKindGuild
+	CardKindWonder
 
 	FieldMathematics
 	FieldEngineering
@@ -46,13 +47,50 @@ var ManufacturedGoods = []int{
 	GoodGlass,
 }
 
-func SliceToCost(ints []int) []cost.Cost {
-	l := len(ints)
-	c := make([]cost.Cost, l)
-	for i := 0; i < l; i++ {
-		c[i] = cost.Cost{
-			ints[i]: 1,
+var CardKinds = []int{
+	CardKindRaw,
+	CardKindManufactured,
+	CardKindCivilian,
+	CardKindScientific,
+	CardKindCommercial,
+	CardKindMilitary,
+	CardKindGuild,
+	CardKindWonder,
+}
+
+var Fields = []int{
+	FieldMathematics,
+	FieldEngineering,
+	FieldTheology,
+}
+
+func (g *Game) PlayerResourceCount(player, resource int) int {
+	switch {
+	case resource == GoodCoin:
+		return g.Coins[player]
+	case resource == TokenVictory:
+		return g.VictoryTokens[player]
+	case resource == TokenDefeat:
+		return g.DefeatTokens[player]
+	case resource == VP:
+		sum := 0
+		for _, c := range g.Cards[player] {
+			if vp, ok := c.(VictoryPointer); ok {
+				sum += vp.VictoryPoints(player, g)
+			}
 		}
+		return sum
+	case InInts(resource, CardKinds):
+		sum := 0
+		for _, c := range g.Cards[player] {
+			if c.(Carder).GetCard().Kind == resource {
+				sum++
+			}
+		}
+		return sum
+	case InInts(resource, RawGoods) || InInts(resource, ManufacturedGoods):
+		panic("implement")
+	default:
+		panic(fmt.Sprintf("Good %d not implemented", resource))
 	}
-	return c
 }

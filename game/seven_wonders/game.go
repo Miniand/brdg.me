@@ -20,10 +20,10 @@ type Game struct {
 	Discard card.Deck
 	Actions []Actioner
 
-	Cards []card.Deck
-	Coins []int
-
-	WonderStages []int
+	Cards         []card.Deck
+	Coins         []int
+	VictoryTokens []int
+	DefeatTokens  []int
 }
 
 func (g *Game) Commands() []command.Command {
@@ -62,7 +62,8 @@ func (g *Game) Start(players []string) error {
 
 	g.Cards = make([]card.Deck, pLen)
 	g.Coins = make([]int, pLen)
-	g.WonderStages = make([]int, pLen)
+	g.VictoryTokens = make([]int, pLen)
+	g.DefeatTokens = make([]int, pLen)
 	for i := 0; i < pLen; i++ {
 		g.Cards[i] = card.Deck{}
 		g.Coins[i] = 3
@@ -125,7 +126,17 @@ func (g *Game) CheckHandComplete() {
 		}
 	}
 	for p := range g.Players {
+		if pre, ok := g.Actions[p].(PreActionExecuteHandler); ok {
+			pre.HandlePreActionExecute(p, g)
+		}
+	}
+	for p := range g.Players {
 		g.Actions[p].Execute(p, g)
+	}
+	for p := range g.Players {
+		if post, ok := g.Actions[p].(PostActionExecuteHandler); ok {
+			post.HandlePostActionExecute(p, g)
+		}
 	}
 	if len(g.Hands[0]) == 1 {
 		g.StartRound(g.Round + 1)
@@ -205,14 +216,4 @@ func (g *Game) PlayerLeft(player int) int {
 
 func (g *Game) PlayerRight(player int) int {
 	return g.NumFromPlayer(player, DirRight)
-}
-
-func TrimIntMap(m map[int]int) map[int]int {
-	n := map[int]int{}
-	for k, v := range m {
-		if v != 0 {
-			n[k] = v
-		}
-	}
-	return n
 }

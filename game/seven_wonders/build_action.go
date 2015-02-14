@@ -35,6 +35,18 @@ func (a *BuildAction) ChooseDeal(player int, g *Game, n int) error {
 	return nil
 }
 
+func (a *BuildAction) PreActionExecuteHandler(player int, g *Game) {
+	if pre, ok := g.Hands[player][a.Card].(PreActionExecuteHandler); ok {
+		pre.HandlePreActionExecute(player, g)
+	}
+}
+
+func (a *BuildAction) PostActionExecuteHandler(player int, g *Game) {
+	if post, ok := g.Hands[player][a.Card].(PostActionExecuteHandler); ok {
+		post.HandlePostActionExecute(player, g)
+	}
+}
+
 func (a *BuildAction) Execute(player int, g *Game) {
 	c := g.Hands[player][a.Card].(Carder)
 	crd := c.GetCard()
