@@ -39,3 +39,7 @@ func (c CardMilitary) SuppString() string {
 		true,
 	)
 }
+
+func (c CardMilitary) AttackStrength() int {
+	return c.Strength
+}

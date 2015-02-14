@@ -34,7 +34,7 @@ var ResourceColours = map[int]string{
 	FieldTheology:    render.Blue,
 
 	AttackStrength: render.Red,
-	TokenVictory:   render.Red,
+	TokenVictory:   render.Green,
 	TokenDefeat:    render.Gray,
 
 	WonderStage: render.Yellow,
@@ -189,6 +189,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		"\n{{b}}Discard pile:{{_b}} %d",
 		len(g.Discard),
 	))
+	// Stats table
+	output.WriteString("\n\n")
+	output.WriteString(g.RenderStatTable(pNum))
 	return output.String(), nil
 }
 
@@ -271,4 +274,64 @@ func (g *Game) RenderDeals(player int, deals []map[int]int) string {
 		))
 	}
 	return strings.Join(parts, "\n")
+}
+
+func (g *Game) RenderStatTable(player int) string {
+	cells := [][]interface{}{}
+	sections := []struct {
+		Heading   string
+		Resources []int
+	}{
+		{
+			"General",
+			[]int{GoodCoin, VP},
+		},
+		{
+			"Goods",
+			Goods,
+		},
+		{
+			"Cards",
+			CardKinds,
+		},
+		{
+			"Military",
+			[]int{AttackStrength, TokenVictory, TokenDefeat},
+		},
+	}
+	pLen := len(g.Players)
+	fromPlayer := g.NumFromPlayer(player, -(pLen-1)/2)
+	heading := []interface{}{""}
+	for i := 0; i < pLen; i++ {
+		p := g.NumFromPlayer(fromPlayer, i)
+		heading = append(heading, g.PlayerName(p))
+	}
+	cells = append(cells, heading)
+	for _, s := range sections {
+		cells = append(cells, []interface{}{
+			render.Markup(s.Heading, render.Gray, true),
+		})
+		for _, r := range s.Resources {
+			row := []interface{}{RenderResourceSymbol(r)}
+			for i := 0; i < pLen; i++ {
+				p := g.NumFromPlayer(fromPlayer, i)
+				colour := render.Gray
+				bold := false
+				if g.IsNeighbour(player, p) {
+					colour = ResourceColours[r]
+				}
+				if p == player {
+					colour = ResourceColours[r]
+					bold = true
+				}
+				row = append(row, render.Centred(render.Markup(
+					strconv.Itoa(g.PlayerResourceCount(p, r)),
+					colour,
+					bold,
+				)))
+			}
+			cells = append(cells, row)
+		}
+	}
+	return render.Table(cells, 0, 2)
 }

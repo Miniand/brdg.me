@@ -210,6 +210,10 @@ func (g *Game) NumFromPlayer(player, n int) int {
 	return newP
 }
 
+func (g *Game) IsNeighbour(player, target int) bool {
+	return g.PlayerLeft(player) == target || g.PlayerRight(player) == target
+}
+
 func (g *Game) PlayerLeft(player int) int {
 	return g.NumFromPlayer(player, DirLeft)
 }

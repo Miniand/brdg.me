@@ -28,6 +28,10 @@ type VictoryPointer interface {
 	VictoryPoints(player int, g *Game) int
 }
 
+type Attacker interface {
+	AttackStrength() int
+}
+
 type CardForPlayers struct {
 	Card    string
 	Players []int
