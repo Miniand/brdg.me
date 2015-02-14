@@ -100,14 +100,10 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 	case InInts(resource, RawGoods) || InInts(resource, ManufacturedGoods):
 		sum := 0
 		for _, c := range g.Cards[player] {
-			if prod, ok := c.(GoodsProducer); ok {
-				produced := prod.GoodsProduced()
-				if len(produced) != 1 {
-					// We ignore ones that produce different kinds as we only
-					// want a minimum.
-					continue
+			if producer, ok := c.(GoodsProducer); ok {
+				for _, prod := range producer.GoodsProduced() {
+					sum += prod[resource]
 				}
-				sum += produced[0][resource]
 			}
 		}
 		return sum
@@ -116,6 +112,16 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 		for _, c := range g.Cards[player] {
 			if attacker, ok := c.(Attacker); ok {
 				sum += attacker.AttackStrength()
+			}
+		}
+		return sum
+	case InInts(resource, Fields):
+		sum := 0
+		for _, c := range g.Cards[player] {
+			if sciencer, ok := c.(Sciencer); ok {
+				if sciencer.ScienceField(player, g) == resource {
+					sum++
+				}
 			}
 		}
 		return sum

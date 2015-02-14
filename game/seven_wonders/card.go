@@ -32,6 +32,10 @@ type Attacker interface {
 	AttackStrength() int
 }
 
+type Sciencer interface {
+	ScienceField(player int, g *Game) int
+}
+
 type CardForPlayers struct {
 	Card    string
 	Players []int

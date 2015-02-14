@@ -298,6 +298,10 @@ func (g *Game) RenderStatTable(player int) string {
 			"Military",
 			[]int{AttackStrength, TokenVictory, TokenDefeat},
 		},
+		{
+			"Science",
+			Fields,
+		},
 	}
 	pLen := len(g.Players)
 	fromPlayer := g.NumFromPlayer(player, -(pLen-1)/2)
