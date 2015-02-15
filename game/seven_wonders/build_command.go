@@ -219,7 +219,7 @@ func (g *Game) Build(player, cardNum int) error {
 	crd := g.Hands[player][cardNum].(Carder)
 	can, coins := g.CanBuildCard(player, crd)
 	if !can {
-		return errors.New("cannot buy that card")
+		return errors.New("cannot build that card")
 	}
 	action := &BuildAction{
 		Card: cardNum,

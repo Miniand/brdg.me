@@ -11,6 +11,7 @@ import (
 
 type BuildAction struct {
 	Card   int
+	Free   bool
 	Deal   int
 	Chosen bool
 }
@@ -20,6 +21,9 @@ func (a *BuildAction) IsComplete() bool {
 }
 
 func (a *BuildAction) DealOptions(player int, g *Game) []map[int]int {
+	if a.Free {
+		return []map[int]int{}
+	}
 	_, coins := g.CanBuildCard(player, g.Hands[player][a.Card].(Carder))
 	return coins
 }
@@ -50,27 +54,31 @@ func (a *BuildAction) PostActionExecuteHandler(player int, g *Game) {
 func (a *BuildAction) Execute(player int, g *Game) {
 	c := g.Hands[player][a.Card].(Carder)
 	crd := c.GetCard()
-	g.Coins[player] -= crd.Cost[GoodCoin]
-
-	_, coins := g.CanBuildCard(player, c)
 	paymentString := ""
-	if len(coins) > 0 {
-		parts := []string{}
-		for dir, amt := range coins[a.Deal] {
-			targetPlayer := g.NumFromPlayer(player, dir)
-			g.Coins[player] -= amt
-			g.Coins[targetPlayer] += amt
-			parts = append(parts, fmt.Sprintf(
-				"%s %s",
-				g.PlayerName(targetPlayer),
-				RenderMoney(amt),
-			))
-		}
-		if len(parts) > 0 {
-			paymentString = fmt.Sprintf(
-				", paying %s",
-				render.CommaList(parts),
-			)
+	if a.Free {
+		paymentString = " for free"
+	} else {
+		g.Coins[player] -= crd.Cost[GoodCoin]
+
+		_, coins := g.CanBuildCard(player, c)
+		if len(coins) > 0 {
+			parts := []string{}
+			for dir, amt := range coins[a.Deal] {
+				targetPlayer := g.NumFromPlayer(player, dir)
+				g.Coins[player] -= amt
+				g.Coins[targetPlayer] += amt
+				parts = append(parts, fmt.Sprintf(
+					"%s %s",
+					g.PlayerName(targetPlayer),
+					RenderMoney(amt),
+				))
+			}
+			if len(parts) > 0 {
+				paymentString = fmt.Sprintf(
+					", paying %s",
+					render.CommaList(parts),
+				)
+			}
 		}
 	}
 
@@ -86,14 +94,24 @@ func (a *BuildAction) Execute(player int, g *Game) {
 		RenderCard(c),
 		paymentString,
 	)))
+
+	if a.Free {
+		for _, c := range g.Cards[player] {
+			if free, ok := c.(FreeBuilder); ok {
+				free.HandleFreeBuild()
+			}
+		}
+	}
 }
 
 func (a *BuildAction) Output(player int, g *Game) string {
 	c := g.Hands[player][a.Card].(Carder)
 	buf := bytes.NewBufferString("{{b}}Building:{{_b}} ")
 	buf.WriteString(RenderCard(c))
-	buf.WriteString("\n")
-	_, coins := g.CanBuildCard(player, c)
-	buf.WriteString(g.RenderDeals(player, coins))
+	if !a.Free {
+		buf.WriteString("\n")
+		_, coins := g.CanBuildCard(player, c)
+		buf.WriteString(g.RenderDeals(player, coins))
+	}
 	return buf.String()
 }
