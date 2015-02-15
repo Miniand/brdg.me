@@ -49,7 +49,7 @@ func (c DiscardCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanDiscard(player int) bool {
-	return !g.HasChosenAction(player)
+	return g.CanAction(player)
 }
 
 func (g *Game) DiscardCard(player, cardNum int) error {

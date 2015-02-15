@@ -36,6 +36,10 @@ type Sciencer interface {
 	ScienceField(player int, g *Game) int
 }
 
+type PlayFinalCarder interface {
+	PlayFinalCard() bool
+}
+
 type CardForPlayers struct {
 	Card    string
 	Players []int

@@ -47,7 +47,7 @@ func (c BuildCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanBuild(player int) bool {
-	return !g.HasChosenAction(player)
+	return g.CanAction(player)
 }
 
 func (g *Game) CanBuildCard(player int, carder Carder) (

@@ -105,10 +105,6 @@ func (g *Game) StartRound(round int) {
 }
 
 func (g *Game) DealHands(cards card.Deck) {
-	// Discard any leftover cards.
-	for _, hand := range g.Hands {
-		g.Discard = g.Discard.PushMany(hand)
-	}
 	// Create new hands.
 	players := len(g.Players)
 	g.Hands = make([]card.Deck, players)
@@ -122,6 +118,11 @@ func (g *Game) DealHands(cards card.Deck) {
 
 func (g *Game) StartHand() {
 	g.Actions = make([]Actioner, len(g.Players))
+	g.CheckHandComplete()
+}
+
+func (g *Game) CanAction(player int) bool {
+	return len(g.Hands[player]) > 0 && !g.HasChosenAction(player)
 }
 
 func (g *Game) HasChosenAction(player int) bool {
@@ -130,26 +131,55 @@ func (g *Game) HasChosenAction(player int) bool {
 
 func (g *Game) CheckHandComplete() {
 	for p := range g.Players {
-		if g.Actions[p] == nil || !g.Actions[p].IsComplete() {
+		if len(g.Hands[p]) > 0 &&
+			(g.Actions[p] == nil || !g.Actions[p].IsComplete()) {
 			return
 		}
 	}
 	for p := range g.Players {
-		if pre, ok := g.Actions[p].(PreActionExecuteHandler); ok {
-			pre.HandlePreActionExecute(p, g)
+		if g.Actions[p] != nil {
+			if pre, ok := g.Actions[p].(PreActionExecuteHandler); ok {
+				pre.HandlePreActionExecute(p, g)
+			}
 		}
 	}
 	for p := range g.Players {
-		g.Actions[p].Execute(p, g)
-	}
-	for p := range g.Players {
-		if post, ok := g.Actions[p].(PostActionExecuteHandler); ok {
-			post.HandlePostActionExecute(p, g)
+		if g.Actions[p] != nil {
+			g.Actions[p].Execute(p, g)
 		}
 	}
-	if len(g.Hands[0]) == 1 {
+	for p := range g.Players {
+		if g.Actions[p] != nil {
+			if post, ok := g.Actions[p].(PostActionExecuteHandler); ok {
+				post.HandlePostActionExecute(p, g)
+			}
+		}
+	}
+	max := 0
+	for _, h := range g.Hands {
+		if l := len(h); l > max {
+			max = l
+		}
+	}
+	switch max {
+	case 0:
 		g.EndRound()
-	} else {
+	case 1:
+		// Check if any players can play their last card, otherwise discard
+		for p := range g.Players {
+			canPlay := false
+			for _, c := range g.Cards[p] {
+				if pfc, ok := c.(PlayFinalCarder); ok && pfc.PlayFinalCard() {
+					canPlay = true
+				}
+			}
+			if !canPlay {
+				g.Discard = g.Discard.PushMany(g.Hands[p])
+				g.Hands[p] = card.Deck{}
+			}
+		}
+		g.StartHand()
+	default:
 		if g.Round%2 == 1 {
 			g.Log.Add(log.NewPublicMessage("Passing hands clockwise"))
 			last := len(g.Hands) - 1
@@ -243,7 +273,8 @@ func (g *Game) WhoseTurn() []string {
 	}
 	whose := []string{}
 	for pNum, p := range g.Players {
-		if g.Actions[pNum] == nil || !g.Actions[pNum].IsComplete() {
+		if g.CanAction(pNum) ||
+			(g.Actions[pNum] != nil && !g.Actions[pNum].IsComplete()) {
 			whose = append(whose, p)
 		}
 	}
