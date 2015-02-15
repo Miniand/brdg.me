@@ -217,6 +217,17 @@ func RenderResourceList(goods []int, sep string) string {
 	return strings.Join(goodStrs, sep)
 }
 
+func RenderResources(resources cost.Cost, sep string) string {
+	parts := []string{}
+	for r := range resources.Trim().Keys() {
+		parts = append(parts, RenderResourceWithSymbol(
+			strconv.Itoa(resources[r]),
+			r,
+		))
+	}
+	return strings.Join(parts, sep)
+}
+
 func RenderDirections(directions []int) string {
 	dirStrs := []string{}
 	for _, d := range directions {
