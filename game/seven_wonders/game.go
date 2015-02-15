@@ -23,6 +23,8 @@ type Game struct {
 	Discard  card.Deck
 	Actions  []Actioner
 
+	ToResolve []Resolver
+
 	Cards         []card.Deck
 	Coins         []int
 	VictoryTokens []int
@@ -30,6 +32,9 @@ type Game struct {
 }
 
 func (g *Game) Commands() []command.Command {
+	if len(g.ToResolve) > 0 {
+		return g.ToResolve[0].Commands()
+	}
 	return []command.Command{
 		BuildCommand{},
 		FreeCommand{},
@@ -72,6 +77,8 @@ func (g *Game) Start(players []string) error {
 		g.Cards[i] = card.Deck{}
 		g.Coins[i] = 3
 	}
+
+	g.ToResolve = []Resolver{}
 
 	g.StartRound(1)
 
@@ -163,6 +170,19 @@ func (g *Game) CheckHandComplete() {
 			}
 		}
 	}
+	if len(g.ToResolve) == 0 {
+		g.EndHand()
+	}
+}
+
+func (g *Game) Resolved() {
+	g.ToResolve = g.ToResolve[1:]
+	if len(g.ToResolve) == 0 {
+		g.EndHand()
+	}
+}
+
+func (g *Game) EndHand() {
 	max := 0
 	for _, h := range g.Hands {
 		if l := len(h); l > max {
@@ -278,6 +298,9 @@ func (g *Game) Winners() []string {
 func (g *Game) WhoseTurn() []string {
 	if g.IsFinished() {
 		return []string{}
+	}
+	if len(g.ToResolve) > 0 {
+		return g.ToResolve[0].WhoseTurn(g)
 	}
 	whose := []string{}
 	for pNum, p := range g.Players {

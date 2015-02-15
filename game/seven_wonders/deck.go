@@ -656,6 +656,131 @@ var Cards = map[string]Carder{
 		cost.Cost{GoodOre: 2},
 		7,
 	),
+
+	WonderStageOlympiaB1: CardCommercialTrade{
+		NewCard(
+			WonderStageOlympiaB1,
+			CardKindWonder,
+			cost.Cost{GoodWood: 2},
+			nil,
+			nil,
+		),
+		DirNeighbours,
+		RawGoods,
+	},
+	WonderStageOlympiaB2: NewCardWonderVP(
+		WonderStageOlympiaB2,
+		cost.Cost{GoodStone: 2},
+		5,
+	),
+	WonderStageOlympiaB3: CardMimicGuild{
+		NewCard(
+			WonderStageOlympiaB3,
+			CardKindWonder,
+			cost.Cost{
+				GoodTextile: 1,
+				GoodOre:     2,
+			},
+			nil,
+			nil,
+		),
+	},
+
+	WonderStageHalicarnassusA1: NewCardWonderVP(
+		WonderStageHalicarnassusA1,
+		cost.Cost{GoodClay: 2},
+		3,
+	),
+	WonderStageHalicarnassusA2: CardDrawDiscard{
+		NewCard(
+			WonderStageHalicarnassusA2,
+			CardKindWonder,
+			cost.Cost{GoodOre: 3},
+			nil,
+			nil,
+		),
+		0,
+	},
+	WonderStageHalicarnassusA3: NewCardWonderVP(
+		WonderStageHalicarnassusA3,
+		cost.Cost{GoodTextile: 2},
+		7,
+	),
+
+	WonderStageHalicarnassusB1: CardDrawDiscard{
+		NewCard(
+			WonderStageHalicarnassusB1,
+			CardKindWonder,
+			cost.Cost{GoodOre: 2},
+			nil,
+			nil,
+		),
+		2,
+	},
+	WonderStageHalicarnassusB2: CardDrawDiscard{
+		NewCard(
+			WonderStageHalicarnassusB2,
+			CardKindWonder,
+			cost.Cost{GoodClay: 3},
+			nil,
+			nil,
+		),
+		1,
+	},
+	WonderStageHalicarnassusB3: CardDrawDiscard{
+		NewCard(
+			WonderStageHalicarnassusB3,
+			CardKindWonder,
+			cost.Cost{
+				GoodGlass:   1,
+				GoodPapyrus: 1,
+				GoodTextile: 1,
+			},
+			nil,
+			nil,
+		),
+		0,
+	},
+
+	WonderStageGizaA1: NewCardWonderVP(
+		WonderStageGizaA1,
+		cost.Cost{GoodStone: 2},
+		3,
+	),
+	WonderStageGizaA2: NewCardWonderVP(
+		WonderStageGizaA2,
+		cost.Cost{GoodWood: 3},
+		5,
+	),
+	WonderStageGizaA3: NewCardWonderVP(
+		WonderStageGizaA3,
+		cost.Cost{GoodStone: 4},
+		7,
+	),
+
+	WonderStageGizaB1: NewCardWonderVP(
+		WonderStageGizaB1,
+		cost.Cost{GoodWood: 2},
+		3,
+	),
+	WonderStageGizaB2: NewCardWonderVP(
+		WonderStageGizaB2,
+		cost.Cost{GoodStone: 3},
+		5,
+	),
+	WonderStageGizaB3: NewCardWonderVP(
+		WonderStageGizaB3,
+		cost.Cost{GoodClay: 3},
+		5,
+	),
+	WonderStageGizaB4: NewCardWonderVP(
+		WonderStageGizaB4,
+		cost.Cost{
+			GoodPapyrus: 1,
+			GoodStone:   4,
+		},
+		7,
+	),
 }
 
 func DeckForPlayers(cards []CardForPlayers, players int) card.Deck {

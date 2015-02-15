@@ -39,14 +39,10 @@ func (a *BuildAction) ChooseDeal(player int, g *Game, n int) error {
 	return nil
 }
 
-func (a *BuildAction) PreActionExecuteHandler(player int, g *Game) {
-	if pre, ok := g.Hands[player][a.Card].(PreActionExecuteHandler); ok {
-		pre.HandlePreActionExecute(player, g)
-	}
-}
-
-func (a *BuildAction) PostActionExecuteHandler(player int, g *Game) {
-	if post, ok := g.Hands[player][a.Card].(PostActionExecuteHandler); ok {
+func (a *BuildAction) HandlePostActionExecute(player int, g *Game) {
+	// The new card will be the last in the player's hand
+	c := g.Cards[player][len(g.Cards[player])-1]
+	if post, ok := c.(PostActionExecuteHandler); ok {
 		post.HandlePostActionExecute(player, g)
 	}
 }

@@ -21,6 +21,15 @@ func InInts(needle int, haystack []int) bool {
 	return false
 }
 
+func InStrs(needle string, haystack []string) bool {
+	for _, h := range haystack {
+		if needle == h {
+			return true
+		}
+	}
+	return false
+}
+
 func SliceToCost(ints []int) []cost.Cost {
 	l := len(ints)
 	c := make([]cost.Cost, l)
