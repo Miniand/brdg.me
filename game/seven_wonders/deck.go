@@ -460,6 +460,61 @@ var Cards = map[string]Carder{
 			GoodCoin:       4,
 		},
 	},
+
+	WonderStageAlexandriaA1: NewCardWonderVP(
+		WonderStageAlexandriaA1,
+		cost.Cost{GoodStone: 2},
+		3,
+	),
+	WonderStageAlexandriaA2: NewCardGood(
+		WonderStageAlexandriaA2,
+		CardKindWonder,
+		cost.Cost{GoodOre: 2},
+		[]cost.Cost{
+			{GoodClay: 1},
+			{GoodOre: 1},
+			{GoodWood: 1},
+			{GoodStone: 1},
+		},
+		nil,
+		nil,
+	),
+	WonderStageAlexandriaA3: NewCardWonderVP(
+		WonderStageAlexandriaA3,
+		cost.Cost{GoodGlass: 2},
+		7,
+	),
+
+	WonderStageAlexandriaB1: NewCardGood(
+		WonderStageAlexandriaB1,
+		CardKindWonder,
+		cost.Cost{GoodClay: 2},
+		[]cost.Cost{
+			{GoodClay: 1},
+			{GoodOre: 1},
+			{GoodWood: 1},
+			{GoodStone: 1},
+		},
+		nil,
+		nil,
+	),
+	WonderStageAlexandriaB2: NewCardGood(
+		WonderStageAlexandriaB2,
+		CardKindWonder,
+		cost.Cost{GoodWood: 2},
+		[]cost.Cost{
+			{GoodGlass: 1},
+			{GoodTextile: 1},
+			{GoodPapyrus: 1},
+		},
+		nil,
+		nil,
+	),
+	WonderStageAlexandriaB3: NewCardWonderVP(
+		WonderStageAlexandriaB3,
+		cost.Cost{GoodStone: 3},
+		7,
+	),
 }
 
 func DeckForPlayers(cards []CardForPlayers, players int) card.Deck {
