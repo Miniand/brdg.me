@@ -102,6 +102,13 @@ func (g *Game) StartRound(round int) {
 	case 3:
 		g.DealHands(DeckAge3(players).Shuffle())
 	}
+	for p := range g.Players {
+		for _, c := range g.Cards[p] {
+			if hnd, ok := c.(StartRoundHandler); ok {
+				hnd.HandleStartRound()
+			}
+		}
+	}
 }
 
 func (g *Game) DealHands(cards card.Deck) {

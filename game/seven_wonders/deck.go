@@ -635,6 +635,27 @@ var Cards = map[string]Carder{
 		),
 		Fields,
 	},
+
+	WonderStageOlympiaA1: NewCardWonderVP(
+		WonderStageOlympiaA1,
+		cost.Cost{GoodWood: 2},
+		3,
+	),
+	WonderStageOlympiaA2: &CardFreeBuild{
+		NewCard(
+			WonderStageOlympiaA2,
+			CardKindWonder,
+			cost.Cost{GoodStone: 2},
+			nil,
+			nil,
+		),
+		false,
+	},
+	WonderStageOlympiaA3: NewCardWonderVP(
+		WonderStageOlympiaA3,
+		cost.Cost{GoodOre: 2},
+		7,
+	),
 }
 
 func DeckForPlayers(cards []CardForPlayers, players int) card.Deck {

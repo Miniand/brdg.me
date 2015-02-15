@@ -40,6 +40,15 @@ type PlayFinalCarder interface {
 	PlayFinalCard() bool
 }
 
+type FreeBuilder interface {
+	CanFreeBuild() bool
+	HandleFreeBuild()
+}
+
+type StartRoundHandler interface {
+	HandleStartRound()
+}
+
 type CardForPlayers struct {
 	Card    string
 	Players []int
