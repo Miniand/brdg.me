@@ -615,7 +615,7 @@ var Cards = map[string]Carder{
 			WonderStageBabylonB2,
 			CardKindWonder,
 			cost.Cost{
-				GoodGlass: 2,
+				GoodGlass: 1,
 				GoodWood:  2,
 			},
 			nil,

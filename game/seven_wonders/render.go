@@ -28,6 +28,7 @@ var ResourceColours = map[int]string{
 	CardKindCommercial:   render.Yellow,
 	CardKindMilitary:     render.Red,
 	CardKindGuild:        render.Magenta,
+	CardKindWonder:       render.Yellow,
 
 	FieldMathematics: render.Red,
 	FieldEngineering: render.Green,
@@ -71,6 +72,7 @@ var ResourceSymbols = map[int]string{
 	CardKindCommercial:   CardSymbol,
 	CardKindMilitary:     CardSymbol,
 	CardKindGuild:        CardSymbol,
+	CardKindWonder:       "▲",
 
 	FieldMathematics: "Ma",
 	FieldEngineering: "En",
@@ -137,6 +139,20 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	output := bytes.NewBuffer([]byte{})
+	// Bam
+	for _, c := range CityList {
+		output.WriteString(c.Name)
+		output.WriteString("\nProduces: ")
+		output.WriteString(RenderResourceSymbol(c.InitialResource))
+		output.WriteString("\n")
+		for _, s := range c.WonderStages {
+			output.WriteString(RenderCard(Cards[s]))
+			output.WriteString("\nCost: ")
+			output.WriteString(RenderResourceList(Cards[s].GetCard().Cost.Ints(), " "))
+			output.WriteString("\n")
+		}
+		output.WriteString("\n")
+	}
 	// Action output
 	if g.Actions[pNum] != nil {
 		output.WriteString(g.Actions[pNum].Output(pNum, g))

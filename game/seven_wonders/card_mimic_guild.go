@@ -18,3 +18,7 @@ func (c CardMimicGuild) VictoryPoints(player int, g *Game) int {
 	}
 	return vp
 }
+
+func (c CardMimicGuild) SuppString() string {
+	return "Mimic a neighbouring guild card"
+}

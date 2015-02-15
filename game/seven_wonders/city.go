@@ -150,3 +150,20 @@ func (c City) GoodsProduced() []cost.Cost {
 func (c City) GoodsTraded() []cost.Cost {
 	return c.GoodsProduced()
 }
+
+var CityList = []City{
+	Cities[CityRhodesA],
+	Cities[CityRhodesB],
+	Cities[CityAlexandriaA],
+	Cities[CityAlexandriaB],
+	Cities[CityEphesusA],
+	Cities[CityEphesusB],
+	Cities[CityBabylonA],
+	Cities[CityBabylonB],
+	Cities[CityOlympiaA],
+	Cities[CityOlympiaB],
+	Cities[CityHalicarnassusA],
+	Cities[CityHalicarnassusB],
+	Cities[CityGizaA],
+	Cities[CityGizaB],
+}
