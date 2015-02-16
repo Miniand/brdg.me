@@ -83,7 +83,7 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 		return g.DefeatTokens[player]
 	case resource == VP:
 		sum := g.VictoryTokens[player] - g.DefeatTokens[player] +
-			g.Coins[player]/3
+			g.Coins[player]/3 + g.PlayerScienceVP(player)
 		for _, c := range g.Cards[player] {
 			if vp, ok := c.(VictoryPointer); ok {
 				sum += vp.VictoryPoints(player, g)
@@ -120,7 +120,7 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 		sum := 0
 		for _, c := range g.Cards[player] {
 			if sciencer, ok := c.(Sciencer); ok {
-				if sciencer.ScienceField(player, g) == resource {
+				if InInts(resource, sciencer.ScienceFields(player, g)) {
 					sum++
 				}
 			}

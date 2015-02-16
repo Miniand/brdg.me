@@ -33,7 +33,7 @@ type Attacker interface {
 }
 
 type Sciencer interface {
-	ScienceField(player int, g *Game) int
+	ScienceFields(player int, g *Game) []int
 }
 
 type PlayFinalCarder interface {

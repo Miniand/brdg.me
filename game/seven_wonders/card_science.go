@@ -37,9 +37,6 @@ func (c CardScience) SuppString() string {
 	return RenderResourceList(c.Fields, "/")
 }
 
-func (c CardScience) ScienceField(player int, g *Game) int {
-	if len(c.Fields) == 1 {
-		return c.Fields[0]
-	}
-	panic("implement")
+func (c CardScience) ScienceFields(player int, g *Game) []int {
+	return c.Fields
 }
