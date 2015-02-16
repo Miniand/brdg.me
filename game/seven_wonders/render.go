@@ -379,9 +379,10 @@ func (g *Game) RenderStatTable(player int) string {
 	for _, s := range sections {
 		if s.Heading != "" {
 			cells = append(cells, []interface{}{
+				"",
 				render.CellSpan{
-					render.Centred(render.Markup(s.Heading, render.Gray, true)),
-					len(g.Players) + 1,
+					render.Centred(render.Colour(s.Heading, render.Gray)),
+					len(g.Players),
 				},
 			})
 		}
