@@ -235,7 +235,7 @@ func RenderResourceList(goods []int, sep string) string {
 
 func RenderResources(resources cost.Cost, sep string) string {
 	parts := []string{}
-	for r := range resources.Trim().Keys() {
+	for _, r := range resources.Trim().Keys() {
 		parts = append(parts, RenderResourceWithSymbol(
 			strconv.Itoa(resources[r]),
 			r,
