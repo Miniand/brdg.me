@@ -2,8 +2,7 @@ package seven_wonders
 
 import (
 	"encoding/gob"
-	"fmt"
-	"strings"
+	"strconv"
 
 	"github.com/Miniand/brdg.me/game/cost"
 )
@@ -30,14 +29,7 @@ func NewCardMilitary(
 }
 
 func (c CardMilitary) SuppString() string {
-	return RenderResourceColour(
-		strings.TrimSpace(strings.Repeat(
-			fmt.Sprintf("%s ", ResourceSymbols[AttackStrength]),
-			c.Strength,
-		)),
-		AttackStrength,
-		true,
-	)
+	return RenderResourceWithSymbol(strconv.Itoa(c.Strength), AttackStrength)
 }
 
 func (c CardMilitary) AttackStrength() int {

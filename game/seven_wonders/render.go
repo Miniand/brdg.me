@@ -45,7 +45,7 @@ var ResourceColours = map[int]string{
 }
 
 const (
-	CardSymbol = "##"
+	CardSymbol = "###"
 )
 
 var CanBuySymbol = render.Markup("✔", render.Green, true)
@@ -57,14 +57,14 @@ var CanBuyWithCoinSymbol = render.Markup(
 var CannotBuySymbol = render.Markup("✘", render.Red, true)
 
 var ResourceSymbols = map[int]string{
-	GoodCoin:    "●",
-	GoodWood:    "Wo",
-	GoodStone:   "St",
-	GoodOre:     "Or",
-	GoodClay:    "Cl",
-	GoodPapyrus: "Pa",
-	GoodTextile: "Te",
-	GoodGlass:   "Gl",
+	GoodCoin:    "Coin",
+	GoodWood:    "Wood",
+	GoodStone:   "Ston",
+	GoodOre:     "Ore",
+	GoodClay:    "Clay",
+	GoodPapyrus: "Papy",
+	GoodTextile: "Text",
+	GoodGlass:   "Glas",
 
 	CardKindRaw:          CardSymbol,
 	CardKindManufactured: CardSymbol,
@@ -75,15 +75,15 @@ var ResourceSymbols = map[int]string{
 	CardKindGuild:        CardSymbol,
 	CardKindWonder:       "▲",
 
-	FieldMathematics: "Ma",
-	FieldEngineering: "En",
-	FieldTheology:    "Th",
+	FieldMathematics: "Math",
+	FieldEngineering: "Engi",
+	FieldTheology:    "Theo",
 
-	AttackStrength: "X",
-	TokenVictory:   "V",
-	TokenDefeat:    "X",
+	AttackStrength: "Str",
+	TokenVictory:   "Vic",
+	TokenDefeat:    "Def",
 
-	WonderStage: "▲",
+	WonderStage: "Wond",
 
 	VP: "VP",
 }
@@ -108,7 +108,7 @@ func RenderResourceSymbol(resource int) string {
 
 func RenderResourceWithSymbol(text string, resource int) string {
 	return RenderResourceColour(
-		fmt.Sprintf("%s%s", text, ResourceSymbols[resource]),
+		fmt.Sprintf("%s %s", text, ResourceSymbols[resource]),
 		resource,
 		true,
 	)
@@ -205,31 +205,26 @@ func (g *Game) RenderCardList(
 				render.Markup(strconv.Itoa(i+1), render.Gray, true),
 			)
 		}
-		affordStr := ""
+		afford := ""
 		if showAfford {
 			canBuild, coins := g.CanBuildCard(player, crd)
-			afford := ""
 			switch {
 			case !canBuild:
-				afford = fmt.Sprintf("%s ", CannotBuySymbol)
+				afford = CannotBuySymbol
 			case canBuild && len(coins) == 0:
-				afford = fmt.Sprintf("%s ", CanBuySymbol)
+				afford = CanBuySymbol
 			default:
 				sum := 0
 				for _, coin := range coins[0] {
 					sum += coin
 				}
-				afford = RenderMoney(sum)
+				afford = RenderResourceColour(strconv.Itoa(sum), GoodCoin, true)
 			}
-			affordStr = fmt.Sprintf(
-				"%s ",
-				afford,
-			)
 		}
 		output.WriteString(fmt.Sprintf(
-			"%s%s%s\n          Cost: %s\n",
+			"%s%s %s\n          Cost: %s\n",
 			numStr,
-			affordStr,
+			afford,
 			RenderCard(crd),
 			strings.Join(costStrs, render.Colour("  or  ", render.Gray)),
 		))
@@ -300,14 +295,18 @@ func CostString(c cost.Cost) string {
 	parts := []string{}
 	for count < l {
 		if amount, ok := c[n]; ok {
+			part := ""
 			switch n {
 			case GoodCoin:
-				parts = append(parts, RenderMoney(amount))
+				part = RenderMoney(amount)
 			default:
-				for i := 0; i < amount; i++ {
-					parts = append(parts, RenderResourceSymbol(n))
+				if amount == 1 {
+					part = RenderResourceSymbol(n)
+				} else {
+					part = RenderResourceWithSymbol(strconv.Itoa(amount), n)
 				}
 			}
+			parts = append(parts, part)
 			count++
 		}
 		n++
@@ -387,7 +386,7 @@ func (g *Game) RenderStatTable(player int) string {
 			})
 		}
 		for _, r := range s.Resources {
-			row := []interface{}{RenderResourceSymbol(r)}
+			row := []interface{}{render.RightAligned(RenderResourceSymbol(r))}
 			for i := 0; i < pLen; i++ {
 				p := g.NumFromPlayer(fromPlayer, i)
 				colour := render.Gray
