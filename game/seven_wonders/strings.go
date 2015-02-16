@@ -83,8 +83,8 @@ const (
 	CardStudy             = "Study"
 
 	// Cities
-	CityRhodesA = "RhodesA"
-	CityRhodesB = "RhodesB"
+	CityRhodesA = "Rhodes A"
+	CityRhodesB = "Rhodes B"
 
 	CityAlexandriaA = "Alexandria A"
 	CityAlexandriaB = "Alexandria B"

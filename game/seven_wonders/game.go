@@ -1,10 +1,13 @@
 package seven_wonders
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
@@ -29,6 +32,7 @@ type Game struct {
 	Coins         []int
 	VictoryTokens []int
 	DefeatTokens  []int
+	Cities        []City
 }
 
 func (g *Game) Commands() []command.Command {
@@ -39,6 +43,7 @@ func (g *Game) Commands() []command.Command {
 		BuildCommand{},
 		FreeCommand{},
 		DealCommand{},
+		WonderCommand{},
 		DiscardCommand{},
 	}
 }
@@ -78,11 +83,40 @@ func (g *Game) Start(players []string) error {
 		g.Coins[i] = 3
 	}
 
+	// Random city for each player
+	g.Cities = make([]City, pLen)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	cityPerm := r.Perm(len(CityList))
+	cityLog := bytes.NewBufferString(render.Bold(
+		"Picking random cities for players\n"))
+	for p := range g.Players {
+		g.Cities[p] = CityList[cityPerm[p]]
+		if p > 0 {
+			cityLog.WriteString("\n\n")
+		}
+		cityLog.WriteString(fmt.Sprintf(
+			"%s got %s (%s)",
+			g.PlayerName(p),
+			render.Bold(g.Cities[p].Name),
+			RenderResourceSymbol(g.Cities[p].InitialResource),
+		))
+		for _, c := range g.Cities[p].WonderStages {
+			cityLog.WriteString("\n")
+			cityLog.WriteString(RenderCard(Cards[c]))
+		}
+	}
+	g.Log.Add(log.NewPublicMessage(cityLog.String()))
+
 	g.ToResolve = []Resolver{}
 
 	g.StartRound(1)
 
 	return nil
+}
+
+func (g *Game) RemainingWonderStages(player int) card.Deck {
+	return g.Cities[player].WonderStageCards()[g.PlayerResourceCount(
+		player, CardKindWonder):]
 }
 
 func (g *Game) EndRound() {

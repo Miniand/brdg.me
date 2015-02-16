@@ -1,5 +1,11 @@
 package seven_wonders
 
+import "encoding/gob"
+
+func init() {
+	gob.Register(CardPlayFinalCard{})
+}
+
 type CardPlayFinalCard struct {
 	Card
 }

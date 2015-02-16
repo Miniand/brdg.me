@@ -12,6 +12,7 @@ import (
 type BuildAction struct {
 	Card   int
 	Free   bool
+	Wonder bool
 	Deal   int
 	Chosen bool
 }
@@ -24,12 +25,12 @@ func (a *BuildAction) DealOptions(player int, g *Game) []map[int]int {
 	if a.Free {
 		return []map[int]int{}
 	}
-	_, coins := g.CanBuildCard(player, g.Hands[player][a.Card].(Carder))
+	_, coins := g.CanBuildCard(player, a.GetCard(player, g))
 	return coins
 }
 
 func (a *BuildAction) ChooseDeal(player int, g *Game, n int) error {
-	_, coins := g.CanBuildCard(player, g.Hands[player][a.Card].(Carder))
+	_, coins := g.CanBuildCard(player, a.GetCard(player, g))
 	if n < 0 || n >= len(coins) {
 		return errors.New("that is not a valid deal number")
 	}
@@ -47,8 +48,15 @@ func (a *BuildAction) HandlePostActionExecute(player int, g *Game) {
 	}
 }
 
+func (a *BuildAction) GetCard(player int, g *Game) Carder {
+	if a.Wonder {
+		return g.RemainingWonderStages(player)[0].(Carder)
+	}
+	return g.Hands[player][a.Card].(Carder)
+}
+
 func (a *BuildAction) Execute(player int, g *Game) {
-	c := g.Hands[player][a.Card].(Carder)
+	c := a.GetCard(player, g)
 	crd := c.GetCard()
 	paymentString := ""
 	if a.Free {
@@ -101,7 +109,7 @@ func (a *BuildAction) Execute(player int, g *Game) {
 }
 
 func (a *BuildAction) Output(player int, g *Game) string {
-	c := g.Hands[player][a.Card].(Carder)
+	c := a.GetCard(player, g)
 	buf := bytes.NewBufferString("{{b}}Building:{{_b}} ")
 	buf.WriteString(RenderCard(c))
 	if !a.Free {

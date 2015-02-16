@@ -1,8 +1,14 @@
 package seven_wonders
 
+import "encoding/gob"
+
 type CardFreeBuild struct {
 	Card
 	HasBuilt bool
+}
+
+func init() {
+	gob.Register(&CardFreeBuild{})
 }
 
 func (c *CardFreeBuild) CanFreeBuild() bool {

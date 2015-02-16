@@ -1,6 +1,15 @@
 package seven_wonders
 
-import "github.com/Miniand/brdg.me/game/cost"
+import (
+	"encoding/gob"
+
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/cost"
+)
+
+func init() {
+	gob.Register(City{})
+}
 
 var Cities = map[string]City{
 	CityRhodesA: {
@@ -149,6 +158,14 @@ func (c City) GoodsProduced() []cost.Cost {
 
 func (c City) GoodsTraded() []cost.Cost {
 	return c.GoodsProduced()
+}
+
+func (c City) WonderStageCards() card.Deck {
+	wonderStageCards := card.Deck{}
+	for _, ws := range c.WonderStages {
+		wonderStageCards = wonderStageCards.Push(Cards[ws])
+	}
+	return wonderStageCards
 }
 
 var CityList = []City{

@@ -1,10 +1,17 @@
 package seven_wonders
 
-import "strings"
+import (
+	"encoding/gob"
+	"strings"
+)
 
 type CardDrawDiscard struct {
 	Card
 	VP int
+}
+
+func init() {
+	gob.Register(CardDrawDiscard{})
 }
 
 func (c CardDrawDiscard) VictoryTokens(player int, g *Game) int {

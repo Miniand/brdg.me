@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/render"
 )
@@ -139,51 +140,96 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	output := bytes.NewBuffer([]byte{})
-	// Bam
-	for _, c := range CityList {
-		output.WriteString(c.Name)
-		output.WriteString("\nProduces: ")
-		output.WriteString(RenderResourceSymbol(c.InitialResource))
-		output.WriteString("\n")
-		for _, s := range c.WonderStages {
-			output.WriteString(RenderCard(Cards[s]))
-			output.WriteString("\nCost: ")
-			output.WriteString(RenderResourceList(Cards[s].GetCard().Cost.Ints(), " "))
-			output.WriteString("\n")
-		}
-		output.WriteString("\n")
-	}
+
 	// Action output
 	if g.Actions[pNum] != nil {
-		output.WriteString(g.Actions[pNum].Output(pNum, g))
-		output.WriteString("\n\n")
+		actOut := g.Actions[pNum].Output(pNum, g)
+		if actOut != "" {
+			output.WriteString(actOut)
+			output.WriteString("\n\n")
+		}
 	}
+
+	// Resolver output
+	if len(g.ToResolve) > 0 {
+		resOut := g.ToResolve[0].String(pNum, g)
+		if resOut != "" {
+			output.WriteString(resOut)
+			output.WriteString("\n\n")
+		}
+	}
+
 	// Hand
 	output.WriteString(render.Bold("Your hand:\n\n"))
-	for i, c := range g.Hands[pNum] {
+	output.WriteString(
+		g.RenderCardList(pNum, g.Hands[pNum], g.CanAction(pNum), true))
+
+	// Wonders
+	output.WriteString(render.Bold("\n\nRemaining wonder stages:\n\n"))
+	remaining := g.RemainingWonderStages(pNum)
+	if len(remaining) > 0 {
+		output.WriteString(
+			g.RenderCardList(pNum, remaining, false, true))
+	} else {
+		output.WriteString(
+			render.Markup("All wonder stages complete.", render.Gray, false))
+	}
+
+	// Discard
+	output.WriteString(fmt.Sprintf(
+		"\n\n{{b}}Discard pile:{{_b}} %d",
+		len(g.Discard),
+	))
+	// Stats table
+	output.WriteString("\n\n")
+	output.WriteString(g.RenderStatTable(pNum))
+	return output.String(), nil
+}
+
+func (g *Game) RenderCardList(
+	player int,
+	cards card.Deck,
+	showNums, showAfford bool,
+) string {
+	output := bytes.NewBuffer([]byte{})
+	for i, c := range cards {
 		crd := c.(Carder)
 		costStrs := []string{CostString(crd.GetCard().Cost)}
 		for _, f := range crd.GetCard().FreeWith {
 			costStrs = append(costStrs, RenderCardName(Cards[f]))
 		}
-		canBuild, coins := g.CanBuildCard(pNum, crd)
-		afford := "  "
-		switch {
-		case !canBuild:
-			afford = fmt.Sprintf("%s ", CannotBuySymbol)
-		case canBuild && len(coins) == 0:
-			afford = fmt.Sprintf("%s ", CanBuySymbol)
-		default:
-			sum := 0
-			for _, coin := range coins[0] {
-				sum += coin
+		numStr := ""
+		if showNums {
+			numStr = fmt.Sprintf(
+				"(%s) ",
+				render.Markup(strconv.Itoa(i+1), render.Gray, true),
+			)
+		}
+		affordStr := ""
+		if showAfford {
+			canBuild, coins := g.CanBuildCard(player, crd)
+			afford := ""
+			switch {
+			case !canBuild:
+				afford = fmt.Sprintf("%s ", CannotBuySymbol)
+			case canBuild && len(coins) == 0:
+				afford = fmt.Sprintf("%s ", CanBuySymbol)
+			default:
+				sum := 0
+				for _, coin := range coins[0] {
+					sum += coin
+				}
+				afford = RenderMoney(sum)
 			}
-			afford = RenderMoney(sum)
+			affordStr = fmt.Sprintf(
+				"%s ",
+				afford,
+			)
 		}
 		output.WriteString(fmt.Sprintf(
-			"(%s) %s %s\n          Cost: %s\n",
-			render.Markup(strconv.Itoa(i+1), render.Gray, true),
-			afford,
+			"%s%s%s\n          Cost: %s\n",
+			numStr,
+			affordStr,
 			RenderCard(crd),
 			strings.Join(costStrs, render.Colour("  or  ", render.Gray)),
 		))
@@ -200,15 +246,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		output.WriteString("\n")
 	}
-	// Discard
-	output.WriteString(fmt.Sprintf(
-		"\n{{b}}Discard pile:{{_b}} %d",
-		len(g.Discard),
-	))
-	// Stats table
-	output.WriteString("\n\n")
-	output.WriteString(g.RenderStatTable(pNum))
-	return output.String(), nil
+	return strings.TrimSpace(output.String())
 }
 
 func RenderMoney(n int) string {
