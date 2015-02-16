@@ -351,12 +351,12 @@ func (g *Game) RenderStatTable(player int) string {
 			[]int{GoodCoin, VP, WonderStage},
 		},
 		{
-			"Goods",
-			Goods,
+			"Raw goods",
+			RawGoods,
 		},
 		{
-			"Cards",
-			CardKinds,
+			"Manufactured goods",
+			ManufacturedGoods,
 		},
 		{
 			"Military",
@@ -365,6 +365,10 @@ func (g *Game) RenderStatTable(player int) string {
 		{
 			"Science",
 			Fields,
+		},
+		{
+			"Cards",
+			CardKinds,
 		},
 	}
 	pLen := len(g.Players)
@@ -395,7 +399,7 @@ func (g *Game) RenderStatTable(player int) string {
 					colour = render.Black
 				}
 				if p == player {
-					colour = ResourceColours[r]
+					colour = render.Black
 					bold = true
 				}
 				row = append(row, render.Centred(render.Markup(
