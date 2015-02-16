@@ -348,7 +348,7 @@ func (g *Game) RenderStatTable(player int) string {
 		Resources []int
 	}{
 		{
-			"General",
+			"",
 			[]int{GoodCoin, VP, WonderStage},
 		},
 		{
@@ -377,9 +377,14 @@ func (g *Game) RenderStatTable(player int) string {
 	}
 	cells = append(cells, heading)
 	for _, s := range sections {
-		cells = append(cells, []interface{}{
-			render.Markup(s.Heading, render.Gray, true),
-		})
+		if s.Heading != "" {
+			cells = append(cells, []interface{}{
+				render.CellSpan{
+					render.Centred(render.Markup(s.Heading, render.Gray, true)),
+					len(g.Players) + 1,
+				},
+			})
+		}
 		for _, r := range s.Resources {
 			row := []interface{}{RenderResourceSymbol(r)}
 			for i := 0; i < pLen; i++ {
@@ -387,7 +392,7 @@ func (g *Game) RenderStatTable(player int) string {
 				colour := render.Gray
 				bold := false
 				if g.IsNeighbour(player, p) {
-					colour = ResourceColours[r]
+					colour = render.Black
 				}
 				if p == player {
 					colour = ResourceColours[r]
