@@ -171,8 +171,10 @@ func (gm *GameModel) UpdateState(g game.Playable) error {
 		if gm.FinishedAt.IsZero() {
 			gm.FinishedAt = time.Now()
 		}
+		if gm.Winners == nil {
+			gm.Winners = g.Winners()
+		}
 	} else {
-		gm.Winners = g.Winners()
 		if e, ok := g.(game.Eliminator); ok {
 			gm.EliminatedPlayerList = e.EliminatedPlayerList()
 		}
