@@ -66,6 +66,13 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		})
 	}
 	output.WriteString(render.Table(cells, 0, 2))
+	output.WriteString(`
+
+
+{{b}}Notes:{{_b}}
+{{c "green"}}{{b}}Green{{_b}}{{_c}} dice have {{b}}3 Brain{{_b}}, {{b}}2 Run{{_b}} and {{b}}1 Shot{{_b}}.
+{{c "yellow"}}{{b}}Yellow{{_b}}{{_c}} dice have {{b}}2 Brain{{_b}}, {{b}}2 Run{{_b}} and {{b}}2 Shot{{_b}}.
+{{c "red"}}{{b}}Red{{_b}}{{_c}} dice have {{b}}1 Brain{{_b}}, {{b}}2 Run{{_b}} and {{b}}3 Shot{{_b}}.`)
 	return output.String(), nil
 }
 
