@@ -154,26 +154,37 @@ func (g *Game) Roll() {
 	)))
 
 	run := DiceResultList{}
+	newBrains := 0
+	wasShot := false
 	for _, dr := range drl {
 		switch dr.Face {
 		case Brain:
-			g.RoundBrains++
+			newBrains++
 			g.Kept = append(g.Kept, dr)
 		case Shotgun:
 			g.RoundShotguns++
 			g.Kept = append(g.Kept, dr)
+			wasShot = true
 		case Footprints:
 			run = append(run, dr)
 		}
 	}
 	if g.RoundShotguns >= 3 {
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-			"%s got shot three times and lost all their brains!",
+			"%s got shot three times and lost {{b}}%d{{_b}} brains!",
 			g.PlayerName(g.CurrentTurn),
+			g.RoundBrains,
 		)))
 		g.NextPlayer()
 		return
+	} else if wasShot {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s has {{b}}%d{{_b}} health remaining",
+			g.PlayerName(g.CurrentTurn),
+			3-g.RoundShotguns,
+		)))
 	}
+	g.RoundBrains += newBrains
 
 	g.CurrentRoll = run
 }
@@ -181,7 +192,7 @@ func (g *Game) Roll() {
 func (g *Game) Keep() {
 	g.Scores[g.CurrentTurn] += g.RoundBrains
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s kept {{b}}%d{{_b}} brains for a total of {{b}}%d{{_b}}!",
+		"%s kept {{b}}%d{{_b}} brains, now has {{b}}%d{{_b}}!",
 		g.PlayerName(g.CurrentTurn),
 		g.RoundBrains,
 		g.Scores[g.CurrentTurn],

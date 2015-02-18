@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/Miniand/brdg.me/render"
 )
@@ -85,7 +84,7 @@ func (drl DiceResultList) String() string {
 	for i, dr := range drl {
 		parts[i] = dr.String()
 	}
-	return strings.Join(parts, " ")
+	return render.CommaList(parts)
 }
 
 func (g *Game) PlayerName(player int) string {
