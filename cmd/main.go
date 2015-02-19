@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime/pprof"
 	"strings"
 
 	"github.com/Miniand/brdg.me/command"
@@ -31,8 +32,13 @@ func Actions() map[string](func([]string) error) {
 }
 
 func main() {
-	var html bool
+	var (
+		html, profile bool
+		f             *os.File
+		err           error
+	)
 	flag.BoolVar(&html, "html", false, "output html")
+	flag.BoolVar(&profile, "profile", false, "run profiler")
 	flag.Parse()
 	if html {
 		renderer = render.RenderHtml
@@ -51,10 +57,22 @@ func main() {
 		fmt.Println()
 		os.Exit(2)
 	}
-	err := action(flag.Args()[1:])
+	if profile {
+		f, err = os.OpenFile("profile", os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(4)
+		}
+		fmt.Println("starting profile")
+		pprof.StartCPUProfile(f)
+	}
+	err = action(flag.Args()[1:])
+	if profile {
+		pprof.StopCPUProfile()
+		f.Close()
+	}
 	if err != nil {
-		fmt.Printf(err.Error())
-		fmt.Println()
+		fmt.Println(err)
 		os.Exit(3)
 	}
 }
