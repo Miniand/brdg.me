@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -17,6 +18,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	ParamRenderer = "renderer"
+)
+
 func mergeMaps(in ...map[string]interface{}) map[string]interface{} {
 	var first map[string]interface{}
 	for _, i := range in {
@@ -29,6 +34,26 @@ func mergeMaps(in ...map[string]interface{}) map[string]interface{} {
 		}
 	}
 	return first
+}
+
+func findRenderer(rendererParam string) (render.Renderer, error) {
+	switch rendererParam {
+	case "", "html":
+		return render.RenderHtml, nil
+	case "ansi":
+		return render.RenderTerminal, nil
+	case "raw":
+		return func(tmpl string) (string, error) {
+			return tmpl, nil
+		}, nil
+	case "plain":
+		return func(tmpl string) (string, error) {
+			return render.RenderPlain(tmpl), nil
+		}, nil
+	default:
+		return nil, errors.New(
+			"unknown renderer, must be one in html, ansi, raw or plain")
+	}
 }
 
 func GameData(
@@ -80,31 +105,32 @@ func GameOutput(
 	player string,
 	gm *model.GameModel,
 	g game.Playable,
+	renderer render.Renderer,
 ) (map[string]interface{}, error) {
 	gameOutput, err := g.RenderForPlayer(player)
 	if err != nil {
 		return nil, err
 	}
-	gameHtml, err := render.RenderHtml(gameOutput)
+	gameRender, err := renderer(gameOutput)
 	if err != nil {
 		return nil, err
 	}
 	logs := []map[string]interface{}{}
 	for _, l := range g.GameLog().MessagesFor(player) {
-		logHtml, err := render.RenderHtml(l.Text)
+		logRender, err := renderer(l.Text)
 		if err != nil {
 			return nil, err
 		}
 		t := time.Unix(l.Time/int64(math.Pow10(9)), 0)
 		logs = append(logs, map[string]interface{}{
 			"time": t.UTC().Format(time.RFC3339),
-			"text": logHtml,
+			"text": logRender,
 		})
 	}
 	if err != nil {
 		return nil, err
 	}
-	commandHtml, err := render.RenderHtml(
+	commandRender, err := renderer(
 		render.CommandUsages(command.CommandUsages(
 			player, g,
 			command.AvailableCommands(player, g,
@@ -113,9 +139,9 @@ func GameOutput(
 		return nil, err
 	}
 	return map[string]interface{}{
-		"game":     gameHtml,
+		"game":     gameRender,
 		"log":      logs,
-		"commands": commandHtml,
+		"commands": commandRender,
 	}, nil
 }
 
@@ -124,12 +150,18 @@ func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 	if !loggedIn {
 		return
 	}
-	games := []map[string]interface{}{}
 	var (
 		err error
 		gm  *model.GameModel
 		res *gorethink.Cursor
 	)
+	query := r.URL.Query()
+	renderer, err := findRenderer(query.Get(ParamRenderer))
+	if err != nil {
+		ApiBadRequest(err.Error(), w, r)
+		return
+	}
+	games := []map[string]interface{}{}
 	switch r.URL.Query().Get("gameState") {
 	case "all":
 		res, err = model.GamesForPlayer(authUser.Email)
@@ -150,7 +182,7 @@ func ApiGameIndex(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		gd, err := GameData(gm, g, render.RenderHtml)
+		gd, err := GameData(gm, g, renderer)
 		if err != nil {
 			continue
 		}
@@ -175,6 +207,12 @@ func ApiGameShow(w http.ResponseWriter, r *http.Request) {
 	if !loggedIn {
 		return
 	}
+	query := r.URL.Query()
+	renderer, err := findRenderer(query.Get(ParamRenderer))
+	if err != nil {
+		ApiBadRequest(err.Error(), w, r)
+		return
+	}
 	vars := mux.Vars(r)
 	gm, err := model.LoadGame(vars["id"])
 	if err != nil {
@@ -186,11 +224,11 @@ func ApiGameShow(w http.ResponseWriter, r *http.Request) {
 		ApiInternalServerError(err.Error(), w, r)
 		return
 	}
-	gameOutput, err := GameOutput(authUser.Email, gm, g)
+	gameOutput, err := GameOutput(authUser.Email, gm, g, renderer)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 	}
-	gd, err := GameData(gm, g, render.RenderHtml)
+	gd, err := GameData(gm, g, renderer)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 	}
@@ -230,6 +268,11 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 	if !loggedIn {
 		return
 	}
+	renderer, err := findRenderer(r.FormValue(ParamRenderer))
+	if err != nil {
+		ApiBadRequest(err.Error(), w, r)
+		return
+	}
 	vars := mux.Vars(r)
 	gameId := vars["id"]
 	// Do the command
@@ -260,11 +303,11 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get output for return
-	gameOutput, err := GameOutput(authUser.Email, gm, g)
+	gameOutput, err := GameOutput(authUser.Email, gm, g, renderer)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 	}
-	gd, err := GameData(gm, g, render.RenderHtml)
+	gd, err := GameData(gm, g, renderer)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
 	}
@@ -275,6 +318,12 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 	var gm *model.GameModel
 	loggedIn, authUser := ApiMustAuthenticate(w, r)
 	if !loggedIn {
+		return
+	}
+	query := r.URL.Query()
+	renderer, err := findRenderer(query.Get(ParamRenderer))
+	if err != nil {
+		ApiBadRequest(err.Error(), w, r)
 		return
 	}
 	resp := map[string][]map[string]interface{}{
@@ -293,7 +342,7 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		gd, err := GameData(gm, g, render.RenderHtml)
+		gd, err := GameData(gm, g, renderer)
 		if err != nil {
 			ApiInternalServerError(err.Error(), w, r)
 		}
@@ -310,7 +359,7 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		gd, err := GameData(gm, g, render.RenderHtml)
+		gd, err := GameData(gm, g, renderer)
 		if err != nil {
 			continue
 		}
@@ -327,7 +376,7 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		gd, err := GameData(gm, g, render.RenderHtml)
+		gd, err := GameData(gm, g, renderer)
 		if err != nil {
 			continue
 		}
