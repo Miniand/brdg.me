@@ -292,6 +292,45 @@ func TestCanAffordPerm(t *testing.T) {
 			ExpectedCan:     false,
 			ExpectedCanWith: [][]Cost{},
 		},
+		"Can afford with multiple perm some irrelevant": {
+			Cost: Cost{
+				TestRes1: 3,
+				TestRes2: 1,
+			},
+			With: [][]Cost{
+				{
+					{
+						TestRes3: 5,
+					},
+					{
+						TestRes4: 1,
+					},
+				},
+				{
+					{
+						TestRes1: 5,
+						TestRes2: 2,
+					},
+					{
+						TestRes1: 1,
+						TestRes2: 5,
+					},
+				},
+			},
+			ExpectedCan: true,
+			ExpectedCanWith: [][]Cost{
+				{
+					{
+						TestRes1: 0,
+						TestRes2: 0,
+					},
+					{
+						TestRes1: 3,
+						TestRes2: 1,
+					},
+				},
+			},
+		},
 	} {
 		actualCan, actualCanWith := CanAffordPerm(testCase.Cost, testCase.With)
 		assert.Equal(t, testCase.ExpectedCan, actualCan,

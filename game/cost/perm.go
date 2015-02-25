@@ -1,49 +1,52 @@
 package cost
 
+func prependToCostArrays(c Cost, arr [][]Cost) [][]Cost {
+	l := len(arr)
+	ret := make([][]Cost, l)
+	for i, a := range arr {
+		ret[i] = append([]Cost{c}, a...)
+	}
+	return ret
+}
+
 func CanAffordPerm(c Cost, with [][]Cost) (can bool, canWith [][]Cost) {
 	canWith = [][]Cost{}
 	if c.IsZero() {
 		can = true
 		return
 	}
-	if with == nil || len(with) == 0 {
+	if len(with) == 0 {
 		return
 	}
-	wLen := 0
-	if with[0] != nil {
-		wLen = len(with[0])
-	}
-	switch wLen {
-	case 0:
-		return CanAffordPerm(c, with[1:])
-	case 1:
-		using := with[0][0].Take(c.Keys()...)
-		if using.CanAfford(c) {
-			// Can afford it, exit early
+
+	canWith = [][]Cost{}
+	relevant := false
+	cKeys := c.Keys()
+	for _, w := range with[0] {
+		if w.CanAfford(c) {
 			return true, [][]Cost{{c}}
 		}
-		remaining, _ := c.Sub(using).PosNeg()
-		used := c.Sub(remaining)
+		needed := w.Take(cKeys...).Trim()
+		if len(needed) == 0 {
+			continue
+		}
+		relevant = true
+		remaining, extra := c.Sub(needed).PosNeg()
 		if subCan, subCanWith := CanAffordPerm(
 			remaining,
 			with[1:],
 		); subCan {
 			can = true
-			for _, scw := range subCanWith {
-				canWith = append(canWith, append([]Cost{used}, scw...))
-			}
+			canWith = append(canWith, prependToCostArrays(
+				needed.Add(extra),
+				subCanWith,
+			)...)
 		}
-	default:
-		canWith = [][]Cost{}
-		for _, w := range with[0] {
-			if subCan, subCanWith := CanAffordPerm(
-				c,
-				append([][]Cost{{w}}, with[1:]...),
-			); subCan {
-				can = true
-				canWith = append(canWith, subCanWith...)
-			}
-		}
+	}
+	if !relevant {
+		subCan, subCanWith := CanAffordPerm(c, with[1:])
+		can = subCan
+		canWith = prependToCostArrays(Cost{}, subCanWith)
 	}
 	return
 }
