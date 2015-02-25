@@ -140,7 +140,9 @@ func PlayAction(args []string) error {
 	if commandOutput != "" {
 		output = commandOutput + "\n\n" + output
 	}
-	saveGame(g)
+	if err := saveGame(g); err != nil {
+		return err
+	}
 	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
 	fmt.Println(output)
 	usages := command.CommandUsages(args[0], g, command.AvailableCommands(
@@ -183,7 +185,9 @@ func OutputGameForPlayingPlayers(g game.Playable) error {
 		}
 	}
 	// Save again in case logs were marked as read
-	saveGame(g)
+	if err := saveGame(g); err != nil {
+		return err
+	}
 	if g.IsFinished() {
 		fmt.Println("Game finished!  Winners: " + strings.Join(g.Winners(), ", "))
 	} else {
@@ -209,7 +213,9 @@ func BotAction(args []string) error {
 	if err != nil {
 		return err
 	}
-	saveGame(rawG)
+	if err := saveGame(rawG); err != nil {
+		return err
+	}
 	return OutputGameForPlayingPlayers(rawG)
 }
 
