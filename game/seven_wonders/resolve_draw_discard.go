@@ -1,10 +1,15 @@
 package seven_wonders
 
 import (
+	"encoding/gob"
 	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
 )
+
+func init() {
+	gob.Register(ResolveDrawDiscard{})
+}
 
 type ResolveDrawDiscard struct {
 	Player int
