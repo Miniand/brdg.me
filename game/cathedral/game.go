@@ -8,6 +8,13 @@ import (
 	"github.com/Miniand/brdg.me/game/log"
 )
 
+const (
+	DirUp = 1 << iota
+	DirRight
+	DirDown
+	DirLeft
+)
+
 type Game struct {
 	Players []string
 	Log     *log.Log
