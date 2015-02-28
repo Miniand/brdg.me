@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/acquire"
+	"github.com/Miniand/brdg.me/game/alhambra"
 	"github.com/Miniand/brdg.me/game/battleship"
 	"github.com/Miniand/brdg.me/game/category_5"
 	"github.com/Miniand/brdg.me/game/farkle"
@@ -14,11 +15,13 @@ import (
 	"github.com/Miniand/brdg.me/game/modern_art"
 	"github.com/Miniand/brdg.me/game/no_thanks"
 	"github.com/Miniand/brdg.me/game/roll_through_the_ages"
+	"github.com/Miniand/brdg.me/game/seven_wonders"
 	"github.com/Miniand/brdg.me/game/splendor"
 	"github.com/Miniand/brdg.me/game/starship_catan"
 	"github.com/Miniand/brdg.me/game/sushizock"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
 	"github.com/Miniand/brdg.me/game/tic_tac_toe"
+	"github.com/Miniand/brdg.me/game/zombie_dice"
 )
 
 type Playable interface {
@@ -49,6 +52,7 @@ type Botter interface {
 func gameList() []Playable {
 	return []Playable{
 		&acquire.Game{},
+		&alhambra.Game{},
 		&battleship.Game{},
 		&category_5.Game{},
 		&farkle.Game{},
@@ -59,11 +63,13 @@ func gameList() []Playable {
 		&modern_art.Game{},
 		&no_thanks.Game{},
 		&roll_through_the_ages.Game{},
+		&seven_wonders.Game{},
 		&splendor.Game{},
 		&starship_catan.Game{},
 		&sushizock.Game{},
 		&texas_holdem.Game{},
 		&tic_tac_toe.Game{},
+		&zombie_dice.Game{},
 	}
 }
 

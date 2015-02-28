@@ -12,7 +12,16 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	WsTypeGameUpdate = "gameUpdate"
+)
+
 type WsMsg struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
+type WsGameUpdateMsg struct {
 	Text     string `json:"text,omitempty"`
 	TextHtml string `json:"textHtml,omitempty"`
 	MsgType  string `json:"msgType,omitempty"`
@@ -26,11 +35,11 @@ var wsConnections = map[string][]*websocket.Conn{}
 var errNoConnections = errors.New(
 	"that player does not have any connections open")
 
-func NewWsMsg(
+func NewWsGameUpdateMsg(
 	player, text, textHtml, msgType string,
 	g game.Playable,
 	gm *model.GameModel,
-) WsMsg {
+) WsGameUpdateMsg {
 	isFinished := gm.IsFinished
 	yourTurn := false
 	if !isFinished {
@@ -41,7 +50,7 @@ func NewWsMsg(
 			}
 		}
 	}
-	return WsMsg{
+	return WsGameUpdateMsg{
 		Text:     text,
 		TextHtml: textHtml,
 		MsgType:  msgType,
@@ -76,20 +85,27 @@ func wsSendGame(
 	if err != nil {
 		return fmt.Errorf("unable to render text to HTML: %v", err)
 	}
+	return wsSend(player, WsTypeGameUpdate, NewWsGameUpdateMsg(
+		player,
+		text,
+		textHtml,
+		msgType,
+		g,
+		gm,
+	))
+}
+
+func wsSend(player string, msgType string, data interface{}) (err error) {
 	sent := false
 	conns := wsConnections[player]
 	if conns == nil || len(conns) == 0 {
 		return errNoConnections
 	}
 	for _, conn := range conns {
-		if err = conn.WriteJSON(NewWsMsg(
-			player,
-			text,
-			textHtml,
-			msgType,
-			g,
-			gm,
-		)); err == nil {
+		if err = conn.WriteJSON(WsMsg{
+			Type: msgType,
+			Data: data,
+		}); err == nil {
 			sent = true
 		}
 	}

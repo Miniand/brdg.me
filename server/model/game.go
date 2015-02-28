@@ -53,6 +53,20 @@ func CurrentTurnGamesForPlayer(player string) (*r.Cursor, error) {
 	).OrderBy(r.Row.Field("WhoseTurnSince").Field(player)).Run(session)
 }
 
+func NotCurrentTurnGamesForPlayer(player string) (*r.Cursor, error) {
+	session, err := Connect()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+	return GameTable().GetAllByIndex(
+		"IsFinished:PlayerList",
+		[]interface{}{false, player},
+	).Filter(func(row r.Term) interface{} {
+		return r.Not(row.Field("WhoseTurn").Contains(player))
+	}).Run(session)
+}
+
 func RecentlyFinishedGamesForPlayer(player string) (*r.Cursor, error) {
 	session, err := Connect()
 	if err != nil {
@@ -157,8 +171,10 @@ func (gm *GameModel) UpdateState(g game.Playable) error {
 		if gm.FinishedAt.IsZero() {
 			gm.FinishedAt = time.Now()
 		}
+		if gm.Winners == nil {
+			gm.Winners = g.Winners()
+		}
 	} else {
-		gm.Winners = g.Winners()
 		if e, ok := g.(game.Eliminator); ok {
 			gm.EliminatedPlayerList = e.EliminatedPlayerList()
 		}

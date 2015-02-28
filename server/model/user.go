@@ -12,6 +12,7 @@ type UserModel struct {
 	Unsubscribed    bool
 	AuthRequest     string
 	AuthRequestedAt time.Time
+	Admin           bool
 }
 
 func UserTable() r.Term {

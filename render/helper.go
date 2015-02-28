@@ -12,6 +12,13 @@ type Centred string
 type RightAligned string
 type Unbounded string
 
+type CellSpan struct {
+	Content interface{}
+	Rows    int
+}
+
+var Rule = strings.Repeat("=", 80)
+
 func PlayerColour(playerNum int) string {
 	colours := []string{
 		"green",
@@ -63,19 +70,43 @@ func Padded(s interface{}, width int) string {
 	return buf.String()
 }
 
+type spanCellInTable struct {
+	start, span, contentWidth int
+}
+
 func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 	// First calculate widths
 	widths := map[int]int{}
+	spans := []spanCellInTable{}
 	for _, row := range cells {
 		for colIndex, cell := range row {
-			switch cell.(type) {
+			w := StrLen(String(cell))
+			switch t := cell.(type) {
 			case Unbounded:
 				continue
+			case CellSpan:
+				spans = append(spans, spanCellInTable{
+					colIndex,
+					t.Rows,
+					StrLen(String(t.Content)),
+				})
+				continue
 			}
-			w := StrLen(String(cell))
 			if w > widths[colIndex] {
 				widths[colIndex] = w
 			}
+		}
+	}
+	for _, span := range spans {
+		remaining := span.contentWidth
+		for i := span.start; i < span.start+span.span; i++ {
+			remaining -= widths[i]
+			if i > span.start {
+				remaining -= colPadding
+			}
+		}
+		if remaining > widths[span.start+span.span-1] {
+			widths[span.start+span.span-1] = remaining
 		}
 	}
 	// Output cells
@@ -85,17 +116,28 @@ func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 			buf.WriteString(strings.Repeat("\n", rowPadding+1))
 		}
 		for colIndex, cellRaw := range row {
+			width := widths[colIndex]
+			if span, ok := cellRaw.(CellSpan); ok {
+				cellRaw = span.Content
+				width = 0
+				for i := colIndex; i < colIndex+span.Rows; i++ {
+					width += widths[i]
+					if i > colIndex {
+						width += colPadding
+					}
+				}
+			}
 			var content string
 			switch cellRaw.(type) {
 			case Centred:
-				content = Centre(cellRaw, widths[colIndex])
+				content = Centre(cellRaw, width)
 			case RightAligned:
-				content = Right(cellRaw, widths[colIndex])
+				content = Right(cellRaw, width)
 			default:
 				content = String(cellRaw)
 			}
 			if colIndex != len(row)-1 {
-				content = Padded(content, widths[colIndex]+colPadding)
+				content = Padded(content, width+colPadding)
 			}
 			buf.WriteString(content)
 		}

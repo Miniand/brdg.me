@@ -50,7 +50,8 @@ func (c TradeCommand) Usage(player string, context interface{}) string {
 
 func (g *Game) CanTrade(player int) bool {
 	return g.CurrentPlayer == player && g.Phase == PhaseBuild &&
-		g.Boards[player].Developments[DevelopmentEngineering]
+		g.Boards[player].Developments[DevelopmentEngineering] &&
+		g.Boards[player].Goods[GoodStone] > 0
 }
 
 func (g *Game) TradeStone(player, amount int) error {

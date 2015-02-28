@@ -37,6 +37,9 @@ func Commands(gm *model.GameModel) []comm.Command {
 			RestartCommand{
 				gameModel: gm,
 			},
+			DumpCommand{
+				gameModel: gm,
+			},
 		}
 	}
 	c = append(c, []comm.Command{

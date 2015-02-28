@@ -3,3 +3,5 @@ rethinkdb_data
 rethinkdb_dump*
 tags
 *.swp
+/cmd/profile
+/cmd/cmd
