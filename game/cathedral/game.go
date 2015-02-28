@@ -92,7 +92,9 @@ func (g *Game) Start(players []string) error {
 		g.Board[i] = [10]Tile{}
 		for j := 0; j < 10; j++ {
 			g.Board[i][j] = Tile{
-				Player: (r.Int() % 4) - 1,
+				PlayerType{
+					Player: (r.Int() % 3) - 1,
+				},
 			}
 		}
 	}

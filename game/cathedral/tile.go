@@ -6,6 +6,5 @@ const (
 )
 
 type Tile struct {
-	Player int
-	Type   int
+	PlayerType
 }

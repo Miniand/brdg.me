@@ -176,9 +176,9 @@ func RenderEmptyTile(x, y int) string {
 	), emptyAbove))
 	s := TileText(x, y)
 	remainingWidth := TileWidth - len(s)
-	buf.WriteString(strings.Repeat(NoTileStr, (remainingWidth+1)/2))
-	buf.WriteString(render.Bold(s))
 	buf.WriteString(strings.Repeat(NoTileStr, remainingWidth/2))
+	buf.WriteString(render.Bold(s))
+	buf.WriteString(strings.Repeat(NoTileStr, (remainingWidth+1)/2))
 	buf.WriteByte('\n')
 	buf.WriteString(strings.TrimSpace(strings.Repeat(fmt.Sprintf(
 		"%s\n",
