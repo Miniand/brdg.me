@@ -33,15 +33,19 @@ func Actions() map[string](func([]string) error) {
 
 func main() {
 	var (
-		html, profile bool
-		f             *os.File
-		err           error
+		html, image, profile bool
+		f                    *os.File
+		err                  error
 	)
 	flag.BoolVar(&html, "html", false, "output html")
+	flag.BoolVar(&image, "image", false, "output image (PNG)")
 	flag.BoolVar(&profile, "profile", false, "run profiler")
 	flag.Parse()
 	if html {
 		renderer = render.RenderHtml
+	}
+	if image {
+		renderer = render.RenderImage
 	}
 	if flag.NArg() == 0 {
 		fmt.Println("Available actions are:")
@@ -85,7 +89,13 @@ func RenderForPlayer(g game.Playable, p string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return renderer(logOutput + "\n\n" + rawOutput)
+	commandsOutput := ""
+	usages := command.CommandUsages(p, g, command.AvailableCommands(
+		p, g, g.Commands()))
+	if len(usages) > 0 {
+		commandsOutput = fmt.Sprintf("\n\n%s", strings.Join(usages, "\n"))
+	}
+	return renderer(logOutput + "\n\n" + rawOutput + commandsOutput)
 }
 
 func NewAction(args []string) error {
@@ -145,17 +155,6 @@ func PlayAction(args []string) error {
 	}
 	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
 	fmt.Println(output)
-	usages := command.CommandUsages(args[0], g, command.AvailableCommands(
-		args[0], g, g.Commands()))
-	if len(usages) > 0 {
-		commandsOutput, err := render.RenderTerminal(render.CommandUsages(
-			usages))
-		if err != nil {
-			return err
-		}
-		fmt.Println()
-		fmt.Println(commandsOutput)
-	}
 	err = OutputGameForPlayingPlayers(g)
 	if err != nil {
 		return err
@@ -171,18 +170,6 @@ func OutputGameForPlayingPlayers(g game.Playable) error {
 		}
 		fmt.Println("--- OUTPUT FOR " + p + " ---")
 		fmt.Println(output)
-		usages := command.CommandUsages(p, g,
-			command.AvailableCommands(p, g, command.AvailableCommands(
-				p, g, g.Commands())))
-		if len(usages) > 0 {
-			commandsOutput, err := render.RenderTerminal(render.CommandUsages(
-				usages))
-			if err != nil {
-				return err
-			}
-			fmt.Println()
-			fmt.Println(commandsOutput)
-		}
 	}
 	// Save again in case logs were marked as read
 	if err := saveGame(g); err != nil {
@@ -230,17 +217,6 @@ func ViewAction(args []string) error {
 	output, err := RenderForPlayer(g, args[0])
 	if err == nil {
 		fmt.Println(output)
-	}
-	usages := command.CommandUsages(args[0], g, command.AvailableCommands(
-		args[0], g, g.Commands()))
-	if len(usages) > 0 {
-		commandsOutput, err := render.RenderTerminal(render.CommandUsages(
-			usages))
-		if err != nil {
-			return err
-		}
-		fmt.Println()
-		fmt.Println(commandsOutput)
 	}
 	return err
 }
