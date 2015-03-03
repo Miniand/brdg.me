@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"image/color"
 )
 
 type RgbColour struct {
-	R, G, B int
+	R, G, B uint8
 }
 
 func (c RgbColour) String() string {
@@ -22,8 +23,12 @@ func (c RgbColour) Lighten(by float64) RgbColour {
 	}
 }
 
-func Lighten(val int, by float64) int {
-	return val + int(float64(255-val)*by)
+func (c RgbColour) ToRgba() color.Color {
+	return color.RGBA{c.R, c.G, c.B, 255}
+}
+
+func Lighten(val uint8, by float64) uint8 {
+	return val + uint8(float64(255-val)*by)
 }
 
 var HtmlRgbColours = map[string]RgbColour{

@@ -13,9 +13,23 @@ import (
 	"code.google.com/p/freetype-go/freetype/truetype"
 )
 
-const FontSize = 12
+const (
+	FontSize = 13
+	Spacing  = 4
+)
 
 var dejaVuMonoTtf, dejaVuMonoBoldTtf *truetype.Font
+
+var imageColours = map[string]image.Image{
+	Black:   image.NewUniform(HtmlRgbColours[Black].ToRgba()),
+	Red:     image.NewUniform(HtmlRgbColours[Red].ToRgba()),
+	Green:   image.NewUniform(HtmlRgbColours[Green].ToRgba()),
+	Yellow:  image.NewUniform(HtmlRgbColours[Yellow].ToRgba()),
+	Blue:    image.NewUniform(HtmlRgbColours[Blue].ToRgba()),
+	Magenta: image.NewUniform(HtmlRgbColours[Magenta].ToRgba()),
+	Cyan:    image.NewUniform(HtmlRgbColours[Cyan].ToRgba()),
+	Gray:    image.NewUniform(HtmlRgbColours[Gray].ToRgba()),
+}
 
 func init() {
 	var err error
@@ -35,8 +49,7 @@ func RenderImage(tmpl string) (string, error) {
 	ctx.SetDPI(72)
 	ctx.SetFont(dejaVuMonoTtf)
 	ctx.SetFontSize(FontSize)
-	lineHeight := ctx.PointToFix32(FontSize)
-	ctx.SetHinting(freetype.FullHinting)
+	lineHeight := ctx.PointToFix32(FontSize + Spacing)
 	// Create image.
 	lines := strings.Split(tmpl, "\n")
 	maxX := 400
@@ -46,11 +59,32 @@ func RenderImage(tmpl string) (string, error) {
 	// Bind context to image.
 	ctx.SetClip(m.Bounds())
 	ctx.SetDst(m)
-	// Render lines.
-	for i, l := range lines {
-		ctx.SetSrc(image.Black)
-		ctx.DrawString(l, raster.Point{0, lineHeight * raster.Fix32(i+1)})
-	}
+	// Track position and line
+	x := raster.Fix32(0)
+	line := raster.Fix32(1)
+	WalkTemplate(tmpl, func(text, colour string, bold bool) {
+		ctx.SetSrc(imageColours[colour])
+		if bold {
+			ctx.SetFont(dejaVuMonoBoldTtf)
+		} else {
+			ctx.SetFont(dejaVuMonoTtf)
+		}
+		lines := strings.Split(text, "\n")
+		numLines := len(lines)
+		for i, l := range lines {
+			if len(l) > 0 {
+				point, err := ctx.DrawString(l, raster.Point{x, lineHeight * line})
+				if err != nil {
+					log.Panicf("Error writing: %v\nText: %#v", err, l)
+				}
+				x = point.X
+			}
+			if i < numLines-1 {
+				line++
+				x = 0
+			}
+		}
+	})
 	// Output
 	buf := bytes.NewBuffer([]byte{})
 	err := png.Encode(buf, m)
