@@ -25,7 +25,9 @@ type Game struct {
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		PlayCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -82,4 +84,13 @@ func (g *Game) WhoseTurn() []string {
 
 func (g *Game) GameLog() *log.Log {
 	return g.Log
+}
+
+func (g *Game) PlayerNum(player string) (int, bool) {
+	for pNum, pName := range g.Players {
+		if pName == player {
+			return pNum, true
+		}
+	}
+	return 0, false
 }
