@@ -2,17 +2,19 @@ package cathedral
 
 import (
 	"errors"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/helper"
 )
 
 type PlayCommand struct{}
 
 func (c PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("play", 1, 2, input)
+	return command.ParseNamedCommandRangeArgs("play", 2, 3, input)
 }
 
 func (c PlayCommand) CanCall(player string, context interface{}) bool {
@@ -46,6 +48,10 @@ func (c PlayCommand) Call(
 	}
 	dir := DirDown
 	if len(a) > 2 {
+		dir, err = helper.MatchStringInStringMap(a[2], OrthoDirNames)
+		if err != nil {
+			return "", err
+		}
 	}
 	return "", g.Play(pNum, pieceNum, x, y, dir)
 }
@@ -68,13 +74,24 @@ func (g *Game) Play(player, piece, x, y, dir int) error {
 	if g.PlayedPieces[player][piece] {
 		return errors.New("you have already played that piece")
 	}
+	p := Pieces[player][piece]
 	// Special case for player 2, if they haven't played the cathedral they
 	// need to play it first.
-	if player == 1 && piece != 0 && !g.PlayedPieces[player][0] {
+	if player == 1 && piece != 0 && !g.PlayedPieces[1][0] {
 		return errors.New("cathedral piece must be played before any others")
 	}
+	n := 0
+	switch dir {
+	case DirUp:
+		n = 2
+	case DirRight:
+		n = -1
+	case DirLeft:
+		n = 1
+	}
+	rotated := p.Positions.Rotate(n)
 	// First ensure it can actually be played.
-	for _, l := range Pieces[player][piece].Positions {
+	for _, l := range rotated {
 		tX := x + l.X
 		tY := y + l.Y
 		if tX < 0 || tX > 9 || tY < 0 || tY > 9 {
@@ -89,11 +106,15 @@ func (g *Game) Play(player, piece, x, y, dir int) error {
 			return errors.New("the other player owns that area")
 		}
 	}
-	for _, l := range Pieces[player][piece].Positions {
-		g.Board[y+l.Y][x+l.X].Player = Pieces[player][piece].Player
-		g.Board[y+l.Y][x+l.X].Type = Pieces[player][piece].Type
+	for _, l := range rotated {
+		g.Board[y+l.Y][x+l.X].Player = p.Player
+		g.Board[y+l.Y][x+l.X].Type = p.Type
 	}
 	g.PlayedPieces[player][piece] = true
+	// Do an ownership check.
+	if p.Player != PlayerCathedral && g.PlayedPieces[1][0] {
+		log.Print("OWNERSHIP CHECK")
+	}
 	if player != 1 || piece != 0 {
 		// Go to next player if it wasn't the cathedral just played.
 		g.NextPlayer()

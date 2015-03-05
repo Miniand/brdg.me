@@ -8,9 +8,30 @@ type Location struct {
 	X, Y int
 }
 
+func (l Location) Rotate(n int) Location {
+	switch {
+	case n > 0:
+		return (Location{-l.Y, l.X}).Rotate(n - 1)
+	case n < 0:
+		return (Location{l.Y, -l.X}).Rotate(n + 1)
+	default:
+		return l
+	}
+}
+
+type Locations []Location
+
+func (ls Locations) Rotate(n int) Locations {
+	nls := make(Locations, len(ls))
+	for i, l := range ls {
+		nls[i] = l.Rotate(n)
+	}
+	return nls
+}
+
 type Piece struct {
 	PlayerType
-	Positions   []Location
+	Positions   Locations
 	Directional bool
 }
 
@@ -19,7 +40,7 @@ var Pieces = map[int][]Piece{
 	0: {
 		Piece{
 			PlayerType{0, 0},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{-1, 1},
@@ -30,7 +51,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 1},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -41,7 +62,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 2},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{-1, 1},
@@ -52,7 +73,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 3},
-			[]Location{
+			Locations{
 				{0, 0},
 				{1, 0},
 				{0, 1},
@@ -63,7 +84,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 4},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -73,7 +94,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 5},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -83,7 +104,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 6},
-			[]Location{
+			Locations{
 				{0, 0},
 				{1, 0},
 				{0, 1},
@@ -93,7 +114,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 7},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{0, 2},
@@ -102,7 +123,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 8},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -111,7 +132,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 9},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -120,7 +141,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 10},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 			},
@@ -128,7 +149,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 11},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 			},
@@ -136,14 +157,14 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{0, 12},
-			[]Location{
+			Locations{
 				{0, 0},
 			},
 			false,
 		},
 		Piece{
 			PlayerType{0, 13},
-			[]Location{
+			Locations{
 				{0, 0},
 			},
 			false,
@@ -155,7 +176,7 @@ var Pieces = map[int][]Piece{
 		// Cathedral first
 		Piece{
 			PlayerType{PlayerCathedral, 0},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{0, 2},
@@ -167,7 +188,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 0},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -178,7 +199,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 1},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -189,7 +210,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 2},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{-1, 1},
@@ -200,7 +221,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 3},
-			[]Location{
+			Locations{
 				{0, 0},
 				{1, 0},
 				{0, 1},
@@ -211,7 +232,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 4},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -221,7 +242,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 5},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{-1, 1},
@@ -231,7 +252,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 6},
-			[]Location{
+			Locations{
 				{0, 0},
 				{1, 0},
 				{0, 1},
@@ -241,7 +262,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 7},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{0, 2},
@@ -250,7 +271,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 8},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -259,7 +280,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 9},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 				{1, 1},
@@ -268,7 +289,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 10},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 			},
@@ -276,7 +297,7 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 11},
-			[]Location{
+			Locations{
 				{0, 0},
 				{0, 1},
 			},
@@ -284,14 +305,14 @@ var Pieces = map[int][]Piece{
 		},
 		Piece{
 			PlayerType{1, 12},
-			[]Location{
+			Locations{
 				{0, 0},
 			},
 			false,
 		},
 		Piece{
 			PlayerType{1, 13},
-			[]Location{
+			Locations{
 				{0, 0},
 			},
 			false,

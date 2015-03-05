@@ -22,6 +22,13 @@ var OrthoDirs = []int{
 	DirLeft,
 }
 
+var OrthoDirNames = map[int]string{
+	DirUp:    "up",
+	DirRight: "right",
+	DirDown:  "down",
+	DirLeft:  "left",
+}
+
 var DiagDirs = []int{
 	DirUp | DirRight,
 	DirDown | DirRight,
