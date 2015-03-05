@@ -39,6 +39,7 @@ func (c PlayCommand) Call(
 	if err != nil {
 		return "", errors.New("the first argument should be the piece number to play")
 	}
+	pieceNum-- // Change to zero index
 	x, y, ok := ParseLoc(a[1])
 	if !ok {
 		return "", errors.New("the second argument should be a valid location, such as C7")
@@ -61,6 +62,42 @@ func (g *Game) Play(player, piece, x, y, dir int) error {
 	if !g.CanPlay(player) {
 		return errors.New("can't make plays at the moment")
 	}
+	if piece < 0 || piece > len(Pieces[player]) {
+		return errors.New("that is not a valid piece number")
+	}
+	if g.PlayedPieces[player][piece] {
+		return errors.New("you have already played that piece")
+	}
+	// Special case for player 2, if they haven't played the cathedral they
+	// need to play it first.
+	if player == 1 && piece != 0 && !g.PlayedPieces[player][0] {
+		return errors.New("cathedral piece must be played before any others")
+	}
+	// First ensure it can actually be played.
+	for _, l := range Pieces[player][piece].Positions {
+		tX := x + l.X
+		tY := y + l.Y
+		if tX < 0 || tX > 9 || tY < 0 || tY > 9 {
+			return errors.New("playing there would go off the board")
+		}
+		t := g.Board[tY][tX]
+		if t.Player != NoPlayer {
+			return errors.New("there is already a piece there")
+		}
+		if t.Owner != NoPlayer &&
+			t.Owner != player {
+			return errors.New("the other player owns that area")
+		}
+	}
+	for _, l := range Pieces[player][piece].Positions {
+		g.Board[y+l.Y][x+l.X].Player = Pieces[player][piece].Player
+		g.Board[y+l.Y][x+l.X].Type = Pieces[player][piece].Type
+	}
+	g.PlayedPieces[player][piece] = true
+	if player != 1 || piece != 0 {
+		// Go to next player if it wasn't the cathedral just played.
+		g.NextPlayer()
+	}
 	return nil
 }
 
@@ -72,9 +109,10 @@ func ParseLoc(input string) (x, y int, ok bool) {
 		return
 	}
 	ok = true
-	x = int(strings.ToUpper(matches[1])[0] - 'A')
-	y, _ = strconv.Atoi(matches[2])
-	if y > 10 {
+	y = int(strings.ToUpper(matches[1])[0] - 'A')
+	x, _ = strconv.Atoi(matches[2])
+	x--
+	if x < 0 || x > 9 {
 		ok = false
 	}
 	return

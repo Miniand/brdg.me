@@ -41,6 +41,7 @@ func parseBoard(input string) (board [10][10]Tile, err error) {
 }
 
 func parseTile(input string) (t Tile, err error) {
+	t = EmptyTile
 	if len(input) != 2 {
 		err = errors.New("input should be len 2")
 		return
@@ -85,8 +86,8 @@ func TestParseBoard(t *testing.T) {
 ....................
 ....................`)
 	assert.NoError(t, err)
-	assert.Equal(t, Tile{
+	assert.Equal(t, Tile{PlayerType{
 		Player: 1,
 		Type:   3,
-	}, board[0][1])
+	}, NoPlayer}, board[0][1])
 }

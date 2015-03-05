@@ -7,4 +7,10 @@ const (
 
 type Tile struct {
 	PlayerType
+	Owner int
+}
+
+var EmptyTile = Tile{
+	PlayerType{NoPlayer, 0},
+	NoPlayer,
 }

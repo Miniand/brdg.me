@@ -2,8 +2,6 @@ package cathedral
 
 import (
 	"errors"
-	"math/rand"
-	"time"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
@@ -56,6 +54,8 @@ type Game struct {
 
 	Board [10][10]Tile
 
+	PlayedPieces map[int]map[int]bool
+
 	CurrentPlayer int
 }
 
@@ -89,16 +89,15 @@ func (g *Game) Start(players []string) error {
 	g.Log = log.New()
 
 	g.Board = [10][10]Tile{}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < 10; i++ {
-		g.Board[i] = [10]Tile{}
-		for j := 0; j < 10; j++ {
-			g.Board[i][j] = Tile{
-				PlayerType{
-					Player: (r.Int() % 3) - 1,
-				},
-			}
+	for y := range g.Board {
+		g.Board[y] = [10]Tile{}
+		for x := range g.Board[y] {
+			g.Board[y][x] = EmptyTile
 		}
+	}
+	g.PlayedPieces = map[int]map[int]bool{}
+	for p := range players {
+		g.PlayedPieces[p] = map[int]bool{}
 	}
 
 	return nil
@@ -169,4 +168,8 @@ func (g *Game) OpenSides(x, y int) (open map[int]bool) {
 		}
 	}
 	return
+}
+
+func (g *Game) NextPlayer() {
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % 2
 }
