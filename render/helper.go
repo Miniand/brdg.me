@@ -225,14 +225,22 @@ func String(s interface{}) string {
 }
 
 func Bold(s interface{}) string {
-	return fmt.Sprintf("{{b}}%v{{_b}}", s)
+	lines := strings.Split(String(s), "\n")
+	for i := range lines {
+		lines[i] = fmt.Sprintf("{{b}}%s{{_b}}", lines[i])
+	}
+	return strings.Join(lines, "\n")
 }
 
 func Colour(s interface{}, colour string) string {
 	if !IsValidColour(colour) {
 		log.Fatalf("%s is not a valid colour", colour)
 	}
-	return fmt.Sprintf(`{{c "%s"}}%v{{_c}}`, colour, s)
+	lines := strings.Split(String(s), "\n")
+	for i := range lines {
+		lines[i] = fmt.Sprintf(`{{c "%s"}}%s{{_c}}`, colour, lines[i])
+	}
+	return strings.Join(lines, "\n")
 }
 
 func Markup(s interface{}, colour string, bold bool) string {
