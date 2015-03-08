@@ -7,6 +7,7 @@ import (
 	"image/png"
 	"log"
 	"strings"
+	"unicode/utf8"
 
 	"code.google.com/p/freetype-go/freetype"
 	"code.google.com/p/freetype-go/freetype/raster"
@@ -50,10 +51,18 @@ func RenderImage(tmpl string) (string, error) {
 	ctx.SetFont(dejaVuMonoTtf)
 	ctx.SetFontSize(FontSize)
 	lineHeight := ctx.PointToFix32(FontSize + Spacing)
-	// Create image.
 	lines := strings.Split(tmpl, "\n")
-	maxX := 400
 	maxY := (len(lines) + 1) * int(lineHeight>>8)
+	// Run over the content to figure out the width.
+	charWidth := dejaVuMonoTtf.HMetric(FontSize, dejaVuMonoTtf.Index('a'))
+	longestLine := 0
+	for _, l := range strings.Split(RenderPlain(tmpl), "\n") {
+		if ll := utf8.RuneCount([]byte(l)); ll > longestLine {
+			longestLine = ll
+		}
+	}
+	maxX := (longestLine - 1) * int(charWidth.AdvanceWidth)
+	// Create image.
 	m := image.NewRGBA(image.Rect(0, 0, maxX, maxY))
 	draw.Draw(m, m.Bounds(), image.White, image.ZP, draw.Src)
 	// Bind context to image.
