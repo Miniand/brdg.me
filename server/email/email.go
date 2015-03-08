@@ -30,32 +30,14 @@ func SendRichMail(to []string, subject string, body string,
 	bodyWithFooter := fmt.Sprintf(
 		"%s\n\n\n{{c \"gray\"}}To no longer receive emails or game invites, please reply with {{b}}unsubscribe{{_b}}.{{_c}}",
 		body)
-	terminalOutput, err := render.RenderTerminal(bodyWithFooter)
-	if err != nil {
-		return err
-	}
-	htmlOutput, err := render.RenderHtml(bodyWithFooter)
+	htmlOutput := `<img src="cid:game.png@brdg.me" />`
+	imageOutput, err := render.RenderImage(bodyWithFooter)
 	if err != nil {
 		return err
 	}
 	// Make a multipart message
 	buf := &bytes.Buffer{}
 	data := multipart.NewWriter(buf)
-	// Write plain version
-	plainW, err := data.CreatePart(textproto.MIMEHeader{
-		"Content-Type":              []string{"text/plain"},
-		"Content-Transfer-Encoding": []string{"base64"},
-	})
-	if err != nil {
-		return err
-	}
-	src := []byte(terminalOutput)
-	dst := make([]byte, base64.StdEncoding.EncodedLen(len(src)))
-	base64.StdEncoding.Encode(dst, src)
-	_, err = plainW.Write(dst)
-	if err != nil {
-		return err
-	}
 	// Write HTML version
 	htmlW, err := data.CreatePart(textproto.MIMEHeader{
 		"Content-Type":              []string{`text/html; charset="UTF-8"`},
@@ -64,13 +46,27 @@ func SendRichMail(to []string, subject string, body string,
 	if err != nil {
 		return err
 	}
-	src = []byte(fmt.Sprintf(
-		`<pre style="font-size:13px;line-height:17px;font-family:DejaVu Sans Mono,monospace,Segoe UI Symbol;white-space:pre-wrap;">%s`,
-		htmlOutput,
-	))
-	dst = make([]byte, base64.StdEncoding.EncodedLen(len(src)))
+	src := []byte(htmlOutput)
+	dst := make([]byte, base64.StdEncoding.EncodedLen(len(src)))
 	base64.StdEncoding.Encode(dst, src)
 	_, err = htmlW.Write(dst)
+	if err != nil {
+		return err
+	}
+	// Write image
+	imageW, err := data.CreatePart(textproto.MIMEHeader{
+		"Content-ID":                []string{"<game.png@brdg.me>"},
+		"Content-Type":              []string{"image/png"},
+		"Content-Disposition":       []string{"inline"},
+		"Content-Transfer-Encoding": []string{"base64"},
+	})
+	if err != nil {
+		return err
+	}
+	src = []byte(imageOutput)
+	dst = make([]byte, base64.StdEncoding.EncodedLen(len(src)))
+	base64.StdEncoding.Encode(dst, src)
+	_, err = imageW.Write(dst)
 	if err != nil {
 		return err
 	}
@@ -82,7 +78,7 @@ func SendRichMail(to []string, subject string, body string,
 	headers := []string{
 		fmt.Sprintf("Subject: %s", subject),
 		"MIME-Version: 1.0",
-		fmt.Sprintf("Content-Type: multipart/alternative; boundary=%s",
+		fmt.Sprintf("Content-Type: multipart/related; boundary=%s",
 			data.Boundary()),
 	}
 	headers = append(headers, extraHeaders...)

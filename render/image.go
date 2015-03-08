@@ -77,6 +77,9 @@ func RenderImage(tmpl string) (string, error) {
 			).AdvanceWidth)
 		}
 	})
+	if lLen > maxX {
+		maxX = lLen
+	}
 	// Create image.
 	m := image.NewRGBA(image.Rect(0, 0, maxX, maxY))
 	draw.Draw(m, m.Bounds(), image.White, image.ZP, draw.Src)

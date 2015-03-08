@@ -68,10 +68,9 @@ func SendGame(
 %s
 
 
-You can also <a href="http://brdg.me/game.html?id=%s">continue playing this game live in your browser</a>.`,
+You can also continue playing this game live in your browser at http://brdg.me`,
 			pHeader,
 			rawOutput,
-			gm.Id,
 		)
 		subject := fmt.Sprintf("%s (%s)", g.Name(), gm.Id)
 		extraHeaders := []string{}
