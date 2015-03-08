@@ -7,10 +7,11 @@ import (
 
 const BaseColour = Black
 
-func WalkTemplate(tmpl string, cb func(text, colour string, bold bool)) {
+func WalkTemplate(tmpl string, cb func(text, colour string, bold, large bool)) {
 	colour := BaseColour
 	colourStack := []string{}
 	bold := 0
+	large := 0
 
 	lex := &lexer{
 		input: tmpl,
@@ -19,7 +20,7 @@ func WalkTemplate(tmpl string, cb func(text, colour string, bold bool)) {
 	for {
 		upto := lex.readUntil("{{")
 		if len(upto) > 0 {
-			cb(upto, colour, bold > 0)
+			cb(upto, colour, bold > 0, large > 0)
 		}
 		if lex.eof() {
 			break
@@ -53,6 +54,10 @@ func WalkTemplate(tmpl string, cb func(text, colour string, bold bool)) {
 			bold++
 		case "_b":
 			bold--
+		case "l":
+			large++
+		case "_l":
+			large--
 		}
 	}
 }

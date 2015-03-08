@@ -7,7 +7,6 @@ import (
 	"image/png"
 	"log"
 	"strings"
-	"unicode/utf8"
 
 	"code.google.com/p/freetype-go/freetype"
 	"code.google.com/p/freetype-go/freetype/raster"
@@ -15,7 +14,7 @@ import (
 )
 
 const (
-	FontSize = 13
+	FontSize = float64(13)
 	Spacing  = 4
 )
 
@@ -49,19 +48,35 @@ func RenderImage(tmpl string) (string, error) {
 	ctx := freetype.NewContext()
 	ctx.SetDPI(72)
 	ctx.SetFont(dejaVuMonoTtf)
-	ctx.SetFontSize(FontSize)
 	lineHeight := ctx.PointToFix32(FontSize + Spacing)
 	lines := strings.Split(tmpl, "\n")
 	maxY := (len(lines) + 1) * int(lineHeight>>8)
 	// Run over the content to figure out the width.
-	charWidth := dejaVuMonoTtf.HMetric(FontSize, dejaVuMonoTtf.Index('a'))
-	longestLine := 0
-	for _, l := range strings.Split(RenderPlain(tmpl), "\n") {
-		if ll := utf8.RuneCount([]byte(l)); ll > longestLine {
-			longestLine = ll
+	maxX := 0
+	lLen := 0
+	WalkTemplate(tmpl, func(text, colour string, bold, large bool) {
+		font := dejaVuMonoTtf
+		if bold {
+			font = dejaVuMonoBoldTtf
 		}
-	}
-	maxX := (longestLine - 1) * int(charWidth.AdvanceWidth)
+		fontSize := FontSize
+		if large {
+			fontSize *= 1.6
+		}
+		for _, r := range text {
+			if r == '\n' {
+				if lLen > maxX {
+					maxX = lLen
+				}
+				lLen = 0
+				continue
+			}
+			lLen += int(font.HMetric(
+				int32(fontSize),
+				font.Index(r),
+			).AdvanceWidth)
+		}
+	})
 	// Create image.
 	m := image.NewRGBA(image.Rect(0, 0, maxX, maxY))
 	draw.Draw(m, m.Bounds(), image.White, image.ZP, draw.Src)
@@ -71,13 +86,18 @@ func RenderImage(tmpl string) (string, error) {
 	// Track position and line
 	x := raster.Fix32(0)
 	line := raster.Fix32(1)
-	WalkTemplate(tmpl, func(text, colour string, bold bool) {
+	WalkTemplate(tmpl, func(text, colour string, bold, large bool) {
 		ctx.SetSrc(imageColours[colour])
 		if bold {
 			ctx.SetFont(dejaVuMonoBoldTtf)
 		} else {
 			ctx.SetFont(dejaVuMonoTtf)
 		}
+		fontSize := FontSize
+		if large {
+			fontSize *= 1.6
+		}
+		ctx.SetFontSize(fontSize)
 		lines := strings.Split(text, "\n")
 		numLines := len(lines)
 		for i, l := range lines {
