@@ -30,11 +30,17 @@ func SendRichMail(to []string, subject string, body string,
 	bodyWithFooter := fmt.Sprintf(
 		"%s\n\n\n{{c \"gray\"}}To no longer receive emails or game invites, please reply with {{b}}unsubscribe{{_b}}.{{_c}}",
 		body)
-	htmlOutput := `<img src="cid:game.png@brdg.me" />`
-	imageOutput, err := render.RenderImage(bodyWithFooter)
+	imageOutput, width, height, err := render.RenderImageMeta(bodyWithFooter)
 	if err != nil {
 		return err
 	}
+	htmlOutput := fmt.Sprintf(
+		`<img width="%d" height="%d" style="min-width:%dpx;min-height:%dpx;" src="cid:game.png@brdg.me" />`,
+		width,
+		height,
+		width,
+		height,
+	)
 	// Make a multipart message
 	buf := &bytes.Buffer{}
 	data := multipart.NewWriter(buf)

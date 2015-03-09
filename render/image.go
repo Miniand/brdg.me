@@ -44,15 +44,20 @@ func init() {
 }
 
 func RenderImage(tmpl string) (string, error) {
+	data, _, _, err := RenderImageMeta(tmpl)
+	return data, err
+}
+
+func RenderImageMeta(tmpl string) (data string, width, height int, err error) {
 	// Set up font first so we know the height.
 	ctx := freetype.NewContext()
 	ctx.SetDPI(72)
 	ctx.SetFont(dejaVuMonoTtf)
 	lineHeight := ctx.PointToFix32(FontSize + Spacing)
 	lines := strings.Split(tmpl, "\n")
-	maxY := (len(lines) + 1) * int(lineHeight>>8)
+	height = (len(lines) + 1) * int(lineHeight>>8)
 	// Run over the content to figure out the width.
-	maxX := 0
+	width = 0
 	lLen := 0
 	WalkTemplate(tmpl, func(text, colour string, bold, large bool) {
 		font := dejaVuMonoTtf
@@ -65,8 +70,8 @@ func RenderImage(tmpl string) (string, error) {
 		}
 		for _, r := range text {
 			if r == '\n' {
-				if lLen > maxX {
-					maxX = lLen
+				if lLen > width {
+					width = lLen
 				}
 				lLen = 0
 				continue
@@ -77,11 +82,11 @@ func RenderImage(tmpl string) (string, error) {
 			).AdvanceWidth)
 		}
 	})
-	if lLen > maxX {
-		maxX = lLen
+	if lLen > width {
+		width = lLen
 	}
 	// Create image.
-	m := image.NewRGBA(image.Rect(0, 0, maxX, maxY))
+	m := image.NewRGBA(image.Rect(0, 0, width, height))
 	draw.Draw(m, m.Bounds(), image.White, image.ZP, draw.Src)
 	// Bind context to image.
 	ctx.SetClip(m.Bounds())
@@ -119,6 +124,7 @@ func RenderImage(tmpl string) (string, error) {
 	})
 	// Output
 	buf := bytes.NewBuffer([]byte{})
-	err := png.Encode(buf, m)
-	return buf.String(), err
+	err = png.Encode(buf, m)
+	data = buf.String()
+	return
 }
