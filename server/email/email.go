@@ -13,6 +13,10 @@ import (
 	"github.com/Miniand/brdg.me/render"
 )
 
+const (
+	EmRatio = 1.0 / 17.0
+)
+
 func FromAddr() string {
 	from := os.Getenv("BRDGME_EMAIL_SERVER_SMTP_FROM")
 	if from == "" {
@@ -34,12 +38,12 @@ func SendRichMail(to []string, subject string, body string,
 	if err != nil {
 		return err
 	}
+	widthEm := float64(width) * EmRatio
+	heightEm := float64(height) * EmRatio
 	htmlOutput := fmt.Sprintf(
-		`<img width="%d" height="%d" style="min-width:%dpx;min-height:%dpx;" src="cid:game.png@brdg.me" />`,
-		width,
-		height,
-		width,
-		height,
+		`<img style="min-width:%fem;min-height:%fem;" src="cid:game.png@brdg.me" />`,
+		widthEm,
+		heightEm,
 	)
 	// Make a multipart message
 	buf := &bytes.Buffer{}
