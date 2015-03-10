@@ -141,20 +141,18 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	output := bytes.NewBuffer([]byte{})
 
-	// Action output
-	if g.Actions[pNum] != nil {
-		actOut := g.Actions[pNum].Output(pNum, g)
-		if actOut != "" {
-			output.WriteString(actOut)
-			output.WriteString("\n\n")
-		}
-	}
-
-	// Resolver output
 	if len(g.ToResolve) > 0 {
+		// Resolver output
 		resOut := g.ToResolve[0].String(pNum, g)
 		if resOut != "" {
 			output.WriteString(resOut)
+			output.WriteString("\n\n")
+		}
+	} else if g.Actions[pNum] != nil {
+		// Action output
+		actOut := g.Actions[pNum].Output(pNum, g)
+		if actOut != "" {
+			output.WriteString(actOut)
 			output.WriteString("\n\n")
 		}
 	}
