@@ -8,9 +8,11 @@ const (
 type Tile struct {
 	PlayerType
 	Owner int
+	Text  string
 }
 
 var EmptyTile = Tile{
 	PlayerType{NoPlayer, 0},
 	NoPlayer,
+	"",
 }
