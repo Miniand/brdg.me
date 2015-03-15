@@ -1,5 +1,7 @@
 package cathedral
 
+import "github.com/Miniand/brdg.me/render"
+
 type PlayerType struct {
 	Player, Type int
 }
@@ -33,6 +35,56 @@ type Piece struct {
 	PlayerType
 	Positions   Locations
 	Directional bool
+}
+
+func (p Piece) TileAt(x, y int) (Tile, bool) {
+	for _, l := range p.Positions {
+		if x == l.X && y == l.Y {
+			return Tile{
+				PlayerType: p.PlayerType,
+			}, true
+		}
+	}
+	return Tile{}, false
+}
+
+func (p Piece) Bounds() (x1, y1, x2, y2 int) {
+	first := true
+	for _, l := range p.Positions {
+		if first || l.X < x1 {
+			x1 = l.X
+		}
+		if first || l.Y < y1 {
+			y1 = l.Y
+		}
+		if first || l.X > x2 {
+			x2 = l.X
+		}
+		if first || l.Y > y2 {
+			y2 = l.Y
+		}
+		first = false
+	}
+	return
+}
+
+func (p Piece) Width() int {
+	x1, _, x2, _ := p.Bounds()
+	return x2 - x1 + 1
+}
+
+func (p Piece) Render() string {
+	cells := [][]interface{}{}
+	xMin, yMin, xMax, yMax := p.Bounds()
+	for y := yMin; y <= yMax; y++ {
+		row := []interface{}{}
+		for x := xMin; x <= xMax; x++ {
+			rt, _ := RenderTile(p, x, y)
+			row = append(row, rt)
+		}
+		cells = append(cells, row)
+	}
+	return render.Table(cells, 0, 0)
 }
 
 var Pieces = map[int][]Piece{
