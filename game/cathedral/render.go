@@ -120,8 +120,8 @@ func RenderPlayerTile(tile Tile, open map[int]bool) string {
 		right = " "
 	}
 	remainingWidth := TileWidth - 2 - render.StrLen(tile.Text)
-	leftPadding := strings.Repeat(" ", (remainingWidth+1)/2)
-	rightPadding := strings.Repeat(" ", remainingWidth/2)
+	leftPadding := strings.Repeat(" ", remainingWidth/2)
+	rightPadding := strings.Repeat(" ", (remainingWidth+1)/2)
 	middleRow := fmt.Sprintf(
 		"%s%s%s%s%s\n",
 		left,
