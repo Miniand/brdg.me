@@ -36,7 +36,7 @@ func (c TakeCommand) Call(player string, context interface{},
 		return "", errors.New("you must specify which numbered card to take")
 	}
 	cardNum, err := strconv.Atoi(a[0])
-	if err != nil || cardNum < 1 || cardNum > len(g.Hands[pNum]) {
+	if err != nil || cardNum < 1 || cardNum > len(g.Discard) {
 		return "", errors.New("that is not a valid card number")
 	}
 	return "", g.Take(pNum, cardNum-1)
