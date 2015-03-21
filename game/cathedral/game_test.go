@@ -61,7 +61,12 @@ func parseTile(input string) (t Tile, err error) {
 		err = errors.New("tile should start with '.', 'R', 'G' or 'C'")
 		return
 	}
-	t.Type, err = strconv.Atoi(string(input[1]))
+	switch input[1] {
+	case '.':
+		t.Owner, t.Player = t.Player, NoPlayer
+	default:
+		t.Type, err = strconv.Atoi(string(input[1]))
+	}
 	return
 }
 
@@ -75,10 +80,10 @@ func TestGame_Encode(t *testing.T) {
 
 func TestParseBoard(t *testing.T) {
 	board, err := parseBoard(`
-..G3................
-....................
-....................
-....................
+G.G3................
+G.G3................
+G.G3................
+G3G3................
 ....................
 ....................
 ....................
@@ -86,8 +91,17 @@ func TestParseBoard(t *testing.T) {
 ....................
 ....................`)
 	assert.NoError(t, err)
-	assert.Equal(t, Tile{PlayerType{
-		Player: 1,
-		Type:   3,
-	}, NoPlayer}, board[0][1])
+	assert.Equal(t, Tile{
+		PlayerType: PlayerType{
+			Player: NoPlayer,
+		},
+		Owner: 1,
+	}, board[0][0])
+	assert.Equal(t, Tile{
+		PlayerType: PlayerType{
+			Player: 1,
+			Type:   3,
+		},
+		Owner: NoPlayer,
+	}, board[0][1])
 }
