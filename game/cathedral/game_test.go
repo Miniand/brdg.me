@@ -1,6 +1,7 @@
 package cathedral
 
 import (
+	"bytes"
 	"errors"
 	"strconv"
 	"strings"
@@ -9,6 +10,26 @@ import (
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/stretchr/testify/assert"
 )
+
+func parseGame(input string) (*Game, error) {
+	board, err := parseBoard(input)
+	if err != nil {
+		return nil, err
+	}
+	g := &Game{}
+	if err := g.Start(helper.Players[:2]); err != nil {
+		return nil, err
+	}
+	g.Board = board
+	for _, row := range g.Board {
+		for _, t := range row {
+			if t.Player != NoPlayer && t.Player != PlayerCathedral {
+				g.PlayedPieces[t.Player][t.Type] = true
+			}
+		}
+	}
+	return g, nil
+}
 
 func parseBoard(input string) (board [10][10]Tile, err error) {
 	lines := strings.Split(input, "\n")
@@ -51,9 +72,9 @@ func parseTile(input string) (t Tile, err error) {
 		return
 	}
 	switch input[0] {
-	case 'R':
-		t.Player = 0
 	case 'G':
+		t.Player = 0
+	case 'R':
 		t.Player = 1
 	case 'C':
 		t.Player = PlayerCathedral
@@ -68,6 +89,44 @@ func parseTile(input string) (t Tile, err error) {
 		t.Type, err = strconv.Atoi(string(input[1]))
 	}
 	return
+}
+
+func outputBoard(b Board) string {
+	rowStrs := []string{}
+	for _, row := range b {
+		rowStr := bytes.NewBuffer([]byte{})
+		for _, t := range row {
+			player := t.Player
+			if player == NoPlayer {
+				player = t.Owner
+			}
+			b := byte('.')
+			switch player {
+			case 0:
+				b = 'G'
+			case 1:
+				b = 'R'
+			case 2:
+				b = 'C'
+			}
+			rowStr.WriteByte(b)
+			b = '.'
+			if t.Player != NoPlayer {
+				b = '0' + byte(t.Type)
+			}
+			rowStr.WriteByte(b)
+		}
+		rowStrs = append(rowStrs, rowStr.String())
+	}
+	return strings.Join(rowStrs, "\n")
+}
+
+func assertBoardsEqual(t *testing.T, expected, actual Board) bool {
+	return assert.Equal(t, outputBoard(expected), outputBoard(actual))
+}
+
+func assertBoard(t *testing.T, expected string, actual Board) bool {
+	return assert.Equal(t, strings.TrimSpace(expected), outputBoard(actual))
 }
 
 func TestGame_Encode(t *testing.T) {
@@ -95,13 +154,31 @@ G3G3................
 		PlayerType: PlayerType{
 			Player: NoPlayer,
 		},
-		Owner: 1,
+		Owner: 0,
 	}, board[0][0])
 	assert.Equal(t, Tile{
 		PlayerType: PlayerType{
-			Player: 1,
+			Player: 0,
 			Type:   3,
 		},
 		Owner: NoPlayer,
 	}, board[0][1])
+}
+
+func TestOutputBoard(t *testing.T) {
+	b1, err := parseBoard(`
+G.G3................
+G.G3................
+G.G3....C1..........
+G3G3..C1C1C1........
+........C1..........
+........C1..........
+....................
+..........R5R5......
+............R5......
+....................`)
+	assert.NoError(t, err)
+	b2, err := parseBoard(outputBoard(b1))
+	assert.NoError(t, err)
+	assertBoardsEqual(t, b1, b2)
 }
