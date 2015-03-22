@@ -196,7 +196,7 @@ func (g *Game) CheckCaptures(loc Loc) {
 		// Check for capture.
 		area := []Loc{}
 		pieces := map[PlayerType]bool{}
-		Walk(l, OrthoDirs, func(l Loc) int {
+		Walk(l, Dirs, func(l Loc) int {
 			if visited[l] || g.Board[l].Player == player {
 				return WalkBlocked
 			}
