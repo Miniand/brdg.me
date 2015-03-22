@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	TileWidth  = 5
+	TileWidth  = 6
 	TileHeight = 3
 )
 
