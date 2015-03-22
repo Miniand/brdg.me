@@ -39,7 +39,7 @@ var DiagDirs = []int{
 var Dirs = append(append([]int{}, OrthoDirs...), DiagDirs...)
 
 type Tiler interface {
-	TileAt(x, y int) (Tile, bool)
+	TileAt(loc Loc) (Tile, bool)
 }
 
 func DirInv(dir int) int {
@@ -100,11 +100,8 @@ func (g *Game) Start(players []string) error {
 	g.Log = log.New()
 
 	g.Board = Board{}
-	for y := range g.Board {
-		g.Board[y] = [10]Tile{}
-		for x := range g.Board[y] {
-			g.Board[y][x] = EmptyTile
-		}
+	for _, l := range AllLocs {
+		g.Board[l] = EmptyTile
 	}
 	g.PlayedPieces = map[int]map[int]bool{}
 	for p := range players {
@@ -143,37 +140,18 @@ func (g *Game) PlayerNum(player string) (int, bool) {
 	return 0, false
 }
 
-func (g *Game) TileAt(x, y int) (Tile, bool) {
-	if x < 0 || x >= 10 || y < 0 || y >= 10 {
-		return Tile{}, false
-	}
-	return g.Board[y][x], true
+func Neighbour(src Tiler, loc Loc, dir int) (Tile, bool) {
+	return src.TileAt(loc.Neighbour(dir))
 }
 
-func Neighbour(src Tiler, x, y, dir int) (Tile, bool) {
-	if dir&DirUp == DirUp {
-		y--
-	}
-	if dir&DirRight == DirRight {
-		x++
-	}
-	if dir&DirDown == DirDown {
-		y++
-	}
-	if dir&DirLeft == DirLeft {
-		x--
-	}
-	return src.TileAt(x, y)
-}
-
-func OpenSides(src Tiler, x, y int) (open map[int]bool) {
-	t, ok := src.TileAt(x, y)
+func OpenSides(src Tiler, loc Loc) (open map[int]bool) {
+	t, ok := src.TileAt(loc)
 	if !ok {
 		return
 	}
 	open = map[int]bool{}
 	for _, d := range Dirs {
-		if nt, ok := Neighbour(src, x, y, d); ok && t.Player == nt.Player &&
+		if nt, ok := Neighbour(src, loc, d); ok && t.Player == nt.Player &&
 			t.Type == nt.Type {
 			open[d] = true
 		}

@@ -2,6 +2,7 @@ package cathedral
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"regexp"
 	"strconv"
@@ -42,7 +43,7 @@ func (c PlayCommand) Call(
 		return "", errors.New("the first argument should be the piece number to play")
 	}
 	pieceNum-- // Change to zero index
-	x, y, ok := ParseLoc(a[1])
+	loc, ok := ParseLoc(a[1])
 	if !ok {
 		return "", errors.New("the second argument should be a valid location, such as C7")
 	}
@@ -53,7 +54,7 @@ func (c PlayCommand) Call(
 			return "", err
 		}
 	}
-	return "", g.Play(pNum, pieceNum, x, y, dir)
+	return "", g.Play(pNum, pieceNum, loc, dir)
 }
 
 func (c PlayCommand) Usage(player string, context interface{}) string {
@@ -64,7 +65,7 @@ func (g *Game) CanPlay(player int) bool {
 	return g.CurrentPlayer == player
 }
 
-func (g *Game) Play(player, piece, x, y, dir int) error {
+func (g *Game) Play(player, piece int, loc Loc, dir int) error {
 	if !g.CanPlay(player) {
 		return errors.New("can't make plays at the moment")
 	}
@@ -92,12 +93,12 @@ func (g *Game) Play(player, piece, x, y, dir int) error {
 	rotated := p.Positions.Rotate(n)
 	// First ensure it can actually be played.
 	for _, l := range rotated {
-		tX := x + l.X
-		tY := y + l.Y
-		if tX < 0 || tX > 9 || tY < 0 || tY > 9 {
+		l = l.Add(loc)
+		if !l.Valid() {
+			fmt.Print(l)
 			return errors.New("playing there would go off the board")
 		}
-		t := g.Board[tY][tX]
+		t := g.Board[l]
 		if t.Player != NoPlayer {
 			return errors.New("there is already a piece there")
 		}
@@ -107,8 +108,11 @@ func (g *Game) Play(player, piece, x, y, dir int) error {
 		}
 	}
 	for _, l := range rotated {
-		g.Board[y+l.Y][x+l.X].Player = p.Player
-		g.Board[y+l.Y][x+l.X].Type = p.Type
+		l = l.Add(loc)
+		t := g.Board[l]
+		t.Player = p.Player
+		t.Type = p.Type
+		g.Board[l] = t
 	}
 	g.PlayedPieces[player][piece] = true
 	// Do an ownership check.
@@ -122,19 +126,27 @@ func (g *Game) Play(player, piece, x, y, dir int) error {
 	return nil
 }
 
+func (g *Game) CheckCaptures(loc Loc) {
+	// Walk to find all adjoining empty regions.
+	//visited := map[Loc]bool{}
+	//queued := map[Loc]bool{
+	//	loc: true,
+	//}
+	queue := []Loc{loc}
+	for len(queue) > 0 {
+	}
+}
+
 var parseLocRegexp = regexp.MustCompile(`(?i)^([a-j])(\d+)$`)
 
-func ParseLoc(input string) (x, y int, ok bool) {
+func ParseLoc(input string) (loc Loc, ok bool) {
 	matches := parseLocRegexp.FindStringSubmatch(input)
 	if matches == nil {
 		return
 	}
-	ok = true
-	y = int(strings.ToUpper(matches[1])[0] - 'A')
-	x, _ = strconv.Atoi(matches[2])
-	x--
-	if x < 0 || x > 9 {
-		ok = false
-	}
+	loc.Y = int(strings.ToUpper(matches[1])[0] - 'A')
+	loc.X, _ = strconv.Atoi(matches[2])
+	loc.X--
+	ok = loc.Valid()
 	return
 }

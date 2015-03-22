@@ -7,13 +7,29 @@ import (
 	"github.com/Miniand/brdg.me/render"
 )
 
-type Board [10][10]Tile
+var (
+	AllLocs   []Loc
+	LocsByRow [][]Loc
+)
 
-func (b Board) TileAt(x, y int) (Tile, bool) {
-	if x < 0 || y < 0 || x >= 10 || y >= 10 {
-		return Tile{}, false
+func init() {
+	AllLocs = make([]Loc, 100)
+	LocsByRow = make([][]Loc, 10)
+	for y := 0; y < 10; y++ {
+		LocsByRow[y] = make([]Loc, 10)
+		for x := 0; x < 10; x++ {
+			l := Loc{x, y}
+			AllLocs[y*10+x] = l
+			LocsByRow[y][x] = l
+		}
 	}
-	return b[y][x], true
+}
+
+type Board map[Loc]Tile
+
+func (b Board) TileAt(loc Loc) (Tile, bool) {
+	t, ok := b[loc]
+	return t, ok
 }
 
 func (b Board) Render() string {
@@ -22,7 +38,7 @@ func (b Board) Render() string {
 	// Header
 	header := []interface{}{}
 	header = append(header, render.Bold(WallStrs[DirDown|DirRight]))
-	for i := 0; i < len(b[0]); i++ {
+	for i := 0; i < len(LocsByRow[0]); i++ {
 		header = append(header, render.Bold(strings.Repeat(
 			WallStrs[DirLeft|DirRight],
 			TileWidth,
@@ -31,13 +47,13 @@ func (b Board) Render() string {
 	header = append(header, render.Bold(WallStrs[DirDown|DirLeft]))
 	cells = append(cells, header)
 	// Body
-	for y, xs := range b {
+	for _, xs := range LocsByRow {
 		row := []interface{}{}
 		row = append(row, SideWall)
-		for x, _ := range xs {
-			rt, ok := RenderTile(b, x, y)
+		for _, l := range xs {
+			rt, ok := RenderTile(b, l)
 			if !ok {
-				rt = RenderEmptyTile(x, y)
+				rt = RenderEmptyTile(l)
 			}
 			row = append(row, rt)
 		}
@@ -47,7 +63,7 @@ func (b Board) Render() string {
 	// Footer
 	footer := []interface{}{}
 	footer = append(footer, render.Bold(WallStrs[DirUp|DirRight]))
-	for i := 0; i < len(b[0]); i++ {
+	for i := 0; i < len(LocsByRow[0]); i++ {
 		footer = append(footer, render.Bold(strings.Repeat(
 			WallStrs[DirLeft|DirRight],
 			TileWidth,

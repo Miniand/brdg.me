@@ -91,12 +91,12 @@ var (
 	emptyBelow = TileHeight / 2
 )
 
-func RenderTile(src Tiler, x, y int) (string, bool) {
-	t, ok := src.TileAt(x, y)
+func RenderTile(src Tiler, loc Loc) (string, bool) {
+	t, ok := src.TileAt(loc)
 	if !ok || t.Player == NoPlayer {
 		return "", false
 	}
-	return RenderPlayerTile(t, OpenSides(src, x, y)), true
+	return RenderPlayerTile(t, OpenSides(src, loc)), true
 }
 
 func RenderPlayerTile(tile Tile, open map[int]bool) string {
@@ -183,12 +183,12 @@ func RenderCorner(dir int, open map[int]bool) string {
 	return WallStrs[corner]
 }
 
-func RenderEmptyTile(x, y int) string {
+func RenderEmptyTile(loc Loc) string {
 	buf := bytes.NewBufferString(strings.Repeat(fmt.Sprintf(
 		"%s\n",
 		strings.Repeat(NoTileStr, TileWidth),
 	), emptyAbove))
-	s := TileText(x, y)
+	s := loc.String()
 	remainingWidth := TileWidth - len(s)
 	buf.WriteString(strings.Repeat(NoTileStr, remainingWidth/2))
 	buf.WriteString(render.Bold(s))
@@ -199,10 +199,6 @@ func RenderEmptyTile(x, y int) string {
 		strings.Repeat(NoTileStr, TileWidth),
 	), emptyBelow)))
 	return render.Colour(buf.String(), render.Gray)
-}
-
-func TileText(x, y int) string {
-	return fmt.Sprintf("%c%d", 'A'+y, x+1)
 }
 
 func (g *Game) PlayerName(pNum int) string {

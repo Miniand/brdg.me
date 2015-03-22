@@ -21,19 +21,17 @@ func parseGame(input string) (*Game, error) {
 		return nil, err
 	}
 	g.Board = board
-	for _, row := range g.Board {
-		for _, t := range row {
-			if t.Player != NoPlayer && t.Player != PlayerCathedral {
-				g.PlayedPieces[t.Player][t.Type] = true
-			}
+	for _, t := range g.Board {
+		if t.Player != NoPlayer && t.Player != PlayerCathedral {
+			g.PlayedPieces[t.Player][t.Type] = true
 		}
 	}
 	return g, nil
 }
 
-func parseBoard(input string) (board [10][10]Tile, err error) {
+func parseBoard(input string) (board Board, err error) {
 	lines := strings.Split(input, "\n")
-	board = [10][10]Tile{}
+	board = Board{}
 	i := 0
 	for _, l := range lines {
 		if l == "" {
@@ -46,9 +44,8 @@ func parseBoard(input string) (board [10][10]Tile, err error) {
 		if len(l) != 20 {
 			err = errors.New("expected row to be 20 chars long")
 		}
-		board[i] = [10]Tile{}
 		for j := 0; j < 10; j++ {
-			board[i][j], err = parseTile(l[j*2 : (j+1)*2])
+			board[Loc{j, i}], err = parseTile(l[j*2 : (j+1)*2])
 			if err != nil {
 				return
 			}
@@ -93,9 +90,10 @@ func parseTile(input string) (t Tile, err error) {
 
 func outputBoard(b Board) string {
 	rowStrs := []string{}
-	for _, row := range b {
+	for _, row := range LocsByRow {
 		rowStr := bytes.NewBuffer([]byte{})
-		for _, t := range row {
+		for _, l := range row {
+			t := b[l]
 			player := t.Player
 			if player == NoPlayer {
 				player = t.Owner
@@ -155,14 +153,14 @@ G3G3................
 			Player: NoPlayer,
 		},
 		Owner: 0,
-	}, board[0][0])
+	}, board[Loc{0, 0}])
 	assert.Equal(t, Tile{
 		PlayerType: PlayerType{
 			Player: 0,
 			Type:   3,
 		},
 		Owner: NoPlayer,
-	}, board[0][1])
+	}, board[Loc{1, 0}])
 }
 
 func TestOutputBoard(t *testing.T) {
