@@ -3,7 +3,6 @@ package cathedral
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -116,8 +115,8 @@ func (g *Game) Play(player, piece int, loc Loc, dir int) error {
 	}
 	g.PlayedPieces[player][piece] = true
 	// Do an ownership check.
-	if p.Player != PlayerCathedral && g.PlayedPieces[1][0] {
-		log.Print("OWNERSHIP CHECK")
+	if p.Player != PlayerCathedral && g.PlayedPieces[1][1] {
+		g.CheckCaptures(loc)
 	}
 	if player != 1 || piece != 0 {
 		// Go to next player if it wasn't the cathedral just played.
@@ -127,14 +126,47 @@ func (g *Game) Play(player, piece int, loc Loc, dir int) error {
 }
 
 func (g *Game) CheckCaptures(loc Loc) {
+	player := g.Board[loc].Player
 	// Walk to find all adjoining empty regions.
-	//visited := map[Loc]bool{}
-	//queued := map[Loc]bool{
-	//	loc: true,
-	//}
-	queue := []Loc{loc}
-	for len(queue) > 0 {
-	}
+	visited := map[Loc]bool{}
+	Walk(loc, OrthoDirs, func(l Loc) int {
+		if visited[l] {
+			return WalkBlocked
+		}
+		if g.Board[l].Player == player {
+			// Extension of the player pieces, continue.
+			visited[l] = true
+			return WalkContinue
+		}
+		// Check for capture.
+		area := []Loc{}
+		pieces := map[PlayerType]bool{}
+		Walk(l, OrthoDirs, func(l Loc) int {
+			if visited[l] || g.Board[l].Player == player {
+				return WalkBlocked
+			}
+			visited[l] = true
+			area = append(area, l)
+			if g.Board[l].Player != NoPlayer {
+				pieces[g.Board[l].PlayerType] = true
+			}
+			return WalkContinue
+		})
+		if len(pieces) <= 1 {
+			// Capture!
+			for pt := range pieces {
+				if pt.Player != PlayerCathedral {
+					g.PlayedPieces[pt.Player][pt.Type] = false
+				}
+			}
+			for _, areaLoc := range area {
+				t := EmptyTile
+				t.Owner = player
+				g.Board[areaLoc] = t
+			}
+		}
+		return WalkContinue
+	})
 }
 
 var parseLocRegexp = regexp.MustCompile(`(?i)^([a-j])(\d+)$`)

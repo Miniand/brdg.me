@@ -7,6 +7,12 @@ import (
 	"github.com/Miniand/brdg.me/render"
 )
 
+const (
+	WalkContinue = iota
+	WalkBlocked
+	WalkFinish
+)
+
 var (
 	AllLocs   []Loc
 	LocsByRow [][]Loc
@@ -30,6 +36,30 @@ type Board map[Loc]Tile
 func (b Board) TileAt(loc Loc) (Tile, bool) {
 	t, ok := b[loc]
 	return t, ok
+}
+
+func Walk(from Loc, dirs []int, cb func(l Loc) int) {
+	visited := map[Loc]bool{}
+	queued := map[Loc]bool{
+		from: true,
+	}
+	queue := []Loc{from}
+	for len(queue) > 0 {
+		current := queue[0]
+		visited[current] = true
+		queue = queue[1:]
+		switch cb(current) {
+		case WalkFinish:
+			return
+		case WalkContinue:
+			for _, dir := range dirs {
+				nextLoc := current.Neighbour(dir)
+				if !queued[nextLoc] && !visited[nextLoc] && nextLoc.Valid() {
+					queue = append(queue, nextLoc)
+				}
+			}
+		}
+	}
 }
 
 func (b Board) Render() string {

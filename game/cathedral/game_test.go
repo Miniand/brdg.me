@@ -22,8 +22,12 @@ func parseGame(input string) (*Game, error) {
 	}
 	g.Board = board
 	for _, t := range g.Board {
-		if t.Player != NoPlayer && t.Player != PlayerCathedral {
-			g.PlayedPieces[t.Player][t.Type] = true
+		if t.Player != NoPlayer {
+			player := t.Player
+			if player == PlayerCathedral {
+				player = 1
+			}
+			g.PlayedPieces[player][t.Type] = true
 		}
 	}
 	return g, nil
@@ -119,12 +123,23 @@ func outputBoard(b Board) string {
 	return strings.Join(rowStrs, "\n")
 }
 
+func assertBoardOutputsEqual(t *testing.T, expected, actual string) bool {
+	trimmedExpected := strings.TrimSpace(expected)
+	trimmedActual := strings.TrimSpace(actual)
+	t.Logf(
+		"Expected:\n%s\n\nActual:\n%s",
+		trimmedExpected,
+		trimmedActual,
+	)
+	return assert.Equal(t, trimmedExpected, trimmedActual)
+}
+
 func assertBoardsEqual(t *testing.T, expected, actual Board) bool {
-	return assert.Equal(t, outputBoard(expected), outputBoard(actual))
+	return assertBoardOutputsEqual(t, outputBoard(expected), outputBoard(actual))
 }
 
 func assertBoard(t *testing.T, expected string, actual Board) bool {
-	return assert.Equal(t, strings.TrimSpace(expected), outputBoard(actual))
+	return assertBoardOutputsEqual(t, expected, outputBoard(actual))
 }
 
 func TestGame_Encode(t *testing.T) {
