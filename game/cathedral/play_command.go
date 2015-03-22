@@ -9,6 +9,7 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type PlayCommand struct{}
@@ -114,6 +115,14 @@ func (g *Game) Play(player, piece int, loc Loc, dir int) error {
 		g.Board[l] = t
 	}
 	g.PlayedPieces[player][piece] = true
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s played {{b}}%d{{_b}} (size {{b}}%d{{_b}}) {{b}}%s{{_b}} from {{b}}%s{{_b}}",
+		g.PlayerName(player),
+		p.Type,
+		len(p.Positions),
+		OrthoDirNames[dir],
+		loc,
+	)))
 	// Do an ownership check.
 	if p.Player != PlayerCathedral && g.PlayedPieces[1][1] {
 		g.CheckCaptures(loc)
@@ -129,6 +138,9 @@ func (g *Game) CheckCaptures(loc Loc) {
 	player := g.Board[loc].Player
 	// Walk to find all adjoining empty regions.
 	visited := map[Loc]bool{}
+	capturedTileCount := 0
+	capturedPieceCount := 0
+	capturedPieceSize := 0
 	Walk(loc, OrthoDirs, func(l Loc) int {
 		if visited[l] {
 			return WalkBlocked
@@ -154,12 +166,18 @@ func (g *Game) CheckCaptures(loc Loc) {
 		})
 		if len(pieces) <= 1 {
 			// Capture!
+			capturedTileCount += len(area)
 			for pt := range pieces {
 				if pt.Player != PlayerCathedral {
+					capturedPieceCount++
 					g.PlayedPieces[pt.Player][pt.Type] = false
 				}
 			}
 			for _, areaLoc := range area {
+				if g.Board[areaLoc].Player != NoPlayer &&
+					g.Board[areaLoc].Player != PlayerCathedral {
+					capturedPieceSize++
+				}
 				t := EmptyTile
 				t.Owner = player
 				g.Board[areaLoc] = t
@@ -167,6 +185,22 @@ func (g *Game) CheckCaptures(loc Loc) {
 		}
 		return WalkContinue
 	})
+	if capturedTileCount > 0 {
+		suffix := ""
+		if capturedPieceCount > 0 {
+			suffix = fmt.Sprintf(
+				" and returned {{b}}%d{{_b}} pieces with a combined size of {{b}}%d{{_b}}",
+				capturedPieceCount,
+				capturedPieceSize,
+			)
+		}
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s captured an area of {{b}}%d{{_b}}%s",
+			g.PlayerName(player),
+			capturedTileCount,
+			suffix,
+		)))
+	}
 }
 
 var parseLocRegexp = regexp.MustCompile(`(?i)^([a-j])(\d+)$`)

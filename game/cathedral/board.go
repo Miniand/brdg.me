@@ -83,7 +83,7 @@ func (b Board) Render() string {
 		for _, l := range xs {
 			rt, ok := RenderTile(b, l)
 			if !ok {
-				rt = RenderEmptyTile(l)
+				rt = RenderEmptyTile(l, b[l].Owner)
 			}
 			row = append(row, rt)
 		}

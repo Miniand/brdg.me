@@ -183,7 +183,11 @@ func RenderCorner(dir int, open map[int]bool) string {
 	return WallStrs[corner]
 }
 
-func RenderEmptyTile(loc Loc) string {
+func RenderEmptyTile(loc Loc, owner int) string {
+	colour := render.Gray
+	if owner != NoPlayer {
+		colour = render.PlayerColour(owner)
+	}
 	buf := bytes.NewBufferString(strings.Repeat(fmt.Sprintf(
 		"%s\n",
 		strings.Repeat(NoTileStr, TileWidth),
@@ -191,7 +195,7 @@ func RenderEmptyTile(loc Loc) string {
 	s := loc.String()
 	remainingWidth := TileWidth - len(s)
 	buf.WriteString(strings.Repeat(NoTileStr, remainingWidth/2))
-	buf.WriteString(render.Bold(s))
+	buf.WriteString(render.Markup(s, colour, true))
 	buf.WriteString(strings.Repeat(NoTileStr, (remainingWidth+1)/2))
 	buf.WriteByte('\n')
 	buf.WriteString(strings.TrimSpace(strings.Repeat(fmt.Sprintf(
