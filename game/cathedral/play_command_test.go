@@ -21,7 +21,7 @@ C1C1C1..G1G1....G1..
 ....................
 `)
 	assert.NoError(t, err)
-	assert.True(t, g.PlayedPieces[1][2])
+	assert.True(t, g.PlayedPieces[1][1])
 	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 9 f9 down"))
 	assertBoard(t, `
 ............G1G.G.G.
@@ -35,5 +35,5 @@ C1C1C1..G1G1G.G.G1G.
 ..R1R1..............
 ....................
 `, g.Board)
-	assert.False(t, g.PlayedPieces[1][2])
+	assert.False(t, g.PlayedPieces[1][1])
 }

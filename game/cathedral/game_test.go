@@ -27,7 +27,7 @@ func parseGame(input string) (*Game, error) {
 			if player == PlayerCathedral {
 				player = 1
 			}
-			g.PlayedPieces[player][t.Type] = true
+			g.PlayedPieces[player][t.Type-1] = true
 		}
 	}
 	return g, nil

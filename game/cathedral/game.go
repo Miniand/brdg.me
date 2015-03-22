@@ -1,11 +1,14 @@
 package cathedral
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 const (
@@ -68,6 +71,9 @@ type Game struct {
 	PlayedPieces map[int]map[int]bool
 
 	CurrentPlayer int
+
+	NoOpenTiles bool
+	Finished    bool
 }
 
 func (g *Game) Commands() []command.Command {
@@ -116,14 +122,33 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.Finished
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	p0 := g.RemainingPieceSize(0)
+	p1 := g.RemainingPieceSize(1)
+	if p0 < p1 {
+		return []string{g.Players[0]}
+	} else if p1 < p0 {
+		return []string{g.Players[1]}
+	}
+	return g.Players
 }
 
 func (g *Game) WhoseTurn() []string {
+	if g.NoOpenTiles {
+		players := []string{}
+		for p, pName := range g.Players {
+			if g.CanPlaySomething(p) {
+				players = append(players, pName)
+			}
+		}
+		return players
+	}
 	return []string{g.Players[g.CurrentPlayer]}
 }
 
@@ -160,7 +185,59 @@ func OpenSides(src Tiler, loc Loc) (open map[int]bool) {
 }
 
 func (g *Game) NextPlayer() {
-	g.CurrentPlayer = Opponent(g.CurrentPlayer)
+	opponent := Opponent(g.CurrentPlayer)
+	if g.CanPlaySomething(opponent) {
+		g.CurrentPlayer = opponent
+	} else if !g.CanPlaySomething(g.CurrentPlayer) {
+		g.Finished = true
+		buf := bytes.NewBufferString(render.Bold(
+			"The game is finished, remaining piece size is as follows:",
+		))
+		for p := range g.Players {
+			buf.WriteString(fmt.Sprintf(
+				"\n%s - {{b}}%d{{_b}}",
+				g.PlayerName(p),
+				g.RemainingPieceSize(p),
+			))
+		}
+		g.Log.Add(log.NewPublicMessage(buf.String()))
+	}
+}
+
+func (g *Game) RemainingPieceSize(player int) int {
+	sum := 0
+	for pNum, piece := range Pieces[player] {
+		if !g.PlayedPieces[player][pNum] {
+			sum += len(piece.Positions)
+		}
+	}
+	return sum
+}
+
+func (g *Game) CanPlaySomething(player int) bool {
+	opponent := Opponent(player)
+	for _, l := range AllLocs {
+		t := g.Board[l]
+		if t.Player != NoPlayer || t.Owner == opponent {
+			continue
+		}
+		// Try to play the easiest one first
+		for i := len(Pieces[player]) - 1; i >= 0; i-- {
+			if g.PlayedPieces[player][i] {
+				continue
+			}
+			dirs := OrthoDirs
+			if !Pieces[player][i].Directional {
+				dirs = []int{DirDown}
+			}
+			for _, dir := range dirs {
+				if ok, _ := g.CanPlayPiece(player, i, l, dir); ok {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func Opponent(pNum int) int {

@@ -62,24 +62,25 @@ func (c PlayCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanPlay(player int) bool {
+	if g.NoOpenTiles {
+		// Both players play simultaneously.
+		return g.CanPlaySomething(player)
+	}
 	return g.CurrentPlayer == player
 }
 
-func (g *Game) Play(player, piece int, loc Loc, dir int) error {
-	if !g.CanPlay(player) {
-		return errors.New("can't make plays at the moment")
-	}
+func (g *Game) CanPlayPiece(player, piece int, loc Loc, dir int) (bool, string) {
 	if piece < 0 || piece > len(Pieces[player]) {
-		return errors.New("that is not a valid piece number")
+		return false, "that is not a valid piece number"
 	}
 	if g.PlayedPieces[player][piece] {
-		return errors.New("you have already played that piece")
+		return false, "you have already played that piece"
 	}
 	p := Pieces[player][piece]
 	// Special case for player 2, if they haven't played the cathedral they
 	// need to play it first.
 	if player == 1 && piece != 0 && !g.PlayedPieces[1][0] {
-		return errors.New("cathedral piece must be played before any others")
+		return false, "cathedral piece must be played before any others"
 	}
 	n := 0
 	switch dir {
@@ -95,18 +96,38 @@ func (g *Game) Play(player, piece int, loc Loc, dir int) error {
 	for _, l := range rotated {
 		l = l.Add(loc)
 		if !l.Valid() {
-			fmt.Print(l)
-			return errors.New("playing there would go off the board")
+			return false, "playing there would go off the board"
 		}
 		t := g.Board[l]
 		if t.Player != NoPlayer {
-			return errors.New("there is already a piece there")
+			return false, "there is already a piece there"
 		}
 		if t.Owner != NoPlayer &&
 			t.Owner != player {
-			return errors.New("the other player owns that area")
+			return false, "the other player owns that area"
 		}
 	}
+	return true, ""
+}
+
+func (g *Game) Play(player, piece int, loc Loc, dir int) error {
+	if !g.CanPlay(player) {
+		return errors.New("can't make plays at the moment")
+	}
+	if ok, reason := g.CanPlayPiece(player, piece, loc, dir); !ok {
+		return errors.New(reason)
+	}
+	p := Pieces[player][piece]
+	n := 0
+	switch dir {
+	case DirUp:
+		n = 2
+	case DirRight:
+		n = -1
+	case DirLeft:
+		n = 1
+	}
+	rotated := p.Positions.Rotate(n)
 	for _, l := range rotated {
 		l = l.Add(loc)
 		t := g.Board[l]
@@ -127,6 +148,23 @@ func (g *Game) Play(player, piece int, loc Loc, dir int) error {
 	if p.Player != PlayerCathedral && g.PlayedPieces[1][1] {
 		g.CheckCaptures(loc)
 	}
+	// Check if there are any open tiles left, otherwise it becomes
+	// simultaneous play.
+	if !g.NoOpenTiles {
+		openTileExists := false
+		for _, l := range AllLocs {
+			if t := g.Board[l]; t.Player == NoPlayer && t.Owner == NoPlayer {
+				openTileExists = true
+				break
+			}
+		}
+		if !openTileExists {
+			g.NoOpenTiles = true
+			g.Log.Add(log.NewPublicMessage(
+				"No open tiles remain, players will play the rest of their pieces simultaneously.",
+			))
+		}
+	}
 	if player != 1 || piece != 0 {
 		// Go to next player if it wasn't the cathedral just played.
 		g.NextPlayer()
@@ -143,6 +181,11 @@ func (g *Game) CheckCaptures(loc Loc) {
 	capturedPieceSize := 0
 	Walk(loc, OrthoDirs, func(l Loc) int {
 		if visited[l] {
+			return WalkBlocked
+		}
+		if g.Board[l].Owner == player {
+			// Player already owns it so we don't need to keep walking here.
+			visited[l] = true
 			return WalkBlocked
 		}
 		if g.Board[l].Player == player {
@@ -170,7 +213,7 @@ func (g *Game) CheckCaptures(loc Loc) {
 			for pt := range pieces {
 				if pt.Player != PlayerCathedral {
 					capturedPieceCount++
-					g.PlayedPieces[pt.Player][pt.Type] = false
+					g.PlayedPieces[pt.Player][pt.Type-1] = false
 				}
 			}
 			for _, areaLoc := range area {
