@@ -14,7 +14,10 @@ const (
 	TileHeight = 3
 )
 
-var NoTileStr = `▒`
+var (
+	NoTileStr       = ` `
+	PieceBackground = `░`
+)
 
 var WallStrs = map[int]string{
 	DirUp | DirDown | DirLeft | DirRight: render.Bold("╬"),
@@ -46,7 +49,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	buf := bytes.NewBuffer([]byte{})
 	buf.WriteString(g.Board.Render())
-	buf.WriteString("\n\n{{b}}Your remaining tiles:{{_b}}\n")
+	buf.WriteString(`
+
+All pieces are shown in their {{b}}down{{_b}} position and pivot around the number.
+
+{{b}}Your remaining tiles:{{_b}}
+`)
 	buf.WriteString(g.RenderPlayerRemainingTiles(pNum))
 	buf.WriteString(fmt.Sprintf(
 		"\n\n{{b}}%s remaining tiles:{{_b}}\n",
@@ -104,7 +112,7 @@ func RenderPlayerTile(tile Tile, open map[int]bool) string {
 	buf := bytes.NewBufferString(RenderCorner(DirUp|DirLeft, open))
 	c := WallStrs[DirLeft|DirRight]
 	if open[DirUp] {
-		c = " "
+		c = PieceBackground
 	}
 	buf.WriteString(strings.Repeat(c, TileWidth-2))
 	buf.WriteString(RenderCorner(DirUp|DirRight, open))
@@ -113,20 +121,20 @@ func RenderPlayerTile(tile Tile, open map[int]bool) string {
 	// Middle rows
 	left := WallStrs[DirUp|DirDown]
 	if open[DirLeft] {
-		left = " "
+		left = PieceBackground
 	}
 	right := WallStrs[DirUp|DirDown]
 	if open[DirRight] {
-		right = " "
+		right = PieceBackground
 	}
 	remainingWidth := TileWidth - 2 - render.StrLen(tile.Text)
-	leftPadding := strings.Repeat(" ", remainingWidth/2)
-	rightPadding := strings.Repeat(" ", (remainingWidth+1)/2)
+	leftPadding := strings.Repeat(PieceBackground, remainingWidth/2)
+	rightPadding := strings.Repeat(PieceBackground, (remainingWidth+1)/2)
 	middleRow := fmt.Sprintf(
 		"%s%s%s%s%s\n",
 		left,
 		leftPadding,
-		tile.Text,
+		render.Colour(tile.Text, render.Black),
 		rightPadding,
 		right,
 	)
@@ -136,7 +144,7 @@ func RenderPlayerTile(tile Tile, open map[int]bool) string {
 	buf.WriteString(RenderCorner(DirDown|DirLeft, open))
 	c = WallStrs[DirLeft|DirRight]
 	if open[DirDown] {
-		c = " "
+		c = PieceBackground
 	}
 	buf.WriteString(strings.Repeat(c, TileWidth-2))
 	buf.WriteString(RenderCorner(DirDown|DirRight, open))
@@ -151,7 +159,7 @@ func RenderCorner(dir int, open map[int]bool) string {
 		if dir&d == d && open[d] {
 			numOpen++
 			if numOpen == 3 {
-				return " "
+				return PieceBackground
 			}
 		}
 	}
