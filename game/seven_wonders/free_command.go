@@ -48,7 +48,7 @@ func (g *Game) CanFreeBuild(player int) bool {
 	if !g.CanAction(player) {
 		return false
 	}
-	for _, c := range g.Cards[player] {
+	for _, c := range g.PlayerThings(player) {
 		if free, ok := c.(FreeBuilder); ok {
 			if free.CanFreeBuild() {
 				return true

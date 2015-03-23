@@ -76,12 +76,13 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 	if c[GoodCoin] > g.Coins[player] {
 		return
 	}
+	things := g.PlayerThings(player)
 	// Find out if we get goods cheaper from neighbours.
 	discounts := map[int]map[int]bool{
 		DirLeft:  {},
 		DirRight: {},
 	}
-	for _, pc := range g.Cards[player] {
+	for _, pc := range things {
 		if disc, ok := pc.(TradeDiscounter); ok {
 			dirs, goods := disc.TradeDiscount()
 			for _, d := range dirs {
@@ -105,7 +106,7 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 		costMap := map[int]int{}
 		i := 0
 		// Own producing cards
-		for _, pc := range g.Cards[player] {
+		for _, pc := range things {
 			if prod, ok := pc.(GoodsProducer); ok {
 				with = append(with, prod.GoodsProduced())
 				ownerMap[i] = DirDown
@@ -124,7 +125,7 @@ func (g *Game) CanAfford(player int, c cost.Cost) (can bool, coins []map[int]int
 			DirRight: {},
 		}
 		for _, dir := range mode.Dirs {
-			for _, pc := range g.Cards[g.NumFromPlayer(player, dir)] {
+			for _, pc := range g.PlayerThings(g.NumFromPlayer(player, dir)) {
 				if trade, ok := pc.(GoodsTrader); ok {
 					goods := trade.GoodsTraded()
 					for _, perm := range goods {

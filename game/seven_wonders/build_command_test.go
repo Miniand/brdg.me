@@ -10,6 +10,9 @@ import (
 func TestGame_CanBuildCard_free(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(players))
+	for p := range players {
+		g.Cities[p] = Cities[CityRhodesA]
+	}
 	g.Cards = []card.Deck{
 		{},
 		{},
@@ -23,6 +26,9 @@ func TestGame_CanBuildCard_free(t *testing.T) {
 func TestGame_CanBuildCard_prereq(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(players))
+	for p := range players {
+		g.Cities[p] = Cities[CityRhodesA]
+	}
 	g.Cards = []card.Deck{
 		{Cards[CardTrainingGround]},
 		{},
@@ -36,6 +42,9 @@ func TestGame_CanBuildCard_prereq(t *testing.T) {
 func TestGame_CanBuildCard_owned(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(players))
+	for p := range players {
+		g.Cities[p] = Cities[CityRhodesA]
+	}
 	g.Cards = []card.Deck{
 		{Cards[CardLoom]},
 		{},
@@ -48,6 +57,9 @@ func TestGame_CanBuildCard_owned(t *testing.T) {
 func TestGame_CanBuildCard_self(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(players))
+	for p := range players {
+		g.Cities[p] = Cities[CityRhodesA]
+	}
 	g.Cards = []card.Deck{
 		{Cards[CardTreeFarm], Cards[CardClayPit], Cards[CardLoom]},
 		{},
@@ -61,6 +73,9 @@ func TestGame_CanBuildCard_self(t *testing.T) {
 func TestGame_CanBuildCard_poor(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(players))
+	for p := range players {
+		g.Cities[p] = Cities[CityRhodesA]
+	}
 	g.Cards = []card.Deck{
 		{Cards[CardTreeFarm], Cards[CardClayPit], Cards[CardLoom]},
 		{},
@@ -73,6 +88,9 @@ func TestGame_CanBuildCard_poor(t *testing.T) {
 func TestGame_CanBuildCard_trade(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(players))
+	for p := range players {
+		g.Cities[p] = Cities[CityRhodesA]
+	}
 	g.Cards = []card.Deck{
 		{Cards[CardClayPit], Cards[CardLoom]},
 		{Cards[CardTreeFarm]},
@@ -89,6 +107,9 @@ func TestGame_CanBuildCard_trade(t *testing.T) {
 func TestGame_CanBuildCard_tradePoor(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(players))
+	for p := range players {
+		g.Cities[p] = Cities[CityRhodesA]
+	}
 	g.Cards = []card.Deck{
 		{Cards[CardClayPit]},
 		{Cards[CardTreeFarm]},
@@ -101,6 +122,9 @@ func TestGame_CanBuildCard_tradePoor(t *testing.T) {
 func TestGame_CanBuildCard_tradeDiscount(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(players))
+	for p := range players {
+		g.Cities[p] = Cities[CityRhodesA]
+	}
 	g.Cards = []card.Deck{
 		{Cards[CardClayPit], Cards[CardEastTradingPost]},
 		{Cards[CardTreeFarm]},

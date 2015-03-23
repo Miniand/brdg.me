@@ -100,7 +100,7 @@ func (a *BuildAction) Execute(player int, g *Game) {
 	)))
 
 	if a.Free {
-		for _, c := range g.Cards[player] {
+		for _, c := range g.PlayerThings(player) {
 			if free, ok := c.(FreeBuilder); ok {
 				free.HandleFreeBuild()
 			}
