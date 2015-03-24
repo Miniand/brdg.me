@@ -21,7 +21,7 @@ func (rdd ResolveDrawDiscard) String(player int, g *Game) string {
 	}
 	return fmt.Sprintf(
 		"{{b}}Choose a discarded card to take:{{_b}}\n\n%s",
-		g.RenderCardList(player, g.Discard, true, false),
+		g.RenderCardList(player, g.Discard, false, true, false),
 	)
 }
 

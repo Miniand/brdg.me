@@ -295,7 +295,7 @@ var Cards = map[string]Carder{
 	CardArena: NewCardBonus(CardArena, CardKindCommercial, cost.Cost{
 		GoodStone: 2,
 		GoodOre:   1,
-	}, []int{WonderStage}, DirSelf, 1, 3, []string{
+	}, []int{CardKindWonder}, DirSelf, 1, 3, []string{
 		CardDispensary,
 	}, nil),
 
@@ -407,7 +407,7 @@ var Cards = map[string]Carder{
 		GoodStone: 2,
 		GoodClay:  2,
 		GoodGlass: 1,
-	}, []int{WonderStage}, DirAll, 1, 0, nil, nil),
+	}, []int{CardKindWonder}, DirAll, 1, 0, nil, nil),
 
 	// Wonder stages
 

@@ -29,8 +29,6 @@ const (
 	TokenVictory
 	TokenDefeat
 
-	WonderStage
-
 	VP
 )
 
@@ -126,15 +124,6 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 			}
 		}
 		return sum
-	case resource == WonderStage:
-		sum := 0
-		for _, c := range g.PlayerThings(player) {
-			if ws, ok := c.(WonderStager); ok {
-				sum += ws.WonderStages()
-			}
-		}
-		return sum
-
 	default:
 		panic(fmt.Sprintf("Good %d not implemented", resource))
 	}

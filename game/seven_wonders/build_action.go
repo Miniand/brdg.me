@@ -110,12 +110,14 @@ func (a *BuildAction) Execute(player int, g *Game) {
 
 func (a *BuildAction) Output(player int, g *Game) string {
 	c := a.GetCard(player, g)
-	buf := bytes.NewBufferString("{{b}}Building:{{_b}} ")
+	buf := bytes.NewBufferString("building ")
 	buf.WriteString(RenderCard(c))
 	if !a.Free {
-		buf.WriteString("\n")
 		_, coins := g.CanBuildCard(player, c)
-		buf.WriteString(g.RenderDeals(player, coins))
+		if len(coins) > 0 {
+			buf.WriteString("\n")
+			buf.WriteString(g.RenderDeals(player, coins))
+		}
 	}
 	return buf.String()
 }

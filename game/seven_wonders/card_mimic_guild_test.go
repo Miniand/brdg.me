@@ -21,5 +21,5 @@ func TestCardMimicGuild(t *testing.T) {
 		Cards[CardWorkersGuild], // Should be worth 0
 	}
 
-	assert.Equal(t, 1, g.PlayerResourceCount(Mick, VP))
+	assert.Equal(t, 2, g.PlayerResourceCount(Mick, VP))
 }
