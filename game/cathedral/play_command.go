@@ -64,7 +64,7 @@ func (c PlayCommand) Usage(player string, context interface{}) string {
 func (g *Game) CanPlay(player int) bool {
 	if g.NoOpenTiles {
 		// Both players play simultaneously.
-		return g.CanPlaySomething(player)
+		return g.CanPlaySomething(player, LocFilterPlayable)
 	}
 	return g.CurrentPlayer == player
 }
@@ -152,10 +152,9 @@ func (g *Game) Play(player, piece int, loc Loc, dir int) error {
 	// simultaneous play.
 	if !g.NoOpenTiles {
 		openTileExists := false
-		for _, l := range AllLocs {
-			if t := g.Board[l]; t.Player == NoPlayer && t.Owner == NoPlayer {
+		for p := range g.Players {
+			if g.CanPlaySomething(p, LocFilterOpen) {
 				openTileExists = true
-				break
 			}
 		}
 		if !openTileExists {

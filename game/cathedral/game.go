@@ -143,7 +143,7 @@ func (g *Game) WhoseTurn() []string {
 	if g.NoOpenTiles {
 		players := []string{}
 		for p, pName := range g.Players {
-			if g.CanPlaySomething(p) {
+			if g.CanPlaySomething(p, LocFilterPlayable) {
 				players = append(players, pName)
 			}
 		}
@@ -186,9 +186,9 @@ func OpenSides(src Tiler, loc Loc) (open map[int]bool) {
 
 func (g *Game) NextPlayer() {
 	opponent := Opponent(g.CurrentPlayer)
-	if g.CanPlaySomething(opponent) {
+	if g.CanPlaySomething(opponent, LocFilterPlayable) {
 		g.CurrentPlayer = opponent
-	} else if !g.CanPlaySomething(g.CurrentPlayer) {
+	} else if !g.CanPlaySomething(g.CurrentPlayer, LocFilterPlayable) {
 		g.Finished = true
 		buf := bytes.NewBufferString(render.Bold(
 			"The game is finished, remaining piece size is as follows:",
@@ -214,11 +214,21 @@ func (g *Game) RemainingPieceSize(player int) int {
 	return sum
 }
 
-func (g *Game) CanPlaySomething(player int) bool {
-	opponent := Opponent(player)
+type LocFilter func(g *Game, player int, loc Loc) bool
+
+func LocFilterPlayable(g *Game, player int, loc Loc) bool {
+	t := g.Board[loc]
+	return t.Player == NoPlayer && (t.Owner == NoPlayer || t.Owner == player)
+}
+
+func LocFilterOpen(g *Game, player int, loc Loc) bool {
+	t := g.Board[loc]
+	return t.Player == NoPlayer && t.Owner == NoPlayer
+}
+
+func (g *Game) CanPlaySomething(player int, filter LocFilter) bool {
 	for _, l := range AllLocs {
-		t := g.Board[l]
-		if t.Player != NoPlayer || t.Owner == opponent {
+		if !filter(g, player, l) {
 			continue
 		}
 		// Try to play the easiest one first
