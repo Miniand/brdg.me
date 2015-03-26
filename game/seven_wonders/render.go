@@ -123,7 +123,7 @@ type SuppStringer interface {
 }
 
 func RenderCard(c Carder) string {
-	parts := []string{RenderCardName(c.(Carder))}
+	parts := []string{RenderCardName(c)}
 	if ss, ok := c.(SuppStringer); ok {
 		parts = append(parts, ss.SuppString())
 	}
@@ -134,6 +134,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
+	}
+	if true {
+		cards := make(card.Deck, len(Cards))
+		i := 0
+		for _, c := range Cards {
+			cards[i] = c
+			i++
+		}
+		return g.RenderCardTable(pNum, cards.Sort(), cardTableOpts{}), nil
 	}
 	output := bytes.NewBufferString(fmt.Sprintf(
 		"{{b}}Your city: %s{{_b}}  %s\n\n",
@@ -188,6 +197,26 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString("\n\n{{b}}Your tableau:{{_b}}\n\n")
 	output.WriteString(g.RenderCardList(pNum, g.Cards[pNum].Sort(), false, false, false))
 	return output.String(), nil
+}
+
+type cardTableOpts struct {
+}
+
+func (g *Game) RenderCardTable(
+	player int,
+	cards card.Deck,
+	opts cardTableOpts,
+) string {
+	cells := [][]interface{}{}
+	for _, c := range cards {
+		crd := c.(Carder)
+		row := []interface{}{
+			RenderResources(crd.GetCard().Cost, " "),
+			RenderCard(crd),
+		}
+		cells = append(cells, row)
+	}
+	return render.Table(cells, 0, 1)
 }
 
 func (g *Game) RenderCardList(

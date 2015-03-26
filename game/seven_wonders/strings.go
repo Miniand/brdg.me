@@ -1,5 +1,7 @@
 package seven_wonders
 
+import "fmt"
+
 const (
 	// Age 1
 	CardLumberYard      = "Lumber Yard"
@@ -161,3 +163,7 @@ const (
 	WonderStageGizaB3 = "Giza B Wonder Stage 3"
 	WonderStageGizaB4 = "Giza B Wonder Stage 4"
 )
+
+func WonderStageName(n int) string {
+	return fmt.Sprintf("Stage %d", n)
+}

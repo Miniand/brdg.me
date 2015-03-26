@@ -412,13 +412,13 @@ var Cards = map[string]Carder{
 	// Wonder stages
 
 	WonderStageRhodesA1: NewCardWonderVP(
-		WonderStageRhodesA1,
+		WonderStageName(1),
 		cost.Cost{GoodWood: 2},
 		3,
 	),
 	WonderStageRhodesA2: CardMilitary{
 		NewCard(
-			WonderStageRhodesA2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{GoodClay: 3},
 			nil,
@@ -427,14 +427,14 @@ var Cards = map[string]Carder{
 		2,
 	},
 	WonderStageRhodesA3: NewCardWonderVP(
-		WonderStageRhodesA3,
+		WonderStageName(3),
 		cost.Cost{GoodOre: 4},
 		7,
 	),
 
 	WonderStageRhodesB1: CardMulti{
 		NewCard(
-			WonderStageRhodesB1,
+			WonderStageName(1),
 			CardKindWonder,
 			cost.Cost{GoodStone: 3},
 			nil,
@@ -448,7 +448,7 @@ var Cards = map[string]Carder{
 	},
 	WonderStageRhodesB2: CardMulti{
 		NewCard(
-			WonderStageRhodesB2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{GoodOre: 4},
 			nil,
@@ -462,12 +462,12 @@ var Cards = map[string]Carder{
 	},
 
 	WonderStageAlexandriaA1: NewCardWonderVP(
-		WonderStageAlexandriaA1,
+		WonderStageName(1),
 		cost.Cost{GoodStone: 2},
 		3,
 	),
 	WonderStageAlexandriaA2: NewCardGood(
-		WonderStageAlexandriaA2,
+		WonderStageName(2),
 		CardKindWonder,
 		cost.Cost{GoodOre: 2},
 		[]cost.Cost{
@@ -480,13 +480,13 @@ var Cards = map[string]Carder{
 		nil,
 	),
 	WonderStageAlexandriaA3: NewCardWonderVP(
-		WonderStageAlexandriaA3,
+		WonderStageName(3),
 		cost.Cost{GoodGlass: 2},
 		7,
 	),
 
 	WonderStageAlexandriaB1: NewCardGood(
-		WonderStageAlexandriaB1,
+		WonderStageName(1),
 		CardKindWonder,
 		cost.Cost{GoodClay: 2},
 		[]cost.Cost{
@@ -499,7 +499,7 @@ var Cards = map[string]Carder{
 		nil,
 	),
 	WonderStageAlexandriaB2: NewCardGood(
-		WonderStageAlexandriaB2,
+		WonderStageName(2),
 		CardKindWonder,
 		cost.Cost{GoodWood: 2},
 		[]cost.Cost{
@@ -511,19 +511,19 @@ var Cards = map[string]Carder{
 		nil,
 	),
 	WonderStageAlexandriaB3: NewCardWonderVP(
-		WonderStageAlexandriaB3,
+		WonderStageName(3),
 		cost.Cost{GoodStone: 3},
 		7,
 	),
 
 	WonderStageEphesusA1: NewCardWonderVP(
-		WonderStageEphesusA1,
+		WonderStageName(1),
 		cost.Cost{GoodStone: 2},
 		3,
 	),
 	WonderStageEphesusA2: CardMulti{
 		NewCard(
-			WonderStageEphesusA2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{GoodWood: 2},
 			nil,
@@ -532,14 +532,14 @@ var Cards = map[string]Carder{
 		cost.Cost{GoodCoin: 9},
 	},
 	WonderStageEphesusA3: NewCardWonderVP(
-		WonderStageEphesusA3,
+		WonderStageName(3),
 		cost.Cost{GoodPapyrus: 2},
 		7,
 	),
 
 	WonderStageEphesusB1: CardMulti{
 		NewCard(
-			WonderStageEphesusB1,
+			WonderStageName(1),
 			CardKindWonder,
 			cost.Cost{GoodStone: 2},
 			nil,
@@ -552,7 +552,7 @@ var Cards = map[string]Carder{
 	},
 	WonderStageEphesusB2: CardMulti{
 		NewCard(
-			WonderStageEphesusB2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{GoodWood: 2},
 			nil,
@@ -565,7 +565,7 @@ var Cards = map[string]Carder{
 	},
 	WonderStageEphesusB3: CardMulti{
 		NewCard(
-			WonderStageEphesusB3,
+			WonderStageName(3),
 			CardKindWonder,
 			cost.Cost{
 				GoodPapyrus: 1,
@@ -582,13 +582,13 @@ var Cards = map[string]Carder{
 	},
 
 	WonderStageBabylonA1: NewCardWonderVP(
-		WonderStageBabylonA1,
+		WonderStageName(1),
 		cost.Cost{GoodClay: 2},
 		3,
 	),
 	WonderStageBabylonA2: CardScience{
 		NewCard(
-			WonderStageBabylonA2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{GoodWood: 3},
 			nil,
@@ -597,13 +597,13 @@ var Cards = map[string]Carder{
 		Fields,
 	},
 	WonderStageBabylonA3: NewCardWonderVP(
-		WonderStageBabylonA3,
+		WonderStageName(3),
 		cost.Cost{GoodClay: 4},
 		7,
 	),
 
 	WonderStageBabylonB1: NewCardWonderVP(
-		WonderStageBabylonB1,
+		WonderStageName(1),
 		cost.Cost{
 			GoodTextile: 1,
 			GoodClay:    1,
@@ -612,7 +612,7 @@ var Cards = map[string]Carder{
 	),
 	WonderStageBabylonB2: CardPlayFinalCard{
 		NewCard(
-			WonderStageBabylonB2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{
 				GoodGlass: 1,
@@ -624,7 +624,7 @@ var Cards = map[string]Carder{
 	},
 	WonderStageBabylonB3: CardScience{
 		NewCard(
-			WonderStageBabylonB3,
+			WonderStageName(3),
 			CardKindWonder,
 			cost.Cost{
 				GoodPapyrus: 1,
@@ -637,13 +637,13 @@ var Cards = map[string]Carder{
 	},
 
 	WonderStageOlympiaA1: NewCardWonderVP(
-		WonderStageOlympiaA1,
+		WonderStageName(1),
 		cost.Cost{GoodWood: 2},
 		3,
 	),
 	WonderStageOlympiaA2: &CardFreeBuild{
 		NewCard(
-			WonderStageOlympiaA2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{GoodStone: 2},
 			nil,
@@ -652,14 +652,14 @@ var Cards = map[string]Carder{
 		false,
 	},
 	WonderStageOlympiaA3: NewCardWonderVP(
-		WonderStageOlympiaA3,
+		WonderStageName(3),
 		cost.Cost{GoodOre: 2},
 		7,
 	),
 
 	WonderStageOlympiaB1: CardCommercialTrade{
 		NewCard(
-			WonderStageOlympiaB1,
+			WonderStageName(1),
 			CardKindWonder,
 			cost.Cost{GoodWood: 2},
 			nil,
@@ -669,13 +669,13 @@ var Cards = map[string]Carder{
 		RawGoods,
 	},
 	WonderStageOlympiaB2: NewCardWonderVP(
-		WonderStageOlympiaB2,
+		WonderStageName(2),
 		cost.Cost{GoodStone: 2},
 		5,
 	),
 	WonderStageOlympiaB3: CardMimicGuild{
 		NewCard(
-			WonderStageOlympiaB3,
+			WonderStageName(3),
 			CardKindWonder,
 			cost.Cost{
 				GoodTextile: 1,
@@ -687,13 +687,13 @@ var Cards = map[string]Carder{
 	},
 
 	WonderStageHalicarnassusA1: NewCardWonderVP(
-		WonderStageHalicarnassusA1,
+		WonderStageName(1),
 		cost.Cost{GoodClay: 2},
 		3,
 	),
 	WonderStageHalicarnassusA2: CardDrawDiscard{
 		NewCard(
-			WonderStageHalicarnassusA2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{GoodOre: 3},
 			nil,
@@ -702,14 +702,14 @@ var Cards = map[string]Carder{
 		0,
 	},
 	WonderStageHalicarnassusA3: NewCardWonderVP(
-		WonderStageHalicarnassusA3,
+		WonderStageName(3),
 		cost.Cost{GoodTextile: 2},
 		7,
 	),
 
 	WonderStageHalicarnassusB1: CardDrawDiscard{
 		NewCard(
-			WonderStageHalicarnassusB1,
+			WonderStageName(1),
 			CardKindWonder,
 			cost.Cost{GoodOre: 2},
 			nil,
@@ -719,7 +719,7 @@ var Cards = map[string]Carder{
 	},
 	WonderStageHalicarnassusB2: CardDrawDiscard{
 		NewCard(
-			WonderStageHalicarnassusB2,
+			WonderStageName(2),
 			CardKindWonder,
 			cost.Cost{GoodClay: 3},
 			nil,
@@ -729,7 +729,7 @@ var Cards = map[string]Carder{
 	},
 	WonderStageHalicarnassusB3: CardDrawDiscard{
 		NewCard(
-			WonderStageHalicarnassusB3,
+			WonderStageName(3),
 			CardKindWonder,
 			cost.Cost{
 				GoodGlass:   1,
@@ -743,38 +743,38 @@ var Cards = map[string]Carder{
 	},
 
 	WonderStageGizaA1: NewCardWonderVP(
-		WonderStageGizaA1,
+		WonderStageName(1),
 		cost.Cost{GoodStone: 2},
 		3,
 	),
 	WonderStageGizaA2: NewCardWonderVP(
-		WonderStageGizaA2,
+		WonderStageName(2),
 		cost.Cost{GoodWood: 3},
 		5,
 	),
 	WonderStageGizaA3: NewCardWonderVP(
-		WonderStageGizaA3,
+		WonderStageName(3),
 		cost.Cost{GoodStone: 4},
 		7,
 	),
 
 	WonderStageGizaB1: NewCardWonderVP(
-		WonderStageGizaB1,
+		WonderStageName(1),
 		cost.Cost{GoodWood: 2},
 		3,
 	),
 	WonderStageGizaB2: NewCardWonderVP(
-		WonderStageGizaB2,
+		WonderStageName(2),
 		cost.Cost{GoodStone: 3},
 		5,
 	),
 	WonderStageGizaB3: NewCardWonderVP(
-		WonderStageGizaB3,
+		WonderStageName(3),
 		cost.Cost{GoodClay: 3},
 		5,
 	),
 	WonderStageGizaB4: NewCardWonderVP(
-		WonderStageGizaB4,
+		WonderStageName(4),
 		cost.Cost{
 			GoodPapyrus: 1,
 			GoodStone:   4,
