@@ -88,3 +88,7 @@ func NewCardCommercialTavern() CardCommercialTavern {
 func (c CardCommercialTavern) SuppString() string {
 	return RenderMoney(5)
 }
+
+func (c CardCommercialTavern) HandlePostActionExecute(player int, g *Game) {
+	g.Coins[player] += 5
+}
