@@ -60,10 +60,9 @@ func (g *Game) Spend(player int, cards card.Deck) error {
 	}
 	currency := 0
 	total := 0
+	counts := map[card.Card]int{}
 	for i, c := range cards {
-		if g.Boards[player].Cards.Contains(c) == 0 {
-			return fmt.Errorf("you don't have %s in your hand", c)
-		}
+		counts[c]++
 		crd := c.(Card)
 		total += crd.Value
 		if i == 0 {
@@ -72,6 +71,11 @@ func (g *Game) Spend(player int, cards card.Deck) error {
 			if crd.Currency != currency {
 				return errors.New("you can only spend using cards of the same currency")
 			}
+		}
+	}
+	for c, n := range counts {
+		if g.Boards[player].Cards.Contains(c) < n {
+			return fmt.Errorf("you don't have enough %s in your hand", c)
 		}
 	}
 	tile := g.Tiles[currency]
