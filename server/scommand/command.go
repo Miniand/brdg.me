@@ -44,6 +44,7 @@ func Commands(gm *model.GameModel) []comm.Command {
 	}
 	c = append(c, []comm.Command{
 		NewCommand{},
+		ListCommand{},
 		UnsubscribeCommand{},
 		SubscribeCommand{},
 	}...)
