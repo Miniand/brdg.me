@@ -19,6 +19,15 @@ const (
 	START_DICE_COUNT = 5
 )
 
+var DiceColours = map[int]string{
+	1: render.Cyan,
+	2: render.Green,
+	3: render.Red,
+	4: render.Blue,
+	5: render.Yellow,
+	6: render.Magenta,
+}
+
 type Game struct {
 	Players       []string
 	CurrentPlayer int
@@ -83,7 +92,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	buf.WriteString(fmt.Sprintf("Current bid: %s\n", currentBidText))
 	if len(g.PlayerDice[playerNum]) > 0 {
 		buf.WriteString(fmt.Sprintf("Your dice: {{b}}%s{{_b}}\n\n",
-			strings.Join(die.RenderDice(g.PlayerDice[playerNum]), " ")))
+			strings.Join(RenderDice(g.PlayerDice[playerNum]), " ")))
 	}
 	cells := [][]interface{}{
 		[]interface{}{"{{b}}Player{{_b}}", "{{b}}Remaining dice{{_b}}"},
@@ -179,5 +188,17 @@ func (g *Game) EliminatedPlayerList() (eliminated []string) {
 }
 
 func RenderBid(quantity int, value int) string {
-	return fmt.Sprintf("%d {{b}}%s{{_b}}", quantity, die.Render(value))
+	return fmt.Sprintf("%d %s", quantity, RenderDie(value))
+}
+
+func RenderDie(value int) string {
+	return render.Markup(die.Render(value), DiceColours[value], true)
+}
+
+func RenderDice(values []int) []string {
+	strs := make([]string, len(values))
+	for i, v := range values {
+		strs[i] = RenderDie(v)
+	}
+	return strs
 }

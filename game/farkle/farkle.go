@@ -28,6 +28,15 @@ type Game struct {
 	Log           *log.Log
 }
 
+var DiceColours = map[int]string{
+	1: render.Cyan,
+	2: render.Green,
+	3: render.Red,
+	4: render.Blue,
+	5: render.Yellow,
+	6: render.Magenta,
+}
+
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		TakeCommand{},
@@ -179,22 +188,23 @@ func (g *Game) Roll(n int) {
 	if len(AvailableScores(g.RemainingDice)) == 0 {
 		// No dice!
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-			"%s rolled no scoring dice and lost %d points!",
+			"%s rolled no scoring dice and lost {{b}}%d{{_b}} points!",
 			render.PlayerName(g.Player, g.Players[g.Player]),
 			g.TurnScore)))
 		g.NextPlayer()
 	}
 }
 
-func RenderDice(dice []int) string {
-	buf := bytes.NewBufferString("{{b}}")
-	renderedDice := make([]string, len(dice))
-	for i, d := range dice {
-		renderedDice[i] = die.Render(d)
+func RenderDie(value int) string {
+	return render.Markup(die.Render(value), DiceColours[value], true)
+}
+
+func RenderDice(values []int) string {
+	strs := make([]string, len(values))
+	for i, v := range values {
+		strs[i] = RenderDie(v)
 	}
-	buf.WriteString(strings.Join(renderedDice, " "))
-	buf.WriteString("{{_b}}")
-	return buf.String()
+	return strings.Join(strs, " ")
 }
 
 func (g *Game) GetPlayerNum(player string) (int, error) {
