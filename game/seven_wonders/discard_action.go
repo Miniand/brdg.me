@@ -31,7 +31,7 @@ func (a *DiscardAction) Execute(player int, g *Game) {
 
 func (a *DiscardAction) Output(player int, g *Game) string {
 	c := g.Hands[player][a.Card].(Carder)
-	buf := bytes.NewBufferString("{{b}}Discarding:{{_b}} ")
+	buf := bytes.NewBufferString("discarding ")
 	buf.WriteString(RenderCard(c))
 	return buf.String()
 }

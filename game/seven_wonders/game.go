@@ -145,7 +145,7 @@ func (g *Game) StartRound(round int) {
 		g.DealHands(DeckAge3(players).Shuffle())
 	}
 	for p := range g.Players {
-		for _, c := range g.Cards[p] {
+		for _, c := range g.PlayerThings(p) {
 			if hnd, ok := c.(StartRoundHandler); ok {
 				hnd.HandleStartRound()
 			}
@@ -216,6 +216,14 @@ func (g *Game) Resolved() {
 	}
 }
 
+func (g *Game) PlayerThings(player int) []interface{} {
+	things := []interface{}{g.Cities[player]}
+	for _, c := range g.Cards[player] {
+		things = append(things, c)
+	}
+	return things
+}
+
 func (g *Game) EndHand() {
 	max := 0
 	for _, h := range g.Hands {
@@ -230,7 +238,7 @@ func (g *Game) EndHand() {
 		// Check if any players can play their last card, otherwise discard
 		for p := range g.Players {
 			canPlay := false
-			for _, c := range g.Cards[p] {
+			for _, c := range g.PlayerThings(p) {
 				if pfc, ok := c.(PlayFinalCarder); ok && pfc.PlayFinalCard() {
 					canPlay = true
 				}
@@ -385,7 +393,7 @@ func (g *Game) PlayerRight(player int) int {
 
 func (g *Game) PlayerScienceVP(player int) int {
 	fields := [][]int{}
-	for _, c := range g.Cards[player] {
+	for _, c := range g.PlayerThings(player) {
 		if sci, ok := c.(Sciencer); ok {
 			fields = append(fields, sci.ScienceFields(player, g))
 		}

@@ -39,8 +39,6 @@ var ResourceColours = map[int]string{
 	TokenVictory:   render.Green,
 	TokenDefeat:    render.Gray,
 
-	WonderStage: render.Yellow,
-
 	VP: render.Green,
 }
 
@@ -82,8 +80,6 @@ var ResourceSymbols = map[int]string{
 	AttackStrength: "Str",
 	TokenVictory:   "Vic",
 	TokenDefeat:    "Def",
-
-	WonderStage: "Wond",
 
 	VP: "VP",
 }
@@ -139,22 +135,25 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if !ok {
 		return "", errors.New("could not find player")
 	}
-	output := bytes.NewBuffer([]byte{})
+	output := bytes.NewBufferString(fmt.Sprintf(
+		"{{b}}Your city: %s{{_b}}  %s\n\n",
+		g.Cities[pNum].Name,
+		RenderResourceList(g.Cities[pNum].GoodsProduced()[0].Keys(), " "),
+	))
 
-	// Action output
-	if g.Actions[pNum] != nil {
-		actOut := g.Actions[pNum].Output(pNum, g)
-		if actOut != "" {
-			output.WriteString(actOut)
-			output.WriteString("\n\n")
-		}
-	}
-
-	// Resolver output
 	if len(g.ToResolve) > 0 {
+		// Resolver output
 		resOut := g.ToResolve[0].String(pNum, g)
 		if resOut != "" {
 			output.WriteString(resOut)
+			output.WriteString("\n\n")
+		}
+	} else if g.Actions[pNum] != nil {
+		// Action output
+		actOut := g.Actions[pNum].Output(pNum, g)
+		if actOut != "" {
+			output.WriteString(render.Bold("Your action: "))
+			output.WriteString(actOut)
 			output.WriteString("\n\n")
 		}
 	}
@@ -162,14 +161,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	// Hand
 	output.WriteString(render.Bold("Your hand:\n\n"))
 	output.WriteString(
-		g.RenderCardList(pNum, g.Hands[pNum], g.CanAction(pNum), true))
+		g.RenderCardList(pNum, g.Hands[pNum], true, g.CanAction(pNum), true))
 
 	// Wonders
 	output.WriteString(render.Bold("\n\nRemaining wonder stages:\n\n"))
 	remaining := g.RemainingWonderStages(pNum)
 	if len(remaining) > 0 {
 		output.WriteString(
-			g.RenderCardList(pNum, remaining, false, true))
+			g.RenderCardList(pNum, remaining, true, false, true))
 	} else {
 		output.WriteString(
 			render.Markup("All wonder stages complete.", render.Gray, false))
@@ -180,16 +179,21 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		"\n\n{{b}}Discard pile:{{_b}} %d",
 		len(g.Discard),
 	))
+
 	// Stats table
 	output.WriteString("\n\n")
 	output.WriteString(g.RenderStatTable(pNum))
+
+	// Played cards
+	output.WriteString("\n\n{{b}}Your tableau:{{_b}}\n\n")
+	output.WriteString(g.RenderCardList(pNum, g.Cards[pNum].Sort(), false, false, false))
 	return output.String(), nil
 }
 
 func (g *Game) RenderCardList(
 	player int,
 	cards card.Deck,
-	showNums, showAfford bool,
+	showCost, showNums, showAfford bool,
 ) string {
 	output := bytes.NewBuffer([]byte{})
 	for i, c := range cards {
@@ -220,14 +224,20 @@ func (g *Game) RenderCardList(
 				}
 				afford = RenderResourceColour(strconv.Itoa(sum), GoodCoin, true)
 			}
+			afford += " "
 		}
 		output.WriteString(fmt.Sprintf(
-			"%s%s %s\n          Cost: %s\n",
+			"%s%s%s\n",
 			numStr,
 			afford,
 			RenderCard(crd),
-			strings.Join(costStrs, render.Colour("  or  ", render.Gray)),
 		))
+		if showCost {
+			output.WriteString(fmt.Sprintf(
+				"          Cost: %s\n",
+				strings.Join(costStrs, render.Colour("  or  ", render.Gray)),
+			))
+		}
 		for fi, f := range crd.GetCard().MakesFree {
 			prefix := "          Leads to: "
 			if fi > 0 {
@@ -348,7 +358,7 @@ func (g *Game) RenderStatTable(player int) string {
 	}{
 		{
 			"",
-			[]int{GoodCoin, VP, WonderStage},
+			[]int{GoodCoin, VP, CardKindWonder},
 		},
 		{
 			"Raw goods",

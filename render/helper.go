@@ -14,7 +14,7 @@ type Unbounded string
 
 type CellSpan struct {
 	Content interface{}
-	Rows    int
+	Cols    int
 }
 
 var Rule = strings.Repeat("=", 80)
@@ -80,15 +80,15 @@ func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 	spans := []spanCellInTable{}
 	for _, row := range cells {
 		for colIndex, cell := range row {
-			w := StrLen(String(cell))
+			w := StrWidth(String(cell))
 			switch t := cell.(type) {
 			case Unbounded:
 				continue
 			case CellSpan:
 				spans = append(spans, spanCellInTable{
 					colIndex,
-					t.Rows,
-					StrLen(String(t.Content)),
+					t.Cols,
+					StrWidth(String(t.Content)),
 				})
 				continue
 			}
@@ -115,31 +115,52 @@ func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 		if rowIndex > 0 {
 			buf.WriteString(strings.Repeat("\n", rowPadding+1))
 		}
+		rowHeight := 0
+		cellLines := map[int][]string{}
 		for colIndex, cellRaw := range row {
-			width := widths[colIndex]
 			if span, ok := cellRaw.(CellSpan); ok {
 				cellRaw = span.Content
-				width = 0
-				for i := colIndex; i < colIndex+span.Rows; i++ {
-					width += widths[i]
-					if i > colIndex {
-						width += colPadding
+			}
+			cellLines[colIndex] = strings.Split(String(cellRaw), "\n")
+			if cl := len(cellLines[colIndex]); cl > rowHeight {
+				rowHeight = cl
+			}
+		}
+
+		for lIndex := 0; lIndex < rowHeight; lIndex++ {
+			if lIndex != 0 {
+				buf.WriteString("\n")
+			}
+			for colIndex, cellRaw := range row {
+				lineContent := ""
+				if len(cellLines[colIndex]) > lIndex {
+					lineContent = cellLines[colIndex][lIndex]
+				}
+				width := widths[colIndex]
+				if span, ok := cellRaw.(CellSpan); ok {
+					cellRaw = span.Content
+					width = 0
+					for i := colIndex; i < colIndex+span.Cols; i++ {
+						width += widths[i]
+						if i > colIndex {
+							width += colPadding
+						}
 					}
 				}
+				var content string
+				switch cellRaw.(type) {
+				case Centred:
+					content = Centre(lineContent, width)
+				case RightAligned:
+					content = Right(lineContent, width)
+				default:
+					content = String(lineContent)
+				}
+				if colIndex != len(row)-1 {
+					content = Padded(content, width+colPadding)
+				}
+				buf.WriteString(content)
 			}
-			var content string
-			switch cellRaw.(type) {
-			case Centred:
-				content = Centre(cellRaw, width)
-			case RightAligned:
-				content = Right(cellRaw, width)
-			default:
-				content = String(cellRaw)
-			}
-			if colIndex != len(row)-1 {
-				content = Padded(content, width+colPadding)
-			}
-			buf.WriteString(content)
 		}
 	}
 	return buf.String()
@@ -160,6 +181,16 @@ func CommaList(list []string) string {
 
 func StrLen(s string) int {
 	return utf8.RuneCountInString(RenderPlain(s))
+}
+
+func StrWidth(s string) int {
+	w := 0
+	for _, l := range strings.Split(s, "\n") {
+		if lw := StrLen(l); lw > w {
+			w = lw
+		}
+	}
+	return w
 }
 
 func Centre(s interface{}, width int) string {
@@ -194,14 +225,22 @@ func String(s interface{}) string {
 }
 
 func Bold(s interface{}) string {
-	return fmt.Sprintf("{{b}}%v{{_b}}", s)
+	lines := strings.Split(String(s), "\n")
+	for i := range lines {
+		lines[i] = fmt.Sprintf("{{b}}%s{{_b}}", lines[i])
+	}
+	return strings.Join(lines, "\n")
 }
 
 func Colour(s interface{}, colour string) string {
 	if !IsValidColour(colour) {
 		log.Fatalf("%s is not a valid colour", colour)
 	}
-	return fmt.Sprintf(`{{c "%s"}}%v{{_c}}`, colour, s)
+	lines := strings.Split(String(s), "\n")
+	for i := range lines {
+		lines[i] = fmt.Sprintf(`{{c "%s"}}%s{{_c}}`, colour, lines[i])
+	}
+	return strings.Join(lines, "\n")
 }
 
 func Markup(s interface{}, colour string, bold bool) string {

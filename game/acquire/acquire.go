@@ -315,7 +315,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		"\n\n{{b}}Your tiles: {{c \"gray\"}}%s{{_c}}{{_b}}\n",
 		strings.Join(handTiles, " ")))
 	output.WriteString(fmt.Sprintf(
-		"{{b}}Your cash:  $%d{{_b}}", g.PlayerCash[pNum]))
+		"{{b}}Your cash:  $%d{{_b}}\n", g.PlayerCash[pNum]))
+	output.WriteString(fmt.Sprintf(
+		"{{b}}Tiles left: %d{{_b}}", len(g.BankTiles)))
 	// Corp table
 	cells = [][]interface{}{
 		[]interface{}{
@@ -507,20 +509,13 @@ func (g *Game) PayShareholderBonuses(corp int) {
 	stockMarketMessage := ""
 	if len(g.Players) == 2 {
 		// Special rule, play against stock market
-		var stockMarketShares int
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		if l := len(g.BankTiles); l > 0 {
-			t := g.BankTiles[r.Int()%l].(Tile)
-			stockMarketShares = t.Column + 1
-			stockMarketMessage = fmt.Sprintf(
-				"\n{{b}}The stock market{{_b}} drew {{b}}%s{{_b}}, has {{b}}%d{{_b}} shares",
-				TileText(t),
-				stockMarketShares,
-			)
-		} else {
-			stockMarketShares = 6
-			stockMarketMessage = "\nThere are no tiles left, {{b}}the stock market{{_b}} has {{b}}6{{_b}} shares"
-		}
+		stockMarketShares := r.Int()%6 + 1
+		stockMarketMessage = fmt.Sprintf(
+			"\n{{b}}The stock market{{_b}} rolled {{b}}%d{{_b}}, has {{b}}%d{{_b}} shares",
+			stockMarketShares,
+			stockMarketShares,
+		)
 		majors = append(majors, -1)
 		majorCount = stockMarketShares
 	}
@@ -907,6 +902,18 @@ func (g *Game) DrawTiles(playerNum int) bool {
 	if drawNum > 0 {
 		var drawnTiles card.Deck
 		drawnTiles, g.BankTiles = g.BankTiles.PopN(drawNum)
+		tileStr := []string{}
+		for _, t := range drawnTiles {
+			tileStr = append(tileStr, render.Markup(
+				TileText(t.(Tile)),
+				render.Gray,
+				true,
+			))
+		}
+		g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
+			"You drew %s",
+			render.CommaList(tileStr),
+		), []string{g.Players[playerNum]}))
 		g.PlayerTiles[playerNum] =
 			g.PlayerTiles[playerNum].PushMany(drawnTiles)
 	}

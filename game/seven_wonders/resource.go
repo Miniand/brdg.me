@@ -29,8 +29,6 @@ const (
 	TokenVictory
 	TokenDefeat
 
-	WonderStage
-
 	VP
 )
 
@@ -84,7 +82,7 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 	case resource == VP:
 		sum := g.VictoryTokens[player] - g.DefeatTokens[player] +
 			g.Coins[player]/3 + g.PlayerScienceVP(player)
-		for _, c := range g.Cards[player] {
+		for _, c := range g.PlayerThings(player) {
 			if vp, ok := c.(VictoryPointer); ok {
 				sum += vp.VictoryPoints(player, g)
 			}
@@ -100,7 +98,7 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 		return sum
 	case InInts(resource, RawGoods) || InInts(resource, ManufacturedGoods):
 		sum := 0
-		for _, c := range g.Cards[player] {
+		for _, c := range g.PlayerThings(player) {
 			if producer, ok := c.(GoodsProducer); ok {
 				for _, prod := range producer.GoodsProduced() {
 					sum += prod[resource]
@@ -110,7 +108,7 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 		return sum
 	case resource == AttackStrength:
 		sum := 0
-		for _, c := range g.Cards[player] {
+		for _, c := range g.PlayerThings(player) {
 			if attacker, ok := c.(Attacker); ok {
 				sum += attacker.AttackStrength()
 			}
@@ -118,7 +116,7 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 		return sum
 	case InInts(resource, Fields):
 		sum := 0
-		for _, c := range g.Cards[player] {
+		for _, c := range g.PlayerThings(player) {
 			if sciencer, ok := c.(Sciencer); ok {
 				if InInts(resource, sciencer.ScienceFields(player, g)) {
 					sum++
@@ -126,15 +124,6 @@ func (g *Game) PlayerResourceCount(player, resource int) int {
 			}
 		}
 		return sum
-	case resource == WonderStage:
-		sum := 0
-		for _, c := range g.Cards[player] {
-			if ws, ok := c.(WonderStager); ok {
-				sum += ws.WonderStages()
-			}
-		}
-		return sum
-
 	default:
 		panic(fmt.Sprintf("Good %d not implemented", resource))
 	}

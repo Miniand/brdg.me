@@ -54,10 +54,6 @@ type CardForPlayers struct {
 	Players []int
 }
 
-type WonderStager interface {
-	WonderStages() int
-}
-
 type Card struct {
 	Name      string
 	Kind      int
