@@ -315,7 +315,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		"\n\n{{b}}Your tiles: {{c \"gray\"}}%s{{_c}}{{_b}}\n",
 		strings.Join(handTiles, " ")))
 	output.WriteString(fmt.Sprintf(
-		"{{b}}Your cash:  $%d{{_b}}", g.PlayerCash[pNum]))
+		"{{b}}Your cash:  $%d{{_b}}\n", g.PlayerCash[pNum]))
+	output.WriteString(fmt.Sprintf(
+		"{{b}}Tiles left: %d{{_b}}", len(g.BankTiles)))
 	// Corp table
 	cells = [][]interface{}{
 		[]interface{}{
