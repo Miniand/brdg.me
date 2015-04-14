@@ -40,6 +40,27 @@ func TestObjectsAreEqual(t *testing.T) {
 	if !ObjectsAreEqual(nil, nil) {
 		t.Error("objectsAreEqual should return true")
 	}
+	if ObjectsAreEqual(map[int]int{5: 10}, map[int]int{10: 20}) {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual('x', "x") {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual("x", 'x') {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual(0, 0.1) {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual(0.1, 0) {
+		t.Error("objectsAreEqual should return false")
+	}
+	if ObjectsAreEqual(uint32(10), int32(10)) {
+		t.Error("objectsAreEqual should return false")
+	}
+	if !ObjectsAreEqualValues(uint32(10), int32(10)) {
+		t.Error("ObjectsAreEqualValues should return true")
+	}
 
 }
 
@@ -88,10 +109,14 @@ func TestEqual(t *testing.T) {
 	if !Equal(mockT, nil, nil) {
 		t.Error("Equal should return true")
 	}
-	if !Equal(mockT, int32(123), int64(123)) {
+	if !Equal(mockT, int32(123), int32(123)) {
 		t.Error("Equal should return true")
 	}
-	if !Equal(mockT, int64(123), uint64(123)) {
+	if !Equal(mockT, uint64(123), uint64(123)) {
+		t.Error("Equal should return true")
+	}
+	funcA := func() int { return 42 }
+	if !Equal(mockT, funcA, funcA) {
 		t.Error("Equal should return true")
 	}
 
@@ -196,6 +221,11 @@ func TestNotEqual(t *testing.T) {
 	if !NotEqual(mockT, nil, new(AssertionTesterConformingObject)) {
 		t.Error("NotEqual should return true")
 	}
+	funcA := func() int { return 23 }
+	funcB := func() int { return 42 }
+	if !NotEqual(mockT, funcA, funcB) {
+		t.Error("NotEqual should return true")
+	}
 
 	if NotEqual(mockT, "Hello World", "Hello World") {
 		t.Error("NotEqual should return false")
@@ -214,10 +244,20 @@ func TestNotEqual(t *testing.T) {
 	}
 }
 
+type A struct {
+	Name, Value string
+}
+
 func TestContains(t *testing.T) {
 
 	mockT := new(testing.T)
 	list := []string{"Foo", "Bar"}
+	complexList := []*A{
+		{"b", "c"},
+		{"d", "e"},
+		{"g", "h"},
+		{"j", "k"},
+	}
 
 	if !Contains(mockT, "Hello World", "Hello") {
 		t.Error("Contains should return true: \"Hello World\" contains \"Hello\"")
@@ -232,7 +272,12 @@ func TestContains(t *testing.T) {
 	if Contains(mockT, list, "Salut") {
 		t.Error("Contains should return false: \"[\"Foo\", \"Bar\"]\" does not contain \"Salut\"")
 	}
-
+	if !Contains(mockT, complexList, &A{"g", "h"}) {
+		t.Error("Contains should return true: complexList contains {\"g\", \"h\"}")
+	}
+	if Contains(mockT, complexList, &A{"g", "e"}) {
+		t.Error("Contains should return false: complexList contains {\"g\", \"e\"}")
+	}
 }
 
 func TestNotContains(t *testing.T) {

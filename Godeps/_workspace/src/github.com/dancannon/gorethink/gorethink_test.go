@@ -1,8 +1,8 @@
 package gorethink
 
 import (
-	"encoding/json"
 	"flag"
+	"log"
 	"math/rand"
 	"os"
 	"runtime"
@@ -35,6 +35,59 @@ func init() {
 	authKey = os.Getenv("RETHINKDB_AUTHKEY")
 }
 
+//
+// Begin TestMain(), Setup, Teardown
+//
+func testBenchmarkSetup() {
+
+	var err error
+
+	bDbName = "benchmark"
+	bTableName = "benchmarks"
+
+	bSess, err = Connect(ConnectOpts{
+		Address:  url,
+		Database: bDbName,
+		MaxIdle:  50,
+		MaxOpen:  50,
+	})
+
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	DbDrop(bDbName).Exec(bSess)
+	DbCreate(bDbName).Exec(bSess)
+
+	Db(bDbName).TableDrop(bTableName).Run(bSess)
+	Db(bDbName).TableCreate(bTableName).Run(bSess)
+
+}
+
+func testBenchmarkTeardown() {
+	Db(bDbName).TableDrop(bTableName).Run(bSess)
+	bSess.Close()
+}
+
+// stubs
+func testSetup()    {}
+func testTeardown() {}
+
+func TestMain(m *testing.M) {
+	// seed randomness for use with tests
+	rand.Seed(time.Now().UTC().UnixNano())
+	testSetup()
+	testBenchmarkSetup()
+	res := m.Run()
+	testTeardown()
+	testBenchmarkTeardown()
+	os.Exit(res)
+}
+
+//
+// End TestMain(), Setup, Teardown
+//
+
 // Hook up gocheck into the gotest runner.
 func Test(t *testing.T) { test.TestingT(t) }
 
@@ -45,42 +98,14 @@ var _ = test.Suite(&RethinkSuite{})
 func (s *RethinkSuite) SetUpSuite(c *test.C) {
 	var err error
 	sess, err = Connect(ConnectOpts{
-		Address:   url,
-		MaxIdle:   3,
-		MaxActive: 3,
-		AuthKey:   authKey,
+		Address: url,
+		AuthKey: authKey,
 	})
 	c.Assert(err, test.IsNil)
 }
 
 func (s *RethinkSuite) TearDownSuite(c *test.C) {
 	sess.Close()
-}
-
-type jsonChecker struct {
-	info *test.CheckerInfo
-}
-
-func (j jsonChecker) Info() *test.CheckerInfo {
-	return j.info
-}
-
-func (j jsonChecker) Check(params []interface{}, names []string) (result bool, error string) {
-	var jsonParams []interface{}
-	for _, param := range params {
-		jsonParam, err := json.Marshal(param)
-		if err != nil {
-			return false, err.Error()
-		}
-		jsonParams = append(jsonParams, jsonParam)
-	}
-	return test.DeepEquals.Check(jsonParams, names)
-}
-
-// JsonEquals compares two interface{} objects by converting them to JSON and
-// seeing if the strings match
-var JsonEquals = &jsonChecker{
-	&test.CheckerInfo{Name: "JsonEquals", Params: []string{"obtained", "expected"}},
 }
 
 // Expressions used in tests
@@ -230,7 +255,7 @@ func (s *RethinkSuite) BenchmarkNoReplyExpr(c *test.C) {
 	for i := 0; i < c.N; i++ {
 		// Test query
 		query := Expr(true)
-		err := query.Exec(sess, RunOpts{NoReply: true})
+		err := query.Exec(sess, ExecOpts{NoReply: true})
 		c.Assert(err, test.IsNil)
 	}
 }
@@ -262,7 +287,7 @@ func (s *RethinkSuite) BenchmarkGet(c *test.C) {
 		err = res.One(&response)
 
 		c.Assert(err, test.IsNil)
-		c.Assert(response, JsonEquals, map[string]interface{}{"id": n})
+		c.Assert(response, jsonEquals, map[string]interface{}{"id": n})
 	}
 }
 

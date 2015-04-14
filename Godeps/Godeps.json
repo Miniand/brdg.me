@@ -1,52 +1,53 @@
 {
 	"ImportPath": "github.com/Miniand/brdg.me",
-	"GoVersion": "go1.4.1",
+	"GoVersion": "go1.4.2",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/goprotobuf/proto",
-			"Comment": "go.r60-152",
-			"Rev": "36be16571e14f67e114bb0af619e5de2c1591679"
+			"Comment": "go.r60-163",
+			"Rev": "9352842ae63ee1d7e74e074ce7bb10370c4b6b9e"
 		},
 		{
 			"ImportPath": "github.com/dancannon/gorethink",
-			"Comment": "v0.5.x-6-gd1fdf17",
-			"Rev": "d1fdf17656013deb0b7f2c11a3db6b7bd9264023"
+			"Comment": "v0.6.3-15-g627a8ee",
+			"Rev": "627a8eec2548b69afaa4d606c4c9c341e45a0697"
 		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
-			"Rev": "1aaf839fb07e099361e445273993ccd9adc21b07"
+			"Rev": "3e6e67c4dcea3ac2f25fd4731abc0e1deaf36216"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
-			"Rev": "14f550f51af52180c2eefed15e5fd18d63c0a64a"
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "14cafe28513321476c73967a5a4f3454b6129c46"
+			"Rev": "8096f47503459bcc74d1f4c487b7e6e42e5746b5"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "87f6f6a22ebfbc3f89b9ccdc7fddd1b914c095f9"
+			"Rev": "2dbddebb8266b93c5e6b119efb54e89043186f3f"
 		},
 		{
 			"ImportPath": "github.com/jtolds/gls",
-			"Rev": "f1ac7f4f24f50328e6bc838ca4437d1612a0243c"
+			"Rev": "9a4a02dbe491bef4bab3c24fd9f3087d6c4c6690"
+		},
+		{
+			"ImportPath": "github.com/smartystreets/assertions",
+			"Comment": "1.5.0-380-g4727d76",
+			"Rev": "4727d767ce8a81811c40eedc2a836c85aebb4d09"
 		},
 		{
 			"ImportPath": "github.com/smartystreets/goconvey/convey",
-			"Comment": "1.5.0-254-g627707e",
-			"Rev": "627707e8db4a4e52f4e1fbbb4e10d98e79a3c946"
+			"Comment": "1.5.0-386-geb2e83c",
+			"Rev": "eb2e83c1df892d2c9ad5a3c85672da30be585dfd"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "d6577e08ec30538639ac0ea38b562b6f250e9055"
-		},
-		{
-			"ImportPath": "gopkg.in/fatih/pool.v2",
-			"Rev": "dae43b8a8a190d1f2b5908e2f6dd02481e7d59e9"
+			"Rev": "e4ec8152c15fc46bd5056ce65997a07c7d415325"
 		}
 	]
 }

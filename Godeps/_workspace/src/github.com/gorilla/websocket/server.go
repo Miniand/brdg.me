@@ -21,11 +21,6 @@ type HandshakeError struct {
 
 func (e HandshakeError) Error() string { return e.message }
 
-const (
-	defaultReadBufferSize  = 4096
-	defaultWriteBufferSize = 4096
-)
-
 // Upgrader specifies parameters for upgrading an HTTP connection to a
 // WebSocket connection.
 type Upgrader struct {
@@ -103,11 +98,11 @@ func (u *Upgrader) Upgrade(w http.ResponseWriter, r *http.Request, responseHeade
 	}
 
 	if !tokenListContainsValue(r.Header, "Connection", "upgrade") {
-		return u.returnError(w, r, http.StatusBadRequest, "websocket: connection header != upgrade")
+		return u.returnError(w, r, http.StatusBadRequest, "websocket: could not find connection header with token 'upgrade'")
 	}
 
 	if !tokenListContainsValue(r.Header, "Upgrade", "websocket") {
-		return u.returnError(w, r, http.StatusBadRequest, "websocket: upgrade != websocket")
+		return u.returnError(w, r, http.StatusBadRequest, "websocket: could not find upgrade header with token 'websocket'")
 	}
 
 	checkOrigin := u.CheckOrigin
@@ -147,15 +142,7 @@ func (u *Upgrader) Upgrade(w http.ResponseWriter, r *http.Request, responseHeade
 		return nil, errors.New("websocket: client sent data before handshake is complete")
 	}
 
-	readBufSize := u.ReadBufferSize
-	if readBufSize == 0 {
-		readBufSize = defaultReadBufferSize
-	}
-	writeBufSize := u.WriteBufferSize
-	if writeBufSize == 0 {
-		writeBufSize = defaultWriteBufferSize
-	}
-	c := newConn(netConn, true, readBufSize, writeBufSize)
+	c := newConn(netConn, true, u.ReadBufferSize, u.WriteBufferSize)
 	c.subprotocol = subprotocol
 
 	p := c.writeBuf[:0]
