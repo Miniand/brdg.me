@@ -64,7 +64,7 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 		}
 		cells = append(cells, []interface{}{
 			render.PlayerNameInPlayers(g.Players[pNum], g.Players),
-			fmt.Sprintf(`{{l}}%s{{_l}}`, strings.Join(renderedPlayerDice, " ")),
+			fmt.Sprintf(`{{b}}%s{{_b}}`, strings.Join(renderedPlayerDice, " ")),
 		})
 	}
 	g.PlayerDice[losingPlayer] = g.PlayerDice[losingPlayer][1:]

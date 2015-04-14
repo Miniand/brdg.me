@@ -187,13 +187,13 @@ func (g *Game) Roll(n int) {
 }
 
 func RenderDice(dice []int) string {
-	buf := bytes.NewBufferString("{{l}}")
+	buf := bytes.NewBufferString("{{b}}")
 	renderedDice := make([]string, len(dice))
 	for i, d := range dice {
 		renderedDice[i] = die.Render(d)
 	}
 	buf.WriteString(strings.Join(renderedDice, " "))
-	buf.WriteString("{{_l}}")
+	buf.WriteString("{{_b}}")
 	return buf.String()
 }
 

@@ -56,12 +56,6 @@ func (t *HtmlMarkupper) StartBold() interface{} {
 func (t *HtmlMarkupper) EndBold() interface{} {
 	return template.HTML("</strong>")
 }
-func (t *HtmlMarkupper) StartLarge() interface{} {
-	return template.HTML(`<span style="font-size:1.6em;">`)
-}
-func (t *HtmlMarkupper) EndLarge() interface{} {
-	return template.HTML("</span>")
-}
 
 func RenderHtml(tmpl string) (string, error) {
 	t := template.Must(template.New("tmpl").

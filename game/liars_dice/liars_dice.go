@@ -82,7 +82,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	buf.WriteString(fmt.Sprintf("Current bid: %s\n", currentBidText))
 	if len(g.PlayerDice[playerNum]) > 0 {
-		buf.WriteString(fmt.Sprintf("Your dice: {{l}}%s{{_l}}\n\n",
+		buf.WriteString(fmt.Sprintf("Your dice: {{b}}%s{{_b}}\n\n",
 			strings.Join(die.RenderDice(g.PlayerDice[playerNum]), " ")))
 	}
 	cells := [][]interface{}{
@@ -179,5 +179,5 @@ func (g *Game) EliminatedPlayerList() (eliminated []string) {
 }
 
 func RenderBid(quantity int, value int) string {
-	return fmt.Sprintf("%d {{l}}%s{{_l}}", quantity, die.Render(value))
+	return fmt.Sprintf("%d {{b}}%s{{_b}}", quantity, die.Render(value))
 }
