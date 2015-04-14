@@ -145,7 +145,7 @@ func (g *Game) Play(player, piece int, loc Loc, dir int) error {
 		loc,
 	)))
 	// Do an ownership check.
-	if p.Player != PlayerCathedral && g.PlayedPieces[1][1] {
+	if p.Player != PlayerCathedral && g.PlayedPieces[1][0] {
 		g.CheckCaptures(loc)
 	}
 	// Check if there are any open tiles left, otherwise it becomes
