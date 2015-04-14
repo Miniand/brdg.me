@@ -53,6 +53,17 @@ func (g *Game) CanTake(player int) bool {
 	)
 }
 
+func (g *Game) CanTakeCard(player int, carder Carder) bool {
+	c := carder.GetCard()
+	// See if you already have it, which means you can't get it again.
+	for _, pc := range g.Cards[player] {
+		if pc.(Carder).GetCard().Name == c.Name {
+			return false
+		}
+	}
+	return true
+}
+
 func (g *Game) Take(player, cardNum int) error {
 	if !g.CanTake(player) {
 		return errors.New("cannot take at the moment")
@@ -62,6 +73,9 @@ func (g *Game) Take(player, cardNum int) error {
 	}
 
 	c := g.Discard[cardNum]
+	if !g.CanTakeCard(player, c.(Carder)) {
+		return errors.New("you can't have more than one of the same card")
+	}
 	g.Cards[player] = g.Cards[player].Push(c)
 	g.Discard = append(g.Discard[:cardNum], g.Discard[cardNum+1:]...)
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(

@@ -27,7 +27,10 @@ func (c CardDrawDiscard) SuppString() string {
 }
 
 func (c CardDrawDiscard) HandlePostActionExecute(player int, g *Game) {
-	if len(g.Discard) > 0 {
-		g.ToResolve = append(g.ToResolve, ResolveDrawDiscard{player})
+	for _, c := range g.Discard {
+		if g.CanTakeCard(player, c.(Carder)) {
+			g.ToResolve = append(g.ToResolve, ResolveDrawDiscard{player})
+			return
+		}
 	}
 }
