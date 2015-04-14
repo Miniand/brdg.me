@@ -909,6 +909,18 @@ func (g *Game) DrawTiles(playerNum int) bool {
 	if drawNum > 0 {
 		var drawnTiles card.Deck
 		drawnTiles, g.BankTiles = g.BankTiles.PopN(drawNum)
+		tileStr := []string{}
+		for _, t := range drawnTiles {
+			tileStr = append(tileStr, render.Markup(
+				TileText(t.(Tile)),
+				render.Gray,
+				true,
+			))
+		}
+		g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
+			"You drew %s",
+			render.CommaList(tileStr),
+		), []string{g.Players[playerNum]}))
 		g.PlayerTiles[playerNum] =
 			g.PlayerTiles[playerNum].PushMany(drawnTiles)
 	}
