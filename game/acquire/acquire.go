@@ -509,20 +509,13 @@ func (g *Game) PayShareholderBonuses(corp int) {
 	stockMarketMessage := ""
 	if len(g.Players) == 2 {
 		// Special rule, play against stock market
-		var stockMarketShares int
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		if l := len(g.BankTiles); l > 0 {
-			t := g.BankTiles[r.Int()%l].(Tile)
-			stockMarketShares = t.Column + 1
-			stockMarketMessage = fmt.Sprintf(
-				"\n{{b}}The stock market{{_b}} drew {{b}}%s{{_b}}, has {{b}}%d{{_b}} shares",
-				TileText(t),
-				stockMarketShares,
-			)
-		} else {
-			stockMarketShares = 6
-			stockMarketMessage = "\nThere are no tiles left, {{b}}the stock market{{_b}} has {{b}}6{{_b}} shares"
-		}
+		stockMarketShares := r.Int()%6 + 1
+		stockMarketMessage = fmt.Sprintf(
+			"\n{{b}}The stock market{{_b}} rolled {{b}}%d{{_b}}, has {{b}}%d{{_b}} shares",
+			stockMarketShares,
+			stockMarketShares,
+		)
 		majors = append(majors, -1)
 		majorCount = stockMarketShares
 	}
