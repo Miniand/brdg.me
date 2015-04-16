@@ -69,10 +69,10 @@ func (c CallCommand) Call(player string, context interface{}, args []string) (
 	}
 	g.PlayerDice[losingPlayer] = g.PlayerDice[losingPlayer][1:]
 	table := render.Table(cells, 0, 1)
-	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`%s called the bid of %d %s by %s
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`%s called the bid of %s by %s
 Everyone revealed the following dice:
 %s
-%s`, callPlayerName, g.BidQuantity, die.Render(g.BidValue), bidPlayerName,
+%s`, callPlayerName, RenderBid(g.BidQuantity, g.BidValue), bidPlayerName,
 		table, resultText)))
 	if !g.IsFinished() {
 		g.StartRound()
