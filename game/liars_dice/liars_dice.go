@@ -11,6 +11,7 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/die"
+	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 )
@@ -184,7 +185,16 @@ func (g *Game) EliminatedPlayerList() (eliminated []string) {
 }
 
 func RenderBid(quantity int, value int) string {
-	return fmt.Sprintf("%d %s", quantity, RenderDie(value))
+	suffix := ""
+	if quantity > 1 {
+		suffix = "s"
+	}
+	return fmt.Sprintf(
+		"%s %s%s",
+		helper.NumberStr(quantity),
+		RenderDie(value),
+		suffix,
+	)
 }
 
 func RenderDie(value int) string {

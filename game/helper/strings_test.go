@@ -3,6 +3,8 @@ package helper
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMatchStringInStrings(t *testing.T) {
@@ -27,4 +29,8 @@ func TestMatchStringInStrings(t *testing.T) {
 				test.input, test.expected, strings.Join(test.strs, ", "))
 		}
 	}
+}
+
+func TestNumberStr(t *testing.T) {
+	assert.Equal(t, "fourty three billion two hundred and eighty one million five hundred and twenty three thousand six hundred and eighty one", NumberStr(43281523681))
 }
