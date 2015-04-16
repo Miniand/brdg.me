@@ -19,14 +19,10 @@ const (
 	START_DICE_COUNT = 5
 )
 
-var DiceColours = map[int]string{
-	1: render.Cyan,
-	2: render.Green,
-	3: render.Red,
-	4: render.Blue,
-	5: render.Yellow,
-	6: render.Magenta,
-}
+var (
+	NormalDiceColour = render.Black
+	WildDiceColour   = render.Cyan
+)
 
 type Game struct {
 	Players       []string
@@ -192,7 +188,11 @@ func RenderBid(quantity int, value int) string {
 }
 
 func RenderDie(value int) string {
-	return render.Markup(die.Render(value), DiceColours[value], true)
+	c := NormalDiceColour
+	if value == 1 {
+		c = WildDiceColour
+	}
+	return render.Markup(die.Render(value), c, true)
 }
 
 func RenderDice(values []int) []string {
