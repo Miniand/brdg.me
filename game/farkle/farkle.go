@@ -71,19 +71,11 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	playerNum, err := g.GetPlayerNum(player)
-	if err != nil {
-		return "", err
-	}
 	buf := bytes.NewBufferString("")
-	cells := [][]interface{}{}
-	if playerNum == g.Player {
-		cells = append(cells,
-			[]interface{}{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
-			[]interface{}{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)})
+	cells := [][]interface{}{
+		{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
+		{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)},
 	}
-	cells = append(cells,
-		[]interface{}{"{{b}}Your score{{_b}}", strconv.Itoa(g.Scores[playerNum])})
 	t := render.Table(cells, 0, 1)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
