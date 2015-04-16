@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/Miniand/brdg.me/game"
 	"testing"
+
+	"github.com/Miniand/brdg.me/game"
 )
 
 func TestGameSavingAndLoading(t *testing.T) {
@@ -38,6 +39,31 @@ func TestGameSavingAndLoading(t *testing.T) {
 			pl[2] != "BJ" {
 			t.Error("Players in loaded game don't match original")
 			return
+		}
+	}
+}
+
+func TestGameSavingDoesNotSetFinishedAt(t *testing.T) {
+	if modelTestShouldRun() {
+		cleanTestingDatabase()
+		g, err := game.Collection()["acquire"]([]string{"Mick", "Steve", "BJ"})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		gm, err := SaveGame(g)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		loadedGm, err := LoadGame(gm.Id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		t.Logf("%#v", loadedGm)
+		if !loadedGm.FinishedAt.IsZero() {
+			t.Errorf("FinishedAt should have been zero but was %s", loadedGm.FinishedAt)
 		}
 	}
 }
