@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/dancannon/gorethink",
-			"Comment": "v0.6.3-15-g627a8ee",
-			"Rev": "627a8eec2548b69afaa4d606c4c9c341e45a0697"
+			"Comment": "v0.7.1",
+			"Rev": "0fcd578dc17224eb4812abb34a472f6b72d9c62f"
 		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",

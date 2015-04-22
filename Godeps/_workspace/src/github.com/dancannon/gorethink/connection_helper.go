@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strings"
 
 	p "github.com/dancannon/gorethink/ql2"
 )
@@ -29,7 +30,7 @@ func (c *Connection) writeHandshakeReq() error {
 	}
 
 	// Send the protocol version to the server as a 4-byte little-endian-encoded integer
-	binary.LittleEndian.PutUint32(data[pos:], uint32(p.VersionDummy_V0_3))
+	binary.LittleEndian.PutUint32(data[pos:], uint32(p.VersionDummy_V0_4))
 	pos += 4
 
 	// Send the length of the auth key to the server as a 4-byte little-endian-encoded integer
@@ -60,6 +61,7 @@ func (c *Connection) readHandshakeSuccess() error {
 	// convert to string and remove trailing NUL byte
 	response := string(line[:len(line)-1])
 	if response != "SUCCESS" {
+		response = strings.TrimSpace(response)
 		// we failed authorization or something else terrible happened
 		return RqlDriverError{fmt.Sprintf("Server dropped connection with message: \"%s\"", response)}
 	}
