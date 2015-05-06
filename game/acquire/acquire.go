@@ -839,6 +839,7 @@ func (g *Game) NextPlayer() {
 				g.RenderPlayer(g.CurrentPlayer),
 				render.CommaList(discardStrs),
 			)))
+			g.PlayerTiles[g.CurrentPlayer] = card.Deck{}
 			if !g.DrawTiles(g.CurrentPlayer) {
 				g.Log.Add(log.NewPublicMessage(
 					"There aren't enough tiles left in the draw pile, it is the end of the game"))
