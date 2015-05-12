@@ -47,6 +47,13 @@ var CardCounts = map[int]int{
 	CardChopsticks:   4,
 }
 
+var PlayerDrawCounts = map[int]int{
+	2: 9, // Usually 10, but we implement the variant.
+	3: 9,
+	4: 8,
+	5: 7,
+}
+
 func Deck() []int {
 	deck := []int{}
 	for _, t := range CardTypes {
