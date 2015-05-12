@@ -1,10 +1,15 @@
 package sushi_go
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 )
+
+var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type Game struct {
 	Players []string
