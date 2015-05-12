@@ -79,3 +79,12 @@ func Shuffle(deck []int) []int {
 	}
 	return shuffled
 }
+
+func Contains(needle int, haystack []int) (int, bool) {
+	for i, h := range haystack {
+		if h == needle {
+			return i, true
+		}
+	}
+	return 0, false
+}
