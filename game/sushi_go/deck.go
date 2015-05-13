@@ -1,6 +1,10 @@
 package sushi_go
 
-import "sort"
+import (
+	"sort"
+
+	"github.com/Miniand/brdg.me/render"
+)
 
 const (
 	CardPlayed = iota
@@ -53,6 +57,38 @@ var PlayerDrawCounts = map[int]int{
 	3: 9,
 	4: 8,
 	5: 7,
+}
+
+var CardStrings = map[int]string{
+	CardPlayed:       "played",
+	CardTempura:      "tempura",
+	CardSashimi:      "sashimi",
+	CardDumpling:     "dumpling",
+	CardMakiRoll3:    "maki x3",
+	CardMakiRoll2:    "maki x2",
+	CardMakiRoll1:    "maki x1",
+	CardSalmonNigiri: "salmon nigiri",
+	CardSquidNigiri:  "squid nigiri",
+	CardEggNigiri:    "egg nigiri",
+	CardPudding:      "pudding",
+	CardWasabi:       "wasabi",
+	CardChopsticks:   "chopsticks",
+}
+
+var CardColours = map[int]string{
+	CardPlayed:       render.Gray,
+	CardTempura:      render.Magenta,
+	CardSashimi:      render.Magenta,
+	CardDumpling:     render.Yellow,
+	CardMakiRoll3:    render.Red,
+	CardMakiRoll2:    render.Red,
+	CardMakiRoll1:    render.Red,
+	CardSalmonNigiri: render.Cyan,
+	CardSquidNigiri:  render.Cyan,
+	CardEggNigiri:    render.Cyan,
+	CardPudding:      render.Blue,
+	CardWasabi:       render.Green,
+	CardChopsticks:   render.Black,
 }
 
 func Deck() []int {
