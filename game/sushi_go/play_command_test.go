@@ -39,3 +39,55 @@ func TestPlayCommand_Call(t *testing.T) {
 	assert.Equal(t, []int{steveCard}, g.Played[helper.Steve])
 	assert.Equal(t, helper.Players[:3], g.WhoseTurn())
 }
+
+func TestPlayCommand_Call_chopsticks(t *testing.T) {
+	g := &Game{}
+	assert.NoError(t, g.Start(helper.Players[:3]))
+
+	// Prepare hands
+	g.Hands[helper.Mick] = []int{
+		CardDumpling,
+		CardMakiRoll3,
+		CardMakiRoll2,
+		CardMakiRoll1,
+	}
+	g.Hands[helper.Steve] = []int{
+		CardDumpling,
+		CardSalmonNigiri,
+		CardSquidNigiri,
+		CardEggNigiri,
+	}
+	g.Played[helper.Mick] = []int{
+		CardSquidNigiri,
+		CardEggNigiri,
+		CardDumpling,
+	}
+	g.Played[helper.Steve] = []int{
+		CardPudding,
+		CardChopsticks,
+		CardSashimi,
+	}
+
+	// Mick tries to play two cards but can't without chopsticks
+	assert.Error(t, helper.Cmd(g, helper.Mick, "play 1 2"))
+	// It should work after giving Mick chopsticks
+	g.Played[helper.Mick][1] = CardChopsticks
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 1 2"))
+
+	// Play with the rest
+	assert.NoError(t, helper.Cmd(g, helper.Steve, "play 3"))
+	assert.NoError(t, helper.Cmd(g, helper.BJ, "play 2"))
+
+	// Make sure Mick got his hand from Steve
+	assert.Equal(t, []int{
+		CardDumpling,
+		CardSalmonNigiri,
+		CardEggNigiri,
+	}, g.Hands[helper.Mick])
+	// Make sure BJ got his hand from Mick
+	assert.Equal(t, []int{
+		CardMakiRoll2,
+		CardMakiRoll1,
+		CardChopsticks,
+	}, g.Hands[helper.BJ])
+}

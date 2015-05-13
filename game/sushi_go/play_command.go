@@ -10,7 +10,7 @@ import (
 type PlayCommand struct{}
 
 func (c PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
+	return command.ParseNamedCommandRangeArgs("play", 1, 2, input)
 }
 
 func (c PlayCommand) CanCall(player string, context interface{}) bool {
@@ -84,11 +84,15 @@ func (g *Game) PlayCards(toPlayer, fromPlayer int, cards []int) error {
 	g.Playing[toPlayer] = make([]int, len(cards))
 	for i, c := range cards {
 		g.Playing[toPlayer][i] = g.Hands[fromPlayer][c]
-		g.Hands[fromPlayer] = append(
-			g.Hands[fromPlayer][:c],
-			g.Hands[fromPlayer][c+1:]...,
-		)
 	}
+	newHand := []int{}
+	for i, c := range g.Hands[fromPlayer] {
+		if cardMap[i] {
+			continue
+		}
+		newHand = append(newHand, c)
+	}
+	g.Hands[fromPlayer] = newHand
 
 	// Check if everyone has played cards
 	for p := range g.AllPlayers {

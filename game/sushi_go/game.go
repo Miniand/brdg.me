@@ -97,6 +97,7 @@ func (g *Game) StartRound() {
 	)))
 	for p := range g.AllPlayers {
 		g.Hands[p], g.Deck = g.Deck[:drawCount], g.Deck[drawCount:]
+		g.Hands[p] = Sort(g.Hands[p])
 	}
 	g.StartHand()
 }
@@ -108,10 +109,11 @@ func (g *Game) EndHand() {
 	// Play cards
 	for p := range g.AllPlayers {
 		g.Played[p] = append(g.Played[p], g.Playing[p]...)
-		if len(g.Playing) == 2 {
+		if len(g.Playing[p]) == 2 {
 			// Use chopsticks.
 			if i, ok := Contains(CardChopsticks, g.Played[p]); ok {
 				g.Hands[p] = append(g.Hands[p], CardChopsticks)
+				g.Hands[p] = Sort(g.Hands[p])
 				g.Played[p] = append(g.Played[p][:i], g.Played[p][i+1:]...)
 			}
 		}
