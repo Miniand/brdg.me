@@ -91,6 +91,22 @@ var CardColours = map[int]string{
 	CardChopsticks:   render.Black,
 }
 
+var makiExplanation = "most: 6/3"
+var CardExplanations = map[int]string{
+	CardTempura:      "x2 = 5",
+	CardSashimi:      "x3 = 10",
+	CardDumpling:     "1 3 6 10 15",
+	CardMakiRoll3:    makiExplanation,
+	CardMakiRoll2:    makiExplanation,
+	CardMakiRoll1:    makiExplanation,
+	CardSalmonNigiri: "2",
+	CardSquidNigiri:  "3",
+	CardEggNigiri:    "1",
+	CardPudding:      "end: most 6, least -6",
+	CardWasabi:       "next nigiri x3",
+	CardChopsticks:   "swap for 2",
+}
+
 func Deck() []int {
 	deck := []int{}
 	for _, t := range CardTypes {
