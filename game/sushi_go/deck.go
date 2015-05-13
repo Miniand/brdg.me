@@ -3,7 +3,8 @@ package sushi_go
 import "sort"
 
 const (
-	CardTempura = iota
+	CardPlayed = iota
+	CardTempura
 	CardSashimi
 	CardDumpling
 	CardMakiRoll3
@@ -87,4 +88,14 @@ func Contains(needle int, haystack []int) (int, bool) {
 		}
 	}
 	return 0, false
+}
+
+func TrimPlayed(cards []int) []int {
+	newCards := []int{}
+	for _, c := range cards {
+		if c != CardPlayed {
+			newCards = append(newCards, c)
+		}
+	}
+	return newCards
 }

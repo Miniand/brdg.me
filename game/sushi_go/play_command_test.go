@@ -13,18 +13,16 @@ func TestPlayCommand_Call(t *testing.T) {
 	assert.Equal(t, helper.Players[:3], g.WhoseTurn())
 
 	// Mick plays a card
-	mickHandLen := len(g.Hands[helper.Mick])
 	mickCard := g.Hands[helper.Mick][0]
 	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 1"))
-	assert.Len(t, g.Hands[helper.Mick], mickHandLen-1)
+	assert.Equal(t, CardPlayed, g.Hands[helper.Mick][0])
 	assert.Equal(t, []int{mickCard}, g.Playing[helper.Mick])
 	assert.Equal(t, helper.Players[1:3], g.WhoseTurn())
 
 	// BJ plays a card
-	bjHandLen := len(g.Hands[helper.BJ])
 	bjCard := g.Hands[helper.BJ][1]
 	assert.NoError(t, helper.Cmd(g, helper.BJ, "play 2"))
-	assert.Len(t, g.Hands[helper.BJ], bjHandLen-1)
+	assert.Equal(t, CardPlayed, g.Hands[helper.BJ][1])
 	assert.Equal(t, []int{bjCard}, g.Playing[helper.BJ])
 	assert.Equal(t, helper.Players[1:2], g.WhoseTurn())
 

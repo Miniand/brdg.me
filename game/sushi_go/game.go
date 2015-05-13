@@ -37,6 +37,7 @@ type Game struct {
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		PlayCommand{},
+		DummyCommand{},
 	}
 }
 
@@ -108,16 +109,20 @@ func (g *Game) StartHand() {
 func (g *Game) EndHand() {
 	// Play cards
 	for p := range g.AllPlayers {
+		g.Hands[p] = TrimPlayed(g.Hands[p])
 		g.Played[p] = append(g.Played[p], g.Playing[p]...)
 		if len(g.Playing[p]) == 2 {
 			// Use chopsticks.
 			if i, ok := Contains(CardChopsticks, g.Played[p]); ok {
 				g.Hands[p] = append(g.Hands[p], CardChopsticks)
-				g.Hands[p] = Sort(g.Hands[p])
 				g.Played[p] = append(g.Played[p][:i], g.Played[p][i+1:]...)
 			}
 		}
 		g.Playing[p] = nil
+	}
+	if len(g.Players) == 2 {
+		// Next player controls the dummy
+		g.Controller = (g.Controller + 1) % 2
 	}
 	// End round if we're out of cards
 	if len(g.Hands[0]) == 0 {
@@ -128,8 +133,6 @@ func (g *Game) EndHand() {
 	if len(g.Players) == 2 {
 		g.Log.Add(log.NewPublicMessage("Players are swapping hands"))
 		g.Hands[0], g.Hands[1] = g.Hands[1], g.Hands[0]
-		// Next player controls the dummy
-		g.Controller = (g.Controller + 1) % 2
 	} else if g.Round%2 == 1 {
 		g.Log.Add(log.NewPublicMessage("Passing hands to the {{b}}left{{_b}}"))
 		extra := g.Hands[0]

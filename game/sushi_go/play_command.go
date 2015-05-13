@@ -77,6 +77,9 @@ func (g *Game) PlayCards(toPlayer, fromPlayer int, cards []int) error {
 		if cardMap[c] {
 			return errors.New("please specify different cards")
 		}
+		if g.Hands[fromPlayer][c] == CardPlayed {
+			return errors.New("that card has already been played")
+		}
 		cardMap[c] = true
 	}
 
@@ -84,15 +87,8 @@ func (g *Game) PlayCards(toPlayer, fromPlayer int, cards []int) error {
 	g.Playing[toPlayer] = make([]int, len(cards))
 	for i, c := range cards {
 		g.Playing[toPlayer][i] = g.Hands[fromPlayer][c]
+		g.Hands[fromPlayer][c] = CardPlayed
 	}
-	newHand := []int{}
-	for i, c := range g.Hands[fromPlayer] {
-		if cardMap[i] {
-			continue
-		}
-		newHand = append(newHand, c)
-	}
-	g.Hands[fromPlayer] = newHand
 
 	// Check if everyone has played cards
 	for p := range g.AllPlayers {
