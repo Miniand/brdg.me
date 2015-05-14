@@ -134,6 +134,11 @@ func (g *Game) EndHand() {
 	for p := range g.AllPlayers {
 		g.Hands[p] = TrimPlayed(g.Hands[p])
 		g.Played[p] = append(g.Played[p], g.Playing[p]...)
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s played %s",
+			g.RenderName(p),
+			render.CommaList(RenderCards(g.Playing[p])),
+		)))
 		if len(g.Playing[p]) == 2 {
 			// Use chopsticks.
 			if i, ok := Contains(CardChopsticks, g.Played[p]); ok {

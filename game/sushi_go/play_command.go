@@ -63,6 +63,11 @@ func (g *Game) Play(player int, cards []int) error {
 		if _, ok := Contains(CardChopsticks, g.Played[player]); !ok {
 			return errors.New("you can only play a second card if you've previously played chopsticks")
 		}
+		if player == g.Controller && g.Playing[Dummy] == nil &&
+			len(g.Players) == 2 && len(g.Hands[player]) == 2 {
+			// Need to keep room for the dummy player.
+			return errors.New("you can't play two cards now, you have to save one for the dummy player")
+		}
 	}
 
 	return g.PlayCards(player, player, cards)

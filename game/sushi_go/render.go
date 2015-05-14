@@ -144,3 +144,11 @@ func CardsCells(cards []int) [][]interface{} {
 func RenderCard(c int) string {
 	return render.Markup(CardStrings[c], CardColours[c], c != CardPlayed)
 }
+
+func RenderCards(cards []int) []string {
+	cardStrs := make([]string, len(cards))
+	for i, c := range cards {
+		cardStrs[i] = RenderCard(c)
+	}
+	return cardStrs
+}

@@ -89,3 +89,16 @@ func TestPlayCommand_Call_chopsticks(t *testing.T) {
 		CardChopsticks,
 	}, g.Hands[helper.BJ])
 }
+
+func TestPlayCommand_Call_dummyPlayTwo(t *testing.T) {
+	g := &Game{}
+	assert.NoError(t, g.Start(helper.Players[:2]))
+
+	g.Played[helper.Mick] = []int{CardChopsticks}
+	g.Hands[helper.Mick] = []int{CardMakiRoll1, CardMakiRoll2}
+	assert.Error(t, helper.Cmd(g, helper.Mick, "play 1 2"))
+
+	// Should be fine if dummy has already had a card played.
+	g.Playing[Dummy] = []int{CardMakiRoll1}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 1 2"))
+}
