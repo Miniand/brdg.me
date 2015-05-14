@@ -49,7 +49,10 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	buf := bytes.Buffer{}
-	buf.WriteString("{{b}}Hand:{{_b}}\n\n")
+	buf.WriteString(fmt.Sprintf(
+		"It is round {{b}}%d{{_b}} of {{b}}3{{_b}}\n\n{{b}}Hand:{{_b}}\n\n",
+		g.Round,
+	))
 	explained := map[int]bool{}
 	cells := [][]interface{}{}
 	for i, c := range g.Hands[pNum] {
@@ -73,18 +76,57 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		cells = append(cells, row)
 	}
 	buf.WriteString(render.Table(cells, 0, 2))
-	buf.WriteString(render.Bold("\n\nYour cards:\n"))
-	buf.WriteString(render.Table(CardsCells(g.Played[pNum]), 0, 3))
-	buf.WriteString(render.Bold("\n\n\nAll players:"))
-	for p := range g.AllPlayers {
+	buf.WriteString("\n\n")
+	playingOutput := false
+	if g.Playing[pNum] != nil {
 		buf.WriteString(fmt.Sprintf(
-			"\n\n%s ({{b}}%d{{_b}} points)\n",
-			g.RenderName(p),
-			g.Points[p],
+			"Playing: %s\n",
+			render.CommaList(RenderCards(g.Playing[pNum])),
 		))
-		buf.WriteString(render.Table(CardsCells(g.Played[p]), 0, 3))
+		playingOutput = true
+	}
+	if pNum == g.Controller && g.Playing[Dummy] != nil && len(g.Players) == 2 {
+		buf.WriteString(fmt.Sprintf(
+			"Dummy:   %s\n",
+			render.CommaList(RenderCards(g.Playing[Dummy])),
+		))
+		playingOutput = true
+	}
+	if playingOutput {
+		buf.WriteString("\n")
+	}
+
+	pCount := len(g.AllPlayers)
+	dir := 1
+	if g.Round%2 == 1 {
+		dir = -1
+	}
+	for i := 0; i < pCount; i++ {
+		p := pNum + i*dir
+		if p < 0 {
+			p += pCount
+		}
+		p = p % pCount
+		heading := ""
+		if i == 1 {
+			heading = "You are passing cards to "
+		}
+		buf.WriteString(g.RenderPlayerCards(p, heading))
+		buf.WriteString("\n\n")
 	}
 	return buf.String(), nil
+}
+
+func (g *Game) RenderPlayerCards(player int, heading string) string {
+	buf := bytes.Buffer{}
+	buf.WriteString(fmt.Sprintf(
+		"%s%s ({{b}}%d{{_b}} points):\n",
+		heading,
+		g.RenderName(player),
+		g.Points[player],
+	))
+	buf.WriteString(render.Table(CardsCells(g.Played[player]), 0, 3))
+	return buf.String()
 }
 
 func CardsCells(cards []int) [][]interface{} {
