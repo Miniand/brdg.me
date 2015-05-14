@@ -84,6 +84,16 @@ func (g *Game) Start(players []string) error {
 
 func (g *Game) StartRound() {
 	g.Round++
+	for p := range g.AllPlayers {
+		// Remove anything that's not a pudding
+		newPlayed := []int{}
+		for _, c := range g.Played[p] {
+			if c == CardPudding {
+				newPlayed = append(newPlayed, c)
+			}
+		}
+		g.Played[p] = newPlayed
+	}
 	g.Hands = make([][]int, len(g.AllPlayers))
 	drawCount := PlayerDrawCounts[len(g.Players)]
 	passDir := "left"
@@ -104,16 +114,6 @@ func (g *Game) StartRound() {
 }
 
 func (g *Game) StartHand() {
-	for p := range g.AllPlayers {
-		// Remove anything that's not a pudding
-		newPlayed := []int{}
-		for _, c := range g.Played[p] {
-			if c == CardPudding {
-				newPlayed = append(newPlayed, c)
-			}
-		}
-		g.Played[p] = newPlayed
-	}
 	if len(g.Players) == 2 {
 		// Controller draws a card from the dummy hand.
 		i := rnd.Int() % len(g.Hands[Dummy])
@@ -250,7 +250,8 @@ func (g *Game) Score() ([]int, []string) {
 		firstPlayers := []int{}
 		last := 0
 		lastPlayers := []int{}
-		for p, c := range pudding {
+		for p := range g.AllPlayers {
+			c := pudding[p]
 			if c > first {
 				first = c
 				firstPlayers = []int{}
@@ -345,6 +346,9 @@ func (g *Game) Score() ([]int, []string) {
 		}
 		if n := cardCounts[CardDumpling]; n > 0 {
 			s := (n*n + n) / 2
+			if s > 15 {
+				s = 15
+			}
 			output = append(output, fmt.Sprintf(
 				"%d x %s, {{b}}%d{{_b}} points",
 				cardCounts[CardDumpling],
