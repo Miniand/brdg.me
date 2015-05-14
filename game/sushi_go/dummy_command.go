@@ -44,7 +44,7 @@ func (c DummyCommand) Call(player string, context interface{},
 }
 
 func (c DummyCommand) Usage(player string, context interface{}) string {
-	return "{{b}}dummp #{{_b}} to play a card for the dummy, eg. {{b}}dummy 2{{_b}}"
+	return "{{b}}dummy #{{_b}} to play a card for the dummy, eg. {{b}}dummy 2{{_b}}"
 }
 
 func (g *Game) CanDummy(player int) bool {

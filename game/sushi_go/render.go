@@ -8,6 +8,41 @@ import (
 	"github.com/Miniand/brdg.me/render"
 )
 
+const (
+	CardColumnTempura = iota
+	CardColumnSashimi
+	CardColumnDumpling
+	CardColumnMaki
+	CardColumnNigiri
+	CardColumnPudding
+	CardColumnChopsticks
+)
+
+var CardColumns = []int{
+	CardColumnTempura,
+	CardColumnSashimi,
+	CardColumnDumpling,
+	CardColumnMaki,
+	CardColumnNigiri,
+	CardColumnPudding,
+	CardColumnChopsticks,
+}
+
+var CardColumnMap = map[int]int{
+	CardTempura:      CardColumnTempura,
+	CardSashimi:      CardColumnSashimi,
+	CardDumpling:     CardColumnDumpling,
+	CardMakiRoll3:    CardColumnMaki,
+	CardMakiRoll2:    CardColumnMaki,
+	CardMakiRoll1:    CardColumnMaki,
+	CardSalmonNigiri: CardColumnNigiri,
+	CardSquidNigiri:  CardColumnNigiri,
+	CardEggNigiri:    CardColumnNigiri,
+	CardPudding:      CardColumnPudding,
+	CardWasabi:       CardColumnNigiri,
+	CardChopsticks:   CardColumnChopsticks,
+}
+
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
@@ -38,7 +73,63 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		cells = append(cells, row)
 	}
 	buf.WriteString(render.Table(cells, 0, 2))
+	buf.WriteString(render.Bold("\n\nYour cards:\n"))
+	buf.WriteString(render.Table(CardsCells(g.Played[pNum]), 0, 2))
 	return buf.String(), nil
+}
+
+func CardsCells(cards []int) [][]interface{} {
+	columns := map[int][]string{}
+	for _, c := range CardColumns {
+		columns[c] = []string{}
+	}
+	unusedWasabi := 0
+	for _, c := range cards {
+		col := CardColumnMap[c]
+		switch c {
+		case CardWasabi:
+			columns[col] = append(columns[col], RenderCard(c))
+			unusedWasabi++
+		case CardSalmonNigiri, CardSquidNigiri, CardEggNigiri:
+			if unusedWasabi > 0 {
+				columns[col][len(columns[col])-unusedWasabi] = fmt.Sprintf(
+					"%s + %s",
+					RenderCard(c),
+					RenderCard(CardWasabi),
+				)
+				unusedWasabi--
+			} else {
+				columns[col] = append(columns[col], RenderCard(c))
+			}
+		default:
+			columns[col] = append(columns[col], RenderCard(c))
+		}
+	}
+	cells := [][]interface{}{}
+	y := 0
+	for {
+		row := []interface{}{}
+		hadContent := false
+		for _, col := range CardColumns {
+			l := len(columns[col])
+			if l == 0 {
+				// Skip empty columns
+				continue
+			}
+			cell := ""
+			if l > y {
+				cell = columns[col][y]
+				hadContent = true
+			}
+			row = append(row, cell)
+		}
+		if !hadContent {
+			break
+		}
+		cells = append(cells, row)
+		y++
+	}
+	return cells
 }
 
 func RenderCard(c int) string {
