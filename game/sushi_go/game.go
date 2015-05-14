@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/Miniand/brdg.me/command"
@@ -203,7 +204,7 @@ func (g *Game) Score() ([]int, []string) {
 			secondPlayers = append(secondPlayers, p)
 		}
 	}
-	makiRollsStr := render.Colour("maki rolls", CardColours[CardMakiRoll1])
+	makiRollsStr := render.Markup("maki rolls", CardColours[CardMakiRoll1], true)
 	if first == 0 {
 		output = append(output, fmt.Sprintf(
 			"Nobody had %s, no points awarded",
@@ -267,7 +268,7 @@ func (g *Game) Score() ([]int, []string) {
 				lastPlayers = append(lastPlayers, p)
 			}
 		}
-		puddingsStr := render.Colour("puddings", CardColours[CardPudding])
+		puddingsStr := render.Markup("puddings", CardColours[CardPudding], true)
 		if first == last {
 			output = append(output, fmt.Sprintf(
 				"Everybody had the same number of %s, no points awarded",
@@ -363,14 +364,20 @@ func (g *Game) Score() ([]int, []string) {
 
 func (g *Game) EndRound() {
 	scores, output := g.Score()
+	output = append(output, render.Bold("The scores after this round are:"))
+	for p := range g.AllPlayers {
+		g.Points[p] += scores[p]
+		output = append(output, fmt.Sprintf(
+			"%s: {{b}}%d{{_b}} points",
+			g.RenderName(p),
+			g.Points[p],
+		))
+	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"{{b}}It is the end of round %d, scoring{{_b}}\n%s",
 		g.Round,
-		output,
+		strings.Join(output, "\n"),
 	)))
-	for p := range g.AllPlayers {
-		g.Points[p] += scores[p]
-	}
 	if g.Round < 3 {
 		g.StartRound()
 	}
@@ -388,7 +395,27 @@ func (g *Game) Winners() []string {
 	if !g.IsFinished() {
 		return []string{}
 	}
-	return []string{}
+	highest := 0
+	puddings := 0
+	winners := []string{}
+	for p, pName := range g.AllPlayers {
+		pPud := 0
+		for _, c := range g.Played[p] {
+			if c == CardPudding {
+				pPud++
+			}
+		}
+		if g.Points[p] > highest || g.Points[p] == highest && pPud > puddings {
+			highest = g.Points[p]
+			puddings = pPud
+			winners = []string{}
+		}
+		if g.Points[p] == highest && pPud == puddings &&
+			(len(g.Players) != 2 || p != Dummy) {
+			winners = append(winners, pName)
+		}
+	}
+	return winners
 }
 
 func (g *Game) WhoseTurn() []string {

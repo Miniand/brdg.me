@@ -74,7 +74,16 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	buf.WriteString(render.Table(cells, 0, 2))
 	buf.WriteString(render.Bold("\n\nYour cards:\n"))
-	buf.WriteString(render.Table(CardsCells(g.Played[pNum]), 0, 2))
+	buf.WriteString(render.Table(CardsCells(g.Played[pNum]), 0, 3))
+	buf.WriteString(render.Bold("\n\n\nAll players:"))
+	for p := range g.AllPlayers {
+		buf.WriteString(fmt.Sprintf(
+			"\n\n%s ({{b}}%d{{_b}} points)\n",
+			g.RenderName(p),
+			g.Points[p],
+		))
+		buf.WriteString(render.Table(CardsCells(g.Played[p]), 0, 3))
+	}
 	return buf.String(), nil
 }
 
