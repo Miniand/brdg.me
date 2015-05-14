@@ -104,6 +104,28 @@ func (g *Game) StartRound() {
 }
 
 func (g *Game) StartHand() {
+	for p := range g.AllPlayers {
+		// Remove anything that's not a pudding
+		newPlayed := []int{}
+		for _, c := range g.Played[p] {
+			if c == CardPudding {
+				newPlayed = append(newPlayed, c)
+			}
+		}
+		g.Played[p] = newPlayed
+	}
+	if len(g.Players) == 2 {
+		// Controller draws a card from the dummy hand.
+		i := rnd.Int() % len(g.Hands[Dummy])
+		g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
+			"You drew %s from %s",
+			RenderCard(g.Hands[Dummy][i]),
+			g.RenderName(Dummy),
+		), []string{g.Players[g.Controller]}))
+		g.Hands[g.Controller] = append(g.Hands[g.Controller], g.Hands[Dummy][i])
+		g.Hands[g.Controller] = Sort(g.Hands[g.Controller])
+		g.Hands[Dummy] = append(g.Hands[Dummy][:i], g.Hands[Dummy][i+1:]...)
+	}
 }
 
 func (g *Game) EndHand() {
@@ -143,9 +165,208 @@ func (g *Game) EndHand() {
 		extra := g.Hands[l-1]
 		g.Hands = append([][]int{extra}, g.Hands[:l-1]...)
 	}
+	g.StartHand()
+}
+
+func (g *Game) Score() ([]int, []string) {
+	scores := make([]int, len(g.AllPlayers))
+	output := []string{}
+
+	// Score maki
+	maki := map[int]int{}
+	for p := range g.AllPlayers {
+		for _, c := range g.Played[p] {
+			switch c {
+			case CardMakiRoll1:
+				maki[p]++
+			case CardMakiRoll2:
+				maki[p] += 2
+			case CardMakiRoll3:
+				maki[p] += 3
+			}
+		}
+	}
+	first := 0
+	firstPlayers := []int{}
+	second := 0
+	secondPlayers := []int{}
+	for p, m := range maki {
+		if m > first {
+			second = first
+			secondPlayers = firstPlayers
+			first = m
+			firstPlayers = []int{}
+		}
+		if m == first {
+			firstPlayers = append(firstPlayers, p)
+		} else if m == second {
+			secondPlayers = append(secondPlayers, p)
+		}
+	}
+	makiRollsStr := render.Colour("maki rolls", CardColours[CardMakiRoll1])
+	if first == 0 {
+		output = append(output, fmt.Sprintf(
+			"Nobody had %s, no points awarded",
+			makiRollsStr,
+		))
+	} else {
+		firstPoints := 6 / len(firstPlayers)
+		output = append(output, fmt.Sprintf(
+			"%s had {{b}}%d{{_b}} %s, awarding {{b}}%d points{{_b}}",
+			render.CommaList(g.RenderNames(firstPlayers)),
+			first,
+			makiRollsStr,
+			firstPoints,
+		))
+		for _, p := range firstPlayers {
+			scores[p] += firstPoints
+		}
+		if len(firstPlayers) == 1 && second > 0 && len(secondPlayers) <= 3 {
+			secondPoints := 3 / len(secondPlayers)
+			output = append(output, fmt.Sprintf(
+				"%s had {{b}}%d{{_b}} %s, awarding {{b}}%d points{{_b}}",
+				render.CommaList(g.RenderNames(secondPlayers)),
+				second,
+				makiRollsStr,
+				secondPoints,
+			))
+			for _, p := range secondPlayers {
+				scores[p] += secondPoints
+			}
+		}
+	}
+
+	if g.Round == 3 {
+		// Score puddings
+		pudding := map[int]int{}
+		for p := range g.AllPlayers {
+			for _, c := range g.Played[p] {
+				if c == CardPudding {
+					pudding[p]++
+				}
+			}
+		}
+		first := 0
+		firstPlayers := []int{}
+		last := 0
+		lastPlayers := []int{}
+		for p, c := range pudding {
+			if c > first {
+				first = c
+				firstPlayers = []int{}
+			}
+			if c == first {
+				firstPlayers = append(firstPlayers, p)
+			}
+			if c < last || len(lastPlayers) == 0 {
+				last = c
+				lastPlayers = []int{}
+			}
+			if c == last {
+				lastPlayers = append(lastPlayers, p)
+			}
+		}
+		puddingsStr := render.Colour("puddings", CardColours[CardPudding])
+		if first == last {
+			output = append(output, fmt.Sprintf(
+				"Everybody had the same number of %s, no points awarded",
+				puddingsStr,
+			))
+		} else {
+			firstPoints := 6 / len(firstPlayers)
+			output = append(output, fmt.Sprintf(
+				"%s had {{b}}%d{{_b}} %s, awarding {{b}}%d points{{_b}}",
+				render.CommaList(g.RenderNames(firstPlayers)),
+				first,
+				puddingsStr,
+				firstPoints,
+			))
+			for _, p := range firstPlayers {
+				scores[p] += firstPoints
+			}
+			if len(g.Players) != 2 {
+				lastPoints := -6 / len(lastPlayers)
+				output = append(output, fmt.Sprintf(
+					"%s had {{b}}%d{{_b}} %s, awarding {{b}}%d points{{_b}}",
+					render.CommaList(g.RenderNames(lastPlayers)),
+					last,
+					puddingsStr,
+					lastPoints,
+				))
+				for _, p := range lastPlayers {
+					scores[p] += lastPoints
+				}
+			}
+		}
+	}
+
+	// Score normal cards
+	for p := range g.AllPlayers {
+		output = append(output, fmt.Sprintf(
+			render.Bold("Scoring cards for %s"),
+			g.RenderName(p),
+		))
+		cardCounts := map[int]int{}
+		for _, c := range g.Played[p] {
+			if s, ok := CardBaseScores[c]; ok {
+				text := RenderCard(c)
+				if cardCounts[CardWasabi] > 0 {
+					s *= 3
+					cardCounts[CardWasabi]--
+					text = fmt.Sprintf("%s + %s", text, RenderCard(CardWasabi))
+				}
+				output = append(output, fmt.Sprintf(
+					"%s, {{b}}%d{{_b}} points",
+					text,
+					s,
+				))
+				scores[p] += s
+			} else {
+				cardCounts[c]++
+			}
+		}
+		if s := cardCounts[CardTempura] / 2 * 5; s > 0 {
+			output = append(output, fmt.Sprintf(
+				"%d x %s, {{b}}%d{{_b}} points",
+				cardCounts[CardTempura],
+				RenderCard(CardTempura),
+				s,
+			))
+			scores[p] += s
+		}
+		if s := cardCounts[CardSashimi] / 3 * 10; s > 0 {
+			output = append(output, fmt.Sprintf(
+				"%d x %s, {{b}}%d{{_b}} points",
+				cardCounts[CardSashimi],
+				RenderCard(CardSashimi),
+				s,
+			))
+			scores[p] += s
+		}
+		if n := cardCounts[CardDumpling]; n > 0 {
+			s := (n*n + n) / 2
+			output = append(output, fmt.Sprintf(
+				"%d x %s, {{b}}%d{{_b}} points",
+				cardCounts[CardDumpling],
+				RenderCard(CardDumpling),
+				s,
+			))
+			scores[p] += s
+		}
+	}
+	return scores, output
 }
 
 func (g *Game) EndRound() {
+	scores, output := g.Score()
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"{{b}}It is the end of round %d, scoring{{_b}}\n%s",
+		g.Round,
+		output,
+	)))
+	for p := range g.AllPlayers {
+		g.Points[p] += scores[p]
+	}
 	if g.Round < 3 {
 		g.StartRound()
 	}
@@ -195,4 +416,12 @@ func (g *Game) PlayerNum(player string) (int, bool) {
 
 func (g *Game) RenderName(player int) string {
 	return render.PlayerName(player, g.AllPlayers[player])
+}
+
+func (g *Game) RenderNames(players []int) []string {
+	playerStrs := make([]string, len(players))
+	for i, p := range players {
+		playerStrs[i] = g.RenderName(p)
+	}
+	return playerStrs
 }

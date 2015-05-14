@@ -107,6 +107,20 @@ var CardExplanations = map[int]string{
 	CardChopsticks:   "swap for 2",
 }
 
+var CardBaseScores = map[int]int{
+	CardSalmonNigiri: 2,
+	CardSquidNigiri:  3,
+	CardEggNigiri:    1,
+}
+
+func CardExplanation(card int, players int) string {
+	if card == CardPudding && players > 2 {
+		// Special case, no negative points
+		return CardExplanations[card] + ", least -6"
+	}
+	return CardExplanations[card]
+}
+
 func Deck() []int {
 	deck := []int{}
 	for _, t := range CardTypes {
