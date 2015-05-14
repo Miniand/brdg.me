@@ -5,8 +5,11 @@
 package websocket
 
 import (
+	"bytes"
 	"crypto/tls"
 	"errors"
+	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -155,7 +158,8 @@ var DefaultDialer *Dialer
 //
 // If the WebSocket handshake fails, ErrBadHandshake is returned along with a
 // non-nil *http.Response so that callers can handle redirects, authentication,
-// etc.
+// etcetera. The response body may not contain the entire response and does not
+// need to be closed by the application.
 func (d *Dialer) Dial(urlStr string, requestHeader http.Header) (*Conn, *http.Response, error) {
 	u, err := parseURL(urlStr)
 	if err != nil {
@@ -224,8 +228,33 @@ func (d *Dialer) Dial(urlStr string, requestHeader http.Header) (*Conn, *http.Re
 		requestHeader = h
 	}
 
+	if len(requestHeader["Host"]) > 0 {
+		// This can be used to supply a Host: header which is different from
+		// the dial address.
+		u.Host = requestHeader.Get("Host")
+
+		// Drop "Host" header
+		h := http.Header{}
+		for k, v := range requestHeader {
+			if k == "Host" {
+				continue
+			}
+			h[k] = v
+		}
+		requestHeader = h
+	}
+
 	conn, resp, err := NewClient(netConn, u, requestHeader, d.ReadBufferSize, d.WriteBufferSize)
+
 	if err != nil {
+		if err == ErrBadHandshake {
+			// Before closing the network connection on return from this
+			// function, slurp up some of the response to aid application
+			// debugging.
+			buf := make([]byte, 1024)
+			n, _ := io.ReadFull(resp.Body, buf)
+			resp.Body = ioutil.NopCloser(bytes.NewReader(buf[:n]))
+		}
 		return nil, resp, err
 	}
 
