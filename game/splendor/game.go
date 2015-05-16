@@ -167,7 +167,7 @@ func (g *Game) GameLog() *log.Log {
 	return g.Log
 }
 
-func (g *Game) PlayerNum(player string) (int, error) {
+func (g *Game) PlayerNum(player string) (int, bool) {
 	return helper.StringInStrings(player, g.Players)
 }
 

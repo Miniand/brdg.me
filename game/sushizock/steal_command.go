@@ -17,19 +17,16 @@ func (sc StealCommand) Parse(input string) []string {
 
 func (sc StealCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanSteal(pNum)
+	pNum, found := g.PlayerNum(player)
+	return found && g.CanSteal(pNum)
 }
 
 func (sc StealCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, found := g.PlayerNum(player)
+	if !found {
+		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
 	target, err := helper.MatchStringInStrings(a[0], g.Players)

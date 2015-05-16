@@ -18,16 +18,16 @@ func (c TakeCommand) Parse(input string) []string {
 
 func (c TakeCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	return err == nil && g.CanTake(pNum)
+	pNum, found := g.PlayerNum(player)
+	return found && g.CanTake(pNum)
 }
 
 func (c TakeCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, found := g.PlayerNum(player)
+	if !found {
+		return "", errors.New("could not find player")
 	}
 	tokens := []int{}
 	gemStrings := GemStrings()

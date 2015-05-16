@@ -15,19 +15,16 @@ func (tc TakeCommand) Parse(input string) []string {
 
 func (tc TakeCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanTake(pNum)
+	pNum, found := g.PlayerNum(player)
+	return found && g.CanTake(pNum)
 }
 
 func (tc TakeCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, found := g.PlayerNum(player)
+	if !found {
+		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
 	color, err := helper.MatchStringInStrings(a[0], []string{"blue", "red"})

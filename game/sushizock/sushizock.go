@@ -270,12 +270,8 @@ func (g *Game) TakeRed(player int) error {
 	return nil
 }
 
-func (g *Game) PlayerNum(player string) (int, error) {
-	pNum, err := helper.StringInStrings(player, g.Players)
-	if err != nil {
-		return 0, fmt.Errorf("could not find player '%s'", player)
-	}
-	return pNum, nil
+func (g *Game) PlayerNum(player string) (int, bool) {
+	return helper.StringInStrings(player, g.Players)
 }
 
 func (g *Game) CanRoll(player int) bool {

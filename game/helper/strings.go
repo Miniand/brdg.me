@@ -55,14 +55,16 @@ func MatchStringInStrings(input string, strs []string) (int, error) {
 		input, strings.Join(strs, ", "))
 }
 
-func StringInStrings(input string, strs []string) (int, error) {
+func StringInStrings(input string, strs []string) (index int, found bool) {
+	if strs == nil {
+		return
+	}
 	for i, s := range strs {
 		if input == s {
-			return i, nil
+			return i, true
 		}
 	}
-	return 0, fmt.Errorf("could not find '%s' in (%s)",
-		input, strings.Join(strs, ", "))
+	return
 }
 
 var scaleStrs = []string{
