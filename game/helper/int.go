@@ -18,6 +18,19 @@ func IntSort(ints []int) []int {
 	return sorted
 }
 
+func IntReverse(ints []int) []int {
+	if ints == nil {
+		return nil
+	}
+	l := len(ints)
+	reversed := make([]int, l)
+	copy(reversed, ints)
+	for i := 0; i < l/2; i++ {
+		reversed[i], reversed[l-i-1] = reversed[l-i-1], reversed[i]
+	}
+	return reversed
+}
+
 func IntShuffle(ints []int) []int {
 	if ints == nil {
 		return nil
@@ -25,7 +38,7 @@ func IntShuffle(ints []int) []int {
 	l := len(ints)
 	shuffled := make([]int, l)
 	for k, i := range rnd.Perm(l) {
-		shuffled[k] = i
+		shuffled[k] = ints[i]
 	}
 	return shuffled
 }

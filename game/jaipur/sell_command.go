@@ -2,8 +2,10 @@ package jaipur
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/helper"
 )
 
 type SellCommand struct{}
@@ -24,12 +26,23 @@ func (c SellCommand) Call(
 	args []string,
 ) (string, error) {
 	g := context.(*Game)
-	_, found := g.PlayerNum(player)
+	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
-	return a[0], errors.New("not implemented")
+	if len(a) != 2 {
+		return "", errors.New("please specify a number and a good type, eg. 3 gold")
+	}
+	quantity, err := strconv.Atoi(a[0])
+	if err != nil {
+		return "", errors.New("quantity must be a number")
+	}
+	good, err := helper.MatchStringInStringMap(a[1], GoodStrings)
+	if err != nil {
+		return "", err
+	}
+	return "", g.Sell(pNum, quantity, good)
 }
 
 func (c SellCommand) Usage(player string, context interface{}) string {
@@ -38,4 +51,8 @@ func (c SellCommand) Usage(player string, context interface{}) string {
 
 func (g *Game) CanSell(player int) bool {
 	return g.CurrentPlayer == player
+}
+
+func (g *Game) Sell(player, quantity, good int) error {
+	return errors.New("not implemented")
 }

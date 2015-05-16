@@ -73,6 +73,15 @@ var CardCounts = map[int]int{
 	GoodCamel:   8, // Actually 11 in game but start with 3 on the board
 }
 
+var GoodMinSales = map[int]int{
+	GoodDiamond: 2,
+	GoodGold:    2,
+	GoodSilver:  2,
+	GoodCloth:   1,
+	GoodSpice:   1,
+	GoodLeather: 1,
+}
+
 func Deck() []int {
 	cards := []int{}
 	for _, g := range Goods {

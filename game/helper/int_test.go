@@ -15,6 +15,14 @@ func TestIntSort(t *testing.T) {
 	assert.Equal(t, []int{5, 3, 4, 2}, unsorted)
 }
 
+func TestIntReverse(t *testing.T) {
+	ints := []int{5, 3, 4, 2}
+	reversed := IntReverse(ints)
+	assert.Equal(t, []int{2, 4, 3, 5}, reversed)
+	// Make sure the original slice wasn't modified.
+	assert.Equal(t, []int{5, 3, 4, 2}, ints)
+}
+
 func TestIntShuffle(t *testing.T) {
 	unshuffled := []int{1, 2, 3, 4, 5}
 	ok := false
