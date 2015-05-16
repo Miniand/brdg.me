@@ -12,6 +12,9 @@ const (
 	GoodCamel
 
 	CamelBonusPoints = 5
+
+	MinTradeBonus = 3
+	MaxTradeBonus = 5
 )
 
 var TradeGoods = []int{
@@ -67,7 +70,7 @@ var CardCounts = map[int]int{
 	GoodCloth:   8,
 	GoodSpice:   8,
 	GoodLeather: 10,
-	GoodCamel:   11,
+	GoodCamel:   8, // Actually 11 in game but start with 3 on the board
 }
 
 func Deck() []int {

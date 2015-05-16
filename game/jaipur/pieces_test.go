@@ -7,5 +7,5 @@ import (
 )
 
 func TestDeck(t *testing.T) {
-	assert.Len(t, Deck(), 55)
+	assert.Len(t, Deck(), 52)
 }
