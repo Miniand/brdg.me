@@ -17,9 +17,8 @@ type Game struct {
 
 	Deck           []int
 	Hands, Tokens  [2][]int
-	Camels, Points [2]int
-	Bonuses        map[int][]int
-	Goods          [][]int
+	Camels         [2]int
+	Bonuses, Goods map[int][]int
 	Market         []int
 }
 
@@ -49,7 +48,51 @@ func (g *Game) Start(players []string) error {
 	}
 	g.Players = players
 	g.Log = log.New()
+
+	g.RoundWins = [2]int{}
+
+	g.StartRound()
 	return nil
+}
+
+func (g *Game) StartRound() {
+	g.Deck = helper.IntShuffle(Deck())
+	g.Market, g.Deck = append([]int{
+		GoodCamel,
+		GoodCamel,
+		GoodCamel,
+	}, g.Deck[:2]...), g.Deck[2:]
+
+	g.Camels = [2]int{}
+	g.Hands = [2][]int{}
+	g.Tokens = [2][]int{}
+	for p := range g.Players {
+		var hand []int
+		hand, g.Deck = g.Deck[:5], g.Deck[5:]
+		g.ReceiveCards(p, hand)
+		g.Tokens[p] = []int{}
+	}
+
+	g.Goods = map[int][]int{}
+	for _, good := range TradeGoods {
+		g.Goods[good] = append([]int{}, TradeGoodTokens[good]...)
+	}
+
+	g.Bonuses = map[int][]int{}
+	for i := MinTradeBonus; i <= MaxTradeBonus; i++ {
+		g.Bonuses[i] = helper.IntShuffle(TradeBonuses[i])
+	}
+}
+
+func (g *Game) ReceiveCards(player int, cards []int) {
+	for _, c := range cards {
+		switch c {
+		case GoodCamel:
+			g.Camels[player]++
+		default:
+			g.Hands[player] = append(g.Hands[player], c)
+		}
+	}
 }
 
 func (g *Game) PlayerList() []string {
@@ -57,7 +100,7 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.RoundWins[0]+g.RoundWins[1] >= 3
 }
 
 func (g *Game) Winners() []string {
@@ -65,9 +108,13 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+	return []string{g.Players[g.CurrentPlayer]}
 }
 
 func (g *Game) GameLog() *log.Log {
 	return g.Log
+}
+
+func (g *Game) PlayerNum(player string) (int, bool) {
+	return helper.StringInStrings(player, g.Players)
 }
