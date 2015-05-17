@@ -79,22 +79,22 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 
 	cells = append(cells, [][]interface{}{
-		{render.CellSpan{render.Centred(render.Bold("Remaining bonuses")), 7}},
+		{render.CellSpan{render.Centred(render.Bold("Bonuses for selling")), 7}},
+		{render.CellSpan{render.Centred(render.Table([][]interface{}{{
+			fmt.Sprintf(
+				"{{b}}3{{_b}}: %d left",
+				len(g.Bonuses[3]),
+			),
+			fmt.Sprintf(
+				"{{b}}4{{_b}}: %d left",
+				len(g.Bonuses[4]),
+			),
+			fmt.Sprintf(
+				"{{b}}5 or more{{_b}}: %d left",
+				len(g.Bonuses[5]),
+			),
+		}}, 0, 4)), 7}},
 	}...)
-	for i := MinTradeBonus; i <= MaxTradeBonus; i++ {
-		suffix := ""
-		if i == MaxTradeBonus {
-			suffix = " or more"
-		}
-		cells = append(cells, []interface{}{
-			render.CellSpan{render.Centred(fmt.Sprintf(
-				"selling {{b}}%d%s{{_b}}: %d left",
-				i,
-				suffix,
-				len(g.Bonuses[i]),
-			)), 7},
-		})
-	}
 
 	opponentNum := (pNum + 1) % 2
 	camelStr := "no"
@@ -144,6 +144,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			"%d %s",
 			len(g.Tokens[opponentNum]),
 			helper.Plural(len(g.Tokens[opponentNum]), "point token"),
+		)), 7}},
+		{},
+		{render.CellSpan{render.Centred(fmt.Sprintf(
+			"{{b}}%d{{_b}} %s left in the deck",
+			len(g.Deck),
+			helper.Plural(len(g.Deck), "card"),
 		)), 7}},
 	}...)
 
