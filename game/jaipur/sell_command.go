@@ -68,6 +68,9 @@ func (g *Game) Sell(player, quantity, good int) error {
 			minSales,
 		)
 	}
+	if count := helper.IntCount(good, g.Hands[player]); quantity > count {
+		return fmt.Errorf("you only have %d of that good", count)
+	}
 
 	numTokens := helper.IntMin(quantity, len(g.Goods[good]))
 	g.Tokens[player] = append(g.Tokens[player], g.Goods[good][:numTokens]...)
@@ -77,6 +80,8 @@ func (g *Game) Sell(player, quantity, good int) error {
 		g.Tokens[player] = append(g.Tokens[player], bonuses[0])
 		g.Bonuses[quantity] = bonuses[1:]
 	}
+
+	g.Hands[player] = helper.IntRemove(good, g.Hands[player], quantity)
 
 	g.NextPlayer()
 	return nil

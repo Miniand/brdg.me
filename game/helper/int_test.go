@@ -66,3 +66,9 @@ func TestIntFlatten(t *testing.T) {
 		5: 2,
 	})))
 }
+
+func TestIntRemove(t *testing.T) {
+	assert.Equal(t, []int{1, 3, 2}, IntRemove(2, []int{1, 2, 3, 2}, 1))
+	assert.Equal(t, []int{1, 3}, IntRemove(2, []int{1, 2, 3, 2}, 2))
+	assert.Equal(t, []int{1, 3}, IntRemove(2, []int{1, 2, 3, 2}, -1))
+}

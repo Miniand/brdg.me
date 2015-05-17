@@ -117,3 +117,25 @@ func IntMax(ints ...int) int {
 	}
 	return max
 }
+
+func IntRemove(needle int, haystack []int, limit int) []int {
+	if haystack == nil || limit == 0 {
+		return haystack
+	}
+	remaining := limit
+	keep := []int{}
+	for k, i := range haystack {
+		if i == needle {
+			if remaining > 0 {
+				remaining--
+				if remaining == 0 {
+					keep = append(keep, haystack[k+1:]...)
+					break
+				}
+			}
+			continue
+		}
+		keep = append(keep, i)
+	}
+	return keep
+}
