@@ -125,3 +125,18 @@ func (g *Game) PlayerNum(player string) (int, bool) {
 func (g *Game) NextPlayer() {
 	g.CurrentPlayer = (g.CurrentPlayer + 1) % 2
 }
+
+func (g *Game) ReplenishMarket() bool {
+	n := 5 - len(g.Market)
+	if len(g.Deck) < n {
+		g.EndRound()
+		return false
+	}
+	g.Market = append(g.Market, g.Deck[:n]...)
+	g.Deck = g.Deck[n:]
+	return true
+}
+
+func (g *Game) EndRound() {
+
+}

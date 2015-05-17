@@ -2,6 +2,7 @@ package jaipur
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/Miniand/brdg.me/command"
@@ -60,5 +61,95 @@ func (g *Game) CanTake(player int) bool {
 }
 
 func (g *Game) Take(player int, takeGoods, forGoods []int) error {
-	return errors.New("not implemented")
+	if !g.CanTake(player) {
+		return errors.New("can't take at the moment")
+	}
+	numTake := len(takeGoods)
+	numFor := len(forGoods)
+	if numTake == 0 {
+		return errors.New("you must specify a good to take")
+	}
+	if numTake == 1 && numFor != 0 {
+		return errors.New("if you are taking a single good you can't put any back")
+	}
+	if numTake > 1 && numTake != numFor {
+		return errors.New("if you are taking more than one good you must trade for the same number of goods in your hand, eg take gold dia for lea lea")
+	}
+	if numTake > 1 && helper.IntCount(GoodCamel, takeGoods) > 0 {
+		return errors.New("the only way to take camels is using \"take camel\" which will take all the camels from the market and replace them with cards drawn from the deck")
+	}
+	if numTake == 1 && takeGoods[0] == GoodCamel {
+		if numFor > 0 {
+			return errors.New("when taking camels you don't trade for cards in your hand, they are replaced from the deck instead")
+		}
+		return g.TakeCamels(player)
+	}
+
+	// Make sure we aren't trading the same type of good.
+	takeMap := helper.IntTally(takeGoods)
+	for _, good := range forGoods {
+		if takeMap[good] > 0 {
+			return errors.New("you can't trade the same type of good")
+		}
+	}
+
+	// Make sure the market has what we want.
+	marketMap := helper.IntTally(g.Market)
+	for good, n := range takeMap {
+		if marketMap[good] < n {
+			return fmt.Errorf(
+				"the market only has %d %s",
+				marketMap[good],
+				GoodStrings[good],
+			)
+		}
+	}
+
+	// Make sure we have enough goods to trade out of our hand.
+	forMap := helper.IntTally(forGoods)
+	handMap := helper.IntTally(g.Hands[player])
+	handMap[GoodCamel] = g.Camels[player]
+	for good, n := range forMap {
+		if handMap[good] < n {
+			return fmt.Errorf(
+				"you only have %d %s",
+				handMap[good],
+				GoodStrings[good],
+			)
+		}
+	}
+
+	for good, n := range takeMap {
+		g.Market = helper.IntRemove(good, g.Market, n)
+	}
+	for good, n := range forMap {
+		switch good {
+		case GoodCamel:
+			g.Camels[player] -= n
+		default:
+			g.Hands[player] = helper.IntRemove(good, g.Hands[player], n)
+		}
+	}
+	g.Market = append(g.Market, forGoods...)
+	g.Hands[player] = append(g.Hands[player], takeGoods...)
+	if g.ReplenishMarket() {
+		g.NextPlayer()
+	}
+	return nil
+}
+
+func (g *Game) TakeCamels(player int) error {
+	if !g.CanTake(player) {
+		return errors.New("can't take at the moment")
+	}
+	numCamels := helper.IntCount(GoodCamel, g.Market)
+	if numCamels == 0 {
+		return errors.New("there are no camels in the market")
+	}
+	g.Camels[player] += numCamels
+	g.Market = helper.IntRemove(GoodCamel, g.Market, -1)
+	if g.ReplenishMarket() {
+		g.NextPlayer()
+	}
+	return nil
 }
