@@ -16,7 +16,26 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		return "", errors.New("could not find player")
 	}
 	buf := bytes.Buffer{}
+	remainingRounds := 3 - g.RoundWins[0] - g.RoundWins[1]
+	leaderText := ""
+	leader := -1
+	if g.RoundWins[0] > g.RoundWins[1] {
+		leader = 0
+	} else if g.RoundWins[1] > g.RoundWins[0] {
+		leader = 1
+	}
+	if leader != -1 {
+		leaderText = fmt.Sprintf(" %s is in the lead.", g.RenderName(leader))
+	}
 	cells := [][]interface{}{
+		{render.CellSpan{render.Centred(fmt.Sprintf(
+			"There %s {{b}}%d{{_b}} %s remaining.%s",
+			helper.Plural(remainingRounds, "is"),
+			remainingRounds,
+			helper.Plural(remainingRounds, "round"),
+			leaderText,
+		)), 7}},
+		{},
 		{render.CellSpan{render.Centred(render.Bold("Sale prices")), 7}},
 		{
 			render.CellSpan{render.Centred(render.Markup(
@@ -170,4 +189,8 @@ func RenderGoods(goods []int) []string {
 		strs[i] = RenderGood(g)
 	}
 	return strs
+}
+
+func (g *Game) RenderName(player int) string {
+	return render.PlayerName(player, g.Players[player])
 }

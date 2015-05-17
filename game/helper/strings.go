@@ -212,10 +212,16 @@ func NumberStr(n int) string {
 }
 
 var pluralYTest = regexp.MustCompile("[^aeiou]y$")
+var pluralSpecialCases = map[string]string{
+	"is": "are",
+}
 
 func Plural(n int, s string) string {
 	if s == "" || n == 1 {
 		return s
+	}
+	if pl, ok := pluralSpecialCases[s]; ok {
+		return pl
 	}
 	if strings.HasSuffix(s, "s") ||
 		strings.HasSuffix(s, "sh") ||
