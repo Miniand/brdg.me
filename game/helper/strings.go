@@ -214,8 +214,8 @@ func NumberStr(n int) string {
 var pluralYTest = regexp.MustCompile("[^aeiou]y$")
 
 func Plural(n int, s string) string {
-	if s == "" {
-		return ""
+	if s == "" || n == 1 {
+		return s
 	}
 	if strings.HasSuffix(s, "s") ||
 		strings.HasSuffix(s, "sh") ||

@@ -78,6 +78,24 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		i++
 	}
 
+	cells = append(cells, [][]interface{}{
+		{render.CellSpan{render.Centred(render.Bold("Remaining bonuses")), 7}},
+	}...)
+	for i := MinTradeBonus; i <= MaxTradeBonus; i++ {
+		suffix := ""
+		if i == MaxTradeBonus {
+			suffix = " or more"
+		}
+		cells = append(cells, []interface{}{
+			render.CellSpan{render.Centred(fmt.Sprintf(
+				"selling {{b}}%d%s{{_b}}: %d left",
+				i,
+				suffix,
+				len(g.Bonuses[i]),
+			)), 7},
+		})
+	}
+
 	opponentNum := (pNum + 1) % 2
 	camelStr := "no"
 	if g.Camels[opponentNum] > 0 {
@@ -93,20 +111,39 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		{render.CellSpan{render.Centred(
 			strings.Join(RenderGoods(helper.IntSort(g.Hands[pNum])), "  ")), 7}},
 		{render.CellSpan{render.Centred(fmt.Sprintf(
-			"{{b}}%d{{_b}} x %s",
+			"%d %s",
 			g.Camels[pNum],
-			RenderGood(GoodCamel),
+			render.Markup(
+				helper.Plural(g.Camels[pNum], GoodStrings[GoodCamel]),
+				GoodColours[GoodCamel],
+				true,
+			),
+		)), 7}},
+		{render.CellSpan{render.Centred(fmt.Sprintf(
+			"%d %s",
+			len(g.Tokens[pNum]),
+			helper.Plural(len(g.Tokens[pNum]), "point token"),
 		)), 7}},
 		{},
 		{render.CellSpan{render.Centred(render.Bold("Your opponent has")), 7}},
 		{render.CellSpan{render.Centred(fmt.Sprintf(
-			"{{b}}%d{{_b}} good cards",
+			"%d %s",
 			len(g.Hands[opponentNum]),
+			helper.Plural(len(g.Hands[opponentNum]), "good"),
 		)), 7}},
 		{render.CellSpan{render.Centred(fmt.Sprintf(
-			"{{b}}%s{{_b}} %s",
+			"%s %s",
 			camelStr,
-			RenderGood(GoodCamel),
+			render.Markup(
+				helper.Plural(2, GoodStrings[GoodCamel]),
+				GoodColours[GoodCamel],
+				true,
+			),
+		)), 7}},
+		{render.CellSpan{render.Centred(fmt.Sprintf(
+			"%d %s",
+			len(g.Tokens[opponentNum]),
+			helper.Plural(len(g.Tokens[opponentNum]), "point token"),
 		)), 7}},
 	}...)
 
