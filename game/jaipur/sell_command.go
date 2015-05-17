@@ -75,14 +75,27 @@ func (g *Game) Sell(player, quantity, good int) error {
 	numTokens := helper.IntMin(quantity, len(g.Goods[good]))
 	g.Tokens[player] = append(g.Tokens[player], g.Goods[good][:numTokens]...)
 	g.Goods[good] = g.Goods[good][numTokens:]
+	g.GoodTokens[player] += numTokens
 
 	if bonuses, ok := g.Bonuses[quantity]; ok && len(bonuses) > 0 {
 		g.Tokens[player] = append(g.Tokens[player], bonuses[0])
+		g.BonusTokens[player]++
 		g.Bonuses[quantity] = bonuses[1:]
 	}
 
 	g.Hands[player] = helper.IntRemove(good, g.Hands[player], quantity)
 
+	// End of round if three good types are out of tokens.
+	emptiedGoods := 0
+	for _, good := range TradeGoods {
+		if len(g.Goods[good]) == 0 {
+			emptiedGoods++
+		}
+		if emptiedGoods >= 3 {
+			g.EndRound()
+			return nil
+		}
+	}
 	g.NextPlayer()
 	return nil
 }

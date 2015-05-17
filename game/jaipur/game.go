@@ -15,11 +15,11 @@ type Game struct {
 	CurrentPlayer int
 	RoundWins     [2]int
 
-	Deck           []int
-	Hands, Tokens  [2][]int
-	Camels         [2]int
-	Bonuses, Goods map[int][]int
-	Market         []int
+	Deck                            []int
+	Hands, Tokens                   [2][]int
+	Camels, BonusTokens, GoodTokens [2]int
+	Bonuses, Goods                  map[int][]int
+	Market                          []int
 }
 
 func (g *Game) Commands() []command.Command {
@@ -67,6 +67,8 @@ func (g *Game) StartRound() {
 	}, g.Deck[:2]...), g.Deck[2:]
 
 	g.Camels = [2]int{}
+	g.BonusTokens = [2]int{}
+	g.GoodTokens = [2]int{}
 	g.Hands = [2][]int{}
 	g.Tokens = [2][]int{}
 	for p := range g.Players {
@@ -138,5 +140,36 @@ func (g *Game) ReplenishMarket() bool {
 }
 
 func (g *Game) EndRound() {
+	camelWinner := -1
+	if g.Camels[0] > g.Camels[1] {
+		camelWinner = 0
+	} else if g.Camels[0] > g.Camels[1] {
+		camelWinner = 1
+	}
+	if camelWinner != -1 {
+		g.Tokens[camelWinner] = append(g.Tokens[camelWinner], CamelBonusPoints)
+	}
 
+	winner := -1
+	p0Score := helper.IntSum(g.Tokens[0])
+	p1Score := helper.IntSum(g.Tokens[1])
+	if p0Score > p1Score {
+		winner = 0
+	} else if p1Score > p0Score {
+		winner = 1
+	} else if g.BonusTokens[0] > g.BonusTokens[1] {
+		winner = 0
+	} else if g.BonusTokens[1] > g.BonusTokens[0] {
+		winner = 1
+	} else if g.GoodTokens[0] > g.GoodTokens[1] {
+		winner = 0
+	} else if g.GoodTokens[1] > g.GoodTokens[0] {
+		winner = 1
+	}
+	if winner != -1 {
+		g.RoundWins[winner]++
+	}
+	if !g.IsFinished() {
+		g.StartRound()
+	}
 }

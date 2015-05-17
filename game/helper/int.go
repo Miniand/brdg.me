@@ -139,3 +139,14 @@ func IntRemove(needle int, haystack []int, limit int) []int {
 	}
 	return keep
 }
+
+func IntSum(ints []int) int {
+	if ints == nil {
+		return 0
+	}
+	sum := 0
+	for _, i := range ints {
+		sum += i
+	}
+	return sum
+}
