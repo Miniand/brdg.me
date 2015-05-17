@@ -3,6 +3,7 @@ package helper
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
 )
 
@@ -208,4 +209,21 @@ func NumberStr(n int) string {
 		parts = append(parts, numberSubScaleStr(n))
 	}
 	return strings.Join(parts, " ")
+}
+
+var pluralYTest = regexp.MustCompile("[^aeiou]y$")
+
+func Plural(n int, s string) string {
+	if s == "" {
+		return ""
+	}
+	if strings.HasSuffix(s, "s") ||
+		strings.HasSuffix(s, "sh") ||
+		strings.HasSuffix(s, "tch") ||
+		strings.HasSuffix(s, "o") {
+		return s + "es"
+	} else if pluralYTest.MatchString(s) {
+		return s[:len(s)-1] + "ies"
+	}
+	return s + "s"
 }

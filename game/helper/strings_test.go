@@ -34,3 +34,23 @@ func TestMatchStringInStrings(t *testing.T) {
 func TestNumberStr(t *testing.T) {
 	assert.Equal(t, "fourty three billion two hundred and eighty one million five hundred and twenty three thousand six hundred and eighty one", NumberStr(43281523681))
 }
+
+func TestPlural(t *testing.T) {
+	for _, c := range []struct {
+		Input, Expected string
+	}{
+		{"kiss", "kisses"},
+		{"phase", "phases"},
+		{"dish", "dishes"},
+		{"massage", "massages"},
+		{"witch", "witches"},
+		{"judge", "judges"},
+		{"lap", "laps"},
+		{"boy", "boys"},
+		{"cherry", "cherries"},
+		{"lady", "ladies"},
+		{"sky", "skies"},
+	} {
+		assert.Equal(t, c.Expected, Plural(2, c.Input))
+	}
+}
