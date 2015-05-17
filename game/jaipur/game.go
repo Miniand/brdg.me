@@ -23,7 +23,10 @@ type Game struct {
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		TakeCommand{},
+		SellCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -117,4 +120,8 @@ func (g *Game) GameLog() *log.Log {
 
 func (g *Game) PlayerNum(player string) (int, bool) {
 	return helper.StringInStrings(player, g.Players)
+}
+
+func (g *Game) NextPlayer() {
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % 2
 }

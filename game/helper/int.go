@@ -91,3 +91,29 @@ func IntFlatten(ints map[int]int) []int {
 	}
 	return flat
 }
+
+func IntMin(ints ...int) int {
+	if len(ints) == 0 {
+		return 0
+	}
+	min := ints[0]
+	for _, i := range ints[1:] {
+		if i < min {
+			min = i
+		}
+	}
+	return min
+}
+
+func IntMax(ints ...int) int {
+	if len(ints) == 0 {
+		return 0
+	}
+	max := ints[0]
+	for _, i := range ints[1:] {
+		if i > max {
+			max = i
+		}
+	}
+	return max
+}

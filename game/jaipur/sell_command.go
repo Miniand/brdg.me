@@ -2,6 +2,7 @@ package jaipur
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/Miniand/brdg.me/command"
@@ -54,5 +55,29 @@ func (g *Game) CanSell(player int) bool {
 }
 
 func (g *Game) Sell(player, quantity, good int) error {
-	return errors.New("not implemented")
+	if !g.CanSell(player) {
+		return errors.New("you can't sell at the moment")
+	}
+	minSales, ok := GoodMinSales[good]
+	if !ok {
+		return errors.New("can't sell that good type")
+	}
+	if quantity < minSales {
+		return fmt.Errorf(
+			"you minimum amount you can sell of that good is %d",
+			minSales,
+		)
+	}
+
+	numTokens := helper.IntMin(quantity, len(g.Goods[good]))
+	g.Tokens[player] = append(g.Tokens[player], g.Goods[good][:numTokens]...)
+	g.Goods[good] = g.Goods[good][numTokens:]
+
+	if bonuses, ok := g.Bonuses[quantity]; ok && len(bonuses) > 0 {
+		g.Tokens[player] = append(g.Tokens[player], bonuses[0])
+		g.Bonuses[quantity] = bonuses[1:]
+	}
+
+	g.NextPlayer()
+	return nil
 }
