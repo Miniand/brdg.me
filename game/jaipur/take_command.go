@@ -84,6 +84,15 @@ func (g *Game) Take(player int, takeGoods, forGoods []int) error {
 		}
 		return g.TakeCamels(player)
 	}
+	handSizeAfter := len(g.Hands[player]) + numTake
+	for _, good := range forGoods {
+		if good != GoodCamel {
+			handSizeAfter--
+		}
+	}
+	if handSizeAfter > 7 {
+		return errors.New("that would exceed your hand size of 7")
+	}
 
 	// Make sure we aren't trading the same type of good.
 	takeMap := helper.IntTally(takeGoods)
