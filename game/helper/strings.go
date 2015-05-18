@@ -214,6 +214,7 @@ func NumberStr(n int) string {
 var pluralYTest = regexp.MustCompile("[^aeiou]y$")
 var pluralSpecialCases = map[string]string{
 	"is": "are",
+	"it": "them",
 }
 
 func Plural(n int, s string) string {

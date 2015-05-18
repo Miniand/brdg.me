@@ -7,6 +7,8 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type SellCommand struct{}
@@ -73,14 +75,32 @@ func (g *Game) Sell(player, quantity, good int) error {
 	}
 
 	numTokens := helper.IntMin(quantity, len(g.Goods[good]))
+	points := helper.IntSum(g.Goods[good][:numTokens])
 	g.Tokens[player] = append(g.Tokens[player], g.Goods[good][:numTokens]...)
 	g.Goods[good] = g.Goods[good][numTokens:]
 	g.GoodTokens[player] += numTokens
 
+	suffix := ""
 	if bonuses, ok := g.Bonuses[quantity]; ok && len(bonuses) > 0 {
 		g.Tokens[player] = append(g.Tokens[player], bonuses[0])
 		g.BonusTokens[player]++
 		g.Bonuses[quantity] = bonuses[1:]
+		suffix = " and took a bonus token"
+	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s sold {{b}}%d %s{{_b}} for {{b}}%d %s{{_b}}%s",
+		g.RenderName(player),
+		quantity,
+		render.Colour(helper.Plural(quantity, GoodStrings[good]), GoodColours[good]),
+		points,
+		helper.Plural(points, "point"),
+		suffix,
+	)))
+	if suffix != "" {
+		g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
+			"The bonus token was {{b}}%d points{{_b}}",
+			g.Tokens[player][len(g.Tokens[player])-1],
+		), []string{g.Players[player]}))
 	}
 
 	g.Hands[player] = helper.IntRemove(good, g.Hands[player], quantity)

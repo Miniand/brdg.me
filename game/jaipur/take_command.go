@@ -7,6 +7,8 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type TakeCommand struct{}
@@ -128,6 +130,20 @@ func (g *Game) Take(player int, takeGoods, forGoods []int) error {
 		}
 	}
 
+	forString := ""
+	if len(forGoods) > 0 {
+		forString = fmt.Sprintf(
+			" for %s",
+			render.CommaList(RenderGoods(forGoods)),
+		)
+	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s took %s%s",
+		g.RenderName(player),
+		render.CommaList(RenderGoods(takeGoods)),
+		forString,
+	)))
+
 	for good, n := range takeMap {
 		g.Market = helper.IntRemove(good, g.Market, n)
 	}
@@ -155,6 +171,12 @@ func (g *Game) TakeCamels(player int) error {
 	if numCamels == 0 {
 		return errors.New("there are no camels in the market")
 	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s took {{b}}%d %s{{_b}} from the market",
+		g.RenderName(player),
+		numCamels,
+		render.Colour(helper.Plural(numCamels, "camel"), GoodColours[GoodCamel]),
+	)))
 	g.Camels[player] += numCamels
 	g.Market = helper.IntRemove(GoodCamel, g.Market, -1)
 	if g.ReplenishMarket() {
