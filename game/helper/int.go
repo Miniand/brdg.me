@@ -10,7 +10,7 @@ var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func IntSort(ints []int) []int {
 	if ints == nil {
-		return nil
+		return []int{}
 	}
 	sorted := make([]int, len(ints))
 	copy(sorted, ints)
@@ -20,7 +20,7 @@ func IntSort(ints []int) []int {
 
 func IntReverse(ints []int) []int {
 	if ints == nil {
-		return nil
+		return []int{}
 	}
 	l := len(ints)
 	reversed := make([]int, l)
@@ -33,7 +33,7 @@ func IntReverse(ints []int) []int {
 
 func IntShuffle(ints []int) []int {
 	if ints == nil {
-		return nil
+		return []int{}
 	}
 	l := len(ints)
 	shuffled := make([]int, l)
@@ -57,7 +57,7 @@ func IntFind(needle int, haystack []int) (index int, ok bool) {
 
 func IntTally(ints []int) map[int]int {
 	if ints == nil {
-		return nil
+		return map[int]int{}
 	}
 	tally := map[int]int{}
 	for _, i := range ints {
@@ -81,7 +81,7 @@ func IntCount(needle int, haystack []int) int {
 
 func IntFlatten(ints map[int]int) []int {
 	if ints == nil {
-		return nil
+		return []int{}
 	}
 	flat := []int{}
 	for i, n := range ints {
@@ -119,7 +119,10 @@ func IntMax(ints ...int) int {
 }
 
 func IntRemove(needle int, haystack []int, limit int) []int {
-	if haystack == nil || limit == 0 {
+	if haystack == nil {
+		return []int{}
+	}
+	if limit == 0 {
 		return haystack
 	}
 	remaining := limit
