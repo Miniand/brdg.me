@@ -126,11 +126,17 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return g.RoundWins[0]+g.RoundWins[1] >= 3
+	return g.RoundWins[0] == 2 || g.RoundWins[1] == 2
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	if g.RoundWins[0] == 2 {
+		return []string{g.Players[0]}
+	}
+	return []string{g.Players[1]}
 }
 
 func (g *Game) WhoseTurn() []string {
