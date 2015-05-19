@@ -17,7 +17,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	buf := bytes.Buffer{}
 	remainingRounds := 3 - g.RoundWins[0] - g.RoundWins[1]
-	leaderText := ""
+	leaderText := "Scores are level."
 	leader := -1
 	if g.RoundWins[0] > g.RoundWins[1] {
 		leader = 0
@@ -25,16 +25,16 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		leader = 1
 	}
 	if leader != -1 {
-		leaderText = fmt.Sprintf(" %s is in the lead.", g.RenderName(leader))
+		leaderText = fmt.Sprintf("%s is in the lead.", g.RenderName(leader))
 	}
 	cells := [][]interface{}{
 		{render.CellSpan{render.Centred(fmt.Sprintf(
-			"There %s {{b}}%d{{_b}} %s remaining.%s",
+			"There %s {{b}}%d{{_b}} %s remaining.",
 			helper.Plural(remainingRounds, "is"),
 			remainingRounds,
 			helper.Plural(remainingRounds, "round"),
-			leaderText,
 		)), 7}},
+		{render.CellSpan{render.Centred(leaderText), 7}},
 		{},
 		{render.CellSpan{render.Centred(render.Bold("Sale prices")), 7}},
 		{

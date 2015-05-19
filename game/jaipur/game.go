@@ -1,6 +1,7 @@
 package jaipur
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
@@ -169,6 +170,7 @@ func (g *Game) Opponent(player int) int {
 }
 
 func (g *Game) EndRound() {
+	logBuf := bytes.Buffer{}
 	camelWinner := -1
 	if g.Camels[0] > g.Camels[1] {
 		camelWinner = 0
@@ -176,23 +178,38 @@ func (g *Game) EndRound() {
 		camelWinner = 1
 	}
 	if camelWinner != -1 {
-		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-			"%s won the 5 point camel bonus for having {{b}}%d %s{{_b}}, %s had {{b}}%d{{_b}}",
+		logBuf.WriteString(fmt.Sprintf(
+			"%s won the 5 point camel bonus for having {{b}}%d %s{{_b}}, %s had {{b}}%d{{_b}}\n",
 			g.RenderName(camelWinner),
 			g.Camels[camelWinner],
 			render.Colour(helper.Plural(g.Camels[camelWinner], "camel"), GoodColours[GoodCamel]),
 			g.RenderName(g.Opponent(camelWinner)),
 			g.Camels[g.Opponent(camelWinner)],
-		)))
+		))
 		g.Tokens[camelWinner] = append(g.Tokens[camelWinner], CamelBonusPoints)
+		g.BonusTokens[camelWinner]++
+	}
+
+	scores := map[int]int{}
+
+	for p := range g.Players {
+		scores[p] = helper.IntSum(g.Tokens[p])
+		logBuf.WriteString(fmt.Sprintf(
+			"%s had {{b}}%d{{_b}} %s from {{b}}%d{{_b}} bonus %s and {{b}}%d{{_b}} good %s\n",
+			g.RenderName(p),
+			scores[p],
+			helper.Plural(scores[p], "point"),
+			g.BonusTokens[p],
+			helper.Plural(g.BonusTokens[p], "token"),
+			g.GoodTokens[p],
+			helper.Plural(g.GoodTokens[p], "token"),
+		))
 	}
 
 	winner := -1
-	p0Score := helper.IntSum(g.Tokens[0])
-	p1Score := helper.IntSum(g.Tokens[1])
-	if p0Score > p1Score {
+	if scores[0] > scores[1] {
 		winner = 0
-	} else if p1Score > p0Score {
+	} else if scores[1] > scores[0] {
 		winner = 1
 	} else if g.BonusTokens[0] > g.BonusTokens[1] {
 		winner = 0
@@ -204,8 +221,15 @@ func (g *Game) EndRound() {
 		winner = 1
 	}
 	if winner != -1 {
+		logBuf.WriteString(fmt.Sprintf(
+			"%s won the round",
+			g.RenderName(winner),
+		))
 		g.RoundWins[winner]++
+	} else {
+		logBuf.WriteString("Against all odds, the round was tied and will be replayed")
 	}
+	g.Log.Add(log.NewPublicMessage(logBuf.String()))
 	if !g.IsFinished() {
 		g.StartRound()
 	}
