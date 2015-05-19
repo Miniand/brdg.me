@@ -76,9 +76,9 @@ func (c ConcedeCommand) Call(player string, context interface{},
 	}
 
 	playerList := c.gameModel.PlayerList
-	pNum, err := helper.StringInStrings(player, playerList)
-	if err != nil {
-		return "", err
+	pNum, ok := helper.StringInStrings(player, playerList)
+	if !ok {
+		return "", fmt.Errorf("could not find a player named %s", player)
 	}
 
 	a := command.ExtractNamedCommandArgs(args)
