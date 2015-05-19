@@ -53,6 +53,16 @@ var GoodStrings = map[int]string{
 	GoodCamel:   "camel",
 }
 
+var GoodStringsPl = map[int]string{
+	GoodDiamond: "diamonds",
+	GoodGold:    "golds",
+	GoodSilver:  "silvers",
+	GoodCloth:   "cloths",
+	GoodSpice:   "spices",
+	GoodLeather: "leathers",
+	GoodCamel:   "camels",
+}
+
 var GoodColours = map[int]string{
 	GoodDiamond: render.Red,
 	GoodGold:    render.Yellow,

@@ -27,3 +27,23 @@ func TestGame_Decode(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, g.Decode(data))
 }
+
+func TestParseGoodStr(t *testing.T) {
+	for _, test := range []struct {
+		Input    string
+		Expected []int
+	}{
+		{"Camel", []int{GoodCamel}},
+		{"2 Camels", []int{GoodCamel, GoodCamel}},
+		{"2 Camels -1 dia", nil},
+		{"2 gold gold di", []int{GoodDiamond, GoodGold, GoodGold, GoodGold}},
+	} {
+		actual, err := ParseGoodStr(test.Input)
+		if test.Expected == nil {
+			assert.Error(t, err)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, helper.IntSort(test.Expected), helper.IntSort(actual))
+		}
+	}
+}

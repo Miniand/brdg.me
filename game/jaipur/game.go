@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
@@ -233,4 +235,35 @@ func (g *Game) EndRound() {
 	if !g.IsFinished() {
 		g.StartRound()
 	}
+}
+
+func ParseGoodStr(input string) ([]int, error) {
+	words := strings.Split(input, " ")
+	goods := []int{}
+	quantity := -1
+	for _, w := range words {
+		// See if it's a quantity first.
+		if quantity == -1 {
+			q, err := strconv.Atoi(w)
+			if err == nil {
+				if q <= 0 {
+					return nil, errors.New("quantities must be 1 or larger")
+				}
+				quantity = q
+				continue
+			}
+		}
+		good, err := helper.MatchStringInStringMap(w, GoodStringsPl)
+		if err != nil {
+			return nil, err
+		}
+		if quantity == -1 {
+			quantity = 1
+		}
+		for i := 0; i < quantity; i++ {
+			goods = append(goods, good)
+		}
+		quantity = -1
+	}
+	return goods, nil
 }

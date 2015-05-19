@@ -33,22 +33,33 @@ func (c TakeCommand) Call(
 	if !found {
 		return "", errors.New("could not find player")
 	}
-	takeGoods := []int{}
-	forGoods := []int{}
+	takeGoodStrs := []string{}
+	forGoodStrs := []string{}
 	afterFor := false
 	for _, a := range command.ExtractNamedCommandArgs(args) {
 		if !afterFor && strings.ToLower(a) == "for" {
 			afterFor = true
 			continue
 		}
-		good, err := helper.MatchStringInStringMap(a, GoodStrings)
+		if afterFor {
+			forGoodStrs = append(forGoodStrs, a)
+		} else {
+			takeGoodStrs = append(takeGoodStrs, a)
+		}
+	}
+	takeGoods := []int{}
+	forGoods := []int{}
+	var err error
+	if len(takeGoodStrs) > 0 {
+		takeGoods, err = ParseGoodStr(strings.Join(takeGoodStrs, " "))
 		if err != nil {
 			return "", err
 		}
-		if afterFor {
-			forGoods = append(forGoods, good)
-		} else {
-			takeGoods = append(takeGoods, good)
+	}
+	if len(forGoodStrs) > 0 {
+		forGoods, err = ParseGoodStr(strings.Join(forGoodStrs, " "))
+		if err != nil {
+			return "", err
 		}
 	}
 	return "", g.Take(pNum, takeGoods, forGoods)

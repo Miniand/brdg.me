@@ -3,7 +3,7 @@ package jaipur
 import (
 	"errors"
 	"fmt"
-	"strconv"
+	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
@@ -34,16 +34,26 @@ func (c SellCommand) Call(
 		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
-	if len(a) != 2 {
-		return "", errors.New("please specify a number and a good type, eg. 3 gold")
+	if len(a) == 0 {
+		return "", errors.New("please specify what to sell, eg. 5 go or dia dia")
 	}
-	quantity, err := strconv.Atoi(a[0])
-	if err != nil {
-		return "", errors.New("quantity must be a number")
-	}
-	good, err := helper.MatchStringInStringMap(a[1], GoodStrings)
+	goods, err := ParseGoodStr(strings.Join(a, " "))
 	if err != nil {
 		return "", err
+	}
+	if len(goods) == 0 {
+		return "", errors.New("please specify what to sell, eg. 5 go or dia dia")
+	}
+	quantity := 0
+	good := goods[0]
+	if _, ok := helper.IntFind(good, TradeGoods); !ok {
+		return "", errors.New("please specify a trade good")
+	}
+	for _, g := range goods {
+		if g != good {
+			return "", errors.New("please only specify one type of good to sell")
+		}
+		quantity++
 	}
 	return "", g.Sell(pNum, quantity, good)
 }
