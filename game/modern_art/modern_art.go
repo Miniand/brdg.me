@@ -605,6 +605,11 @@ func (g *Game) SetPrice(player, price int) error {
 	if price > g.PlayerMoney[player] {
 		return errors.New("You can't set the price higher than your current money")
 	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s set the price to %s",
+		render.PlayerName(player, g.Players[player]),
+		RenderMoney(price),
+	)))
 	g.Bids[player] = price
 	return nil
 }
