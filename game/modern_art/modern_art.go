@@ -212,8 +212,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output := bytes.Buffer{}
 	// Auction specific
 	if g.IsAuction() {
-		output.WriteString(fmt.Sprintf("{{b}}Currently auctioning:{{_b}} %s\n",
-			RenderCardNames(g.CurrentlyAuctioning)))
+		output.WriteString(fmt.Sprintf(
+			"%s is auctioning %s\n\n",
+			render.PlayerName(g.CurrentPlayer, g.Players[g.CurrentPlayer]),
+			RenderCardNames(g.CurrentlyAuctioning),
+		))
 		if g.AuctionType() != RANK_SEALED {
 			bidder, bid := g.HighestBidder()
 			output.WriteString(fmt.Sprintf("{{b}}Current bid:{{_b}} %s by %s\n",
