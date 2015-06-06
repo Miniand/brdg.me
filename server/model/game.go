@@ -156,6 +156,14 @@ func (gm *GameModel) ToGame() (game.Playable, error) {
 	return g, err
 }
 
+func (gm *GameModel) Finish(winners []string) {
+	gm.IsFinished = true
+	gm.FinishedAt = time.Now()
+	gm.WhoseTurn = []string{}
+	gm.WhoseTurnSince = map[string]time.Time{}
+	gm.Winners = winners
+}
+
 func (gm *GameModel) UpdateState(g game.Playable) error {
 	state, err := g.Encode()
 	if err != nil {
@@ -164,17 +172,10 @@ func (gm *GameModel) UpdateState(g game.Playable) error {
 	gm.State = state
 	gm.Type = g.Identifier()
 	gm.PlayerList = g.PlayerList()
-	gm.IsFinished = gm.IsFinished || g.IsFinished()
-	if gm.IsFinished {
-		gm.WhoseTurn = []string{}
-		gm.WhoseTurnSince = map[string]time.Time{}
-		if gm.FinishedAt.IsZero() {
-			gm.FinishedAt = time.Now()
-		}
-		if gm.Winners == nil {
-			gm.Winners = g.Winners()
-		}
-	} else {
+	isFinished := g.IsFinished()
+	if !gm.IsFinished && isFinished {
+		gm.Finish(g.Winners())
+	} else if !isFinished {
 		if e, ok := g.(game.Eliminator); ok {
 			gm.EliminatedPlayerList = e.EliminatedPlayerList()
 		}
