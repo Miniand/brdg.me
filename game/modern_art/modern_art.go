@@ -638,6 +638,7 @@ func (g *Game) AddCardToAuction(player int, c card.SuitRankCard) error {
 	if removed != 1 {
 		return errors.New("You do not have that card in your hand")
 	}
+	g.CurrentPlayer = player
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s played %s",
 		render.PlayerName(player, g.Players[player]),
 		RenderCardName(c))))
@@ -739,7 +740,6 @@ func (g *Game) AddCard(player int, c card.SuitRankCard) error {
 	if err != nil {
 		return err
 	}
-	g.CurrentPlayer = player
 	return nil
 }
 
