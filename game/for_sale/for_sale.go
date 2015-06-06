@@ -9,6 +9,7 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 )
@@ -175,8 +176,29 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output.WriteString(fmt.Sprintf("Your chips: {{b}}%d{{_b}}\n", g.Chips[p]))
 	output.WriteString(fmt.Sprintf("Your buildings: %s\n",
 		strings.Join(RenderCards(g.Hands[p], RenderBuilding), " ")))
-	output.WriteString(fmt.Sprintf("Your cheques: %s\n",
+	output.WriteString(fmt.Sprintf("Your cheques: %s",
 		strings.Join(RenderCards(g.Cheques[p], RenderCheque), " ")))
+
+	if !g.IsFinished() {
+		var (
+			rounds    int
+			roundType string
+		)
+		switch g.CurrentPhase() {
+		case BuyingPhase:
+			rounds = (g.BuildingDeck.Len() / len(g.Players)) + 1
+			roundType = "buying"
+		case SellingPhase:
+			rounds = (g.ChequeDeck.Len() / len(g.Players)) + 1
+			roundType = "selling"
+		}
+		output.WriteString(fmt.Sprintf(
+			"\n\n{{b}}%d{{_b}} %s %s remaining",
+			rounds,
+			roundType,
+			helper.Plural(rounds, "round"),
+		))
+	}
 	return output.String(), nil
 }
 
