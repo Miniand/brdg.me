@@ -170,8 +170,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		output.WriteString(fmt.Sprintf("Remaining players: %s\n\n",
 			render.CommaList(remainingPlayers)))
 	case SellingPhase:
-		output.WriteString(fmt.Sprintf("Cheques available: %s\n\n",
+		output.WriteString(fmt.Sprintf("Cheques available: %s\n",
 			strings.Join(RenderCards(g.OpenCards, RenderCheque), " ")))
+		if g.Bids[p] != 0 {
+			output.WriteString(fmt.Sprintf(
+				"You are playing: %s\n",
+				RenderBuilding(g.Bids[p]),
+			))
+		}
+		output.WriteString("\n")
 	}
 	output.WriteString(fmt.Sprintf("Your chips: {{b}}%d{{_b}}\n", g.Chips[p]))
 	output.WriteString(fmt.Sprintf("Your buildings: %s\n",
