@@ -1,6 +1,7 @@
 package sushizock
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -15,19 +16,16 @@ func (rc RollCommand) Parse(input string) []string {
 
 func (rc RollCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanRoll(pNum)
+	pNum, found := g.PlayerNum(player)
+	return found && g.CanRoll(pNum)
 }
 
 func (rc RollCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, found := g.PlayerNum(player)
+	if !found {
+		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
 	dice := make([]int, len(a))

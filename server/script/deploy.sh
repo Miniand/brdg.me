@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-DEPLOY_ADDRESS=${DEPLOY_ADDRESS:-root@brdg.me}
+DEPLOY_ADDRESS=${DEPLOY_ADDRESS:-root@api.brdg.me}
 
 #Check we're 64-bit Linux
 if [[ `uname` != "Linux" || `uname -m` != "x86_64" ]]; then
@@ -16,9 +16,8 @@ cd $(dirname $0)
 # Build and deploy files
 cd ../main
 godep go build
-ssh $DEPLOY_ADDRESS "if pgrep brdg.me; then service brdg.me stop; fi"
-scp main $DEPLOY_ADDRESS:/usr/bin/brdg.me
-ssh $DEPLOY_ADDRESS service brdg.me start
+scp main $DEPLOY_ADDRESS:/usr/bin/brdg.me-new
+ssh $DEPLOY_ADDRESS "if pgrep brdg.me; then service brdg.me stop; fi && mv -f /usr/bin/brdg.me-new /usr/bin/brdg.me && service brdg.me start"
 rm main
 
 echo "Deploy complete"

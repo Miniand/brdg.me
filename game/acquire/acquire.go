@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
@@ -17,7 +19,8 @@ import (
 )
 
 const (
-	TILE_EMPTY = iota
+	TILE_DISCARDED = iota - 1
+	TILE_EMPTY
 	TILE_UNINCORPORATED
 	TILE_CORP_WORLDWIDE
 	TILE_CORP_SACKSON
@@ -262,6 +265,8 @@ func (g *Game) WhoseTurn() []string {
 func (g *Game) RenderTile(t Tile) (output string) {
 	val := g.Board[t.Row][t.Column]
 	switch val {
+	case TILE_DISCARDED:
+		output = "  "
 	case TILE_EMPTY:
 		output = `{{c "gray"}}--{{_c}}`
 	case TILE_UNINCORPORATED:
@@ -310,7 +315,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		"\n\n{{b}}Your tiles: {{c \"gray\"}}%s{{_c}}{{_b}}\n",
 		strings.Join(handTiles, " ")))
 	output.WriteString(fmt.Sprintf(
-		"{{b}}Your cash:  $%d{{_b}}", g.PlayerCash[pNum]))
+		"{{b}}Your cash:  $%d{{_b}}\n", g.PlayerCash[pNum]))
+	output.WriteString(fmt.Sprintf(
+		"{{b}}Tiles left: %d{{_b}}", len(g.BankTiles)))
 	// Corp table
 	cells = [][]interface{}{
 		[]interface{}{
@@ -499,6 +506,19 @@ func (g *Game) PayShareholderBonuses(corp int) {
 	majorCount := 0
 	minors := []int{}
 	minorCount := 0
+	stockMarketMessage := ""
+	if len(g.Players) == 2 {
+		// Special rule, play against stock market
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		stockMarketShares := r.Int()%6 + 1
+		stockMarketMessage = fmt.Sprintf(
+			"\n{{b}}The stock market{{_b}} rolled {{b}}%d{{_b}}, has {{b}}%d{{_b}} shares",
+			stockMarketShares,
+			stockMarketShares,
+		)
+		majors = append(majors, -1)
+		majorCount = stockMarketShares
+	}
 	for pNum, _ := range g.Players {
 		count := g.PlayerShares[pNum][corp]
 		if count > 0 {
@@ -528,9 +548,13 @@ func (g *Game) PayShareholderBonuses(corp int) {
 		majorBonus += minorBonus
 	}
 	buf.WriteString(fmt.Sprintf(
-		`Paying shareholder bonuses for {{b}}%s{{_b}} (size {{b}}%d{{_b}}), major bonus is {{b}}$%d{{_b}}, minor bonus is {{b}}$%d{{_b}}.  Player share counts are as follows:`,
-		RenderCorp(corp), g.CorpSize(corp),
-		g.Corp1stBonus(corp), g.Corp2ndBonus(corp)))
+		`Paying shareholder bonuses for {{b}}%s{{_b}} (size {{b}}%d{{_b}}), major bonus is {{b}}$%d{{_b}}, minor bonus is {{b}}$%d{{_b}}.  Player share counts are as follows:%s`,
+		RenderCorp(corp),
+		g.CorpSize(corp),
+		g.Corp1stBonus(corp),
+		g.Corp2ndBonus(corp),
+		stockMarketMessage,
+	))
 	for pNum, _ := range g.Players {
 		buf.WriteString(fmt.Sprintf("\n{{b}}%s{{_b}}: {{b}}%d{{_b}}",
 			g.RenderPlayer(pNum), g.PlayerShares[pNum][corp]))
@@ -542,7 +566,9 @@ func (g *Game) PayShareholderBonuses(corp int) {
 		buf.WriteString(fmt.Sprintf(
 			"\nPaid {{b}}%s{{_b}} a major bonus of {{b}}$%d{{_b}}",
 			g.RenderPlayer(pNum), aveMajorBonus))
-		g.PlayerCash[pNum] += aveMajorBonus
+		if pNum >= 0 {
+			g.PlayerCash[pNum] += aveMajorBonus
+		}
 	}
 	// Pay minor if needed
 	if len(majors) == 1 && len(minors) > 0 {
@@ -552,7 +578,9 @@ func (g *Game) PayShareholderBonuses(corp int) {
 			buf.WriteString(fmt.Sprintf(
 				"\nPaid {{b}}%s{{_b}} a minor bonus of {{b}}$%d{{_b}}",
 				g.RenderPlayer(pNum), aveMinorBonus))
-			g.PlayerCash[pNum] += aveMinorBonus
+			if pNum >= 0 {
+				g.PlayerCash[pNum] += aveMinorBonus
+			}
 		}
 	}
 	g.Log.Add(log.NewPublicMessage(buf.String()))
@@ -780,43 +808,71 @@ func (g *Game) NextMergerPhasePlayer() {
 
 func (g *Game) NextPlayer() {
 	if g.FinalTurn {
-		g.GameEnded = true
-		// Pay out remaining corps on the board
-		g.Log.Add(log.NewPublicMessage(
-			"{{b}}It is the end of the game, now paying shareholder bonuses and selling all shares for active corporations.{{_b}}"))
-		for _, corp := range Corps() {
-			if g.CorpSize(corp) > 0 {
-				g.PayShareholderBonuses(corp)
-				for playerNum, _ := range g.Players {
-					if g.PlayerShares[playerNum][corp] > 0 {
-						g.SellShares(playerNum, corp,
-							g.PlayerShares[playerNum][corp])
-					}
-				}
-			}
-		}
-		buf := bytes.NewBufferString(fmt.Sprintf(
-			"Final player cash is as follows:"))
-		for playerNum, _ := range g.Players {
-			buf.WriteString(fmt.Sprintf("\n{{b}}%s{{_b}}: {{b}}$%d{{_b}}",
-				g.RenderPlayer(playerNum), g.PlayerCash[playerNum]))
-		}
-		g.Log.Add(log.NewPublicMessage(buf.String()))
+		g.EndGame()
 	} else {
 		// Draw tiles if needed
 		g.DiscardUnplayableTiles(g.CurrentPlayer)
-		g.DrawTiles(g.CurrentPlayer)
+		if !g.DrawTiles(g.CurrentPlayer) {
+			g.Log.Add(log.NewPublicMessage(
+				"There aren't enough tiles left in the draw pile, it is the end of the game"))
+			g.EndGame()
+			return
+		}
 		g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.Players)
 		g.TurnPhase = TURN_PHASE_PLAY_TILE
-		// If player can't play any tiles, go to buy phase
-		for _, tRaw := range g.PlayerTiles[g.CurrentPlayer] {
-			if g.IsValidPlay(tRaw.(Tile)) {
+		for {
+			// If player can't play any tiles, discard all and draw 6 more.
+			for _, tRaw := range g.PlayerTiles[g.CurrentPlayer] {
+				if g.IsValidPlay(tRaw.(Tile)) {
+					return
+				}
+			}
+			// No valid plays, discard all and draw 6 more.
+			discardStrs := []string{}
+			for _, tRaw := range g.PlayerTiles[g.CurrentPlayer] {
+				t := tRaw.(Tile)
+				g.Board[t.Row][t.Column] = TILE_DISCARDED
+				discardStrs = append(discardStrs, render.Bold(TileText(t)))
+			}
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				"%s can't play any tiles, discarding %s and drawing new tiles",
+				g.RenderPlayer(g.CurrentPlayer),
+				render.CommaList(discardStrs),
+			)))
+			g.PlayerTiles[g.CurrentPlayer] = card.Deck{}
+			if !g.DrawTiles(g.CurrentPlayer) {
+				g.Log.Add(log.NewPublicMessage(
+					"There aren't enough tiles left in the draw pile, it is the end of the game"))
+				g.EndGame()
 				return
 			}
 		}
-		// No valid plays, skip to buy phase
-		g.BuySharesPhase()
 	}
+}
+
+func (g *Game) EndGame() {
+	g.GameEnded = true
+	// Pay out remaining corps on the board
+	g.Log.Add(log.NewPublicMessage(
+		"{{b}}It is the end of the game, now paying shareholder bonuses and selling all shares for active corporations.{{_b}}"))
+	for _, corp := range Corps() {
+		if g.CorpSize(corp) > 0 {
+			g.PayShareholderBonuses(corp)
+			for playerNum, _ := range g.Players {
+				if g.PlayerShares[playerNum][corp] > 0 {
+					g.SellShares(playerNum, corp,
+						g.PlayerShares[playerNum][corp])
+				}
+			}
+		}
+	}
+	buf := bytes.NewBufferString(fmt.Sprintf(
+		"Final player cash is as follows:"))
+	for playerNum, _ := range g.Players {
+		buf.WriteString(fmt.Sprintf("\n{{b}}%s{{_b}}: {{b}}$%d{{_b}}",
+			g.RenderPlayer(playerNum), g.PlayerCash[playerNum]))
+	}
+	g.Log.Add(log.NewPublicMessage(buf.String()))
 }
 
 func (g *Game) DiscardUnplayableTiles(playerNum int) {
@@ -826,6 +882,7 @@ func (g *Game) DiscardUnplayableTiles(playerNum int) {
 		t := tRaw.(Tile)
 		if g.IsJoiningSafeCorps(t) {
 			newHand, _ = newHand.Remove(t, -1)
+			g.Board[t.Row][t.Column] = TILE_DISCARDED
 			discarded = append(discarded, fmt.Sprintf("{{b}}%s{{_b}}",
 				TileText(t)))
 		}
@@ -838,17 +895,30 @@ func (g *Game) DiscardUnplayableTiles(playerNum int) {
 	g.PlayerTiles[playerNum] = newHand
 }
 
-func (g *Game) DrawTiles(playerNum int) {
+func (g *Game) DrawTiles(playerNum int) bool {
 	drawNum := INIT_TILES - len(g.PlayerTiles[playerNum])
 	if drawNum > len(g.BankTiles) {
-		drawNum = len(g.BankTiles)
+		return false
 	}
 	if drawNum > 0 {
 		var drawnTiles card.Deck
 		drawnTiles, g.BankTiles = g.BankTiles.PopN(drawNum)
+		tileStr := []string{}
+		for _, t := range drawnTiles {
+			tileStr = append(tileStr, render.Markup(
+				TileText(t.(Tile)),
+				render.Gray,
+				true,
+			))
+		}
+		g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
+			"You drew %s",
+			render.CommaList(tileStr),
+		), []string{g.Players[playerNum]}))
 		g.PlayerTiles[playerNum] =
 			g.PlayerTiles[playerNum].PushMany(drawnTiles)
 	}
+	return true
 }
 
 func (g *Game) IsJoiningSafeCorps(t Tile) bool {
@@ -988,6 +1058,9 @@ func (g *Game) CanEnd(playerNum int) bool {
 }
 
 func (g *Game) RenderPlayer(playerNum int) string {
+	if playerNum == -1 {
+		return "{{b}}the stock market{{_b}}"
+	}
 	return render.PlayerName(playerNum, g.Players[playerNum])
 }
 

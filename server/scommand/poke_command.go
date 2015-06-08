@@ -24,11 +24,10 @@ func (pc PokeCommand) Parse(input string) []string {
 }
 
 func (pc PokeCommand) CanCall(player string, context interface{}) bool {
-	g, ok := context.(game.Playable)
-	if !ok || g.IsFinished() {
+	if pc.gameModel.IsFinished {
 		return false
 	}
-	waitingOn := g.WhoseTurn()
+	waitingOn := pc.gameModel.WhoseTurn
 	for _, p := range waitingOn {
 		if p == player {
 			// No point poking yourself!
@@ -44,19 +43,19 @@ func (pc PokeCommand) Call(player string, context interface{},
 	if !ok {
 		return "", errors.New("No game was passed in")
 	}
-	if g.IsFinished() {
+	if pc.gameModel.IsFinished {
 		return "", errors.New("The game is already finished")
 	}
-	whoseTurn := g.WhoseTurn()
+	whoseTurn := pc.gameModel.WhoseTurn
 	if pc.gameModel != nil && pc.gameModel.Id != "" {
 		communicate.Game(
-			pc.gameModel.Id,
 			g,
+			pc.gameModel,
 			whoseTurn,
-			append(g.Commands(), Commands(pc.gameModel)...),
+			CommandsForGame(pc.gameModel, g),
 			fmt.Sprintf(
 				"%s wants to remind you it's your turn!",
-				render.PlayerNameInPlayers(player, g.PlayerList())),
+				render.PlayerNameInPlayers(player, pc.gameModel.PlayerList)),
 			MsgTypePoke,
 			false,
 		)

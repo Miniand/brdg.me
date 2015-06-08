@@ -1,10 +1,13 @@
 package modern_art
 
 import (
+	"testing"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/helper"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -371,6 +374,40 @@ func TestDoubleAuction(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestDoubleAuctionEndsRound(t *testing.T) {
+	g := &Game{}
+	assert.NoError(t, g.Start(helper.Players[:3]))
+	g.CurrentPlayer = helper.Mick
+	g.PlayerPurchases = map[int]card.Deck{
+		helper.Mick: card.Deck{
+			card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE},
+		},
+		helper.Steve: card.Deck{
+			card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE},
+		},
+		helper.BJ: card.Deck{
+			card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE},
+		},
+	}
+	g.PlayerHands[helper.Mick] = card.Deck{
+		card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE},
+		card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE},
+		card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE},
+		card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE},
+	}
+	g.PlayerHands[helper.Steve] = card.Deck{
+		card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+		card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+		card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+		card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN},
+	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play lmdb"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "pass"))
+	assert.NoError(t, helper.Cmd(g, helper.Steve, "add lmop"))
+	assert.Equal(t, 1, g.Round)
+	assert.Equal(t, helper.BJ, g.CurrentPlayer)
 }
 
 func TestOnceAroundAuction(t *testing.T) {

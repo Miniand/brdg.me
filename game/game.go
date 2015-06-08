@@ -3,21 +3,28 @@ package game
 import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/acquire"
+	"github.com/Miniand/brdg.me/game/alhambra"
 	"github.com/Miniand/brdg.me/game/bang_dice"
 	"github.com/Miniand/brdg.me/game/battleship"
 	"github.com/Miniand/brdg.me/game/category_5"
+	"github.com/Miniand/brdg.me/game/cathedral"
 	"github.com/Miniand/brdg.me/game/farkle"
 	"github.com/Miniand/brdg.me/game/for_sale"
+	"github.com/Miniand/brdg.me/game/jaipur"
 	"github.com/Miniand/brdg.me/game/liars_dice"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/game/lost_cities"
 	"github.com/Miniand/brdg.me/game/modern_art"
 	"github.com/Miniand/brdg.me/game/no_thanks"
 	"github.com/Miniand/brdg.me/game/roll_through_the_ages"
+	"github.com/Miniand/brdg.me/game/seven_wonders"
+	"github.com/Miniand/brdg.me/game/splendor"
 	"github.com/Miniand/brdg.me/game/starship_catan"
+	"github.com/Miniand/brdg.me/game/sushi_go"
 	"github.com/Miniand/brdg.me/game/sushizock"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
 	"github.com/Miniand/brdg.me/game/tic_tac_toe"
+	"github.com/Miniand/brdg.me/game/zombie_dice"
 )
 
 type Playable interface {
@@ -48,20 +55,27 @@ type Botter interface {
 func gameList() []Playable {
 	return []Playable{
 		&acquire.Game{},
+		&alhambra.Game{},
 		&bang_dice.Game{},
 		&battleship.Game{},
 		&category_5.Game{},
+		&cathedral.Game{},
 		&farkle.Game{},
 		&for_sale.Game{},
+		&jaipur.Game{},
 		&liars_dice.Game{},
 		&lost_cities.Game{},
 		&modern_art.Game{},
 		&no_thanks.Game{},
 		&roll_through_the_ages.Game{},
+		&seven_wonders.Game{},
+		&splendor.Game{},
 		&starship_catan.Game{},
+		&sushi_go.Game{},
 		&sushizock.Game{},
 		&texas_holdem.Game{},
 		&tic_tac_toe.Game{},
+		&zombie_dice.Game{},
 	}
 }
 

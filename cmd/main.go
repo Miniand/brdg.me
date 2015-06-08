@@ -5,16 +5,21 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"runtime/pprof"
+	"strings"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
-	"io/ioutil"
-	"os"
-	"strings"
+	"github.com/davecgh/go-spew/spew"
 )
 
 const FILE = ".game"
+
+var renderer = render.RenderTerminal
 
 func Actions() map[string](func([]string) error) {
 	return map[string](func([]string) error){
@@ -27,7 +32,17 @@ func Actions() map[string](func([]string) error) {
 }
 
 func main() {
+	var (
+		html, profile bool
+		f             *os.File
+		err           error
+	)
+	flag.BoolVar(&html, "html", false, "output html")
+	flag.BoolVar(&profile, "profile", false, "run profiler")
 	flag.Parse()
+	if html {
+		renderer = render.RenderHtml
+	}
 	if flag.NArg() == 0 {
 		fmt.Println("Available actions are:")
 		for aName, _ := range Actions() {
@@ -42,10 +57,22 @@ func main() {
 		fmt.Println()
 		os.Exit(2)
 	}
-	err := action(flag.Args()[1:])
+	if profile {
+		f, err = os.OpenFile("profile", os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(4)
+		}
+		fmt.Println("starting profile")
+		pprof.StartCPUProfile(f)
+	}
+	err = action(flag.Args()[1:])
+	if profile {
+		pprof.StopCPUProfile()
+		f.Close()
+	}
 	if err != nil {
-		fmt.Printf(err.Error())
-		fmt.Println()
+		fmt.Println(err)
 		os.Exit(3)
 	}
 }
@@ -53,11 +80,12 @@ func main() {
 func RenderForPlayer(g game.Playable, p string) (string, error) {
 	logOutput := "\n\n{{b}}Since last time:{{_b}}:\n" +
 		log.RenderMessages(g.GameLog().NewMessagesFor(p))
+	g.GameLog().MarkReadFor(p)
 	rawOutput, err := g.RenderForPlayer(p)
 	if err != nil {
 		return "", err
 	}
-	return render.RenderTerminal(logOutput + "\n\n" + rawOutput)
+	return renderer(logOutput + "\n\n" + rawOutput)
 }
 
 func NewAction(args []string) error {
@@ -112,7 +140,9 @@ func PlayAction(args []string) error {
 	if commandOutput != "" {
 		output = commandOutput + "\n\n" + output
 	}
-	saveGame(g)
+	if err := saveGame(g); err != nil {
+		return err
+	}
 	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
 	fmt.Println(output)
 	usages := command.CommandUsages(args[0], g, command.AvailableCommands(
@@ -155,7 +185,9 @@ func OutputGameForPlayingPlayers(g game.Playable) error {
 		}
 	}
 	// Save again in case logs were marked as read
-	saveGame(g)
+	if err := saveGame(g); err != nil {
+		return err
+	}
 	if g.IsFinished() {
 		fmt.Println("Game finished!  Winners: " + strings.Join(g.Winners(), ", "))
 	} else {
@@ -181,7 +213,9 @@ func BotAction(args []string) error {
 	if err != nil {
 		return err
 	}
-	saveGame(rawG)
+	if err := saveGame(rawG); err != nil {
+		return err
+	}
 	return OutputGameForPlayingPlayers(rawG)
 }
 
@@ -216,7 +250,7 @@ func DumpAction(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", g)
+	spew.Dump(g)
 	return nil
 }
 

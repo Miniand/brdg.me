@@ -79,7 +79,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	cells := [][]interface{}{{"{{b}}Player{{_b}}", cityHeaderBuf.String()}}
 	for p, _ := range g.Players {
-		cells = append(cells, []interface{}{
+		remaining := MaxCityProgress - g.Boards[p].CityProgress
+		row := []interface{}{
 			g.RenderName(p),
 			fmt.Sprintf(
 				"%s%s",
@@ -89,10 +90,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 				), g.Boards[p].CityProgress+1),
 				strings.Repeat(
 					`{{c "gray"}}.{{_c}} `,
-					MaxCityProgress-g.Boards[p].CityProgress,
+					remaining,
 				),
 			),
-		})
+		}
+		if remaining > 0 {
+			row = append(row, render.Markup(
+				fmt.Sprintf("(%d left)", remaining), render.Gray, p == pNum))
+		}
+		cells = append(cells, row)
 	}
 	t = render.Table(cells, 0, 2)
 	buf.WriteString(t)

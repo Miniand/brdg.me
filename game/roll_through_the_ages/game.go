@@ -193,6 +193,9 @@ func (g *Game) RollPhase() {
 
 func (g *Game) RollExtraPhase() {
 	g.Phase = PhaseExtraRoll
+	// Can reroll anything
+	g.RolledDice = append(g.RolledDice, g.KeptDice...)
+	g.KeptDice = []int{}
 	if !g.Boards[g.CurrentPlayer].Developments[DevelopmentLeadership] {
 		g.NextPhase()
 	}
@@ -376,7 +379,7 @@ func (g *Game) InvadePhase() {
 
 func (g *Game) BuildPhase() {
 	g.Phase = PhaseBuild
-	if !g.CanBuild(g.CurrentPlayer) && !g.CanBuildShip(g.CurrentPlayer) {
+	if !g.CanBuildAnything(g.CurrentPlayer) {
 		g.NextPhase()
 	}
 }

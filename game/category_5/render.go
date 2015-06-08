@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/render"
 )
 
@@ -71,6 +72,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		})
 	}
 	buf.WriteString(render.Table(cells, 0, 2))
+	points := []int{}
+	for p := range g.Players {
+		points = append(points, g.Points[p])
+	}
+	buf.WriteString(fmt.Sprintf(
+		"\n\n{{b}}%d points{{_b}} until the end of the game.",
+		66-helper.IntMax(points...),
+	))
 	return buf.String(), nil
 }
 

@@ -13,6 +13,8 @@ import (
 
 var tokenRegexp = regexp.MustCompile(`^\s*token\s+([^\s]+)\s*$`)
 
+var confirmationValidityTime = 30 * time.Minute
+
 func isValidEmail(emailAddr string) bool {
 	return regexp.MustCompile(`(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`).
 		MatchString(emailAddr)
@@ -56,7 +58,10 @@ func AuthRequest(w http.ResponseWriter, r *http.Request) {
 			Email: emailAddr,
 		}
 	}
-	user.AuthRequest = model.GenerateAuthRequestToken()
+	if user.AuthRequest == "" || user.AuthRequestedAt.Before(
+		time.Now().Add(-confirmationValidityTime)) {
+		user.AuthRequest = model.GenerateAuthRequestToken()
+	}
 	user.AuthRequestedAt = time.Now()
 	if err := user.Save(); err != nil {
 		ApiBadRequest("Error creating auth request token", w, r)
@@ -97,7 +102,7 @@ func AuthConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !ok || user.AuthRequest != confirmation || user.AuthRequestedAt.Before(
-		time.Now().Add(-30*time.Minute)) {
+		time.Now().Add(-confirmationValidityTime)) {
 		ApiBadRequest("Invalid confirmation", w, r)
 		return
 	}

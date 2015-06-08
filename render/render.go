@@ -1,12 +1,23 @@
 package render
 
+const (
+	Black   = "black"
+	Red     = "red"
+	Green   = "green"
+	Yellow  = "yellow"
+	Blue    = "blue"
+	Magenta = "magenta"
+	Cyan    = "cyan"
+	Gray    = "gray"
+)
+
+type Renderer func(string) (string, error)
+
 type Markupper interface {
 	StartColour(string) interface{}
 	EndColour() interface{}
 	StartBold() interface{}
 	EndBold() interface{}
-	StartLarge() interface{}
-	EndLarge() interface{}
 }
 
 type Context struct{}
@@ -14,14 +25,14 @@ type Context struct{}
 // @see http://en.wikipedia.org/wiki/ANSI_escape_code#Colours
 func ValidColours() []string {
 	return []string{
-		"black",
-		"red",
-		"green",
-		"yellow",
-		"blue",
-		"magenta",
-		"cyan",
-		"gray",
+		Black,
+		Red,
+		Green,
+		Yellow,
+		Blue,
+		Magenta,
+		Cyan,
+		Gray,
 	}
 }
 
@@ -50,11 +61,22 @@ func AttachTemplateFuncs(to map[string]interface{}, m Markupper) map[string]inte
 	to["_b"] = func() interface{} {
 		return m.EndBold()
 	}
+	// The l functions were removed but remain here for backwards compatability.
 	to["l"] = func() interface{} {
-		return m.StartLarge()
+		return ""
 	}
 	to["_l"] = func() interface{} {
-		return m.EndLarge()
+		return ""
 	}
 	return to
+}
+
+func RenderTemplates(tmpls []string, renderer Renderer) (ret []string, err error) {
+	ret = make([]string, len(tmpls))
+	for i, t := range tmpls {
+		if ret[i], err = renderer(t); err != nil {
+			return
+		}
+	}
+	return
 }

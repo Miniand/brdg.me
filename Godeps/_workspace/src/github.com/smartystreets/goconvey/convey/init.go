@@ -4,13 +4,17 @@ import (
 	"flag"
 	"os"
 
+	"github.com/jtolds/gls"
+	"github.com/smartystreets/assertions"
 	"github.com/smartystreets/goconvey/convey/reporting"
 )
 
 func init() {
+	assertions.GoConveyMode(true)
+
 	declareFlags()
 
-	suites = newSuiteContext()
+	ctxMgr = gls.NewContextManager()
 }
 
 func declareFlags() {
@@ -45,7 +49,7 @@ func buildReporter() reporting.Reporter {
 }
 
 var (
-	suites *suiteContext
+	ctxMgr *gls.ContextManager
 
 	// only set by internal tests
 	testReporter reporting.Reporter

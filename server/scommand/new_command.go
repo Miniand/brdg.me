@@ -1,7 +1,6 @@
 package scommand
 
 import (
-	"bytes"
 	"errors"
 	"regexp"
 	"strings"
@@ -44,10 +43,10 @@ func (nc NewCommand) Call(player string, context interface{},
 		return "", err
 	}
 	return "", communicate.Game(
-		gm.Id,
 		g,
-		g.PlayerList(),
-		append(g.Commands(), Commands(gm)...),
+		gm,
+		gm.PlayerList,
+		CommandsForGame(gm, g),
 		"You have been invited by "+player+" to play "+g.Name()+"!",
 		MsgTypeInvite,
 		true,
@@ -55,15 +54,5 @@ func (nc NewCommand) Call(player string, context interface{},
 }
 
 func (nc NewCommand) Usage(player string, context interface{}) string {
-	usage := bytes.NewBufferString(
-		"{{b}}new (game ID) (email addresses){{_b}} start a new game with friends\n")
-	usage.WriteString("   Available games:")
-	for gName, g := range game.RawCollection() {
-		usage.WriteString("\n   ")
-		usage.WriteString(gName)
-		usage.WriteString(" (")
-		usage.WriteString(g.Name())
-		usage.WriteString(")")
-	}
-	return usage.String()
+	return "{{b}}new (game ID) (email addresses){{_b}} start a new game with friends"
 }

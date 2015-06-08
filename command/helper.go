@@ -52,5 +52,9 @@ func ParseRegexp(reg, input string) []string {
 
 // Extracts the actual arguments from the result of a ParseNamedCommand call
 func ExtractNamedCommandArgs(args []string) []string {
-	return regexp.MustCompile(`\s+`).Split(strings.TrimSpace(args[1]), -1)
+	a := regexp.MustCompile(`\s+`).Split(strings.TrimSpace(args[1]), -1)
+	if len(a) == 1 && a[0] == "" {
+		a = []string{}
+	}
+	return a
 }

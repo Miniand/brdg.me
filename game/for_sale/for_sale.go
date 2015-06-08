@@ -9,6 +9,7 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 )
@@ -125,6 +126,13 @@ func (g *Game) StartSellingRound() {
 	g.ClearBids()
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(`Drew new cheques: %s`,
 		strings.Join(RenderCards(g.OpenCards, RenderCheque), " "))))
+	if g.Hands[0].Len() == 1 {
+		// Autoplay the final card
+		fmt.Println("autoplaying")
+		for p, _ := range g.Players {
+			g.Play(p, g.Hands[p][0].(card.SuitRankCard).Rank)
+		}
+	}
 }
 
 func (g *Game) ClearBids() {
@@ -162,14 +170,42 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		output.WriteString(fmt.Sprintf("Remaining players: %s\n\n",
 			render.CommaList(remainingPlayers)))
 	case SellingPhase:
-		output.WriteString(fmt.Sprintf("Cheques available: %s\n\n",
+		output.WriteString(fmt.Sprintf("Cheques available: %s\n",
 			strings.Join(RenderCards(g.OpenCards, RenderCheque), " ")))
+		if g.Bids[p] != 0 {
+			output.WriteString(fmt.Sprintf(
+				"You are playing: %s\n",
+				RenderBuilding(g.Bids[p]),
+			))
+		}
+		output.WriteString("\n")
 	}
 	output.WriteString(fmt.Sprintf("Your chips: {{b}}%d{{_b}}\n", g.Chips[p]))
 	output.WriteString(fmt.Sprintf("Your buildings: %s\n",
 		strings.Join(RenderCards(g.Hands[p], RenderBuilding), " ")))
-	output.WriteString(fmt.Sprintf("Your cheques: %s\n",
+	output.WriteString(fmt.Sprintf("Your cheques: %s",
 		strings.Join(RenderCards(g.Cheques[p], RenderCheque), " ")))
+
+	if !g.IsFinished() {
+		var (
+			rounds    int
+			roundType string
+		)
+		switch g.CurrentPhase() {
+		case BuyingPhase:
+			rounds = (g.BuildingDeck.Len() / len(g.Players)) + 1
+			roundType = "buying"
+		case SellingPhase:
+			rounds = (g.ChequeDeck.Len() / len(g.Players)) + 1
+			roundType = "selling"
+		}
+		output.WriteString(fmt.Sprintf(
+			"\n\n{{b}}%d{{_b}} %s %s remaining",
+			rounds,
+			roundType,
+			helper.Plural(rounds, "round"),
+		))
+	}
 	return output.String(), nil
 }
 

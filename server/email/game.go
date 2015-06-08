@@ -13,8 +13,8 @@ import (
 )
 
 func SendGame(
-	id string,
 	g game.Playable,
+	gm *model.GameModel,
 	to []string,
 	commands []command.Command,
 	header string,
@@ -23,18 +23,18 @@ func SendGame(
 	if header != "" {
 		header += "\n\n"
 	}
-	if g.IsFinished() {
-		winners := g.Winners()
+	if gm.IsFinished {
+		winners := gm.Winners
 		header += "The game is over"
 		if len(winners) == 0 {
 			header += ", it was a draw!"
 		} else {
 			header += ", the winners were: " + strings.Join(
-				render.PlayerNamesInPlayers(winners, g.PlayerList()), ", ")
+				render.PlayerNamesInPlayers(winners, gm.PlayerList), ", ")
 		}
 	} else {
 		header += "Current turn: " + strings.Join(render.PlayerNamesInPlayers(
-			g.WhoseTurn(), g.PlayerList()), ", ")
+			gm.WhoseTurn, gm.PlayerList), ", ")
 	}
 	commErrs := []string{}
 	for _, p := range to {
@@ -68,14 +68,14 @@ func SendGame(
 %s
 
 
-You can also <a href="http://baconheist.com/brdgme/game.html?id=%s">continue playing this game live in your browser</a>.`,
+You can also <a href="http://brdg.me/game.html?id=%s">continue playing this game live in your browser</a>.`,
 			pHeader,
 			rawOutput,
-			id,
+			gm.Id,
 		)
-		subject := fmt.Sprintf("%s (%s)", g.Name(), id)
+		subject := fmt.Sprintf("%s (%s)", g.Name(), gm.Id)
 		extraHeaders := []string{}
-		messageId := id + "@brdg.me"
+		messageId := gm.Id + "@brdg.me"
 		if initial {
 			// We create the base Message-ID
 			extraHeaders = append(extraHeaders,

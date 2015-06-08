@@ -28,6 +28,15 @@ type Game struct {
 	Log           *log.Log
 }
 
+var DiceColours = map[int]string{
+	1: render.Cyan,
+	2: render.Green,
+	3: render.Red,
+	4: render.Blue,
+	5: render.Yellow,
+	6: render.Magenta,
+}
+
 func (g *Game) Commands() []command.Command {
 	return []command.Command{
 		TakeCommand{},
@@ -62,19 +71,11 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	playerNum, err := g.GetPlayerNum(player)
-	if err != nil {
-		return "", err
-	}
 	buf := bytes.NewBufferString("")
-	cells := [][]interface{}{}
-	if playerNum == g.Player {
-		cells = append(cells,
-			[]interface{}{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
-			[]interface{}{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)})
+	cells := [][]interface{}{
+		{"{{b}}Remaining dice{{_b}}", RenderDice(g.RemainingDice)},
+		{"{{b}}Score this turn{{_b}}", strconv.Itoa(g.TurnScore)},
 	}
-	cells = append(cells,
-		[]interface{}{"{{b}}Your score{{_b}}", strconv.Itoa(g.Scores[playerNum])})
 	t := render.Table(cells, 0, 1)
 	buf.WriteString(t)
 	buf.WriteString("\n\n")
@@ -130,7 +131,7 @@ func (g *Game) IsFinished() bool {
 		return false
 	}
 	for _, s := range g.Scores {
-		if s >= 10000 {
+		if s >= 5000 {
 			return true
 		}
 	}
@@ -179,22 +180,23 @@ func (g *Game) Roll(n int) {
 	if len(AvailableScores(g.RemainingDice)) == 0 {
 		// No dice!
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-			"%s rolled no scoring dice and lost %d points!",
+			"%s rolled no scoring dice and lost {{b}}%d{{_b}} points!",
 			render.PlayerName(g.Player, g.Players[g.Player]),
 			g.TurnScore)))
 		g.NextPlayer()
 	}
 }
 
-func RenderDice(dice []int) string {
-	buf := bytes.NewBufferString("{{l}}")
-	renderedDice := make([]string, len(dice))
-	for i, d := range dice {
-		renderedDice[i] = die.Render(d)
+func RenderDie(value int) string {
+	return render.Markup(die.Render(value), DiceColours[value], true)
+}
+
+func RenderDice(values []int) string {
+	strs := make([]string, len(values))
+	for i, v := range values {
+		strs[i] = RenderDie(v)
 	}
-	buf.WriteString(strings.Join(renderedDice, " "))
-	buf.WriteString("{{_l}}")
-	return buf.String()
+	return strings.Join(strs, " ")
 }
 
 func (g *Game) GetPlayerNum(player string) (int, error) {

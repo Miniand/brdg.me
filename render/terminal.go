@@ -8,7 +8,7 @@ import (
 type TerminalMarkupper struct {
 	Markupper
 	ColourStack []string
-	Bold        bool
+	BoldStack   int
 }
 
 func (t *TerminalMarkupper) StartColour(colour string) interface{} {
@@ -20,31 +20,22 @@ func (t *TerminalMarkupper) EndColour() interface{} {
 		panic("There are no colours set")
 	}
 	t.ColourStack = t.ColourStack[:len(t.ColourStack)-1]
-	if len(t.ColourStack) == 0 {
-		return t.Current()
-	}
-	return t.ColourStack[len(t.ColourStack)-1]
+	return t.Current()
 }
 func (t *TerminalMarkupper) StartBold() interface{} {
-	t.Bold = true
+	t.BoldStack += 1
 	return t.Current()
 }
 func (t *TerminalMarkupper) EndBold() interface{} {
-	t.Bold = false
+	t.BoldStack -= 1
 	return t.Current()
-}
-func (t *TerminalMarkupper) StartLarge() interface{} {
-	return ""
-}
-func (t *TerminalMarkupper) EndLarge() interface{} {
-	return ""
 }
 func (t *TerminalMarkupper) Current() string {
 	c := "\x1b[0"
 	if len(t.ColourStack) > 0 {
 		c = TerminalColours()[t.ColourStack[len(t.ColourStack)-1]]
 	}
-	if t.Bold {
+	if t.BoldStack > 0 {
 		c += ";1"
 	}
 	return c + "m"
@@ -63,13 +54,13 @@ func RenderTerminal(tmpl string) (string, error) {
 
 func TerminalColours() map[string]string {
 	return map[string]string{
-		"black":   "\x1b[30",
-		"red":     "\x1b[31",
-		"green":   "\x1b[32",
-		"yellow":  "\x1b[33",
-		"blue":    "\x1b[34",
-		"magenta": "\x1b[35",
-		"cyan":    "\x1b[36",
-		"gray":    "\x1b[37",
+		Black:   "\x1b[30",
+		Red:     "\x1b[31",
+		Green:   "\x1b[32",
+		Yellow:  "\x1b[33",
+		Blue:    "\x1b[34",
+		Magenta: "\x1b[35",
+		Cyan:    "\x1b[36",
+		Gray:    "\x1b[37",
 	}
 }

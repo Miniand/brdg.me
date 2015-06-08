@@ -19,6 +19,8 @@ func Router() *mux.Router {
 			Name("apiGameIndex")
 		router.HandleFunc("/game", controller.ApiGameCreate).Methods("POST").
 			Name("apiGameCreate")
+		router.HandleFunc("/game/summary", controller.ApiGameSummary).Methods("GET").
+			Name("apiGameSummary")
 		router.HandleFunc("/game/{id}", controller.ApiGameShow).Methods("GET").
 			Name("apiGameShow")
 		router.HandleFunc("/game/{id}/command", controller.ApiGameCommand).Methods("POST").

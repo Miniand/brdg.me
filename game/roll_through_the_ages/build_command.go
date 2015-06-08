@@ -87,6 +87,10 @@ func (g *Game) CanBuildShip(player int) bool {
 		b.Goods[GoodWood] > 0 && b.Goods[GoodCloth] > 0
 }
 
+func (g *Game) CanBuildAnything(player int) bool {
+	return g.CanBuild(player) || g.CanBuildShip(player) || g.CanTrade(player)
+}
+
 func (g *Game) BuildCity(player, amount int) error {
 	if !g.CanBuild(player) {
 		return errors.New("you can't build at the moment")
@@ -116,7 +120,7 @@ func (g *Game) BuildCity(player, amount int) error {
 			newCities,
 		)))
 	}
-	if !g.CanBuild(player) && !g.CanBuildShip(player) {
+	if !g.CanBuildAnything(player) {
 		g.NextPhase()
 	}
 	return nil
@@ -148,7 +152,7 @@ func (g *Game) BuildShip(player, amount int) error {
 		g.RenderName(player),
 		amount,
 	)))
-	if !g.CanBuild(player) && !g.CanBuildShip(player) {
+	if !g.CanBuildAnything(player) {
 		g.NextPhase()
 	}
 	return nil
@@ -197,7 +201,7 @@ func (g *Game) BuildMonument(player, monument, amount int) error {
 		)))
 		g.CheckGameEndTriggered(player)
 	}
-	if !g.CanBuild(player) && !g.CanBuildShip(player) {
+	if !g.CanBuildAnything(player) {
 		g.NextPhase()
 	}
 	return nil

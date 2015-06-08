@@ -7,11 +7,21 @@ import (
 
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/render"
+	"github.com/Miniand/brdg.me/server/model"
 
 	"github.com/gorilla/websocket"
 )
 
+const (
+	WsTypeGameUpdate = "gameUpdate"
+)
+
 type WsMsg struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
+type WsGameUpdateMsg struct {
 	Text     string `json:"text,omitempty"`
 	TextHtml string `json:"textHtml,omitempty"`
 	MsgType  string `json:"msgType,omitempty"`
@@ -25,57 +35,77 @@ var wsConnections = map[string][]*websocket.Conn{}
 var errNoConnections = errors.New(
 	"that player does not have any connections open")
 
-func NewWsMsg(player, gameId, text, textHtml, msgType string, g game.Playable) WsMsg {
-	isFinished := g.IsFinished()
+func NewWsGameUpdateMsg(
+	player, text, textHtml, msgType string,
+	g game.Playable,
+	gm *model.GameModel,
+) WsGameUpdateMsg {
+	isFinished := gm.IsFinished
 	yourTurn := false
 	if !isFinished {
-		for _, p := range g.WhoseTurn() {
+		for _, p := range gm.WhoseTurn {
 			if p == player {
 				yourTurn = true
 				break
 			}
 		}
 	}
-	return WsMsg{
+	return WsGameUpdateMsg{
 		Text:     text,
 		TextHtml: textHtml,
 		MsgType:  msgType,
-		GameId:   gameId,
+		GameId:   gm.Id,
 		GameName: g.Name(),
 		YourTurn: yourTurn,
 	}
 }
 
-func wsSendGameMulti(players []string, gameId, text, msgType string, g game.Playable) (
+func wsSendGameMulti(
+	players []string,
+	text, msgType string,
+	g game.Playable,
+	gm *model.GameModel,
+) (
 	failed map[string]error) {
 	failed = map[string]error{}
 	for _, p := range players {
-		if err := wsSendGame(p, gameId, text, msgType, g); err != nil {
+		if err := wsSendGame(p, text, msgType, g, gm); err != nil {
 			failed[p] = err
 		}
 	}
 	return
 }
 
-func wsSendGame(player, gameId, text, msgType string, g game.Playable) (err error) {
+func wsSendGame(
+	player, text, msgType string,
+	g game.Playable,
+	gm *model.GameModel,
+) (err error) {
 	textHtml, err := render.RenderHtml(text)
 	if err != nil {
 		return fmt.Errorf("unable to render text to HTML: %v", err)
 	}
+	return wsSend(player, WsTypeGameUpdate, NewWsGameUpdateMsg(
+		player,
+		text,
+		textHtml,
+		msgType,
+		g,
+		gm,
+	))
+}
+
+func wsSend(player string, msgType string, data interface{}) (err error) {
 	sent := false
 	conns := wsConnections[player]
 	if conns == nil || len(conns) == 0 {
 		return errNoConnections
 	}
 	for _, conn := range conns {
-		if err = conn.WriteJSON(NewWsMsg(
-			player,
-			gameId,
-			text,
-			textHtml,
-			msgType,
-			g,
-		)); err == nil {
+		if err = conn.WriteJSON(WsMsg{
+			Type: msgType,
+			Data: data,
+		}); err == nil {
 			sent = true
 		}
 	}
