@@ -13,18 +13,24 @@ import (
 var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type Game struct {
-	Players     []string
-	CurrentTurn int
-	Log         *log.Log
+	Players       []string
+	CurrentPlayer int
+	Log           *log.Log
 
-	Conquered          map[int]bool
-	PlayerCastles      map[int][]int
+	Conquered    map[int]bool
+	CastleOwners map[int]int
+
 	CurrentlyAttacking int
 	CompletedLines     map[int]bool
+	CurrentRoll        []int
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		AttackCommand{},
+		LineCommand{},
+		RollCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -51,12 +57,13 @@ func (g *Game) Start(players []string) error {
 	g.Log = log.New()
 
 	g.Conquered = map[int]bool{}
-	g.PlayerCastles = map[int][]int{}
-	for p := range g.Players {
-		g.PlayerCastles[p] = []int{}
-	}
+	g.CastleOwners = map[int]int{}
 
 	return nil
+}
+
+func (g *Game) StartTurn() {
+	g.CurrentlyAttacking = -1
 }
 
 func (g *Game) PlayerList() []string {
@@ -72,9 +79,18 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{g.Players[g.CurrentTurn]}
+	return []string{g.Players[g.CurrentPlayer]}
 }
 
 func (g *Game) GameLog() *log.Log {
 	return g.Log
+}
+
+func (g *Game) PlayerNum(player string) (int, bool) {
+	for p, name := range g.Players {
+		if name == player {
+			return p, true
+		}
+	}
+	return 0, false
 }
