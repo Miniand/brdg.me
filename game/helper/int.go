@@ -153,3 +153,23 @@ func IntSum(ints []int) int {
 	}
 	return sum
 }
+
+// IntSliceSub subtracts one int slice from another.
+func IntSliceSub(ints, sub []int) ([]int, bool) {
+	ret := []int{}
+	subMap := map[int]int{}
+	for _, i := range sub {
+		subMap[i]++
+	}
+	for _, i := range ints {
+		if subMap[i] > 0 {
+			subMap[i]--
+			if subMap[i] == 0 {
+				delete(subMap, i)
+			}
+		} else {
+			ret = append(ret, i)
+		}
+	}
+	return ret, len(subMap) == 0
+}

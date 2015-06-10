@@ -1,32 +1,61 @@
 package age_of_war
 
 import (
-	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/Miniand/brdg.me/render"
 )
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	output := bytes.Buffer{}
+	layout := [][]interface{}{}
+
+	if g.CurrentlyAttacking != -1 {
+		layout = append(layout, [][]interface{}{
+			{render.Centred(render.Bold("Currently attacking\n"))},
+			{render.Centred(Castles[g.CurrentlyAttacking].Render(
+				g.Conquered[g.CurrentlyAttacking],
+			))},
+			{},
+		}...)
+	}
+
+	layout = append(layout, [][]interface{}{
+		{render.Centred(render.Bold("Current roll"))},
+		{render.Centred(strings.Join(RenderDice(g.CurrentRoll), "   "))},
+		{},
+		{},
+		{render.Centred(render.Bold("Available castles"))},
+		{},
+	}...)
+	layout = append(layout, []interface{}{
+		render.Centred(RenderCastles(Castles, false)),
+	})
+	return render.Table(layout, 0, 0), nil
+}
+
+func RenderCastles(castles []Castle, stealing bool) string {
 	cells := [][]interface{}{}
 	row := []interface{}{}
 	lastClan := -1
-	for _, c := range Castles {
+	for _, c := range castles {
 		if lastClan != -1 && c.Clan != lastClan {
 			cells = append(cells, []interface{}{render.Centred(render.Table(
 				[][]interface{}{row}, 0, 6))})
 			row = []interface{}{}
 		}
-		row = append(row, render.Table(c.RenderCells(false), 0, 0))
+		row = append(row, c.Render(stealing))
 		lastClan = c.Clan
 	}
 	if len(row) > 0 {
 		cells = append(cells, []interface{}{render.Centred(render.Table(
 			[][]interface{}{row}, 0, 6))})
 	}
-	output.WriteString(render.Table(cells, 2, 6))
-	return output.String(), nil
+	return render.Table(cells, 2, 6)
+}
+
+func (c Castle) Render(stealing bool) string {
+	return render.Table(c.RenderCells(stealing), 0, 0)
 }
 
 func (g *Game) PlayerName(player int) string {
@@ -70,7 +99,7 @@ func (c Castle) RenderCells(stealing bool) [][]interface{} {
 		))},
 		{render.Centred(RenderClan(c.Clan))},
 	}
-	for i, l := range c.CalcLines(false) {
+	for i, l := range c.CalcLines(stealing) {
 		row := []interface{}{render.Markup(fmt.Sprintf(
 			"%d.",
 			i+1,

@@ -1,6 +1,11 @@
 package age_of_war
 
-import "github.com/Miniand/brdg.me/render"
+import (
+	"sort"
+
+	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/Miniand/brdg.me/render"
+)
 
 const (
 	ClanOda = iota
@@ -12,30 +17,30 @@ const (
 )
 
 var ClanSetPoints = map[int]int{
-	ClanOda: 10,
-	ClanTokugawa: 8,
-	ClanUesugi: 8,
-	ClanMori: 5,
+	ClanOda:       10,
+	ClanTokugawa:  8,
+	ClanUesugi:    8,
+	ClanMori:      5,
 	ClanChosokabe: 4,
-	ClanShimazu: 3,
+	ClanShimazu:   3,
 }
 
 var ClanNames = map[int]string{
-	ClanOda: "Oda",
-	ClanTokugawa: "Tokugawa",
-	ClanUesugi: "Uesugi",
-	ClanMori: "Mori",
+	ClanOda:       "Oda",
+	ClanTokugawa:  "Tokugawa",
+	ClanUesugi:    "Uesugi",
+	ClanMori:      "Mori",
 	ClanChosokabe: "Chosokabe",
-	ClanShimazu: "Shimazu",
+	ClanShimazu:   "Shimazu",
 }
 
 var ClanColours = map[int]string{
-	ClanOda: render.Yellow,
-	ClanTokugawa: render.Gray,
-	ClanUesugi: render.Magenta,
-	ClanMori: render.Red,
+	ClanOda:       render.Yellow,
+	ClanTokugawa:  render.Gray,
+	ClanUesugi:    render.Magenta,
+	ClanMori:      render.Red,
 	ClanChosokabe: render.Black,
-	ClanShimazu: render.Green,
+	ClanShimazu:   render.Green,
 }
 
 type Castle struct {
@@ -73,6 +78,36 @@ func (c Castle) CalcLines(stealing bool) []Line {
 type Line struct {
 	Infantry int
 	Symbols  []int
+}
+
+func (l Line) CanAfford(with []int) (can bool, using int) {
+	symbols := []int{}
+	inf := []int{}
+	for _, w := range with {
+		if i, ok := DiceInfantry[w]; ok {
+			inf = append(inf, i)
+		} else {
+			symbols = append(symbols, w)
+		}
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(inf)))
+
+	_, can = helper.IntSliceSub(symbols, l.Symbols)
+	using = len(l.Symbols)
+
+	remInf := l.Infantry
+	for _, i := range inf {
+		if remInf <= 0 {
+			break
+		}
+		remInf -= i
+		using++
+	}
+	if remInf > 0 {
+		can = false
+	}
+
+	return
 }
 
 // Definitions of all the castles.
@@ -135,7 +170,7 @@ var Castles = []Castle{
 		Lines: []Line{
 			{Symbols: []int{DiceDaimyo}},
 			{Symbols: []int{DiceArchery}},
-			{Symbols: []int{DiceCavalry}},			
+			{Symbols: []int{DiceCavalry}},
 			{Infantry: 3},
 		},
 	},
@@ -149,7 +184,6 @@ var Castles = []Castle{
 		},
 	},
 
-
 	// Clan Uesugi
 	{
 		Clan:   ClanUesugi,
@@ -160,7 +194,7 @@ var Castles = []Castle{
 			{Symbols: []int{DiceCavalry, DiceCavalry}},
 		},
 	},
-		{
+	{
 		Clan:   ClanUesugi,
 		Name:   "Kitanosho",
 		Points: 3,
@@ -180,15 +214,14 @@ var Castles = []Castle{
 			{Infantry: 8},
 		},
 	},
-		{
+	{
 		Clan:   ClanMori,
 		Name:   "Takahashi",
 		Points: 2,
 		Lines: []Line{
 			{Symbols: []int{DiceCavalry, DiceCavalry}},
 			{Infantry: 5},
-			{Infantry: 2},			
-			
+			{Infantry: 2},
 		},
 	},
 	// Clan Chosokabe
@@ -202,7 +235,7 @@ var Castles = []Castle{
 			{Infantry: 4},
 		},
 	},
-		{
+	{
 		Clan:   ClanChosokabe,
 		Name:   "Marugame",
 		Points: 1,

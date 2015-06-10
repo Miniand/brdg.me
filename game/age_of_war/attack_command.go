@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/helper"
 )
 
 type AttackCommand struct{}
@@ -32,7 +33,15 @@ func (c AttackCommand) Call(player string, context interface{},
 		return "", errors.New("you must specify a castle to attack")
 	}
 
-	castle := 0
+	castleNames := []string{}
+	for _, c := range Castles {
+		castleNames = append(castleNames, c.Name)
+	}
+	castle, err := helper.MatchStringInStrings(a[0], castleNames)
+	if err != nil {
+		return "", err
+	}
+
 	return "", g.Attack(pNum, castle)
 }
 
@@ -51,5 +60,6 @@ func (g *Game) Attack(player, castle int) error {
 	if castle < 0 || castle >= len(Castles) {
 		return errors.New("that is not a valid castle")
 	}
-	return errors.New("not implemented")
+	g.CurrentlyAttacking = castle
+	return nil
 }

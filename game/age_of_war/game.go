@@ -59,11 +59,14 @@ func (g *Game) Start(players []string) error {
 	g.Conquered = map[int]bool{}
 	g.CastleOwners = map[int]int{}
 
+	g.StartTurn()
+
 	return nil
 }
 
 func (g *Game) StartTurn() {
 	g.CurrentlyAttacking = -1
+	g.Roll(7)
 }
 
 func (g *Game) PlayerList() []string {
