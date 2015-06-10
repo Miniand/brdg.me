@@ -130,15 +130,6 @@ var Castles = []Castle{
 	},
 	{
 		Clan:   ClanTokugawa,
-		Name:   "Inuyama",
-		Points: 3,
-		Lines: []Line{
-			{Symbols: []int{DiceDaimyo}},
-			{Symbols: []int{DiceArchery, DiceArchery}},
-		},
-	},
-	{
-		Clan:   ClanTokugawa,
 		Name:   "Kiyosu",
 		Points: 2,
 		Lines: []Line{
@@ -146,6 +137,15 @@ var Castles = []Castle{
 			{Symbols: []int{DiceArchery}},
 			{Symbols: []int{DiceCavalry}},			
 			{Infantry: 3},
+		},
+	},
+	{
+		Clan:   ClanTokugawa,
+		Name:   "Inuyama",
+		Points: 1,
+		Lines: []Line{
+			{Symbols: []int{DiceDaimyo}},
+			{Symbols: []int{DiceArchery, DiceArchery}},
 		},
 	},
 
@@ -185,7 +185,7 @@ var Castles = []Castle{
 		Name:   "Takahashi",
 		Points: 2,
 		Lines: []Line{
-			{Symbols: []int{DiceArchery, DiceArchery}},
+			{Symbols: []int{DiceCavalry, DiceCavalry}},
 			{Infantry: 5},
 			{Infantry: 2},			
 			
@@ -204,8 +204,8 @@ var Castles = []Castle{
 	},
 		{
 		Clan:   ClanChosokabe,
-		Name:   "Marrugame",
-		Points: 2,
+		Name:   "Marugame",
+		Points: 1,
 		Lines: []Line{
 			{Symbols: []int{DiceDaimyo, DiceDaimyo}},
 			{Symbols: []int{DiceCavalry}},
