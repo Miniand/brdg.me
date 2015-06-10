@@ -3,27 +3,39 @@ package age_of_war
 import "github.com/Miniand/brdg.me/render"
 
 const (
-	ClanFarty = iota
-	ClanEgg
-	ClanBacon
+	ClanOda = iota
+	ClanTokugawa
+	ClanUesugi
+	ClanMori
+	ClanChosokabe
+	ClanShimazu
 )
 
 var ClanSetPoints = map[int]int{
-	ClanFarty: 7,
-	ClanEgg:   8,
-	ClanBacon: 9,
+	ClanOda: 10,
+	ClanTokugawa: 8,
+	ClanUesugi: 8,
+	ClanMori: 5,
+	ClanChosokabe: 4,
+	ClanShimazu: 3,
 }
 
 var ClanNames = map[int]string{
-	ClanFarty: "Farty",
-	ClanEgg:   "Egg",
-	ClanBacon: "Bacon",
+	ClanOda: "Oda",
+	ClanTokugawa: "Tokugawa",
+	ClanUesugi: "Uesugi",
+	ClanMori: "Mori",
+	ClanChosokabe: "Chosokabe",
+	ClanShimazu: "Shimazu",
 }
 
 var ClanColours = map[int]string{
-	ClanFarty: render.Blue,
-	ClanEgg:   render.Red,
-	ClanBacon: render.Yellow,
+	ClanOda: render.Yellow,
+	ClanTokugawa: render.Gray,
+	ClanUesugi: render.Magenta,
+	ClanMori: render.Red,
+	ClanChosokabe: render.Black,
+	ClanShimazu: render.Green,
 }
 
 type Castle struct {
@@ -65,69 +77,150 @@ type Line struct {
 
 // Definitions of all the castles.
 var Castles = []Castle{
-	// Clan Bacon
+	// Clan Oda
 	{
-		Clan:   ClanBacon,
-		Name:   "Hamfort",
+		Clan:   ClanOda,
+		Name:   "Azuchi",
 		Points: 3,
 		Lines: []Line{
-			{Symbols: []int{DiceDaimyo}},
-			{Symbols: []int{DiceArchery, DiceCavalry}},
-			{Infantry: 6},
+			{Symbols: []int{DiceArchery}},
+			{Symbols: []int{DiceCavalry, DiceCavalry}},
+			{Infantry: 5},
 		},
 	},
 	{
-		Clan:   ClanBacon,
-		Name:   "Pig keep",
-		Points: 3,
-		Lines: []Line{
-			{Symbols: []int{DiceDaimyo}},
-			{Symbols: []int{DiceArchery, DiceCavalry}},
-			{Infantry: 6},
-		},
-	},
-	{
-		Clan:   ClanBacon,
-		Name:   "Meat tower",
+		Clan:   ClanOda,
+		Name:   "Matsumoto",
 		Points: 2,
 		Lines: []Line{
-			{Symbols: []int{DiceDaimyo, DiceCavalry}},
+			{Symbols: []int{DiceArchery}},
+			{Symbols: []int{DiceArchery}},
+			{Infantry: 7},
+		},
+	},
+	{
+		Clan:   ClanOda,
+		Name:   "Odani",
+		Points: 1,
+		Lines: []Line{
+			{Infantry: 10},
+		},
+	},
+	{
+		Clan:   ClanOda,
+		Name:   "Gifu",
+		Points: 1,
+		Lines: []Line{
+			{Symbols: []int{DiceDaimyo}},
+			{Symbols: []int{DiceArchery}},
+			{Symbols: []int{DiceCavalry}},
+		},
+	},
+
+	// Clan Tokugawa
+	{
+		Clan:   ClanTokugawa,
+		Name:   "Edo",
+		Points: 3,
+		Lines: []Line{
+			{Symbols: []int{DiceArchery, DiceCavalry}},
+			{Symbols: []int{DiceArchery, DiceCavalry}},
+			{Infantry: 3},
+		},
+	},
+	{
+		Clan:   ClanTokugawa,
+		Name:   "Inuyama",
+		Points: 3,
+		Lines: []Line{
+			{Symbols: []int{DiceDaimyo}},
 			{Symbols: []int{DiceArchery, DiceArchery}},
+		},
+	},
+	{
+		Clan:   ClanTokugawa,
+		Name:   "Kiyosu",
+		Points: 2,
+		Lines: []Line{
+			{Symbols: []int{DiceDaimyo}},
+			{Symbols: []int{DiceArchery}},
+			{Symbols: []int{DiceCavalry}},			
 			{Infantry: 3},
 		},
 	},
 
-	// Clan Farty
-	{
-		Clan:   ClanFarty,
-		Name:   "Fartfort",
-		Points: 3,
-		Lines: []Line{
-			{Symbols: []int{DiceDaimyo}},
-			{Symbols: []int{DiceArchery, DiceCavalry}},
-			{Infantry: 6},
-		},
-	},
-	{
-		Clan:   ClanFarty,
-		Name:   "Stinky keep",
-		Points: 3,
-		Lines: []Line{
-			{Symbols: []int{DiceDaimyo}},
-			{Symbols: []int{DiceArchery, DiceCavalry}},
-			{Infantry: 6},
-		},
-	},
 
-	// Clan Egg
+	// Clan Uesugi
 	{
-		Clan:   ClanEgg,
-		Name:   "Egg town",
+		Clan:   ClanUesugi,
+		Name:   "Kasugayama",
+		Points: 4,
+		Lines: []Line{
+			{Symbols: []int{DiceArchery, DiceArchery}},
+			{Symbols: []int{DiceCavalry, DiceCavalry}},
+		},
+	},
+		{
+		Clan:   ClanUesugi,
+		Name:   "Kitanosho",
+		Points: 3,
+		Lines: []Line{
+			{Symbols: []int{DiceDaimyo}},
+			{Symbols: []int{DiceArchery, DiceCavalry}},
+			{Infantry: 6},
+		},
+	},
+	// Clan Mori
+	{
+		Clan:   ClanMori,
+		Name:   "Gassantoda",
 		Points: 2,
 		Lines: []Line{
-			{Symbols: []int{DiceDaimyo, DiceCavalry}},
+			{Symbols: []int{DiceDaimyo}},
+			{Infantry: 8},
+		},
+	},
+		{
+		Clan:   ClanMori,
+		Name:   "Takahashi",
+		Points: 2,
+		Lines: []Line{
 			{Symbols: []int{DiceArchery, DiceArchery}},
-			{Infantry: 3},
+			{Infantry: 5},
+			{Infantry: 2},			
+			
+		},
+	},
+	// Clan Chosokabe
+	{
+		Clan:   ClanChosokabe,
+		Name:   "Matsuyama",
+		Points: 2,
+		Lines: []Line{
+			{Symbols: []int{DiceDaimyo}},
+			{Infantry: 4},
+			{Infantry: 4},
+		},
+	},
+		{
+		Clan:   ClanChosokabe,
+		Name:   "Marrugame",
+		Points: 2,
+		Lines: []Line{
+			{Symbols: []int{DiceDaimyo, DiceDaimyo}},
+			{Symbols: []int{DiceCavalry}},
+		},
+	},
+	// Clan Shimazu
+	{
+		Clan:   ClanShimazu,
+		Name:   "Kumamoto",
+		Points: 3,
+		Lines: []Line{
+			{Symbols: []int{DiceDaimyo, DiceDaimyo}},
+			{Symbols: []int{DiceCavalry}},
+			{Symbols: []int{DiceArchery}},
+			{Infantry: 4},
 		},
 	},
 }
