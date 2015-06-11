@@ -8,20 +8,22 @@ import (
 )
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	layout := [][]interface{}{}
+	layout := [][]interface{}{
+		{render.Centred(render.Bold("Current roll"))},
+		{render.Centred(strings.Join(RenderDice(g.CurrentRoll), "   "))},
+		{},
+	}
 
 	if g.CurrentlyAttacking != -1 {
 		layout = append(layout, [][]interface{}{
-			{render.Centred(render.Bold("Currently attacking\n"))},
+			{render.Centred(render.Bold("Currently attacking"))},
+			{},
 			{render.Centred(g.RenderCastle(g.CurrentlyAttacking))},
 			{},
 		}...)
 	}
 
 	layout = append(layout, [][]interface{}{
-		{render.Centred(render.Bold("Current roll"))},
-		{render.Centred(strings.Join(RenderDice(g.CurrentRoll), "   "))},
-		{},
 		{},
 		{render.Centred(render.Bold("Castles"))},
 		{},

@@ -77,7 +77,7 @@ func (g *Game) NextTurn() {
 	g.StartTurn()
 }
 
-func (g *Game) CheckEndOfTurn() {
+func (g *Game) CheckEndOfTurn() bool {
 	if g.CurrentlyAttacking != -1 {
 		c := Castles[g.CurrentlyAttacking]
 		lines := c.CalcLines(
@@ -93,10 +93,18 @@ func (g *Game) CheckEndOfTurn() {
 			}
 		}
 		if allLines {
+			suffix := ""
+			if g.Conquered[g.CurrentlyAttacking] {
+				suffix = fmt.Sprintf(
+					" from %s",
+					g.PlayerName(g.CastleOwners[g.CurrentlyAttacking]),
+				)
+			}
 			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-				"%s conquered the castle %s",
+				"%s conquered the castle %s%s",
 				g.PlayerName(g.CurrentPlayer),
 				c.RenderName(),
+				suffix,
 			)))
 			g.Conquered[g.CurrentlyAttacking] = true
 			g.CastleOwners[g.CurrentlyAttacking] = g.CurrentPlayer
@@ -108,7 +116,7 @@ func (g *Game) CheckEndOfTurn() {
 				)))
 			}
 			g.NextTurn()
-			return
+			return true
 		}
 
 		// If the player doesn't have enough dice to complete the rest of the
@@ -122,8 +130,9 @@ func (g *Game) CheckEndOfTurn() {
 			}
 			reqDice += l.MinDice()
 			if reqDice > numDice {
+				g.FailedAttackMessage()
 				g.NextTurn()
-				return
+				return true
 			}
 			if can, _ := l.CanAfford(g.CurrentRoll); can {
 				canAffordLine = true
@@ -133,8 +142,9 @@ func (g *Game) CheckEndOfTurn() {
 		// If the player has the minimum required dice but they can't afford a
 		// line, it is the end of the turn.
 		if reqDice == numDice && !canAffordLine {
+			g.FailedAttackMessage()
 			g.NextTurn()
-			return
+			return true
 		}
 	} else {
 		// If the player doesn't have enough dice for any castle, it is the end
@@ -154,12 +164,27 @@ func (g *Game) CheckEndOfTurn() {
 			}
 			if minDice <= len(g.CurrentRoll) {
 				// They can afford this one
-				return
+				return false
 			}
 		}
 		// They couldn't afford anything, next turn.
+		g.FailedAttackMessage()
 		g.NextTurn()
+		return true
 	}
+	return false
+}
+
+func (g *Game) FailedAttackMessage() {
+	target := "anything"
+	if g.CurrentlyAttacking != -1 {
+		target = Castles[g.CurrentlyAttacking].RenderName()
+	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s failed to conquer %s",
+		g.PlayerName(g.CurrentPlayer),
+		target,
+	)))
 }
 
 func (g *Game) Scores() map[int]int {

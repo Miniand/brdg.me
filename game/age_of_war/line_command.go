@@ -76,7 +76,10 @@ func (g *Game) Line(player, line int) error {
 		helper.Plural(with, "die"),
 	)))
 	g.CompletedLines[line] = true
-	g.Roll(len(g.CurrentRoll) - with)
-	g.CheckEndOfTurn()
+	// Check end of turn first in case they completed the castle.
+	if !g.CheckEndOfTurn() {
+		g.Roll(len(g.CurrentRoll) - with)
+		g.CheckEndOfTurn()
+	}
 	return nil
 }
