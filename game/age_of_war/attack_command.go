@@ -2,9 +2,11 @@ package age_of_war
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type AttackCommand struct{}
@@ -60,6 +62,18 @@ func (g *Game) Attack(player, castle int) error {
 	if castle < 0 || castle >= len(Castles) {
 		return errors.New("that is not a valid castle")
 	}
+	if g.Conquered[castle] && g.CastleOwners[castle] == player {
+		return errors.New("you have already conquered that castle")
+	}
+	if ok, _ := g.ClanConquered(Castles[castle].Clan); ok {
+		return errors.New("that clan is already conquered")
+	}
 	g.CurrentlyAttacking = castle
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s is attacking:\n%s",
+		g.PlayerName(player),
+		g.RenderCastle(castle),
+	)))
+	g.CheckEndOfTurn()
 	return nil
 }

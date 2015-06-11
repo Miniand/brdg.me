@@ -13,9 +13,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if g.CurrentlyAttacking != -1 {
 		layout = append(layout, [][]interface{}{
 			{render.Centred(render.Bold("Currently attacking\n"))},
-			{render.Centred(Castles[g.CurrentlyAttacking].Render(
-				g.Conquered[g.CurrentlyAttacking],
-			))},
+			{render.Centred(g.RenderCastle(g.CurrentlyAttacking))},
 			{},
 		}...)
 	}
@@ -25,37 +23,100 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		{render.Centred(strings.Join(RenderDice(g.CurrentRoll), "   "))},
 		{},
 		{},
-		{render.Centred(render.Bold("Available castles"))},
+		{render.Centred(render.Bold("Castles"))},
 		{},
 	}...)
 	layout = append(layout, []interface{}{
-		render.Centred(RenderCastles(Castles, false)),
+		render.Centred(g.RenderCastles()),
 	})
+
+	scores := g.Scores()
+	scoreStrs := make([]string, len(g.Players))
+	for p := range g.Players {
+		scoreStrs[p] = fmt.Sprintf(
+			"%s: {{b}}%d{{_b}}",
+			g.PlayerName(p),
+			scores[p],
+		)
+	}
+	layout = append(layout, [][]interface{}{
+		{},
+		{render.Centred(render.Bold("Scores"))},
+		{render.Centred(strings.Join(scoreStrs, "   "))},
+	}...)
+
 	return render.Table(layout, 0, 0), nil
 }
 
-func RenderCastles(castles []Castle, stealing bool) string {
+func (g *Game) RenderCastles() string {
 	cells := [][]interface{}{}
 	row := []interface{}{}
 	lastClan := -1
-	for _, c := range castles {
-		if lastClan != -1 && c.Clan != lastClan {
+	conqueredClans := map[int]bool{}
+	for i, c := range Castles {
+		if lastClan != -1 && c.Clan != lastClan && len(row) > 0 {
 			cells = append(cells, []interface{}{render.Centred(render.Table(
 				[][]interface{}{row}, 0, 6))})
 			row = []interface{}{}
 		}
-		row = append(row, c.Render(stealing))
+		conquered, ok := conqueredClans[c.Clan]
+		if !ok {
+			var conqueredBy int
+			conquered, conqueredBy = g.ClanConquered(c.Clan)
+			conqueredClans[c.Clan] = conquered
+			if conquered {
+				cells = append(cells, []interface{}{
+					render.Centred(fmt.Sprintf(
+						"%s has been conquered by %s for {{b}}%d{{_b}} points",
+						RenderClan(c.Clan),
+						g.PlayerName(conqueredBy),
+						ClanSetPoints[c.Clan],
+					)),
+				})
+			}
+		}
+		if !conquered {
+			row = append(row, g.RenderCastle(i))
+		}
 		lastClan = c.Clan
 	}
 	if len(row) > 0 {
 		cells = append(cells, []interface{}{render.Centred(render.Table(
 			[][]interface{}{row}, 0, 6))})
 	}
-	return render.Table(cells, 2, 6)
+	return render.Table(cells, 1, 6)
 }
 
-func (c Castle) Render(stealing bool) string {
-	return render.Table(c.RenderCells(stealing), 0, 0)
+func (g *Game) RenderCastle(cIndex int) string {
+	c := Castles[cIndex]
+	cells := [][]interface{}{
+		{render.Centred(fmt.Sprintf(
+			"%s (%d)",
+			c.RenderName(),
+			c.Points,
+		))},
+	}
+	if g.Conquered[cIndex] {
+		cells = append(cells, []interface{}{render.Centred(fmt.Sprintf(
+			"(%s)",
+			g.PlayerName(g.CastleOwners[cIndex]),
+		))})
+	}
+	for i, l := range c.CalcLines(g.Conquered[cIndex]) {
+		row := []interface{}{render.Markup(fmt.Sprintf(
+			"%d.",
+			i+1,
+		), render.Gray, false)}
+		if g.CurrentlyAttacking == cIndex && g.CompletedLines[i] {
+			row = append(row, render.Colour("complete", render.Gray))
+		} else {
+			row = append(row, l.RenderRow()...)
+		}
+		cells = append(cells, []interface{}{
+			render.Table([][]interface{}{row}, 0, 2),
+		})
+	}
+	return render.Table(cells, 0, 0)
 }
 
 func (g *Game) PlayerName(player int) string {
@@ -88,28 +149,6 @@ func (c Castle) RenderName() string {
 
 func RenderClan(clan int) string {
 	return render.Markup(ClanNames[clan], ClanColours[clan], true)
-}
-
-func (c Castle) RenderCells(stealing bool) [][]interface{} {
-	cells := [][]interface{}{
-		{render.Centred(fmt.Sprintf(
-			"%s (%d)",
-			c.RenderName(),
-			c.Points,
-		))},
-		{render.Centred(RenderClan(c.Clan))},
-	}
-	for i, l := range c.CalcLines(stealing) {
-		row := []interface{}{render.Markup(fmt.Sprintf(
-			"%d.",
-			i+1,
-		), render.Gray, false)}
-		row = append(row, l.RenderRow()...)
-		cells = append(cells, []interface{}{
-			render.Table([][]interface{}{row}, 0, 2),
-		})
-	}
-	return cells
 }
 
 func (l Line) RenderRow() []interface{} {

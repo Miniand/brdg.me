@@ -43,5 +43,6 @@ func (g *Game) RollForPlayer(player int) error {
 		return errors.New("unable to roll right now")
 	}
 	g.Roll(len(g.CurrentRoll) - 1)
+	g.CheckEndOfTurn()
 	return nil
 }

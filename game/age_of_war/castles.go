@@ -16,6 +16,15 @@ const (
 	ClanShimazu
 )
 
+var Clans = []int{
+	ClanOda,
+	ClanTokugawa,
+	ClanUesugi,
+	ClanMori,
+	ClanChosokabe,
+	ClanShimazu,
+}
+
 var ClanSetPoints = map[int]int{
 	ClanOda:       10,
 	ClanTokugawa:  8,
@@ -55,7 +64,7 @@ type Castle struct {
 func (c Castle) MinDice() int {
 	min := 0
 	for _, l := range c.Lines {
-		min += len(l.Symbols) + (l.Infantry+2)/3
+		min += l.MinDice()
 	}
 	return min
 }
@@ -78,6 +87,10 @@ func (c Castle) CalcLines(stealing bool) []Line {
 type Line struct {
 	Infantry int
 	Symbols  []int
+}
+
+func (l Line) MinDice() int {
+	return len(l.Symbols) + (l.Infantry+2)/3
 }
 
 func (l Line) CanAfford(with []int) (can bool, using int) {
