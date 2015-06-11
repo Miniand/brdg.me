@@ -74,13 +74,19 @@ type spanCellInTable struct {
 	start, span, contentWidth int
 }
 
+type loc struct {
+	row, col int
+}
+
 func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 	// First calculate widths
 	widths := map[int]int{}
+	cellWidths := map[loc]int{}
 	spans := []spanCellInTable{}
-	for _, row := range cells {
+	for rowIndex, row := range cells {
 		for colIndex, cell := range row {
 			w := StrWidth(String(cell))
+			cellWidths[loc{rowIndex, colIndex}] = w
 			switch t := cell.(type) {
 			case Unbounded:
 				continue
@@ -136,6 +142,7 @@ func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 				if len(cellLines[colIndex]) > lIndex {
 					lineContent = cellLines[colIndex][lIndex]
 				}
+				lineContent = Padded(lineContent, cellWidths[loc{rowIndex, colIndex}])
 				width := widths[colIndex]
 				if span, ok := cellRaw.(CellSpan); ok {
 					cellRaw = span.Content
