@@ -1,6 +1,11 @@
 package bang_dice
 
 import (
+	"errors"
+	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
@@ -12,6 +17,8 @@ const (
 	RoleOutlaw
 	RoleRenegade
 )
+
+var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 var Roles = []int{
 	RoleSheriff,
@@ -25,8 +32,10 @@ var Roles = []int{
 }
 
 type Game struct {
-	Players []string
-	Log     *log.Log
+	Players            []string
+	Roles, Chars, Life []int
+	Log                *log.Log
+	CurrentTurn        int
 }
 
 func (g *Game) Commands() []command.Command {
@@ -50,8 +59,37 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) Start(players []string) error {
+	l := len(players)
+	if l < 4 || l > 8 {
+		return errors.New("only for 4 to 8 players")
+	}
 	g.Players = players
 	g.Log = log.New()
+
+	g.Chars = make([]int, l)
+	for i, c := range rnd.Perm(len(Chars))[:l] {
+		g.Chars[i] = c
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s is {{b}}%s{{_b}} with {{b}}%d{{_b}} life.  %s",
+			g.PlayerName(i),
+			Chars[c].Name(),
+			Chars[c].StartingLife(),
+			Chars[c].Description(),
+		)))
+	}
+
+	g.Roles = make([]int, l)
+	for i, p := range rnd.Perm(l) {
+		g.Roles[i] = Roles[p]
+		if Roles[p] == RoleSheriff {
+			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+				"{{b}}%s is the Sherrif{{_b}}, they start with an extra life and take the first turn.",
+				g.PlayerName(i),
+			)))
+			g.CurrentTurn = i
+		}
+	}
+
 	return nil
 }
 
@@ -68,7 +106,7 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+	return []string{g.Players[g.CurrentTurn]}
 }
 
 func (g *Game) GameLog() *log.Log {
