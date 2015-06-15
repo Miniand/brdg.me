@@ -11,8 +11,8 @@ func (c CharRoseDoolan) Name() string {
 func (c CharRoseDoolan) Description() string {
 	return fmt.Sprintf(
 		"You may use %s or %s for players sitting one place further",
-		DieStrings[Die1],
-		DieStrings[Die2],
+		RenderDie(Die1),
+		RenderDie(Die2),
 	)
 }
 

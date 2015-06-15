@@ -11,7 +11,7 @@ func (c CharJesseJones) Name() string {
 func (c CharJesseJones) Description() string {
 	return fmt.Sprintf(
 		"If you have four life points or less, you game two if you use %s for yourself.",
-		DieStrings[DieBeer],
+		RenderDie(DieBeer),
 	)
 }
 

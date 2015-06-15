@@ -11,8 +11,8 @@ func (c CharWillyTheKid) Name() string {
 func (c CharWillyTheKid) Description() string {
 	return fmt.Sprintf(
 		"You only need %s%s to use the Gatling Gun.",
-		DieStrings[DieGatling],
-		DieStrings[DieGatling],
+		RenderDie(DieGatling),
+		RenderDie(DieGatling),
 	)
 }
 

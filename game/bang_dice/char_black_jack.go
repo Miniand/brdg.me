@@ -11,7 +11,7 @@ func (c CharBlackJack) Name() string {
 func (c CharBlackJack) Description() string {
 	return fmt.Sprintf(
 		"You may re-roll %s. (Not if you roll three ore more!)",
-		DieStrings[DieDynamite],
+		RenderDie(DieDynamite),
 	)
 }
 

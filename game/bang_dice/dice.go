@@ -1,5 +1,11 @@
 package bang_dice
 
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/render"
+)
+
 const (
 	DieArrow = iota
 	DieDynamite
@@ -9,11 +15,27 @@ const (
 	DieGatling
 )
 
+var DieColours = map[int]string{
+	DieArrow:    render.Green,
+	DieDynamite: render.Red,
+	Die1:        render.Black,
+	Die2:        render.Black,
+	DieBeer:     render.Yellow,
+	DieGatling:  render.Blue,
+}
+
 var DieStrings = map[int]string{
-	DieArrow:    `{{b}}[{{c "green"}}A{{_c}}]{{_b}}`,
-	DieDynamite: `{{b}}[{{c "red"}}D{{_c}}]{{_b}}`,
-	Die1:        `{{b}}[1]{{_b}}`,
-	Die2:        `{{b}}[2]{{_b}}`,
-	DieBeer:     `{{b}}[{{c "yellow"}}B{{_c}}]{{_b}}`,
-	DieGatling:  `{{b}}[{{c "blue"}}G{{_c}}]{{_b}}`,
+	DieArrow:    "A",
+	DieDynamite: "D",
+	Die1:        "1",
+	Die2:        "2",
+	DieBeer:     "B",
+	DieGatling:  "G",
+}
+
+func RenderDie(die int) string {
+	return render.Bold(fmt.Sprintf(
+		"[%s]",
+		render.Colour(DieStrings[die], DieColours[die]),
+	))
 }

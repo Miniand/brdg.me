@@ -11,7 +11,7 @@ func (c CharKitCarlson) Name() string {
 func (c CharKitCarlson) Description() string {
 	return fmt.Sprintf(
 		"For each %s you may discard one arrow from any player.",
-		DieStrings[DieGatling],
+		RenderDie(DieGatling),
 	)
 }
 

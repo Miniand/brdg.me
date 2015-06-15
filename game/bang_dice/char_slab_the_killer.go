@@ -11,9 +11,9 @@ func (c CharSlabTheKiller) Name() string {
 func (c CharSlabTheKiller) Description() string {
 	return fmt.Sprintf(
 		"Once per turn, you can use a %s to double a %s or %s.",
-		DieStrings[DieBeer],
-		DieStrings[Die1],
-		DieStrings[Die2],
+		RenderDie(DieBeer),
+		RenderDie(Die1),
+		RenderDie(Die2),
 	)
 }
 

@@ -11,8 +11,8 @@ func (c CharSuzyLafayette) Name() string {
 func (c CharSuzyLafayette) Description() string {
 	return fmt.Sprintf(
 		"If you didn't roll any %s or %s you gain two life points.",
-		DieStrings[Die1],
-		DieStrings[Die2],
+		RenderDie(Die1),
+		RenderDie(Die2),
 	)
 }
 

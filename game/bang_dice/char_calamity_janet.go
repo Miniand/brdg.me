@@ -11,8 +11,8 @@ func (c CharCalamityJanet) Name() string {
 func (c CharCalamityJanet) Description() string {
 	return fmt.Sprintf(
 		"You can use %s as %s and vice-versa.",
-		DieStrings[Die1],
-		DieStrings[Die2],
+		RenderDie(Die1),
+		RenderDie(Die2),
 	)
 }
 
