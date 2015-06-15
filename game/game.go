@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/acquire"
+	"github.com/Miniand/brdg.me/game/age_of_war"
 	"github.com/Miniand/brdg.me/game/alhambra"
 	"github.com/Miniand/brdg.me/game/bang_dice"
 	"github.com/Miniand/brdg.me/game/battleship"
@@ -55,6 +56,7 @@ type Botter interface {
 func gameList() []Playable {
 	return []Playable{
 		&acquire.Game{},
+		&age_of_war.Game{},
 		&alhambra.Game{},
 		&bang_dice.Game{},
 		&battleship.Game{},
