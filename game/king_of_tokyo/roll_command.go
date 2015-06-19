@@ -16,8 +16,8 @@ func (c RollCommand) Parse(input string) []string {
 
 func (c RollCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
 		return false
 	}
 	return g.CanRoll(pNum)
@@ -26,9 +26,9 @@ func (c RollCommand) CanCall(player string, context interface{}) bool {
 func (c RollCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
 	dice := make([]int, len(a))

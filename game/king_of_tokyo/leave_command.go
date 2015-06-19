@@ -14,8 +14,8 @@ func (c LeaveCommand) Parse(input string) []string {
 
 func (c LeaveCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
 		return false
 	}
 	return g.CanLeave(pNum)
@@ -24,9 +24,9 @@ func (c LeaveCommand) CanCall(player string, context interface{}) bool {
 func (c LeaveCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("could not find player")
 	}
 	return "", g.Leave(pNum)
 }

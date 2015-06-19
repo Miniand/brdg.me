@@ -15,8 +15,8 @@ func (c SweepCommand) Parse(input string) []string {
 
 func (c SweepCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
 		return false
 	}
 	return g.CanSweep(pNum)
@@ -25,9 +25,9 @@ func (c SweepCommand) CanCall(player string, context interface{}) bool {
 func (c SweepCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("could not find player")
 	}
 	return "", g.Sweep(pNum)
 }

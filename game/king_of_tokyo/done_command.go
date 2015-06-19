@@ -14,8 +14,8 @@ func (c DoneCommand) Parse(input string) []string {
 
 func (c DoneCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
 		return false
 	}
 	return g.CanDone(pNum)
@@ -24,9 +24,9 @@ func (c DoneCommand) CanCall(player string, context interface{}) bool {
 func (c DoneCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("could not find player")
 	}
 	return "", g.Done(pNum)
 }

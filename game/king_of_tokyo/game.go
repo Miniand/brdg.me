@@ -541,7 +541,7 @@ func (g *Game) EliminatedPlayerList() []string {
 	return eliminated
 }
 
-func (g *Game) PlayerNum(player string) (int, error) {
+func (g *Game) PlayerNum(player string) (int, bool) {
 	return helper.StringInStrings(player, g.Players)
 }
 

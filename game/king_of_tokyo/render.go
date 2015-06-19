@@ -2,6 +2,7 @@ package king_of_tokyo
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/Miniand/brdg.me/render"
@@ -106,9 +107,9 @@ func RenderBuyCardTable(g *Game, cards []BuyableCard) string {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("could not find player")
 	}
 	buf := bytes.NewBuffer([]byte{})
 	// Current roll
