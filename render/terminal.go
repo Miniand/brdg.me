@@ -30,12 +30,6 @@ func (t *TerminalMarkupper) EndBold() interface{} {
 	t.BoldStack -= 1
 	return t.Current()
 }
-func (t *TerminalMarkupper) StartLarge() interface{} {
-	return ""
-}
-func (t *TerminalMarkupper) EndLarge() interface{} {
-	return ""
-}
 func (t *TerminalMarkupper) Current() string {
 	c := "\x1b[0"
 	if len(t.ColourStack) > 0 {

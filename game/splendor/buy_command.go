@@ -16,16 +16,16 @@ func (c BuyCommand) Parse(input string) []string {
 
 func (c BuyCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	return err == nil && g.CanBuy(pNum)
+	pNum, found := g.PlayerNum(player)
+	return found && g.CanBuy(pNum)
 }
 
 func (c BuyCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, found := g.PlayerNum(player)
+	if !found {
+		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {

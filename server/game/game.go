@@ -32,10 +32,10 @@ func HandleCommandText(player, gameId, commandText string) error {
 	if err != nil || ok && u.Unsubscribed || gameId == "" {
 		commands := scommand.Commands(nil)
 		output, err := command.CallInCommands(player, nil, commandText, commands)
-		if err != nil {
+		if err != nil || output != "" {
 			// Print help
 			body := bytes.NewBufferString("")
-			if err != command.ErrNoCommandFound {
+			if err != nil && err != command.ErrNoCommandFound {
 				body.WriteString(err.Error())
 				body.WriteString("\n\n")
 			}

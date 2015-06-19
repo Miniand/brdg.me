@@ -3,6 +3,7 @@ package farkle
 import (
 	"errors"
 	"fmt"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
@@ -33,7 +34,7 @@ func (dc DoneCommand) Call(player string, context interface{},
 		return "", errors.New("The game is already finished")
 	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s took %d points, now on %d",
+		"%s took {{b}}%d{{_b}} points, now on {{b}}%d{{_b}}",
 		render.PlayerName(g.Player, g.Players[g.Player]),
 		g.TurnScore, g.Scores[g.Player]+g.TurnScore)))
 	g.Scores[g.Player] = g.Scores[g.Player] + g.TurnScore

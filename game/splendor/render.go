@@ -2,6 +2,7 @@ package splendor
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -48,9 +49,9 @@ func GemStrings() map[int]string {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, found := g.PlayerNum(player)
+	if !found {
+		return "", errors.New("could not find player")
 	}
 	pb := g.PlayerBoards[pNum]
 	bonuses := pb.Bonuses()

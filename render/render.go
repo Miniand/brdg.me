@@ -18,8 +18,6 @@ type Markupper interface {
 	EndColour() interface{}
 	StartBold() interface{}
 	EndBold() interface{}
-	StartLarge() interface{}
-	EndLarge() interface{}
 }
 
 type Context struct{}
@@ -63,11 +61,12 @@ func AttachTemplateFuncs(to map[string]interface{}, m Markupper) map[string]inte
 	to["_b"] = func() interface{} {
 		return m.EndBold()
 	}
+	// The l functions were removed but remain here for backwards compatability.
 	to["l"] = func() interface{} {
-		return m.StartLarge()
+		return ""
 	}
 	to["_l"] = func() interface{} {
-		return m.EndLarge()
+		return ""
 	}
 	return to
 }

@@ -3,11 +3,12 @@ package farkle
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/die"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
-	"strings"
 )
 
 type TakeCommand struct{}
@@ -59,7 +60,7 @@ func (tc TakeCommand) Call(player string, context interface{},
 	g.TakenThisRoll = true
 	g.RemainingDice = remaining
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-		"%s took %s for %d points",
+		"%s took %s for {{b}}%d{{_b}} points",
 		render.PlayerName(g.Player, g.Players[g.Player]),
 		RenderDice(take), score)))
 	return "", nil

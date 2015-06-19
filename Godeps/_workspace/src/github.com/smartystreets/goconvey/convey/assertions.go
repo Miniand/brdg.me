@@ -1,6 +1,6 @@
 package convey
 
-import "github.com/smartystreets/goconvey/convey/assertions"
+import "github.com/smartystreets/assertions"
 
 var (
 	ShouldEqual          = assertions.ShouldEqual
@@ -23,6 +23,8 @@ var (
 	ShouldBeLessThanOrEqualTo    = assertions.ShouldBeLessThanOrEqualTo
 	ShouldBeBetween              = assertions.ShouldBeBetween
 	ShouldNotBeBetween           = assertions.ShouldNotBeBetween
+	ShouldBeBetweenOrEqual       = assertions.ShouldBeBetweenOrEqual
+	ShouldNotBeBetweenOrEqual    = assertions.ShouldNotBeBetweenOrEqual
 
 	ShouldContain    = assertions.ShouldContain
 	ShouldNotContain = assertions.ShouldNotContain

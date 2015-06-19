@@ -155,8 +155,14 @@ func (g *Game) ResolvePlays() {
 		g.Plays[lowestPlayer] = 0
 	}
 	g.Resolving = false
-	if len(g.Hands[0]) == 0 {
+	switch len(g.Hands[0]) {
+	case 0:
 		g.EndRound()
+	case 1:
+		// Automatically play last card
+		for p := range g.Players {
+			g.Play(p, g.Hands[p][0])
+		}
 	}
 }
 

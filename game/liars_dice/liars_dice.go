@@ -11,12 +11,18 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/die"
+	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 )
 
 const (
 	START_DICE_COUNT = 5
+)
+
+var (
+	NormalDiceColour = render.Black
+	WildDiceColour   = render.Cyan
 )
 
 type Game struct {
@@ -82,8 +88,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	buf.WriteString(fmt.Sprintf("Current bid: %s\n", currentBidText))
 	if len(g.PlayerDice[playerNum]) > 0 {
-		buf.WriteString(fmt.Sprintf("Your dice: {{l}}%s{{_l}}\n\n",
-			strings.Join(die.RenderDice(g.PlayerDice[playerNum]), " ")))
+		buf.WriteString(fmt.Sprintf("Your dice: {{b}}%s{{_b}}\n\n",
+			strings.Join(RenderDice(g.PlayerDice[playerNum]), " ")))
 	}
 	cells := [][]interface{}{
 		[]interface{}{"{{b}}Player{{_b}}", "{{b}}Remaining dice{{_b}}"},
@@ -179,5 +185,30 @@ func (g *Game) EliminatedPlayerList() (eliminated []string) {
 }
 
 func RenderBid(quantity int, value int) string {
-	return fmt.Sprintf("%d {{l}}%s{{_l}}", quantity, die.Render(value))
+	suffix := ""
+	if quantity > 1 {
+		suffix = "s"
+	}
+	return fmt.Sprintf(
+		"%s %s%s",
+		helper.NumberStr(quantity),
+		RenderDie(value),
+		suffix,
+	)
+}
+
+func RenderDie(value int) string {
+	c := NormalDiceColour
+	if value == 1 {
+		c = WildDiceColour
+	}
+	return render.Markup(die.Render(value), c, true)
+}
+
+func RenderDice(values []int) []string {
+	strs := make([]string, len(values))
+	for i, v := range values {
+		strs[i] = RenderDie(v)
+	}
+	return strs
 }

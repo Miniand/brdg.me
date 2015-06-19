@@ -16,16 +16,16 @@ func (c ReserveCommand) Parse(input string) []string {
 
 func (c ReserveCommand) CanCall(player string, context interface{}) bool {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	return err == nil && g.CanReserve(pNum)
+	pNum, found := g.PlayerNum(player)
+	return found && g.CanReserve(pNum)
 }
 
 func (c ReserveCommand) Call(player string, context interface{},
 	args []string) (string, error) {
 	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return "", err
+	pNum, found := g.PlayerNum(player)
+	if !found {
+		return "", errors.New("could not find player")
 	}
 	a := command.ExtractNamedCommandArgs(args)
 	if len(a) < 1 {

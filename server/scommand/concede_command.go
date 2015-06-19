@@ -45,8 +45,7 @@ func CanConcedeVote(player string, gm *model.GameModel) bool {
 }
 
 func PassConcedeVote(gm *model.GameModel, g game.Playable) {
-	gm.IsFinished = true
-	gm.Winners = gm.ConcedePlayers
+	gm.Finish(gm.ConcedePlayers)
 	gm.ConcedePlayers = nil
 	gm.ConcedeVote = nil
 	g.GameLog().Add(log.NewPublicMessage(fmt.Sprintf(
@@ -76,9 +75,9 @@ func (c ConcedeCommand) Call(player string, context interface{},
 	}
 
 	playerList := c.gameModel.PlayerList
-	pNum, err := helper.StringInStrings(player, playerList)
-	if err != nil {
-		return "", err
+	pNum, ok := helper.StringInStrings(player, playerList)
+	if !ok {
+		return "", fmt.Errorf("could not find a player named %s", player)
 	}
 
 	a := command.ExtractNamedCommandArgs(args)

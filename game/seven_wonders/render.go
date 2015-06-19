@@ -9,6 +9,7 @@ import (
 
 	"github.com/Miniand/brdg.me/game/card"
 	"github.com/Miniand/brdg.me/game/cost"
+	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/render"
 )
 
@@ -211,18 +212,30 @@ func (g *Game) RenderCardList(
 		}
 		afford := ""
 		if showAfford {
+			cardCoin := crd.GetCard().Cost[GoodCoin]
 			canBuild, coins := g.CanBuildCard(player, crd)
 			switch {
 			case !canBuild:
 				afford = CannotBuySymbol
-			case canBuild && len(coins) == 0:
+			case canBuild && cardCoin == 0 && len(coins) == 0:
 				afford = CanBuySymbol
 			default:
-				sum := 0
-				for _, coin := range coins[0] {
-					sum += coin
+				extraCoin := []int{}
+				if len(coins) == 0 {
+					extraCoin = append(extraCoin, cardCoin)
 				}
-				afford = RenderResourceColour(strconv.Itoa(sum), GoodCoin, true)
+				for _, perm := range coins {
+					sum := cardCoin
+					for _, coin := range perm {
+						sum += coin
+					}
+					extraCoin = append(extraCoin, sum)
+				}
+				afford = RenderResourceColour(
+					strconv.Itoa(helper.IntMin(extraCoin...)),
+					GoodCoin,
+					true,
+				)
 			}
 			afford += " "
 		}

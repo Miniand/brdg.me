@@ -3,10 +3,11 @@ package liars_dice
 import (
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
-	"strconv"
 )
 
 type BidCommand struct{}
@@ -56,5 +57,5 @@ func (c BidCommand) Call(player string, context interface{}, args []string) (
 }
 
 func (c BidCommand) Usage(player string, context interface{}) string {
-	return "{{b}}bid # #{{_b}} to bid the total number of a certain value of dice on the board.  Eg. to bid that there are 8 {{l}}⚄{{_l}} in total, send {{b}}bid 8 5{{_b}}.  {{l}}⚀{{_l}} counts as a wild card for other value dice."
+	return "{{b}}bid # #{{_b}} to bid the total number of a certain value of dice on the board.  Eg. to bid that there are eight {{b}}5{{_b}} dice in total, send {{b}}bid 8 5{{_b}}.  Rolls of {{b}}1{{_b}} count as a wild card for other value dice."
 }
