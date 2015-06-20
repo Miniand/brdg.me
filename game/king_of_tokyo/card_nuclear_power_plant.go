@@ -22,3 +22,13 @@ func (c CardNuclearPowerPlant) Cost() int {
 func (c CardNuclearPowerPlant) Kind() int {
 	return CardKindDiscard
 }
+
+func (c CardNuclearPowerPlant) HandlePostCardBuy(
+	game *Game,
+	player int,
+	card CardBase,
+	cost int,
+) {
+	game.Boards[player].ModifyVP(2)
+	game.Boards[player].ModifyHealth(3)
+}
