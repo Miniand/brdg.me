@@ -58,6 +58,10 @@ type PreResolveDiceHandler interface {
 	HandlePreResolveDice(game *Game, player int, dice []int) []int
 }
 
+type PostResolveDiceHandler interface {
+	HandlePostResolveDice(game *Game, player int, dice []int)
+}
+
 type HealthZeroHandler interface {
 	HandleHealthZero(game *Game, player, zeroPlayer int)
 }

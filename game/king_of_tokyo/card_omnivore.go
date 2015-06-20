@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/helper"
+)
 
 type CardOmnivore struct{}
 
@@ -24,4 +28,11 @@ func (c CardOmnivore) Cost() int {
 
 func (c CardOmnivore) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardOmnivore) HandlePostResolveDice(game *Game, player int, dice []int) {
+	tally := helper.IntTally(dice)
+	if helper.IntMin(tally[Die1], tally[Die2], tally[Die3]) > 0 {
+		game.Boards[player].ModifyVP(2)
+	}
 }

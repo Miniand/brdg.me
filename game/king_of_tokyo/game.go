@@ -174,6 +174,11 @@ func (g *Game) ResolveDice() {
 			diceCounts[DieAttack],
 		)
 	} else {
+		for _, t := range things {
+			if postResolve, ok := t.(PostResolveDiceHandler); ok {
+				postResolve.HandlePostResolveDice(g, g.CurrentPlayer, roll)
+			}
+		}
 		g.BuyPhase()
 	}
 }
