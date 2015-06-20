@@ -119,6 +119,14 @@ func (g *Game) Buy(player, cardNum int) error {
 				break
 			}
 		}
+	case BuyFromPlayer:
+		g.Boards[c.FromPlayer].Cards = helper.IntRemove(
+			c.Card,
+			g.Boards[c.FromPlayer].Cards,
+			1,
+		)
+		// Also give them the money.
+		g.Boards[c.FromPlayer].ModifyEnergy(card.Cost())
 	}
 	if postBuy, ok := card.(PostCardBuyHandler); ok {
 		postBuy.HandlePostCardBuy(g, player, card, cost)

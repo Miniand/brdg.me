@@ -22,3 +22,23 @@ func (c CardParasiticTentacles) Cost() int {
 func (c CardParasiticTentacles) Kind() int {
 	return CardKindKeep
 }
+
+func (c CardParasiticTentacles) ModifyBuyable(
+	game *Game,
+	player int,
+	buyable []BuyableCard,
+) []BuyableCard {
+	for p := range game.Players {
+		if p == player {
+			continue
+		}
+		for _, c := range game.Boards[p].Cards {
+			buyable = append(buyable, BuyableCard{
+				Card:       c,
+				From:       BuyFromPlayer,
+				FromPlayer: p,
+			})
+		}
+	}
+	return buyable
+}
