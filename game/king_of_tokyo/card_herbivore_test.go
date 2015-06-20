@@ -9,7 +9,7 @@ import (
 func TestCardHerbivore_VP(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{&CardHerbivore{}}
+	g.Boards[Mick].Cards = []int{Herbivore}
 	g.CurrentRoll = []int{
 		Die1,
 		Die2,
@@ -23,7 +23,7 @@ func TestCardHerbivore_VP(t *testing.T) {
 func TestCardHerbivore_NoVP(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{&CardHerbivore{}}
+	g.Boards[Mick].Cards = []int{Herbivore}
 	g.Tokyo[LocationTokyoCity] = Mick
 	g.CurrentRoll = []int{
 		DieAttack,

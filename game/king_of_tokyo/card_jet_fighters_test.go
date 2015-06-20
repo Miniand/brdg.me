@@ -9,7 +9,7 @@ import (
 func TestCardJetFighters(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.FaceUpCards = []CardBase{&CardJetFighters{}}
+	g.FaceUpCards = []int{JetFighters}
 	g.CurrentRoll = []int{
 		DieEnergy,
 		DieEnergy,

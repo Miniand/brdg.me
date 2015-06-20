@@ -66,9 +66,10 @@ func RenderDie(kind int) string {
 	return fmt.Sprintf("[%s]", face)
 }
 
-func RenderCardTable(cards []CardBase) string {
+func RenderCardTable(cards []int) string {
 	cells := [][]interface{}{}
-	for _, c := range cards {
+	for _, cIndex := range cards {
+		c := Cards[cIndex]
 		cells = append(cells, [][]interface{}{
 			{
 				RenderEnergy(c.Cost()),
@@ -86,7 +87,7 @@ func RenderCardTable(cards []CardBase) string {
 func RenderBuyCardTable(g *Game, cards []BuyableCard) string {
 	cells := [][]interface{}{}
 	for _, bc := range cards {
-		c := bc.Card
+		c := Cards[bc.Card]
 		cells = append(cells, [][]interface{}{
 			{
 				RenderEnergy(c.Cost()),

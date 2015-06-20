@@ -40,9 +40,9 @@ type Game struct {
 	ExtraRollable  map[int]bool
 	RemainingRolls int
 	ExtraTurns     []int
-	FaceUpCards    []CardBase
-	Deck           []CardBase
-	Discard        []CardBase
+	FaceUpCards    []int
+	Deck           []int
+	Discard        []int
 	Boards         []*PlayerBoard
 	Tokyo          []int
 	Log            *log.Log
@@ -408,8 +408,8 @@ func (g *Game) AttackTargetsForPlayer(player int) []int {
 }
 
 func RegisterGobTypes() {
-	for _, c := range Deck() {
-		gob.Register(c)
+	for _, c := range Deck {
+		gob.Register(Cards[c])
 	}
 }
 
@@ -430,11 +430,11 @@ func (g *Game) Start(players []string) error {
 	}
 	g.Players = players
 	g.Log = log.New()
-	deck := Shuffle(Deck())
+	deck := helper.IntShuffle(Deck)
 	g.FaceUpCards = deck[:3]
 	g.Deck = deck[3:]
 	g.ExtraTurns = []int{}
-	g.Discard = []CardBase{}
+	g.Discard = []int{}
 	g.Tokyo = make([]int, 2)
 	for i, _ := range g.Tokyo {
 		g.Tokyo[i] = TokyoEmpty

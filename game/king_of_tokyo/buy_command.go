@@ -50,7 +50,8 @@ func (c BuyCommand) Call(player string, context interface{},
 		// Try to match a string
 		cardNames := []string{}
 		for _, c := range g.Buyable(pNum) {
-			cardNames = append(cardNames, c.Card.Name())
+			card := Cards[c.Card]
+			cardNames = append(cardNames, card.Name())
 		}
 		cNum, err = helper.MatchStringInStrings(strings.Join(a, " "), cardNames)
 		if err != nil {
@@ -84,7 +85,8 @@ func (g *Game) Buy(player, cardNum int) error {
 	}
 	things := g.Boards[player].Things()
 	c := buyable[cardNum]
-	cost := c.Card.Cost()
+	card := Cards[c.Card]
+	cost := card.Cost()
 	for _, t := range things {
 		if costMod, ok := t.(CardCostModifier); ok {
 			cost = costMod.ModifyCardCost(g, player, cost)
@@ -96,7 +98,7 @@ func (g *Game) Buy(player, cardNum int) error {
 			RenderEnergy(cost),
 		)
 	}
-	if c.Card.Kind() == CardKindKeep {
+	if card.Kind() == CardKindKeep {
 		g.Boards[player].Cards = append(g.Boards[player].Cards, c.Card)
 	} else {
 		g.Discard = append(g.Discard, c.Card)
@@ -118,19 +120,19 @@ func (g *Game) Buy(player, cardNum int) error {
 			}
 		}
 	}
-	if postBuy, ok := c.Card.(PostCardBuyHandler); ok {
-		postBuy.HandlePostCardBuy(g, player, c.Card, cost)
+	if postBuy, ok := card.(PostCardBuyHandler); ok {
+		postBuy.HandlePostCardBuy(g, player, card, cost)
 	}
 	for _, t := range things {
 		if postBuy, ok := t.(PostCardBuyHandler); ok {
-			postBuy.HandlePostCardBuy(g, player, c.Card, cost)
+			postBuy.HandlePostCardBuy(g, player, card, cost)
 		}
 	}
 	return nil
 }
 
 type BuyableCard struct {
-	Card       CardBase
+	Card       int
 	From       int
 	FromPlayer int
 }

@@ -31,7 +31,7 @@ func (c CardItHasAChild) Kind() int {
 func (c CardItHasAChild) HandleHealthZero(game *Game, player, zeroPlayer int) {
 	if player == zeroPlayer {
 		game.Discard = append(game.Discard, game.Boards[player].Cards...)
-		game.Boards[player].Cards = []CardBase{}
+		game.Boards[player].Cards = []int{}
 		game.Boards[player].Health = 10
 		game.Boards[player].VP = 0
 		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(

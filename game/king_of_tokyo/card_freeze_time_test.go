@@ -11,7 +11,7 @@ func TestCardFreezeTimeWithout111(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardFreezeTime{}}
+	g.Boards[Mick].Cards = []int{FreezeTime}
 	g.CurrentRoll = []int{}
 	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.NoError(t, cmd(g, Mick, "done"))
@@ -23,7 +23,7 @@ func TestCardFreezeTimeWith111(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardFreezeTime{}}
+	g.Boards[Mick].Cards = []int{FreezeTime}
 	g.CurrentRoll = []int{
 		Die1,
 		Die1,

@@ -11,7 +11,7 @@ func TestCardCamouflage(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give steve card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Steve].Cards = []CardBase{&CardCamouflage{}}
+	g.Boards[Steve].Cards = []int{Camouflage}
 	g.CurrentRoll = []int{}
 	attack := 100
 	for i := 0; i < attack; i++ {

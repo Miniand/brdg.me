@@ -9,7 +9,7 @@ import (
 func TestCardHerbivore(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.FaceUpCards = []CardBase{&CardHighAltitudeBombing{}}
+	g.FaceUpCards = []int{HighAltitudeBombing}
 	g.CurrentRoll = []int{
 		DieEnergy,
 		DieEnergy,

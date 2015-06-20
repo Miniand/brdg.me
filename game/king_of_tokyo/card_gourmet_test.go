@@ -9,7 +9,7 @@ import (
 func TestCardGourmet(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{&CardGourmet{}}
+	g.Boards[Mick].Cards = []int{Gourmet}
 	g.CurrentRoll = []int{
 		Die1,
 		Die1,

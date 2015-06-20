@@ -9,7 +9,7 @@ import (
 func TestCardItHasAChild(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.FaceUpCards = []CardBase{&CardItHasAChild{}}
+	g.FaceUpCards = []int{ItHasAChild}
 	g.Boards[Mick].Energy = 5
 	g.Boards[Mick].VP = 5
 	g.CurrentRoll = []int{

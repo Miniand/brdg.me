@@ -7,5 +7,5 @@ import (
 )
 
 func TestRenderAllCards(t *testing.T) {
-	assert.NotEqual(t, "", RenderCardTable(Deck()))
+	assert.NotEqual(t, "", RenderCardTable(Deck))
 }

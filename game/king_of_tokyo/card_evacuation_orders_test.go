@@ -9,12 +9,12 @@ import (
 func TestCardEvacuationOrders(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{}
+	g.Boards[Mick].Cards = []int{}
 	g.Boards[Mick].Energy = 7
 	g.Boards[Mick].VP = 5
 	g.Boards[Steve].VP = 7
 	g.Boards[BJ].VP = 3
-	g.FaceUpCards = []CardBase{&CardEvacuationOrders{}}
+	g.FaceUpCards = []int{EvacuationOrders1}
 	g.Phase = PhaseBuy
 	assert.NoError(t, cmd(g, Mick, "buy evacuation orders"))
 	assert.Equal(t, 5, g.Boards[Mick].VP)

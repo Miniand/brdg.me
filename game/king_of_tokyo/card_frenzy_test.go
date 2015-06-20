@@ -10,7 +10,7 @@ func TestCardFrenzy(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
 	g.Boards[Mick].Energy = 7
-	g.FaceUpCards = []CardBase{&CardFrenzy{}}
+	g.FaceUpCards = []int{Frenzy}
 	g.Phase = PhaseBuy
 	assert.NoError(t, cmd(g, Mick, "buy frenzy"))
 	assert.Equal(t, PhaseRoll, g.Phase)

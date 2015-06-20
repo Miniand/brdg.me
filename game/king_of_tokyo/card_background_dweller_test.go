@@ -9,7 +9,7 @@ import (
 func TestCardBackgroundDweller(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{&CardBackgroundDweller{}}
+	g.Boards[Mick].Cards = []int{BackgroundDweller}
 	g.CurrentRoll = []int{Die3}
 	g.CheckRollComplete()
 	assert.Equal(t, PhaseRoll, g.Phase)

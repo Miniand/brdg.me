@@ -10,7 +10,7 @@ func TestCardJets_Stay(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
 	g.Tokyo[LocationTokyoCity] = Steve
-	g.Boards[Steve].Cards = []CardBase{&CardJets{}}
+	g.Boards[Steve].Cards = []int{Jets}
 	g.CurrentRoll = []int{
 		DieAttack,
 	}
@@ -23,7 +23,7 @@ func TestCardJets_Leave(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
 	g.Tokyo[LocationTokyoCity] = Steve
-	g.Boards[Steve].Cards = []CardBase{&CardJets{}}
+	g.Boards[Steve].Cards = []int{Jets}
 	g.CurrentRoll = []int{
 		DieAttack,
 	}

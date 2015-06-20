@@ -11,7 +11,7 @@ func TestCardCompleteDestructionIncorrectDice(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardCompleteDestruction{}}
+	g.Boards[Mick].Cards = []int{CompleteDestruction}
 	g.CurrentRoll = []int{
 		Die1,
 		Die2,
@@ -29,7 +29,7 @@ func TestCardCompleteDestructionCorrectDice(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardCompleteDestruction{}}
+	g.Boards[Mick].Cards = []int{CompleteDestruction}
 	g.CurrentRoll = []int{
 		Die1,
 		Die2,

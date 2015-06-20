@@ -19,7 +19,7 @@ func TestCardEnergyHoarder(t *testing.T) {
 	} {
 		g := &Game{}
 		assert.NoError(t, g.Start(names))
-		g.Boards[Mick].Cards = []CardBase{&CardEnergyHoarder{}}
+		g.Boards[Mick].Cards = []int{EnergyHoarder}
 		g.Boards[Mick].Energy = cas.energy
 		g.Phase = PhaseBuy
 		assert.NoError(t, cmd(g, Mick, "done"))

@@ -11,7 +11,7 @@ func TestCardArmorPlatingModifyDamage1AttackDice(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give steve card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Steve].Cards = []CardBase{&CardArmorPlating{}}
+	g.Boards[Steve].Cards = []int{ArmorPlating}
 	g.CurrentRoll = []int{
 		DieAttack,
 	}
@@ -25,7 +25,7 @@ func TestCardArmorPlatingModifyDamage2AttackDice(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Steve].Cards = []CardBase{&CardArmorPlating{}}
+	g.Boards[Steve].Cards = []int{ArmorPlating}
 	g.CurrentRoll = []int{
 		DieAttack,
 		DieAttack,

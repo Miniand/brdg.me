@@ -11,7 +11,7 @@ func TestCardAcidAttackModifyAttackNoAttackDice(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardAcidAttack{}}
+	g.Boards[Mick].Cards = []int{AcidAttack}
 	g.CurrentRoll = []int{}
 	startingHealth := g.Boards[Steve].Health
 	assert.NoError(t, cmd(g, Mick, "keep"))
@@ -23,7 +23,7 @@ func TestCardAcidAttackModifyAttackWithAttackDice(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardAcidAttack{}}
+	g.Boards[Mick].Cards = []int{AcidAttack}
 	g.CurrentRoll = []int{
 		DieAttack,
 		DieAttack,

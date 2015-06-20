@@ -11,7 +11,7 @@ func TestCardEvenBiggerPostPurchase(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	g.Boards[Mick].Energy = 4
 	startingHealth := g.Boards[Mick].Health
-	g.FaceUpCards = []CardBase{&CardEvenBigger{}}
+	g.FaceUpCards = []int{EvenBigger}
 	g.Phase = PhaseBuy
 	assert.NoError(t, cmd(g, Mick, "buy even bigger"))
 	assert.Equal(t, 12, g.Boards[Mick].MaxHealth())
@@ -21,7 +21,7 @@ func TestCardEvenBiggerPostPurchase(t *testing.T) {
 func TestCardEvenBiggerHeal(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{&CardEvenBigger{}}
+	g.Boards[Mick].Cards = []int{EvenBigger}
 	startingHealth := g.Boards[Mick].Health
 	g.CurrentRoll = []int{
 		DieHeal,

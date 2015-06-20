@@ -11,7 +11,7 @@ func TestCardAlphaMonsterNoAttackDice(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardAlphaMonster{}}
+	g.Boards[Mick].Cards = []int{AlphaMonster}
 	g.CurrentRoll = []int{}
 	assert.NoError(t, cmd(g, Mick, "keep"))
 	assert.Equal(t, 0, g.Boards[Mick].VP)
@@ -22,7 +22,7 @@ func TestCardAlphaMonsterWithAttackDice(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardAlphaMonster{}}
+	g.Boards[Mick].Cards = []int{AlphaMonster}
 	g.CurrentRoll = []int{
 		DieAttack,
 		DieAttack,

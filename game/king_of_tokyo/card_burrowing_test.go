@@ -11,7 +11,7 @@ func TestCardBurrowingModifyAttackOutsideTokyo(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Steve in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Steve
-	g.Boards[Mick].Cards = []CardBase{&CardBurrowing{}}
+	g.Boards[Mick].Cards = []int{Burrowing}
 	g.CurrentRoll = []int{
 		DieAttack,
 		DieAttack,
@@ -27,7 +27,7 @@ func TestCardBurrowingModifyAttackInTokyo(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Mick].Cards = []CardBase{&CardBurrowing{}}
+	g.Boards[Mick].Cards = []int{Burrowing}
 	g.CurrentRoll = []int{
 		DieAttack,
 		DieAttack,
@@ -42,7 +42,7 @@ func TestCardBurrowingDamageWhenLeavingTokyo(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Steve in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Steve
-	g.Boards[Steve].Cards = []CardBase{&CardBurrowing{}}
+	g.Boards[Steve].Cards = []int{Burrowing}
 	g.CurrentRoll = []int{
 		DieAttack,
 		DieAttack,

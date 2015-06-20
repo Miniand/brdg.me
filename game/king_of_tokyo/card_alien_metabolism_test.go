@@ -9,11 +9,11 @@ import (
 func TestCardAlienMetabolism(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(names))
-	g.Boards[Mick].Cards = []CardBase{}
+	g.Boards[Mick].Cards = []int{}
 	g.Boards[Mick].Energy = 8
-	g.FaceUpCards = []CardBase{
-		&CardAlienMetabolism{},
-		&CardAlienMetabolism{},
+	g.FaceUpCards = []int{
+		AlienMetabolism,
+		AlienMetabolism,
 	}
 	g.Phase = PhaseBuy
 	// First purchase shouldn't be discounted

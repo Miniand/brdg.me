@@ -11,9 +11,9 @@ func TestCardEaterOfTheDead(t *testing.T) {
 	assert.NoError(t, g.Start(names))
 	// Put Mick in Tokyo and give card
 	g.Tokyo[LocationTokyoCity] = Mick
-	g.Boards[Steve].Cards = []CardBase{&CardEaterOfTheDead{}}
+	g.Boards[Steve].Cards = []int{EaterOfTheDead}
 	g.Boards[Steve].Health = 3
-	g.Boards[BJ].Cards = []CardBase{&CardEaterOfTheDead{}}
+	g.Boards[BJ].Cards = []int{EaterOfTheDead}
 	g.CurrentRoll = []int{
 		DieAttack,
 		DieAttack,

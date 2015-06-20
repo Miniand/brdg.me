@@ -6,14 +6,14 @@ type PlayerBoard struct {
 	Health int
 	VP     int
 	Energy int
-	Cards  []CardBase
+	Cards  []int
 	Tokens []interface{}
 }
 
 func NewPlayerBoard() *PlayerBoard {
 	return &PlayerBoard{
 		Health: 10,
-		Cards:  []CardBase{},
+		Cards:  []int{},
 		Tokens: []interface{}{},
 	}
 }
@@ -21,7 +21,7 @@ func NewPlayerBoard() *PlayerBoard {
 func (b *PlayerBoard) Things() Things {
 	things := Things{}
 	for _, c := range b.Cards {
-		things = append(things, c)
+		things = append(things, Cards[c])
 	}
 	for _, t := range b.Tokens {
 		things = append(things, t)
