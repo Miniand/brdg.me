@@ -399,12 +399,19 @@ func (g *Game) PlayersOutsideTokyo() []int {
 }
 
 func (g *Game) AttackTargetsForPlayer(player int) []int {
+	var targets []int
 	switch g.PlayerLocation(player) {
 	case LocationOutside:
-		return g.PlayersInsideTokyo()
+		targets = g.PlayersInsideTokyo()
 	default:
-		return g.PlayersOutsideTokyo()
+		targets = g.PlayersOutsideTokyo()
 	}
+	for _, t := range g.Boards[player].Things() {
+		if atm, ok := t.(AttackTargetModifier); ok {
+			targets = atm.ModifyAttackTargets(g, player, targets)
+		}
+	}
+	return targets
 }
 
 func RegisterGobTypes() {

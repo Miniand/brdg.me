@@ -17,3 +17,13 @@ func (c CardNovaBreath) Cost() int {
 func (c CardNovaBreath) Kind() int {
 	return CardKindKeep
 }
+
+func (c CardNovaBreath) ModifyAttackTargets(game *Game, player int, targets []int) []int {
+	targets = []int{}
+	for p := range game.Players {
+		if p != player {
+			targets = append(targets, p)
+		}
+	}
+	return targets
+}

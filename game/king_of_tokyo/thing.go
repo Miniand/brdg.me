@@ -90,6 +90,10 @@ type BuyableModifier interface {
 	ModifyBuyable(game *Game, player int, buyable []BuyableCard) []BuyableCard
 }
 
+type AttackTargetModifier interface {
+	ModifyAttackTargets(game *Game, player int, targets []int) []int
+}
+
 type Things []interface{}
 
 func (t Things) Len() int {
