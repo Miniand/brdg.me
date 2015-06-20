@@ -8,6 +8,9 @@ type PlayerBoard struct {
 	Energy int
 	Cards  []int
 	Tokens []interface{}
+
+	// Card specific state
+	HasDealtDamage bool
 }
 
 func NewPlayerBoard() *PlayerBoard {

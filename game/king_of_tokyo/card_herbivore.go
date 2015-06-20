@@ -6,9 +6,7 @@ import (
 	"github.com/Miniand/brdg.me/game/log"
 )
 
-type CardHerbivore struct {
-	HasDealtDamage bool
-}
+type CardHerbivore struct{}
 
 func (c CardHerbivore) Name() string {
 	return "Herbivore"
@@ -30,18 +28,18 @@ func (c CardHerbivore) Kind() int {
 }
 
 func (c *CardHerbivore) HandleStartTurn(game *Game, player int) {
-	c.HasDealtDamage = false
+	game.Boards[player].HasDealtDamage = false
 }
 
 func (c *CardHerbivore) HandleDamageDealt(
 	game *Game,
 	player, target, damage int,
 ) {
-	c.HasDealtDamage = true
+	game.Boards[player].HasDealtDamage = true
 }
 
 func (c CardHerbivore) HandleEndTurn(game *Game, player int) {
-	if !c.HasDealtDamage {
+	if !game.Boards[player].HasDealtDamage {
 		game.Boards[player].ModifyVP(1)
 		game.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"%s gained %s ({{b}}%s{{_b}})",
