@@ -1,6 +1,10 @@
 package king_of_tokyo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/helper"
+)
 
 type CardPoisonQuills struct{}
 
@@ -22,4 +26,12 @@ func (c CardPoisonQuills) Cost() int {
 
 func (c CardPoisonQuills) Kind() int {
 	return CardKindKeep
+}
+
+func (c CardPoisonQuills) ModifyAttack(game *Game, player, damage int, attacked []int) (int, []int) {
+	tally := helper.IntTally(game.CurrentRoll)
+	if damage > 0 && tally[Die2] >= 3 {
+		damage += 2
+	}
+	return damage, attacked
 }
