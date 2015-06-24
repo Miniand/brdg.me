@@ -14,6 +14,7 @@ import (
 	"github.com/Miniand/brdg.me/game/liars_dice"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/game/lost_cities"
+	"github.com/Miniand/brdg.me/game/love_letter"
 	"github.com/Miniand/brdg.me/game/modern_art"
 	"github.com/Miniand/brdg.me/game/no_thanks"
 	"github.com/Miniand/brdg.me/game/roll_through_the_ages"
@@ -65,6 +66,7 @@ func gameList() []Playable {
 		&jaipur.Game{},
 		&liars_dice.Game{},
 		&lost_cities.Game{},
+		&love_letter.Game{},
 		&modern_art.Game{},
 		&no_thanks.Game{},
 		&roll_through_the_ages.Game{},
