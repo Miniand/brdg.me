@@ -1,6 +1,11 @@
 package love_letter
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CharHandmaid struct{}
 
@@ -11,5 +16,14 @@ func (p CharHandmaid) Text() string {
 }
 
 func (p CharHandmaid) Play(g *Game, player int, args ...string) error {
-	return errors.New("not implemented")
+	if len(args) > 0 {
+		return errors.New("Handmaid doesn't accept any arguments when playing")
+	}
+	g.Protected[player] = true
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s played %s and is immune to the effects of other players' cards until the start of their next turn",
+		g.RenderName(player),
+		RenderCard(Handmaid),
+	)))
+	return nil
 }

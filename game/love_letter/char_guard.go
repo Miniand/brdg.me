@@ -1,6 +1,12 @@
 package love_letter
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CharGuard struct{}
 
@@ -11,5 +17,49 @@ func (p CharGuard) Text() string {
 }
 
 func (p CharGuard) Play(g *Game, player int, args ...string) error {
-	return errors.New("not implemented")
+	if len(args) != 2 {
+		return errors.New("please specify which player to target and what card you think they are, eg. play guard steve handmaid")
+	}
+
+	target, err := helper.MatchStringInStrings(args[0], g.Players)
+	if err != nil {
+		return err
+	}
+	if target == player {
+		return errors.New("you can't target yourself")
+	}
+
+	names := map[int]string{}
+	for i, c := range Cards {
+		names[i] = c.Name()
+	}
+	card, err := helper.MatchStringInStringMap(args[1], names)
+	if err != nil {
+		return err
+	}
+	if card == Guard {
+		return errors.New("you can't use Guard against other Guards")
+	}
+
+	prefix := fmt.Sprintf(
+		"%s played %s and guessed that %s is a %s, ",
+		g.RenderName(player),
+		RenderCard(Guard),
+		g.RenderName(target),
+		RenderCard(card),
+	)
+
+	if _, ok := helper.IntFind(card, g.Hands[target]); ok {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%sand was correct!",
+			prefix,
+		)))
+		g.Eliminate(target)
+	} else {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%sbut was incorrect",
+			prefix,
+		)))
+	}
+	return nil
 }

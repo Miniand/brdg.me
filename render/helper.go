@@ -173,6 +173,14 @@ func Table(cells [][]interface{}, rowPadding, colPadding int) string {
 	return buf.String()
 }
 
+func CentreLayout(rows []interface{}, rowPadding int) string {
+	cells := [][]interface{}{}
+	for _, r := range rows {
+		cells = append(cells, []interface{}{Centred(String(r))})
+	}
+	return Table(cells, rowPadding, 0)
+}
+
 func CommaList(list []string) string {
 	if len(list) == 0 {
 		return ""

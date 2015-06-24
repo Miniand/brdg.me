@@ -22,7 +22,7 @@ type DiscardHandler interface {
 	HandleDiscard()
 }
 
-var Chars = map[int]Char{
+var Cards = map[int]Char{
 	Princess: CharPrincess{},
 	Countess: CharCountess{},
 	King:     CharKing{},
