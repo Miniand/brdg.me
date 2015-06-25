@@ -5,6 +5,7 @@ import (
 
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type CharBaron struct{}
@@ -14,9 +15,10 @@ func (p CharBaron) Number() int  { return Baron }
 func (p CharBaron) Text() string {
 	return "Compare hands with another player, lowest card is eliminated"
 }
+func (p CharBaron) Colour() string { return render.Green }
 
 func (p CharBaron) Play(g *Game, player int, args ...string) error {
-	target, err := g.ParseTarget(player, args...)
+	target, err := g.ParseTarget(player, false, args...)
 	if err != nil {
 		return err
 	}

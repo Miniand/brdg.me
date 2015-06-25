@@ -6,6 +6,7 @@ import (
 
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type CharKing struct{}
@@ -15,13 +16,14 @@ func (p CharKing) Number() int  { return King }
 func (p CharKing) Text() string {
 	return "Trade your hand with another player"
 }
+func (p CharKing) Colour() string { return render.Blue }
 
 func (p CharKing) Play(g *Game, player int, args ...string) error {
 	if _, ok := helper.IntFind(Countess, g.Hands[player]); ok {
 		return errors.New("you must play the Countess")
 	}
 
-	target, err := g.ParseTarget(player, args...)
+	target, err := g.ParseTarget(player, false, args...)
 	if err != nil {
 		return err
 	}

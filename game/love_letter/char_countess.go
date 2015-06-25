@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type CharCountess struct{}
@@ -11,8 +12,9 @@ type CharCountess struct{}
 func (p CharCountess) Name() string { return "Countess" }
 func (p CharCountess) Number() int  { return Countess }
 func (p CharCountess) Text() string {
-	return "If you have the King or Prince in your hand, you must discard the Countess"
+	return "Discard the Countess if you have the King or Prince in your hand"
 }
+func (p CharCountess) Colour() string { return render.Red }
 
 func (p CharCountess) Play(g *Game, player int, args ...string) error {
 	g.DiscardCard(player, Countess)

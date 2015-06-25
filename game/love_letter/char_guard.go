@@ -6,6 +6,7 @@ import (
 
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type CharGuard struct{}
@@ -15,13 +16,10 @@ func (p CharGuard) Number() int  { return Guard }
 func (p CharGuard) Text() string {
 	return "Guess another player's card to eliminate them, except for Guard"
 }
+func (p CharGuard) Colour() string { return render.Gray }
 
 func (p CharGuard) Play(g *Game, player int, args ...string) error {
-	if len(args) != 2 {
-		return errors.New("please specify which player to target and what card you think they are, eg. play guard steve handmaid")
-	}
-
-	target, err := g.ParseTarget(player, args...)
+	target, err := g.ParseTarget(player, false, args...)
 	if err != nil {
 		return err
 	}
@@ -29,9 +27,13 @@ func (p CharGuard) Play(g *Game, player int, args ...string) error {
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"%s played %s, but had nobody to target so just discarded the card",
 			g.RenderName(player),
-			RenderCard(Priest),
+			RenderCard(Guard),
 		)))
 		return nil
+	}
+
+	if len(args) != 2 {
+		return errors.New("please specify which player to target and what card you think they are, eg. play guard steve handmaid")
 	}
 
 	names := map[int]string{}

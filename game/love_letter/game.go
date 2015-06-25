@@ -3,22 +3,24 @@ package love_letter
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type Game struct {
-	Players                []string
-	Log                    *log.Log
-	Round                  int
-	Deck, Removed, Discard []int
-	Hands                  [][]int
-	Points                 []int
-	CurrentPlayer          int
-	Eliminated             []bool
-	Protected              []bool
+	Players         []string
+	Log             *log.Log
+	Round           int
+	Deck, Removed   []int
+	Hands, Discards [][]int
+	Points          []int
+	CurrentPlayer   int
+	Eliminated      []bool
+	Protected       []bool
 }
 
 func (g *Game) Commands() []command.Command {
@@ -57,11 +59,11 @@ func (g *Game) Start(players []string) error {
 
 func (g *Game) StartRound() {
 	g.Round++
-	g.Eliminated = make([]bool, len(g.Players))
-	g.Protected = make([]bool, len(g.Players))
+	l := len(g.Players)
+	g.Eliminated = make([]bool, l)
+	g.Protected = make([]bool, l)
 	deck := helper.IntShuffle(Deck)
 	remove := 1
-	l := len(g.Players)
 	if l == 2 {
 		remove = 4
 	}
@@ -73,8 +75,10 @@ func (g *Game) StartRound() {
 	)))
 	g.Deck, g.Removed = deck[remove:], deck[:remove]
 	g.Hands = make([][]int, l)
+	g.Discards = make([][]int, l)
 	for p := range g.Players {
 		g.Hands[p] = []int{}
+		g.Discards[p] = []int{}
 		g.DrawCard(p)
 	}
 	g.StartTurn()
@@ -110,7 +114,7 @@ func (g *Game) DiscardCardLog(player, card int) {
 
 func (g *Game) DiscardCard(player, card int) {
 	g.Hands[player] = helper.IntRemove(card, g.Hands[player], 1)
-	g.Discard = append(g.Discard, card)
+	g.Discards[player] = append(g.Discards[player], card)
 	if card == Princess {
 		g.Eliminate(player)
 	}
@@ -142,8 +146,63 @@ func (g *Game) Eliminate(player int) {
 }
 
 func (g *Game) EndRound() {
-	// Scoring
-	g.StartRound()
+	output := []string{render.Bold("It is the end of the round")}
+	var highestCard, highestPlayer, discardTotal int
+	for p := range g.Players {
+		if g.Eliminated[p] {
+			continue
+		}
+		c := g.Hands[p][0]
+		discarded := helper.IntSum(g.Discards[p])
+		output = append(output, fmt.Sprintf(
+			"%s had %s (total {{b}}%d{{_b}} discarded)",
+			g.RenderName(p),
+			RenderCard(c),
+			discarded,
+		))
+		if c > highestCard {
+			highestCard = c
+			discardTotal = 0
+		}
+		if c == highestCard {
+			if discarded > discardTotal {
+				discardTotal = discarded
+				highestPlayer = p
+			}
+		}
+	}
+
+	g.Points[highestPlayer]++
+	output = append(output, fmt.Sprintf(
+		"%s won the round and moved to {{b}}%d %s{{_b}}",
+		g.RenderName(highestPlayer),
+		g.Points[highestPlayer],
+		helper.Plural(g.Points[highestPlayer], "point"),
+	))
+
+	isFinished := g.IsFinished()
+	if isFinished {
+		output = append(output, render.Bold(fmt.Sprintf(
+			"It is the end of the game, the winner is %s",
+			g.RenderName(g.Leader()),
+		)))
+	}
+	g.Log.Add(log.NewPublicMessage(strings.Join(output, "\n")))
+	if !isFinished {
+		g.StartRound()
+	}
+}
+
+func (g *Game) Leader() int {
+	var highest, player int
+	for p := range g.Players {
+		points := g.Points[p]
+		if points > highest {
+			player = p
+			highest = points
+		}
+	}
+	return player
 }
 
 func (g *Game) DrawCard(player int) {
@@ -173,12 +232,21 @@ func (g *Game) PlayerList() []string {
 	return g.Players
 }
 
+var endScores = map[int]int{
+	2: 7,
+	3: 5,
+	4: 4,
+}
+
 func (g *Game) IsFinished() bool {
-	return false
+	return helper.IntMax(g.Points...) >= endScores[len(g.Players)]
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	return []string{g.Players[g.Leader()]}
 }
 
 func (g *Game) WhoseTurn() []string {
@@ -203,7 +271,7 @@ func (g *Game) AvailableTargets(forPlayer int) []int {
 	return targets
 }
 
-func (g *Game) ParseTarget(player int, args ...string) (int, error) {
+func (g *Game) ParseTarget(player int, incSelf bool, args ...string) (int, error) {
 	if len(args) == 0 {
 		return 0, errors.New("please specify a player name, if everyone else is protected by the Handmaid you must specify yourself")
 	}
@@ -221,8 +289,16 @@ func (g *Game) ParseTarget(player int, args ...string) (int, error) {
 		return 0, errors.New("all other players are protected by the Handmaid, so you must specify yourself")
 	}
 
-	if target == player {
+	if !incSelf && target == player {
 		return 0, errors.New("you cannot specify yourself if there are other players you can target")
 	}
+
+	if g.Eliminated[target] {
+		return 0, errors.New("that player is eliminated")
+	}
+	if g.Eliminated[target] {
+		return 0, errors.New("that player is protected by the Handmaid")
+	}
+
 	return target, nil
 }

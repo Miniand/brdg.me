@@ -14,9 +14,10 @@ func (p CharPriest) Number() int  { return Priest }
 func (p CharPriest) Text() string {
 	return "Look at another player's hand"
 }
+func (p CharPriest) Colour() string { return render.Cyan }
 
 func (p CharPriest) Play(g *Game, player int, args ...string) error {
-	target, err := g.ParseTarget(player, args...)
+	target, err := g.ParseTarget(player, false, args...)
 	if err != nil {
 		return err
 	}

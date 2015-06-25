@@ -16,6 +16,7 @@ type Char interface {
 	Number() int
 	Text() string
 	Play(g *Game, player int, args ...string) error
+	Colour() string
 }
 
 type DiscardHandler interface {

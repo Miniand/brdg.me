@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type CharHandmaid struct{}
@@ -14,6 +15,7 @@ func (p CharHandmaid) Number() int  { return Handmaid }
 func (p CharHandmaid) Text() string {
 	return "Immune to the effects of other players' cards until next turn"
 }
+func (p CharHandmaid) Colour() string { return render.Black }
 
 func (p CharHandmaid) Play(g *Game, player int, args ...string) error {
 	if len(args) > 0 {

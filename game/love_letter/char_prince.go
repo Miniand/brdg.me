@@ -6,6 +6,7 @@ import (
 
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
+	"github.com/Miniand/brdg.me/render"
 )
 
 type CharPrince struct{}
@@ -13,15 +14,16 @@ type CharPrince struct{}
 func (p CharPrince) Name() string { return "Prince" }
 func (p CharPrince) Number() int  { return Prince }
 func (p CharPrince) Text() string {
-	return "Choose a player to discard and draw a new card"
+	return "Choose a player (or yourself) to discard and draw a new card"
 }
+func (p CharPrince) Colour() string { return render.Magenta }
 
 func (p CharPrince) Play(g *Game, player int, args ...string) error {
 	if _, ok := helper.IntFind(Countess, g.Hands[player]); ok {
 		return errors.New("you must play the Countess")
 	}
 
-	target, err := g.ParseTarget(player, args...)
+	target, err := g.ParseTarget(player, true, args...)
 	if err != nil {
 		return err
 	}
