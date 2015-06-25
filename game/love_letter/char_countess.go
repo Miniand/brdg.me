@@ -15,6 +15,8 @@ func (p CharCountess) Text() string {
 }
 
 func (p CharCountess) Play(g *Game, player int, args ...string) error {
+	g.DiscardCard(player, Countess)
+
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s discarded %s, they might have been forced to if they also had %s or %s",
 		g.RenderName(player),

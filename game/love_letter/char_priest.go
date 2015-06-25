@@ -20,6 +20,9 @@ func (p CharPriest) Play(g *Game, player int, args ...string) error {
 	if err != nil {
 		return err
 	}
+
+	g.DiscardCard(player, Priest)
+
 	if target == player {
 		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 			"%s played %s, but had nobody to target so just discarded the card",

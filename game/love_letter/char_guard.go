@@ -46,6 +46,8 @@ func (p CharGuard) Play(g *Game, player int, args ...string) error {
 		return errors.New("you can't use Guard against other Guards")
 	}
 
+	g.DiscardCard(player, Guard)
+
 	prefix := fmt.Sprintf(
 		"%s played %s and guessed that %s is a %s, ",
 		g.RenderName(player),
@@ -66,5 +68,6 @@ func (p CharGuard) Play(g *Game, player int, args ...string) error {
 			prefix,
 		)))
 	}
+
 	return nil
 }

@@ -19,11 +19,15 @@ func (p CharHandmaid) Play(g *Game, player int, args ...string) error {
 	if len(args) > 0 {
 		return errors.New("Handmaid doesn't accept any arguments when playing")
 	}
+
+	g.DiscardCard(player, Handmaid)
+
 	g.Protected[player] = true
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s played %s and is immune to the effects of other players' cards until the start of their next turn",
 		g.RenderName(player),
 		RenderCard(Handmaid),
 	)))
+
 	return nil
 }
