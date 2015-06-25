@@ -55,8 +55,10 @@ func (p CharBaron) Play(g *Game, player int, args ...string) error {
 	diff := Cards[playerCard].Number() - Cards[targetCard].Number()
 	if diff < 0 {
 		eliminate = player
+		g.Hands[player] = []int{playerCard}
 	} else if diff > 0 {
 		eliminate = target
+		g.Hands[target] = []int{targetCard}
 	}
 
 	if eliminate == -1 {

@@ -1,6 +1,10 @@
 package love_letter
 
-import "errors"
+import (
+	"fmt"
+
+	"github.com/Miniand/brdg.me/game/log"
+)
 
 type CharCountess struct{}
 
@@ -11,5 +15,12 @@ func (p CharCountess) Text() string {
 }
 
 func (p CharCountess) Play(g *Game, player int, args ...string) error {
-	return errors.New("not implemented")
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s discarded %s, they might have been forced to if they also had %s or %s",
+		g.RenderName(player),
+		RenderCard(Countess),
+		RenderCard(King),
+		RenderCard(Prince),
+	)))
+	return nil
 }

@@ -21,12 +21,17 @@ func (p CharGuard) Play(g *Game, player int, args ...string) error {
 		return errors.New("please specify which player to target and what card you think they are, eg. play guard steve handmaid")
 	}
 
-	target, err := helper.MatchStringInStrings(args[0], g.Players)
+	target, err := g.ParseTarget(player, args...)
 	if err != nil {
 		return err
 	}
 	if target == player {
-		return errors.New("you can't target yourself")
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s played %s, but had nobody to target so just discarded the card",
+			g.RenderName(player),
+			RenderCard(Priest),
+		)))
+		return nil
 	}
 
 	names := map[int]string{}
