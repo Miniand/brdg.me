@@ -1,7 +1,6 @@
 package love_letter
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/Miniand/brdg.me/game/helper"
@@ -17,27 +16,17 @@ func (p CharBaron) Text() string {
 }
 
 func (p CharBaron) Play(g *Game, player int, args ...string) error {
-	targets := g.AvailableTargets(player)
-	if len(targets) > 0 && len(args) != 1 {
-		return errors.New("please specify the other player to compare hands with")
-	} else if len(targets) == 0 {
-		if len(args) == 0 {
-			g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
-				"%s played %s, but had nobody to target so just discarded the card",
-				g.RenderName(player),
-				RenderCard(Baron),
-			)))
-			return nil
-		}
-		return errors.New("because there are no possible targets for your Baron, please play it without arguments to discard it without activating it")
-	}
-
-	target, err := helper.MatchStringInStrings(args[0], g.Players)
+	target, err := g.ParseTarget(player, args...)
 	if err != nil {
 		return err
 	}
-	if _, ok := helper.IntFind(target, targets); !ok {
-		return ErrCannotTarget
+	if target == player {
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			"%s played %s, but had nobody to target so just discarded the card",
+			g.RenderName(player),
+			RenderCard(Baron),
+		)))
+		return nil
 	}
 
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(

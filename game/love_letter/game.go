@@ -202,3 +202,27 @@ func (g *Game) AvailableTargets(forPlayer int) []int {
 	}
 	return targets
 }
+
+func (g *Game) ParseTarget(player int, args ...string) (int, error) {
+	if len(args) == 0 {
+		return 0, errors.New("please specify a player name, if everyone else is protected by the Handmaid you must specify yourself")
+	}
+
+	target, err := helper.MatchStringInStrings(args[0], g.Players)
+	if err != nil {
+		return 0, err
+	}
+
+	targets := g.AvailableTargets(player)
+	if len(targets) == 0 {
+		if target == player {
+			return target, nil
+		}
+		return 0, errors.New("all other players are protected by the Handmaid, so you must specify yourself")
+	}
+
+	if target == player {
+		return 0, errors.New("you cannot specify yourself if there are other players you can target")
+	}
+	return target, nil
+}
