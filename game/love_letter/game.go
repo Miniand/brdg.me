@@ -189,6 +189,7 @@ func (g *Game) EndRound() {
 	}
 	g.Log.Add(log.NewPublicMessage(strings.Join(output, "\n")))
 	if !isFinished {
+		g.CurrentPlayer = highestPlayer
 		g.StartRound()
 	}
 }
