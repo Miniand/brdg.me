@@ -30,3 +30,37 @@ func TestGame_RenderForPlayer(t *testing.T) {
 		assert.NoError(t, err)
 	}
 }
+
+func TestGame_IsFinished(t *testing.T) {
+	g := &Game{}
+	assert.NoError(t, g.Start(helper.Players[:2]))
+	assert.False(t, g.IsFinished())
+	g.Points[helper.Mick] = endScores[2] - 1
+	assert.False(t, g.IsFinished())
+	g.Points[helper.Mick] = endScores[2]
+	assert.True(t, g.IsFinished())
+
+	g = &Game{}
+	assert.NoError(t, g.Start(helper.Players[:3]))
+	assert.False(t, g.IsFinished())
+	g.Points[helper.Mick] = endScores[3] - 1
+	assert.False(t, g.IsFinished())
+	g.Points[helper.Mick] = endScores[3]
+	assert.True(t, g.IsFinished())
+
+	g = &Game{}
+	assert.NoError(t, g.Start(helper.Players[:4]))
+	assert.False(t, g.IsFinished())
+	g.Points[helper.Mick] = endScores[4] - 1
+	assert.False(t, g.IsFinished())
+	g.Points[helper.Mick] = endScores[4]
+	assert.True(t, g.IsFinished())
+}
+
+func TestGame_Winners(t *testing.T) {
+	g := &Game{}
+	assert.NoError(t, g.Start(helper.Players[:3]))
+	assert.Equal(t, []string{}, g.Winners())
+	g.Points[helper.Steve] = 10
+	assert.Equal(t, []string{helper.Players[helper.Steve]}, g.Winners())
+}
