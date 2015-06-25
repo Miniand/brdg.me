@@ -192,3 +192,13 @@ func (g *Game) GameLog() *log.Log {
 func (g *Game) PlayerNum(player string) (int, bool) {
 	return helper.StringInStrings(player, g.Players)
 }
+
+func (g *Game) AvailableTargets(forPlayer int) []int {
+	targets := []int{}
+	for p := range g.Players {
+		if p != forPlayer && !g.Eliminated[p] && !g.Protected[p] {
+			targets = append(targets, p)
+		}
+	}
+	return targets
+}

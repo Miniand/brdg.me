@@ -1,5 +1,7 @@
 package love_letter
 
+import "errors"
+
 const (
 	Princess = 8 - iota
 	Countess
@@ -51,3 +53,5 @@ var Deck = []int{
 	Countess,
 	Princess,
 }
+
+var ErrCannotTarget = errors.New("you cannot target that player")

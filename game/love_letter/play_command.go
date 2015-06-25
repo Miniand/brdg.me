@@ -62,10 +62,10 @@ func (g *Game) Play(player, card int, args ...string) error {
 	if _, ok := helper.IntFind(card, g.Hands[player]); !ok {
 		return errors.New("you don't have that card")
 	}
+	curRound := g.Round
 	if err := Cards[card].Play(g, player, args...); err != nil {
 		return err
 	}
-	curRound := g.Round
 	g.DiscardCard(player, card)
 	if g.Round == curRound {
 		// Only go to the next player if the round didn't just end.
