@@ -1,13 +1,14 @@
 # GoRethink - RethinkDB Driver for Go 
 
-[![GitHub tag](https://img.shields.io/github/tag/dancannon/gorethink.svg?style=flat)]()
+[![GitHub tag](https://img.shields.io/github/tag/dancannon/gorethink.svg?style=flat)](https://github.com/dancannon/gorethink/releases/tag/v1.0.0-rc.3)
 [![GoDoc](https://godoc.org/github.com/dancannon/gorethink?status.png)](https://godoc.org/github.com/dancannon/gorethink)
 [![build status](https://img.shields.io/travis/dancannon/gorethink/master.svg "build status")](https://travis-ci.org/dancannon/gorethink) 
 
 [Go](http://golang.org/) driver for [RethinkDB](http://www.rethinkdb.com/) 
 
+![GoRethink Logo](https://raw.github.com/wiki/dancannon/gorethink/gopher-and-thinker-s.png "Golang Gopher and RethinkDB Thinker")
 
-Current version: v0.7.2 (RethinkDB v2.0) 
+Current version: v1.0.0 (RethinkDB v2.0)
 
 Please note that this version of the driver only supports versions of RethinkDB using the v0.4 protocol (any versions of the driver older than RethinkDB 2.0 will not work).
 
@@ -17,6 +18,11 @@ Please note that this version of the driver only supports versions of RethinkDB 
 
 ```sh
 go get -u github.com/dancannon/gorethink
+```
+
+Or (pinned to the v1.x.x tag)
+```
+go get gopkg.in/dancannon/gorethink.v1
 ```
 
 ## Connection
@@ -46,7 +52,7 @@ See the [documentation](http://godoc.org/github.com/dancannon/gorethink#Connect)
 
 The driver uses a connection pool at all times, by default it creates and frees connections automatically. It's safe for concurrent use by multiple goroutines.
 
-To configure the connection pool `MaxIdle`, `MaxOpen` and `IdleTimeout` can be specified during connection. If you wish to change the value of `MaxIdle` or `MaxOpen` during runtime then the functions `SetMaxIdleConns` and `SetMaxOpenConns` can be used.
+To configure the connection pool `MaxIdle`, `MaxOpen` and `Timeout` can be specified during connection. If you wish to change the value of `MaxIdle` or `MaxOpen` during runtime then the functions `SetMaxIdleConns` and `SetMaxOpenConns` can be used.
 
 ```go
 var session *r.Session
@@ -82,14 +88,14 @@ if err != nil {
 }
 ```
 
-When `DiscoverHosts` is true any nodes are added to the cluster after the initial connection then the new node will be added to the pool of available nodes used by GoRethink.
+When `DiscoverHosts` is true any nodes are added to the cluster after the initial connection then the new node will be added to the pool of available nodes used by GoRethink. Unfortunately the canonical address of each server in the cluster **MUST** be set as otherwise clients will try to connect to the database nodes locally. For more information about how to set a RethinkDB servers canonical address set this page http://www.rethinkdb.com/docs/config-file/.
 
 
 ## Query Functions
 
 This library is based on the official drivers so the code on the [API](http://www.rethinkdb.com/api/) page should require very few changes to work.
 
-To view full documentation for the query functions check the [GoDoc](http://godoc.org/github.com/dancannon/gorethink#Term)
+To view full documentation for the query functions check the [API reference](https://github.com/dancannon/gorethink/wiki/Go-ReQL-command-reference) or [GoDoc](http://godoc.org/github.com/dancannon/gorethink#Term)
 
 Slice Expr Example
 ```go
@@ -205,19 +211,7 @@ Field int `gorethink:"myName,omitempty"`
 Field int `gorethink:",omitempty"`
 ```
 
-Alternatively you can implement the FieldMapper interface  by providing the FieldMap function which returns a map of strings in the form of `"FieldName": "NewName"`. For example:
-
-```go
-type A struct {
-    Field int
-}
-
-func (a A) FieldMap() map[string]string {
-    return map[string]string{
-        "Field": "myName",
-    }
-}
-```
+**NOTE:** It is strongly recommended that struct tags are used to explicitly define the mapping between your Go type and how the data is stored by RethinkDB. This is especially important when using an `Id` field as by default RethinkDB will create a field named `id` as the primary key (note that the RethinkDB field is lowercase but the Go version starts with a capital letter).
 
 ## Benchmarks
 
@@ -253,7 +247,7 @@ BenchmarkSequentialSoftWritesParallel10      10000                           263
 
 ## Examples
 
-View other examples on the [wiki](https://github.com/dancannon/gorethink/wiki/Examples).
+Many functions have examples and are viewable in the godoc, alternatively view some more full features examples on the [wiki](https://github.com/dancannon/gorethink/wiki/Examples).
 
 ## License
 
@@ -270,3 +264,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+## Donations
+
+[![Donations](https://pledgie.com/campaigns/29517.png "Donations")](https://pledgie.com/campaigns/29517) 
