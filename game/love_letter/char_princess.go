@@ -22,5 +22,6 @@ func (p CharPrincess) Play(g *Game, player int, args ...string) error {
 		g.RenderName(player),
 		RenderCard(Princess),
 	)))
+	g.DiscardCard(player, Princess)
 	return nil
 }

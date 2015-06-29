@@ -29,6 +29,7 @@ func (p CharGuard) Play(g *Game, player int, args ...string) error {
 			g.RenderName(player),
 			RenderCard(Guard),
 		)))
+		g.DiscardCard(player, Guard)
 		return nil
 	}
 
