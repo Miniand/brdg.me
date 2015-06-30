@@ -56,5 +56,7 @@ func (p CharKing) Play(g *Game, player int, args ...string) error {
 		RenderCard(g.Hands[player][0]),
 	), []string{g.Players[target]}))
 
+	g.Hands[player], g.Hands[target] = g.Hands[target], g.Hands[player]
+
 	return nil
 }
