@@ -3,7 +3,6 @@ package love_letter
 import (
 	"fmt"
 
-	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 )
@@ -40,7 +39,7 @@ func (p CharBaron) Play(g *Game, player int, args ...string) error {
 		RenderCard(Baron),
 		g.RenderName(target),
 	)))
-	playerCard := helper.IntRemove(Baron, g.Hands[player], 1)[0]
+	playerCard := g.Hands[player][0]
 	targetCard := g.Hands[target][0]
 	logFmt := "You have %s, %s has %s"
 	g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
