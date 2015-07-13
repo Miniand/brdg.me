@@ -37,8 +37,11 @@ func (p CharPrince) Play(g *Game, player int, args ...string) error {
 		g.RenderName(target),
 	)))
 
+	curRound := g.Round
 	g.DiscardCardLog(target, g.Hands[target][0])
-	g.DrawCard(target)
+	if g.Round == curRound && !g.Eliminated[target] {
+		g.DrawCard(target)
+	}
 
 	return nil
 }

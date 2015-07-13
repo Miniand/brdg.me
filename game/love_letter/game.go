@@ -162,7 +162,7 @@ func (g *Game) EndRound() {
 		))
 		if c > highestCard {
 			highestCard = c
-			discardTotal = 0
+			discardTotal = -1
 		}
 		if c == highestCard {
 			if discarded > discardTotal {
