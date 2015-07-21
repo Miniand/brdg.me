@@ -33,7 +33,7 @@ func DatabaseAddr() string {
 }
 
 func Db() r.Term {
-	return r.Db(DatabaseName())
+	return r.DB(DatabaseName())
 }
 
 func Connect() (*r.Session, error) {
@@ -107,8 +107,8 @@ func createDb() error {
 	if err != nil {
 		return err
 	}
-	r.DbCreate(DatabaseName()).RunWrite(session)
-	r.Db(DatabaseName()).TableCreate("migrations").RunWrite(session)
+	r.DBCreate(DatabaseName()).RunWrite(session)
+	r.DB(DatabaseName()).TableCreate("migrations").RunWrite(session)
 	return nil
 }
 
@@ -117,7 +117,7 @@ func dropDb() error {
 	if err != nil {
 		return err
 	}
-	r.DbDrop(DatabaseName()).RunWrite(session)
+	r.DBDrop(DatabaseName()).RunWrite(session)
 	return nil
 }
 

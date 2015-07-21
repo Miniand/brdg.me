@@ -212,8 +212,11 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	output := bytes.Buffer{}
 	// Auction specific
 	if g.IsAuction() {
-		output.WriteString(fmt.Sprintf("{{b}}Currently auctioning:{{_b}} %s\n",
-			RenderCardNames(g.CurrentlyAuctioning)))
+		output.WriteString(fmt.Sprintf(
+			"%s is auctioning %s\n\n",
+			render.PlayerName(g.CurrentPlayer, g.Players[g.CurrentPlayer]),
+			RenderCardNames(g.CurrentlyAuctioning),
+		))
 		if g.AuctionType() != RANK_SEALED {
 			bidder, bid := g.HighestBidder()
 			output.WriteString(fmt.Sprintf("{{b}}Current bid:{{_b}} %s by %s\n",
@@ -605,6 +608,11 @@ func (g *Game) SetPrice(player, price int) error {
 	if price > g.PlayerMoney[player] {
 		return errors.New("You can't set the price higher than your current money")
 	}
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s set the price to %s",
+		render.PlayerName(player, g.Players[player]),
+		RenderMoney(price),
+	)))
 	g.Bids[player] = price
 	return nil
 }
@@ -638,6 +646,7 @@ func (g *Game) AddCardToAuction(player int, c card.SuitRankCard) error {
 	if removed != 1 {
 		return errors.New("You do not have that card in your hand")
 	}
+	g.CurrentPlayer = player
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf("%s played %s",
 		render.PlayerName(player, g.Players[player]),
 		RenderCardName(c))))
@@ -739,7 +748,6 @@ func (g *Game) AddCard(player int, c card.SuitRankCard) error {
 	if err != nil {
 		return err
 	}
-	g.CurrentPlayer = player
 	return nil
 }
 

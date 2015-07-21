@@ -138,10 +138,12 @@ func GameOutput(
 	if err != nil {
 		return nil, err
 	}
+	lastRead := time.Unix(g.GameLog().LastReadTimeFor[player]/int64(math.Pow10(9)), 0)
 	return map[string]interface{}{
-		"game":     gameRender,
-		"log":      logs,
-		"commands": commandRender,
+		"game":         gameRender,
+		"log":          logs,
+		"lastReadTime": lastRead.UTC().Format(time.RFC3339),
+		"commands":     commandRender,
 	}, nil
 }
 

@@ -8,6 +8,10 @@ import (
 	p "github.com/dancannon/gorethink/ql2"
 )
 
+const (
+	maxNodeHealth = 100
+)
+
 // Node represents a database server in the cluster
 type Node struct {
 	ID      string
@@ -30,7 +34,7 @@ func newNode(id string, aliases []Host, cluster *Cluster, pool *Pool) *Node {
 		aliases:         aliases,
 		cluster:         cluster,
 		pool:            pool,
-		health:          100,
+		health:          maxNodeHealth,
 		refreshDoneChan: make(chan struct{}),
 	}
 	// Start node refresh loop
@@ -41,7 +45,6 @@ func newNode(id string, aliases []Host, cluster *Cluster, pool *Pool) *Node {
 	}
 
 	go func() {
-
 		refreshTicker := time.NewTicker(refreshInterval)
 		for {
 			select {
@@ -120,7 +123,7 @@ func (n *Node) Query(q Query) (cursor *Cursor, err error) {
 		n.DecrementHealth()
 	}
 
-	return
+	return cursor, err
 }
 
 // Exec executes a ReQL query using this nodes connection pool.
@@ -134,7 +137,7 @@ func (n *Node) Exec(q Query) (err error) {
 		n.DecrementHealth()
 	}
 
-	return
+	return err
 }
 
 // Refresh attempts to connect to the node and check that it is still connected
@@ -144,40 +147,66 @@ func (n *Node) Exec(q Query) (err error) {
 // the nodes health is decrease, if there were no issues then the node is marked
 // as being healthy.
 func (n *Node) Refresh() {
-	cursor, err := n.pool.Query(newQuery(
-		Db("rethinkdb").Table("server_status").Get(n.ID),
-		map[string]interface{}{},
-		n.cluster.opts,
-	))
-	if err != nil {
-		n.DecrementHealth()
-		return
-	}
-	defer cursor.Close()
+	if n.cluster.opts.DiscoverHosts {
+		// If host discovery is enabled then check the servers status
+		cursor, err := n.pool.Query(newQuery(
+			DB("rethinkdb").Table("server_status").Get(n.ID),
+			map[string]interface{}{},
+			n.cluster.opts,
+		))
+		if err != nil {
+			n.DecrementHealth()
+			return
+		}
+		defer cursor.Close()
 
-	var status nodeStatus
-	err = cursor.One(&status)
-	if err != nil {
-		return
-	}
+		var status nodeStatus
+		err = cursor.One(&status)
+		if err != nil {
+			return
+		}
 
-	if status.Status != "connected" {
-		n.DecrementHealth()
-		return
+		if status.Status != "connected" {
+			n.DecrementHealth()
+			return
+		}
+	} else {
+		// If host discovery is disabled just execute a simple ping query
+		cursor, err := n.pool.Query(newQuery(
+			Expr("OK"),
+			map[string]interface{}{},
+			n.cluster.opts,
+		))
+		if err != nil {
+			n.DecrementHealth()
+			return
+		}
+		defer cursor.Close()
+
+		var status string
+		err = cursor.One(&status)
+		if err != nil {
+			return
+		}
+
+		if status != "OK" {
+			n.DecrementHealth()
+			return
+		}
 	}
 
 	// If status check was successful reset health
 	n.ResetHealth()
 }
 
-// DecrementHealth decreases the nodes health by 1 (the nodes health starts at 100)
+// DecrementHealth decreases the nodes health by 1 (the nodes health starts at maxNodeHealth)
 func (n *Node) DecrementHealth() {
 	atomic.AddInt64(&n.health, -1)
 }
 
-// ResetHealth sets the nodes health back to 100 (fully healthy)
+// ResetHealth sets the nodes health back to maxNodeHealth (fully healthy)
 func (n *Node) ResetHealth() {
-	atomic.StoreInt64(&n.health, 100)
+	atomic.StoreInt64(&n.health, maxNodeHealth)
 }
 
 // IsHealthy checks the nodes health by ensuring that the health counter is above 0.

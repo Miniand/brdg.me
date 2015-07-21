@@ -9,19 +9,19 @@ const (
 )
 
 func CreateAuthtokens(db string, session *r.Session) error {
-	if _, err := r.Db(db).TableCreate(AuthTokenTable).
+	if _, err := r.DB(db).TableCreate(AuthTokenTable).
 		RunWrite(session); err != nil {
 		return err
 	}
-	if _, err := r.Db(db).Table(AuthTokenTable).IndexCreate("Token").
+	if _, err := r.DB(db).Table(AuthTokenTable).IndexCreate("Token").
 		RunWrite(session); err != nil {
 		return err
 	}
-	if _, err := r.Db(db).Table(AuthTokenTable).IndexWait("Token").
+	if _, err := r.DB(db).Table(AuthTokenTable).IndexWait("Token").
 		Run(session); err != nil {
 		return err
 	}
-	if _, err := r.Db(db).Table(AuthTokenTable).IndexCreateFunc("UserId:Token",
+	if _, err := r.DB(db).Table(AuthTokenTable).IndexCreateFunc("UserId:Token",
 		func(row r.Term) interface{} {
 			return []interface{}{
 				row.Field("UserId"),
@@ -30,7 +30,7 @@ func CreateAuthtokens(db string, session *r.Session) error {
 		}).RunWrite(session); err != nil {
 		return err
 	}
-	if _, err := r.Db(db).Table(AuthTokenTable).IndexWait("UserId:Token").
+	if _, err := r.DB(db).Table(AuthTokenTable).IndexWait("UserId:Token").
 		Run(session); err != nil {
 		return err
 	}

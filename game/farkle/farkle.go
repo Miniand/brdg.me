@@ -131,7 +131,7 @@ func (g *Game) IsFinished() bool {
 		return false
 	}
 	for _, s := range g.Scores {
-		if s >= 10000 {
+		if s >= 5000 {
 			return true
 		}
 	}

@@ -5,6 +5,6 @@ import (
 )
 
 func CreateGames(db string, session *r.Session) error {
-	_, err := r.Db(db).TableCreate("games").RunWrite(session)
+	_, err := r.DB(db).TableCreate("games").RunWrite(session)
 	return err
 }

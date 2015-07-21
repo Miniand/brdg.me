@@ -7,25 +7,25 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.7.3-8-g52919f1",
-			"Rev": "52919f182f9c314f8a38c5afe96506f73d02b4b2"
+			"Comment": "v0.8.2-15-g93a1736",
+			"Rev": "93a1736895ca25a01a739e0394bf7f672299a27d"
 		},
 		{
 			"ImportPath": "github.com/cenkalti/backoff",
-			"Rev": "9831e1e25c874e0a0601b6dc43641071414eec7a"
+			"Rev": "6c45d6bc1e78d94431dff8fc28a99f20bafa355a"
 		},
 		{
 			"ImportPath": "github.com/dancannon/gorethink",
-			"Comment": "v0.7.2",
-			"Rev": "2097b2a2d4616f7c83106af49f2e726ecc2d4cf9"
+			"Comment": "v1.x.x",
+			"Rev": "8aca6ba2cc6e873299617d730fac0d7f6593113a"
 		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
-			"Rev": "3e6e67c4dcea3ac2f25fd4731abc0e1deaf36216"
+			"Rev": "2df174808ee097f90d259e432cc04442cf60be21"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "056d5ce64f754d9919f5d66da0735951b4a0e138"
+			"Rev": "aece6fb931241ad332956db4f62798dfbea944b3"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
@@ -33,11 +33,11 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "94903de8c98a68d8b4483c529b26a5d146e386a2"
+			"Rev": "47e8f450ef38c857cdd922ec08862ca9d65a1c6d"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "6fd0f867fef40c540fa05c59f86396de10a632a6"
+			"Rev": "a3ec486e6a7a41858210b0fc5d7b5df593b3c4a3"
 		},
 		{
 			"ImportPath": "github.com/jtolds/gls",
@@ -45,17 +45,18 @@
 		},
 		{
 			"ImportPath": "github.com/smartystreets/assertions",
-			"Comment": "1.5.0-384-gc702abf",
-			"Rev": "c702abfa8e05e48f79068ed1cf1aac7cf43f5eef"
+			"Comment": "1.5.0-389-g507a61a",
+			"Rev": "507a61adbdc8674907f6e491b559d600a4127dc0"
 		},
 		{
 			"ImportPath": "github.com/smartystreets/goconvey/convey",
-			"Comment": "1.5.0-390-g7a3785c",
-			"Rev": "7a3785c3002a330211525464d402c07b2afce5a7"
+			"Comment": "1.5.0-401-g439a340",
+			"Rev": "439a3408025dac4fe2c7cacd7e95ba0323be7e54"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "dab07ac62d4905d3e48d17dc549c684ac3b7c15a"
+			"Comment": "v1.0-17-g089c718",
+			"Rev": "089c7181b8c728499929ff09b62d3fdd8df8adff"
 		}
 	]
 }
