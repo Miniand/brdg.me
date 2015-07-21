@@ -114,8 +114,9 @@ func (g *Game) RenderCastle(cIndex int, roll []int) string {
 		), render.Gray, false)}
 		canAfford, _ := l.CanAfford(g.CurrentRoll)
 		if (g.CurrentlyAttacking == cIndex || g.CurrentlyAttacking == -1) &&
+			(!g.Conquered[cIndex] || g.CastleOwners[cIndex] != g.CurrentPlayer) &&
 			!g.CompletedLines[i] && canAfford {
-			row = append(row, render.Markup("X ", render.Yellow, true))
+			row = append(row, render.Markup("X ", render.Green, true))
 		} else {
 			row = append(row, "  ")
 		}
