@@ -2,6 +2,7 @@ package acquire
 
 import (
 	"fmt"
+
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/log"
 )
@@ -28,6 +29,10 @@ func (c EndCommand) Call(player string, context interface{},
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`{{b}}%s{{_b}} triggered the end of the game at the end of their turn`,
 		g.RenderPlayer(g.CurrentPlayer))))
+	if !g.PlayerCanAffordShares(g.CurrentPlayer) {
+		// Player can't buy anything so just end the game.
+		g.NextPlayer()
+	}
 	return "", nil
 }
 
