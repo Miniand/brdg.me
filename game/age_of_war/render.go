@@ -18,7 +18,10 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		layout = append(layout, [][]interface{}{
 			{render.Centred(render.Bold("Currently attacking"))},
 			{},
-			{render.Centred(g.RenderCastle(g.CurrentlyAttacking))},
+			{render.Centred(g.RenderCastle(
+				g.CurrentlyAttacking,
+				g.CurrentRoll,
+			))},
 			{},
 		}...)
 	}
@@ -78,7 +81,7 @@ func (g *Game) RenderCastles() string {
 			}
 		}
 		if !conquered {
-			row = append(row, g.RenderCastle(i))
+			row = append(row, g.RenderCastle(i, g.CurrentRoll))
 		}
 		lastClan = c.Clan
 	}
@@ -89,7 +92,7 @@ func (g *Game) RenderCastles() string {
 	return render.Table(cells, 1, 6)
 }
 
-func (g *Game) RenderCastle(cIndex int) string {
+func (g *Game) RenderCastle(cIndex int, roll []int) string {
 	c := Castles[cIndex]
 	cells := [][]interface{}{
 		{render.Centred(fmt.Sprintf(
@@ -105,10 +108,18 @@ func (g *Game) RenderCastle(cIndex int) string {
 		))})
 	}
 	for i, l := range c.CalcLines(g.Conquered[cIndex]) {
+		numCol := render.Gray
+		numBold := false
+		canAfford, _ := l.CanAfford(g.CurrentRoll)
+		if (g.CurrentlyAttacking == cIndex || g.CurrentlyAttacking == -1) &&
+			!g.CompletedLines[i] && canAfford {
+			numCol = render.Green
+			numBold = true
+		}
 		row := []interface{}{render.Markup(fmt.Sprintf(
 			"%d.",
 			i+1,
-		), render.Gray, false)}
+		), numCol, numBold)}
 		if g.CurrentlyAttacking == cIndex && g.CompletedLines[i] {
 			row = append(row, render.Colour("complete", render.Gray))
 		} else {
