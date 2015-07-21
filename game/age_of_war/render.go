@@ -108,25 +108,24 @@ func (g *Game) RenderCastle(cIndex int, roll []int) string {
 		))})
 	}
 	for i, l := range c.CalcLines(g.Conquered[cIndex]) {
-		numCol := render.Gray
-		numBold := false
-		canAfford, _ := l.CanAfford(g.CurrentRoll)
-		if (g.CurrentlyAttacking == cIndex || g.CurrentlyAttacking == -1) &&
-			!g.CompletedLines[i] && canAfford {
-			numCol = render.Green
-			numBold = true
-		}
 		row := []interface{}{render.Markup(fmt.Sprintf(
 			"%d.",
 			i+1,
-		), numCol, numBold)}
+		), render.Gray, false)}
+		canAfford, _ := l.CanAfford(g.CurrentRoll)
+		if (g.CurrentlyAttacking == cIndex || g.CurrentlyAttacking == -1) &&
+			!g.CompletedLines[i] && canAfford {
+			row = append(row, render.Markup("X ", render.Yellow, true))
+		} else {
+			row = append(row, "  ")
+		}
 		if g.CurrentlyAttacking == cIndex && g.CompletedLines[i] {
 			row = append(row, render.Colour("complete", render.Gray))
 		} else {
 			row = append(row, l.RenderRow()...)
 		}
 		cells = append(cells, []interface{}{
-			render.Table([][]interface{}{row}, 0, 2),
+			render.Table([][]interface{}{row}, 0, 1),
 		})
 	}
 	return render.Table(cells, 0, 0)
