@@ -1,8 +1,10 @@
 package poker
 
 import (
-	"github.com/Miniand/brdg.me/game/card"
 	"testing"
+
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/helper"
 )
 
 func buildHandByRanks(ranks []int) card.Deck {
@@ -693,11 +695,12 @@ func TestWinningHandResult(t *testing.T) {
 	if len(winningResults) != 2 {
 		t.Fatal("There weren't two winners")
 	}
-	if winningResults[0] != 1 {
-		t.Fatal("First winner wasn't hand at index 1")
+	winningResMap := helper.IntTally(winningResults)
+	if winningResMap[1] != 1 {
+		t.Fatal("Hand index 1 wasn't a winner")
 	}
-	if winningResults[1] != 2 {
-		t.Fatal("Second winner wasn't hand at index 2")
+	if winningResMap[2] != 1 {
+		t.Fatal("Hand index 2 wasn't a winner")
 	}
 }
 
@@ -721,21 +724,21 @@ func TestAceIsInFlushResult(t *testing.T) {
 		card.SuitRankCard{
 			Suit: card.STANDARD_52_SUIT_SPADES,
 			Rank: card.STANDARD_52_RANK_QUEEN,
-		},		
+		},
 		card.SuitRankCard{
 			Suit: card.STANDARD_52_SUIT_DIAMONDS,
 			Rank: card.STANDARD_52_RANK_4,
-		},		
+		},
 		card.SuitRankCard{
 			Suit: card.STANDARD_52_SUIT_DIAMONDS,
 			Rank: card.STANDARD_52_RANK_7,
-		},		
+		},
 		card.SuitRankCard{
 			Suit: card.STANDARD_52_SUIT_SPADES,
 			Rank: card.STANDARD_52_RANK_4,
-		},		
+		},
 	}
-	handResult := Result(hand.PushMany(communityCards));
+	handResult := Result(hand.PushMany(communityCards))
 	if len(handResult.Cards) != 5 {
 		t.Fatal("There aren't 5 cards in the result")
 	}
