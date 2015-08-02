@@ -4,6 +4,7 @@ import (
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/acquire"
 	"github.com/Miniand/brdg.me/game/age_of_war"
+	"github.com/Miniand/brdg.me/game/agricola_2p"
 	"github.com/Miniand/brdg.me/game/alhambra"
 	"github.com/Miniand/brdg.me/game/battleship"
 	"github.com/Miniand/brdg.me/game/category_5"
@@ -57,6 +58,7 @@ func gameList() []Playable {
 	return []Playable{
 		&acquire.Game{},
 		&age_of_war.Game{},
+		&agricola_2p.Game{},
 		&alhambra.Game{},
 		&battleship.Game{},
 		&category_5.Game{},
