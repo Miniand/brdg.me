@@ -8,9 +8,19 @@ import (
 	"github.com/Miniand/brdg.me/game/log"
 )
 
+const (
+	ResourceWood = iota
+	ResourceStone
+	ResourceReed
+	ResourceBorder
+	ResourceWorker
+)
+
 type Game struct {
-	Players []string
-	Log     *log.Log
+	Players     []string
+	PBoards     [2]*PBoard
+	StartPlayer int
+	Log         *log.Log
 }
 
 func (g *Game) Commands() []command.Command {
@@ -33,16 +43,16 @@ func (g *Game) Decode(data []byte) error {
 	return helper.Decode(g, data)
 }
 
-func (g *Game) RenderForPlayer(player string) (string, error) {
-	return "", nil
-}
-
 func (g *Game) Start(players []string) error {
 	if len(players) != 2 {
 		return errors.New("only for 2 players")
 	}
 	g.Players = players
 	g.Log = log.New()
+	g.PBoards = [2]*PBoard{}
+	for p := range players {
+		g.PBoards[p] = NewPBoard()
+	}
 	return nil
 }
 
@@ -64,4 +74,8 @@ func (g *Game) WhoseTurn() []string {
 
 func (g *Game) GameLog() *log.Log {
 	return g.Log
+}
+
+func (g *Game) PlayerNum(player string) (int, bool) {
+	return helper.StringInStrings(player, g.Players)
 }
