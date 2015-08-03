@@ -11,7 +11,7 @@ type PBoard struct {
 func NewPBoard() *PBoard {
 	return &PBoard{
 		Resources: cost.Cost{
-			ResourceBorder: 9,
+			Border: 9,
 		},
 		Tiles: Tiles{
 			Loc{0, 2}: {

@@ -9,11 +9,16 @@ import (
 )
 
 const (
-	ResourceWood = iota
-	ResourceStone
-	ResourceReed
-	ResourceBorder
-	ResourceWorker
+	Wood = iota
+	Stone
+	Reed
+	Border
+	Worker
+
+	Sheep
+	Pig
+	Cow
+	Horse
 )
 
 type Game struct {

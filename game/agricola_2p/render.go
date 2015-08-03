@@ -63,7 +63,7 @@ func (pb *PBoard) Render() string {
 						tileCol := render.Green
 						text := EmptyTileLine
 						if t.Building != nil {
-							tileCol = render.Black
+							tileCol = render.Magenta
 							if tLine == 2 {
 								text = render.Centre(
 									render.Bold(t.Building.String()),

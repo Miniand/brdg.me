@@ -7,6 +7,8 @@ const (
 	Left
 )
 
+const Rows = 3
+
 type Loc struct {
 	X, Y int
 }
@@ -75,4 +77,39 @@ func (t Tiles) Border(l Loc, dir int) bool {
 		return nei.Borders&OppDir[dir] != 0
 	}
 	return false
+}
+
+type Capacity struct {
+	Cap   int
+	Group int
+}
+
+type CapacityGroup struct {
+	Id      int
+	Locs    []Loc
+	BaseCap int
+	Troughs int
+}
+
+func (cp CapacityGroup) Cap() int {
+	return cp.BaseCap * 2 << uint(cp.Troughs) / 2
+}
+
+func (t Tiles) Capacities(minX, maxX int) []CapacityGroup {
+	groups := []CapacityGroup{}
+	visited := map[Loc]bool{}
+	id := 0
+	for x := minX; x <= maxX; x++ {
+		for y := 0; y < Rows; y++ {
+			l := Loc{x, y}
+			if !visited[l] {
+				g := CapacityGroup{
+					Id: id,
+				}
+				id++
+				groups = append(groups, g)
+			}
+		}
+	}
+	return groups
 }
