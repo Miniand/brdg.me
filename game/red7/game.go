@@ -9,19 +9,24 @@ import (
 )
 
 type Game struct {
-	Players       []string
+	Players []string
+	Log     *log.Log
+
 	CurrentPlayer int
-	Log           *log.Log
-	Finished      bool
-	Deck          []int
-	Hands         [][]int
-	Palettes      [][]int
-	ScoredCards   [][]int
-	Eliminated    []bool
+
+	Finished bool
+
+	Deck        []int
+	Hands       [][]int
+	Palettes    [][]int
+	ScoredCards [][]int
+	Eliminated  []bool
 }
 
 func (g *Game) Commands() []command.Command {
-	return []command.Command{}
+	return []command.Command{
+		PlayCommand{},
+	}
 }
 
 func (g *Game) Name() string {
@@ -101,4 +106,13 @@ func (g *Game) WhoseTurn() []string {
 
 func (g *Game) GameLog() *log.Log {
 	return g.Log
+}
+
+func (g *Game) PlayerNum(player string) (int, bool) {
+	for p, pName := range g.Players {
+		if pName == player {
+			return p, true
+		}
+	}
+	return 0, false
 }

@@ -99,3 +99,7 @@ func init() {
 		}
 	}
 }
+
+func ParseCard(input string) (int, bool) {
+	return 0, false
+}
