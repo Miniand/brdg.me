@@ -16,6 +16,8 @@ type Renderer func(string) (string, error)
 type Markupper interface {
 	StartColour(string) interface{}
 	EndColour() interface{}
+	StartBg(string) interface{}
+	EndBg() interface{}
 	StartBold() interface{}
 	EndBold() interface{}
 }
@@ -54,6 +56,15 @@ func AttachTemplateFuncs(to map[string]interface{}, m Markupper) map[string]inte
 	}
 	to["_c"] = func() interface{} {
 		return m.EndColour()
+	}
+	to["bg"] = func(colour string) interface{} {
+		if !IsValidColour(colour) {
+			panic(colour + " is not a valid colour")
+		}
+		return m.StartBg(colour)
+	}
+	to["_bg"] = func() interface{} {
+		return m.EndBg()
 	}
 	to["b"] = func() interface{} {
 		return m.StartBold()

@@ -104,20 +104,22 @@ var directionStrings = map[string]int{
 	"east":  DIRECTION_RIGHT,
 }
 
+var shipOutput = `{{bg "gray"}}  {{_bg}}`
+
 var tileOutputsSelf = map[int]string{
-	LOCATION_EMPTY:  ``, // These are done automatically
-	SHIP_CARRIER:    "██",
-	SHIP_BATTLESHIP: "██",
-	SHIP_CRUISER:    "██",
-	SHIP_SUBMARINE:  "██",
-	SHIP_DESTROYER:  "██",
-	LOCATION_HIT:    `{{c "red"}}{{b}}╬╬{{_b}}{{_c}}`,
+	LOCATION_EMPTY:  `  `,
+	SHIP_CARRIER:    shipOutput,
+	SHIP_BATTLESHIP: shipOutput,
+	SHIP_CRUISER:    shipOutput,
+	SHIP_SUBMARINE:  shipOutput,
+	SHIP_DESTROYER:  shipOutput,
+	LOCATION_HIT:    `{{bg "red"}}{{c "yellow"}}{{b}}XX{{_b}}{{_c}}{{_bg}}`,
 	LOCATION_MISS:   `{{c "gray"}}{{b}}XX{{_b}}{{_c}}`,
 }
 
-var emptyTiles = []string{
-	`{{c "cyan"}}▒▒{{_c}}`,
-	`{{c "cyan"}}░░{{_c}}`,
+var emptyTileBgs = []string{
+	"cyan",
+	"blue",
 }
 
 var tileOutputsEnemy = map[int]string{
@@ -509,12 +511,13 @@ func RenderBoard(board [10][10]int, tiles map[int]string) string {
 	for y, row := range board {
 		output.WriteString(fmt.Sprintf("\n%c ", y+'A'))
 		for x, cell := range row {
-			switch tiles[cell] {
-			case tiles[LOCATION_EMPTY]:
-				output.WriteString(emptyTiles[(x+y)%2])
-			default:
-				output.WriteString(tiles[cell])
-			}
+			bg := emptyTileBgs[(x+y)%len(emptyTileBgs)]
+			content := tiles[cell]
+			output.WriteString(fmt.Sprintf(
+				`{{bg "%s"}}%s{{_bg}}`,
+				bg,
+				content,
+			))
 		}
 		output.WriteString(fmt.Sprintf(" %c", y+'A'))
 	}

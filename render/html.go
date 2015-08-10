@@ -27,7 +27,7 @@ func Lighten(val int, by float64) int {
 }
 
 var HtmlRgbColours = map[string]RgbColour{
-	Black:   RgbColour{0, 0, 0},
+	Black:   RgbColour{255, 255, 255},
 	Red:     RgbColour{244, 67, 54},
 	Green:   RgbColour{76, 175, 80},
 	Yellow:  RgbColour{249, 168, 37},
@@ -48,6 +48,15 @@ func (t *HtmlMarkupper) StartColour(colour string) interface{} {
 	))
 }
 func (t *HtmlMarkupper) EndColour() interface{} {
+	return template.HTML("</span>")
+}
+func (t *HtmlMarkupper) StartBg(colour string) interface{} {
+	return template.HTML(fmt.Sprintf(
+		`<span style="background-color:rgb(%s);">`,
+		HtmlRgbColours[colour].String(),
+	))
+}
+func (t *HtmlMarkupper) EndBg() interface{} {
 	return template.HTML("</span>")
 }
 func (t *HtmlMarkupper) StartBold() interface{} {

@@ -10,7 +10,7 @@ func TestTerminalRender(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if output != "\x1b[34m\x1b[34;1mhello\x1b[34m\x1b[0m" {
+	if output != "\x1b[0;34;49m\x1b[0;34;49;1mhello\x1b[0;34;49m\x1b[0;39;49m" {
 		t.Error("Output was", output)
 		return
 	}

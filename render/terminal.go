@@ -2,24 +2,37 @@ package render
 
 import (
 	"bytes"
+	"fmt"
 	"text/template"
 )
 
 type TerminalMarkupper struct {
 	Markupper
-	ColourStack []string
-	BoldStack   int
+	FgStack   []string
+	BgStack   []string
+	BoldStack int
 }
 
 func (t *TerminalMarkupper) StartColour(colour string) interface{} {
-	t.ColourStack = append(t.ColourStack, colour)
+	t.FgStack = append(t.FgStack, colour)
 	return t.Current()
 }
 func (t *TerminalMarkupper) EndColour() interface{} {
-	if len(t.ColourStack) == 0 {
+	if len(t.FgStack) == 0 {
 		panic("There are no colours set")
 	}
-	t.ColourStack = t.ColourStack[:len(t.ColourStack)-1]
+	t.FgStack = t.FgStack[:len(t.FgStack)-1]
+	return t.Current()
+}
+func (t *TerminalMarkupper) StartBg(colour string) interface{} {
+	t.BgStack = append(t.BgStack, colour)
+	return t.Current()
+}
+func (t *TerminalMarkupper) EndBg() interface{} {
+	if len(t.BgStack) == 0 {
+		panic("There are no colours set")
+	}
+	t.BgStack = t.BgStack[:len(t.BgStack)-1]
 	return t.Current()
 }
 func (t *TerminalMarkupper) StartBold() interface{} {
@@ -31,14 +44,19 @@ func (t *TerminalMarkupper) EndBold() interface{} {
 	return t.Current()
 }
 func (t *TerminalMarkupper) Current() string {
-	c := "\x1b[0"
-	if len(t.ColourStack) > 0 {
-		c = TerminalColours()[t.ColourStack[len(t.ColourStack)-1]]
+	fgCode := 39
+	bgCode := 49
+	boldCode := ""
+	if len(t.FgStack) > 0 {
+		fgCode = AnsiFgCode(t.FgStack[len(t.FgStack)-1])
+	}
+	if len(t.BgStack) > 0 {
+		bgCode = AnsiBgCode(t.BgStack[len(t.BgStack)-1])
 	}
 	if t.BoldStack > 0 {
-		c += ";1"
+		boldCode = ";1"
 	}
-	return c + "m"
+	return fmt.Sprintf("\x1b[0;%d;%d%sm", fgCode, bgCode, boldCode)
 }
 
 func RenderTerminal(tmpl string) (string, error) {
@@ -52,15 +70,21 @@ func RenderTerminal(tmpl string) (string, error) {
 	return buf.String(), nil
 }
 
-func TerminalColours() map[string]string {
-	return map[string]string{
-		Black:   "\x1b[30",
-		Red:     "\x1b[31",
-		Green:   "\x1b[32",
-		Yellow:  "\x1b[33",
-		Blue:    "\x1b[34",
-		Magenta: "\x1b[35",
-		Cyan:    "\x1b[36",
-		Gray:    "\x1b[37",
-	}
+var AnsiColourNums = map[string]int{
+	Black:   0,
+	Red:     1,
+	Green:   2,
+	Yellow:  3,
+	Blue:    4,
+	Magenta: 5,
+	Cyan:    6,
+	Gray:    7,
+}
+
+func AnsiFgCode(colour string) int {
+	return 30 + AnsiColourNums[colour]
+}
+
+func AnsiBgCode(colour string) int {
+	return 40 + AnsiColourNums[colour]
 }

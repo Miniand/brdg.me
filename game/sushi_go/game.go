@@ -205,8 +205,14 @@ func (g *Game) Score() ([]int, []string) {
 		}
 		if m == first {
 			firstPlayers = append(firstPlayers, p)
-		} else if m == second {
-			secondPlayers = append(secondPlayers, p)
+		} else {
+			if m > second {
+				second = m
+				secondPlayers = []int{}
+			}
+			if m == second {
+				secondPlayers = append(secondPlayers, p)
+			}
 		}
 	}
 	makiRollsStr := render.Markup("maki rolls", CardColours[CardMakiRoll1], true)

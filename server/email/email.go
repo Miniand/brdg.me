@@ -65,7 +65,7 @@ func SendRichMail(to []string, subject string, body string,
 		return err
 	}
 	src = []byte(fmt.Sprintf(
-		`<pre style="font-size:13px;line-height:17px;font-family:DejaVu Sans Mono,monospace,Segoe UI Symbol;white-space:pre-wrap;">%s`,
+		`<pre style="color:white;background-color:#1d1f21;padding:13px;font-size:13px;line-height:15px;font-family:DejaVu Sans Mono,monospace,Segoe UI Symbol;white-space:pre-wrap;">%s`,
 		htmlOutput,
 	))
 	dst = make([]byte, base64.StdEncoding.EncodedLen(len(src)))

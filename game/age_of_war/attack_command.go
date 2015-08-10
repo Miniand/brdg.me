@@ -72,7 +72,7 @@ func (g *Game) Attack(player, castle int) error {
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s is attacking:\n%s",
 		g.PlayerName(player),
-		g.RenderCastle(castle),
+		g.RenderCastle(castle, []int{}),
 	)))
 	g.CheckEndOfTurn()
 	return nil

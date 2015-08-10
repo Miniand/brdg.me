@@ -2,6 +2,7 @@ package card
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -118,32 +119,20 @@ func TestRemove(t *testing.T) {
 
 func TestShuffle(t *testing.T) {
 	d := Standard52Deck()
-	newD := d.Shuffle()
-	result, _ := newD[0].Compare(SuitRankCard{
-		Suit: STANDARD_52_SUIT_CLUBS,
-		Rank: STANDARD_52_RANK_ACE,
-	})
-	if result == 0 {
-		t.Fatal("Ace of Spades didn't move from the first spot, though there's a chance it was still shuffled")
+	if reflect.DeepEqual(d, d.Shuffle()) {
+		t.Fatal("was the same after shuffling")
 	}
 }
 
 func TestSort(t *testing.T) {
 	d := Standard52Deck().Shuffle()
+	dClone := append(Deck{}, d...)
 	newD := d.Sort()
-	result, _ := d[0].Compare(SuitRankCard{
-		Suit: STANDARD_52_SUIT_CLUBS,
-		Rank: STANDARD_52_RANK_ACE,
-	})
-	if result == 0 {
-		t.Fatal("Original deck is no longer shuffled")
+	if !reflect.DeepEqual(newD, Standard52Deck()) {
+		t.Fatal("newD is not sorted")
 	}
-	result, _ = newD[0].Compare(SuitRankCard{
-		Suit: STANDARD_52_SUIT_CLUBS,
-		Rank: STANDARD_52_RANK_ACE,
-	})
-	if result != 0 {
-		t.Fatal("New deck did not sort to put the ace of clubs first")
+	if !reflect.DeepEqual(d, dClone) {
+		t.Fatal("d was not preserved")
 	}
 }
 
