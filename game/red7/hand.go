@@ -2,6 +2,26 @@ package red7
 
 import "github.com/Miniand/brdg.me/game/helper"
 
+var SuitRules = map[int]func([]int) []int{
+	SuitRed:    HighestCard,
+	SuitOrange: CardsOfOneNumber,
+	SuitYellow: CardsOfOneColor,
+	SuitGreen:  MostEvenCards,
+	SuitBlue:   CardsOfDifferentColors,
+	SuitIndigo: CardsThatFormARun,
+	SuitViolet: MostCardsBelow4,
+}
+
+var SuitRulesStrs = map[int]string{
+	SuitRed:    "Highest card",
+	SuitOrange: "Cards of one number",
+	SuitYellow: "Cards of one color",
+	SuitGreen:  "Most even cards",
+	SuitBlue:   "Cards of different colors",
+	SuitIndigo: "Cards that form a run",
+	SuitViolet: "Most cards below 4",
+}
+
 func HighestCard(cards []int) []int {
 	return []int{helper.IntMax(cards...)}
 }
@@ -108,4 +128,22 @@ func MostCardsBelow4(cards []int) []int {
 		}
 	}
 	return below
+}
+
+func Leader(palettes [][]int) (leader int, leaderPalette []int) {
+	l := len(palettes)
+	if l == 0 {
+		return
+	}
+	leaderPalette = palettes[0]
+	for i := 1; i < l; i++ {
+		lLen := len(leaderPalette)
+		iLen := len(palettes[i])
+		if iLen > lLen || iLen == lLen &&
+			helper.IntMax(palettes[i]...) > helper.IntMax(leaderPalette...) {
+			leader = i
+			leaderPalette = palettes[i]
+		}
+	}
+	return
 }

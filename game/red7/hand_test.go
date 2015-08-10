@@ -195,3 +195,13 @@ func TestMostCardsBelow4(t *testing.T) {
 		assert.Equal(t, c.expected, MostCardsBelow4(c.input))
 	}
 }
+
+func TestLeader(t *testing.T) {
+	leader, leaderPal := Leader([][]int{
+		{SuitYellow | Rank5, SuitBlue | Rank2},
+		{SuitRed | Rank5, SuitBlue | Rank2},
+		{SuitGreen | Rank6},
+	})
+	assert.Equal(t, leader, 1)
+	assert.Equal(t, leaderPal, []int{SuitRed | Rank5, SuitBlue | Rank2})
+}
