@@ -76,9 +76,36 @@ func CardsOfDifferentColors(cards []int) []int {
 }
 
 func CardsThatFormARun(cards []int) []int {
-	return cards
+	lastRank := 0
+	cur := []int{}
+	longest := []int{}
+	for _, c := range helper.IntReverse(helper.IntSort(cards)) {
+		rank := RankVal[c&RankMask]
+		switch rank {
+		case lastRank:
+			continue
+		case lastRank - 1:
+			cur = append(cur, c)
+		default:
+			if len(cur) > len(longest) {
+				longest = cur
+			}
+			cur = []int{c}
+		}
+		lastRank = rank
+	}
+	if len(cur) > len(longest) {
+		longest = cur
+	}
+	return longest
 }
 
 func MostCardsBelow4(cards []int) []int {
-	return cards
+	below := []int{}
+	for _, c := range helper.IntReverse(helper.IntSort(cards)) {
+		if RankVal[c&RankMask] < 4 {
+			below = append(below, c)
+		}
+	}
+	return below
 }
