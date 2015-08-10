@@ -17,6 +17,7 @@ import (
 	"github.com/Miniand/brdg.me/game/love_letter"
 	"github.com/Miniand/brdg.me/game/modern_art"
 	"github.com/Miniand/brdg.me/game/no_thanks"
+	"github.com/Miniand/brdg.me/game/red7"
 	"github.com/Miniand/brdg.me/game/roll_through_the_ages"
 	"github.com/Miniand/brdg.me/game/seven_wonders"
 	"github.com/Miniand/brdg.me/game/splendor"
@@ -69,6 +70,7 @@ func gameList() []Playable {
 		&love_letter.Game{},
 		&modern_art.Game{},
 		&no_thanks.Game{},
+		&red7.Game{},
 		&roll_through_the_ages.Game{},
 		&seven_wonders.Game{},
 		&splendor.Game{},

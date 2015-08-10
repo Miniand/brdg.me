@@ -12,6 +12,12 @@ type Game struct {
 	Players       []string
 	CurrentPlayer int
 	Log           *log.Log
+	Finished      bool
+	Deck          []int
+	Hands         [][]int
+	Palettes      [][]int
+	ScoredCards   [][]int
+	Eliminated    []bool
 }
 
 func (g *Game) Commands() []command.Command {
@@ -35,12 +41,46 @@ func (g *Game) Decode(data []byte) error {
 }
 
 func (g *Game) Start(players []string) error {
-	if l := len(players); l < 2 || l > 4 {
+	l := len(players)
+	if l < 2 || l > 4 {
 		return errors.New("only 2-4 players")
 	}
 	g.Players = players
 	g.Log = log.New()
+
+	g.Hands = make([][]int, l)
+	g.Palettes = make([][]int, l)
+	g.ScoredCards = make([][]int, l)
+
+	g.StartRound()
+
 	return nil
+}
+
+func (g *Game) StartRound() {
+	l := len(g.Players)
+
+	// Add hands and palettes back to the deck.
+	for p := range g.Players {
+		g.Deck = append(g.Deck, g.Hands[p]...)
+		g.Deck = append(g.Deck, g.Palettes[p]...)
+	}
+	g.Hands = make([][]int, l)
+	g.Palettes = make([][]int, l)
+
+	if len(g.Deck) < l*8 {
+		// End of the game, not enough cards to deal new hand.
+		g.Finished = true
+	}
+
+	g.Deck = helper.IntShuffle(Deck)
+
+	// Deal hands and new palettes.
+	for p := range g.Players {
+		g.Hands[p] = helper.IntSort(g.Deck[:7])
+		g.Palettes[p] = g.Deck[7:8]
+		g.Deck = g.Deck[8:]
+	}
 }
 
 func (g *Game) PlayerList() []string {
