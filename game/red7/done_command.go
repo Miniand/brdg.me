@@ -44,6 +44,9 @@ func (g *Game) Done(player int) error {
 	if !g.CanDone(player) {
 		return errors.New("you can't done at the moment")
 	}
+	if !g.HasPlayed {
+		g.Eliminate(g.CurrentPlayer, " for not playing or discarding")
+	}
 	g.EndTurn()
 	return nil
 }

@@ -125,7 +125,7 @@ func (g *Game) Draw(player, n int) {
 	)))
 	g.Log.Add(log.NewPrivateMessage(fmt.Sprintf(
 		"You drew %s",
-		strings.Join(RenderCards(g.Deck[:n]), " "),
+		strings.Join(RenderCards(helper.IntReverse(SortBySuit(g.Deck[:n]))), " "),
 	), []string{g.Players[player]}))
 	g.Hands[player] = append(g.Hands[player], g.Deck[:n]...)
 	g.Deck = g.Deck[n:]
@@ -140,10 +140,10 @@ func (g *Game) StartTurn() {
 }
 
 func (g *Game) EndTurn() {
-	if !g.HasPlayed {
-		g.Eliminate(g.CurrentPlayer, " for not playing or discarding")
-	} else if leader, _ := g.Leader(); leader != g.CurrentPlayer {
-		g.Eliminate(g.CurrentPlayer, " for not being the leader at the end of their turn")
+	if !g.Eliminated[g.CurrentPlayer] {
+		if leader, _ := g.Leader(); leader != g.CurrentPlayer {
+			g.Eliminate(g.CurrentPlayer, " for not being the leader at the end of their turn")
+		}
 	}
 
 	if len(g.RemainingPlayers()) == 1 {
