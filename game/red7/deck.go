@@ -1,6 +1,12 @@
 package red7
 
-import "github.com/Miniand/brdg.me/render"
+import (
+	"sort"
+	"strconv"
+	"strings"
+
+	"github.com/Miniand/brdg.me/render"
+)
 
 const (
 	SuitViolet = 1 << iota
@@ -55,6 +61,8 @@ var RankVal = map[int]int{
 	Rank7: 7,
 }
 
+var RankValMap map[int]int
+
 var SuitStr = map[int]string{
 	SuitViolet: "Violet",
 	SuitIndigo: "Indigo",
@@ -74,6 +82,8 @@ var SuitAbbr = map[int]string{
 	SuitOrange: "O",
 	SuitRed:    "R",
 }
+
+var SuitAbbrMap map[string]int
 
 var SuitCol = map[int]string{
 	SuitViolet: render.Magenta,
@@ -98,8 +108,55 @@ func init() {
 			Deck = append(Deck, s|r)
 		}
 	}
+
+	SuitAbbrMap = map[string]int{}
+	for k, v := range SuitAbbr {
+		SuitAbbrMap[v] = k
+	}
+
+	RankValMap = map[int]int{}
+	for k, v := range RankVal {
+		RankValMap[v] = k
+	}
 }
 
-func ParseCard(input string) (int, bool) {
-	return 0, false
+func ParseCard(input string) (card int, ok bool) {
+	if len(input) != 2 {
+		return
+	}
+	suit, ok := SuitAbbrMap[strings.ToUpper(input[0:1])]
+	if !ok {
+		return
+	}
+	rank, err := strconv.Atoi(input[1:2])
+	if err != nil || rank < 1 || rank > 7 {
+		ok = false
+		return
+	}
+	card = suit | RankValMap[rank]
+	return
+}
+
+func Points(cards []int) int {
+	points := 0
+	for _, c := range cards {
+		points += RankVal[c&RankMask]
+	}
+	return points
+}
+
+type BySuit []int
+
+func (bs BySuit) Len() int      { return len(bs) }
+func (bs BySuit) Swap(i, j int) { bs[i], bs[j] = bs[j], bs[i] }
+func (bs BySuit) Less(i, j int) bool {
+	return bs[i]&SuitMask < bs[j]&SuitMask ||
+		bs[i]&SuitMask == bs[j]&SuitMask &&
+			bs[i]&RankMask < bs[j]&RankMask
+}
+
+func SortBySuit(cards []int) []int {
+	sortedCards := append([]int{}, cards...)
+	sort.Sort(BySuit(sortedCards))
+	return sortedCards
 }

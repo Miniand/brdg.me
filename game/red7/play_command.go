@@ -2,8 +2,11 @@ package red7
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/Miniand/brdg.me/game/log"
 )
 
 type PlayCommand struct{}
@@ -46,12 +49,24 @@ func (c PlayCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanPlay(player int) bool {
-	return g.CurrentPlayer == player
+	return g.CurrentPlayer == player && !g.HasPlayed
 }
 
 func (g *Game) Play(player, card int) error {
 	if !g.CanPlay(player) {
 		return errors.New("you can't play at the moment")
 	}
-	return errors.New("not implemented")
+	index, ok := helper.IntFind(card, g.Hands[player])
+	if !ok {
+		return errors.New("you don't have that card")
+	}
+	g.Palettes[player] = append(g.Palettes[player], card)
+	g.Hands[player] = append(g.Hands[player][:index], g.Hands[player][index+1:]...)
+	g.HasPlayed = true
+	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+		"%s played %s",
+		g.PlayerName(player),
+		RenderCard(card),
+	)))
+	return nil
 }

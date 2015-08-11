@@ -10,6 +10,6 @@ import (
 func TestGame_Render(t *testing.T) {
 	g := &Game{}
 	assert.NoError(t, g.Start(helper.Players[:2]))
-	_, err := g.RenderForPlayer("mick")
+	_, err := g.RenderForPlayer("Mick")
 	assert.NoError(t, err)
 }

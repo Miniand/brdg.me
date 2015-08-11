@@ -13,14 +13,8 @@ type handTest struct {
 func TestHighestCard(t *testing.T) {
 	for _, c := range []handTest{
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitRed | Rank7,
-				SuitBlue | Rank7,
-			},
-			expected: []int{
-				SuitRed | Rank7,
-			},
+			input:    crds("r6", "r7", "b7"),
+			expected: crds("r7"),
 		},
 	} {
 		assert.Equal(t, c.expected, HighestCard(c.input))
@@ -30,26 +24,12 @@ func TestHighestCard(t *testing.T) {
 func TestCardsOfOneNumber(t *testing.T) {
 	for _, c := range []handTest{
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitRed | Rank7,
-				SuitBlue | Rank7,
-			},
-			expected: []int{
-				SuitRed | Rank7,
-				SuitBlue | Rank7,
-			},
+			input:    crds("r6", "r7", "b7"),
+			expected: crds("r7", "b7"),
 		},
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitRed | Rank7,
-				SuitBlue | Rank6,
-			},
-			expected: []int{
-				SuitRed | Rank6,
-				SuitBlue | Rank6,
-			},
+			input:    crds("r6", "r7", "b6"),
+			expected: crds("r6", "b6"),
 		},
 	} {
 		assert.Equal(t, c.expected, CardsOfOneNumber(c.input))
@@ -59,27 +39,12 @@ func TestCardsOfOneNumber(t *testing.T) {
 func TestCardsOfOneColor(t *testing.T) {
 	for _, c := range []handTest{
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitRed | Rank7,
-				SuitBlue | Rank7,
-			},
-			expected: []int{
-				SuitRed | Rank7,
-				SuitRed | Rank6,
-			},
+			input:    crds("r6", "r7", "b7"),
+			expected: crds("r7", "r6"),
 		},
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitBlue | Rank7,
-				SuitBlue | Rank6,
-				SuitRed | Rank5,
-			},
-			expected: []int{
-				SuitBlue | Rank7,
-				SuitBlue | Rank6,
-			},
+			input:    crds("r6", "b7", "b6", "r5"),
+			expected: crds("b7", "b6"),
 		},
 	} {
 		assert.Equal(t, c.expected, CardsOfOneColor(c.input))
@@ -89,26 +54,12 @@ func TestCardsOfOneColor(t *testing.T) {
 func TestMostEvenCards(t *testing.T) {
 	for _, c := range []handTest{
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitRed | Rank7,
-				SuitBlue | Rank7,
-			},
-			expected: []int{
-				SuitRed | Rank6,
-			},
+			input:    crds("r6", "r7", "b7"),
+			expected: crds("r6"),
 		},
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitBlue | Rank7,
-				SuitBlue | Rank6,
-				SuitRed | Rank5,
-			},
-			expected: []int{
-				SuitRed | Rank6,
-				SuitBlue | Rank6,
-			},
+			input:    crds("r6", "b7", "b6", "r5"),
+			expected: crds("r6", "b6"),
 		},
 	} {
 		assert.Equal(t, c.expected, MostEvenCards(c.input))
@@ -118,18 +69,8 @@ func TestMostEvenCards(t *testing.T) {
 func TestCardsOfDifferentColors(t *testing.T) {
 	for _, c := range []handTest{
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitRed | Rank7,
-				SuitBlue | Rank7,
-				SuitYellow | Rank3,
-				SuitYellow | Rank7,
-			},
-			expected: []int{
-				SuitRed | Rank7,
-				SuitYellow | Rank7,
-				SuitBlue | Rank7,
-			},
+			input:    crds("r6", "r7", "b7", "y3", "y7"),
+			expected: crds("r7", "y7", "b7"),
 		},
 	} {
 		assert.Equal(t, c.expected, CardsOfDifferentColors(c.input))
@@ -139,33 +80,12 @@ func TestCardsOfDifferentColors(t *testing.T) {
 func TestCardsThatFormARun(t *testing.T) {
 	for _, c := range []handTest{
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitRed | Rank7,
-				SuitBlue | Rank7,
-				SuitYellow | Rank3,
-				SuitYellow | Rank7,
-			},
-			expected: []int{
-				SuitRed | Rank7,
-				SuitRed | Rank6,
-			},
+			input:    crds("r6", "r7", "b7", "y3", "y7"),
+			expected: crds("r7", "r6"),
 		},
 		{
-			input: []int{
-				SuitRed | Rank6,
-				SuitBlue | Rank1,
-				SuitRed | Rank7,
-				SuitGreen | Rank2,
-				SuitBlue | Rank7,
-				SuitYellow | Rank3,
-				SuitYellow | Rank7,
-			},
-			expected: []int{
-				SuitYellow | Rank3,
-				SuitGreen | Rank2,
-				SuitBlue | Rank1,
-			},
+			input:    crds("r6", "b1", "r7", "g2", "b7", "y3", "y7"),
+			expected: crds("y3", "g2", "b1"),
 		},
 	} {
 		assert.Equal(t, c.expected, CardsThatFormARun(c.input))
@@ -175,21 +95,8 @@ func TestCardsThatFormARun(t *testing.T) {
 func TestMostCardsBelow4(t *testing.T) {
 	for _, c := range []handTest{
 		{
-			input: []int{
-				SuitBlue | Rank1,
-				SuitBlue | Rank4,
-				SuitRed | Rank6,
-				SuitGreen | Rank2,
-				SuitRed | Rank7,
-				SuitBlue | Rank7,
-				SuitYellow | Rank3,
-				SuitYellow | Rank7,
-			},
-			expected: []int{
-				SuitYellow | Rank3,
-				SuitGreen | Rank2,
-				SuitBlue | Rank1,
-			},
+			input:    crds("b1", "b4", "r6", "g2", "r7", "b7", "y3", "y7"),
+			expected: crds("y3", "g2", "b1"),
 		},
 	} {
 		assert.Equal(t, c.expected, MostCardsBelow4(c.input))
@@ -198,10 +105,10 @@ func TestMostCardsBelow4(t *testing.T) {
 
 func TestLeader(t *testing.T) {
 	leader, leaderPal := Leader([][]int{
-		{SuitYellow | Rank5, SuitBlue | Rank2},
-		{SuitRed | Rank5, SuitBlue | Rank2},
-		{SuitGreen | Rank6},
+		crds("y5", "b2"),
+		crds("r5", "b2"),
+		crds("g6"),
 	})
 	assert.Equal(t, leader, 1)
-	assert.Equal(t, leaderPal, []int{SuitRed | Rank5, SuitBlue | Rank2})
+	assert.Equal(t, leaderPal, crds("r5", "b2"))
 }
