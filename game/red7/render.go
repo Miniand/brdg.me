@@ -28,6 +28,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	playerCells := [][]interface{}{
 		{
 			render.Bold("Player"),
+			render.Bold("Hand"),
 			render.Bold("Pts"),
 			render.Bold("Palette"),
 		},
@@ -41,6 +42,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		playerCells = append(playerCells, []interface{}{
 			g.PlayerName(p),
+			render.Centred(fmt.Sprintf("{{b}}%d{{_b}}", len(g.Hands[p]))),
 			render.Centred(fmt.Sprintf("{{b}}%d{{_b}}", g.PlayerPoints(p))),
 			pal,
 		})
