@@ -75,6 +75,7 @@ func (g *Game) Discard(player, card int) error {
 		// Draw a card for discarding a card numbered higher than palette size.
 		g.Draw(player, 1)
 	}
+	g.HasPlayed = true
 	g.EndTurn()
 	return nil
 }
