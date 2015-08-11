@@ -14,12 +14,12 @@ var SuitRules = map[int]func([]int) []int{
 
 var SuitRulesStrs = map[int]string{
 	SuitRed:    "Highest card",
-	SuitOrange: "Cards of one number",
-	SuitYellow: "Cards of one color",
-	SuitGreen:  "Most even cards",
-	SuitBlue:   "Cards of different colors",
-	SuitIndigo: "Cards that form a run",
-	SuitViolet: "Most cards below 4",
+	SuitOrange: "Same number",
+	SuitYellow: "Same color",
+	SuitGreen:  "Even cards",
+	SuitBlue:   "Most colors",
+	SuitIndigo: "In a row",
+	SuitViolet: "Below 4",
 }
 
 func HighestCard(cards []int) []int {

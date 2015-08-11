@@ -16,6 +16,15 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	rule := g.CurrentRule()
 
+	handCells := [][]interface{}{}
+	for _, c := range helper.IntReverse(SortBySuit(g.Hands[pNum])) {
+		suit := c & SuitMask
+		handCells = append(handCells, []interface{}{
+			RenderCard(c),
+			render.Colour(SuitRulesStrs[suit], SuitCol[suit]),
+		})
+	}
+
 	playerCells := [][]interface{}{
 		{
 			render.Bold("Player"),
@@ -46,17 +55,18 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 
 	rows := []interface{}{
-		fmt.Sprintf("The game will end at {{b}}%d{{_b}} points", EndPoints(len(g.Players))),
+		fmt.Sprintf("First to {{b}}%d{{_b}} points", EndPoints(len(g.Players))),
 		"",
 		render.Bold("Current rule"),
 		render.Markup(SuitRulesStrs[rule], SuitCol[rule], true),
 		"",
 		render.Bold("Your hand"),
-		strings.Join(RenderCards(helper.IntReverse(SortBySuit(g.Hands[pNum]))), " "),
+		render.Table(handCells, 0, 2),
 		"",
-		fmt.Sprintf("{{b}}Deck cards:{{_b}} %d", len(g.Deck)),
+		fmt.Sprintf("{{b}}Deck remaining:{{_b}} %d", len(g.Deck)),
 		"",
 		render.Table(playerCells, 0, 2),
+		"",
 		"",
 		render.Table(colorCells, 0, 2),
 	}
