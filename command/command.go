@@ -45,13 +45,15 @@ func CallInCommandsPostHook(
 	var commandOutput string
 	numRun := 0
 	outputs := []string{}
+	p := NewParserString(input)
 	for {
-		input, commandOutput, err = CallOneInCommands(
+		commandOutput, err = CallOneInCommands(
 			player,
 			context,
-			input,
+			p,
 			commands,
 		)
+		p.ReadString('\n') // Flush line to prepare for more commands
 		if commandOutput != "" {
 			outputs = append(outputs, commandOutput)
 		}
@@ -76,10 +78,10 @@ func CallInCommandsPostHook(
 func CallOneInCommands(
 	player string,
 	context interface{},
-	input string,
+	p *Parser,
 	commands []Command,
-) (remaining, output string, err error) {
-	p := NewParser(strings.NewReader(strings.TrimSpace(input)))
+) (output string, err error) {
+	p.ReadSpace() // Clear leading space
 	cmd, err := p.ReadWord()
 	if err != nil {
 		// Unable to read command.

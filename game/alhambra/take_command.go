@@ -11,29 +11,24 @@ import (
 
 type TakeCommand struct{}
 
-func (c TakeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("take", 1, -1, input)
-}
+func (c TakeCommand) Name() string { return "take" }
 
-func (c TakeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanTake(pNum)
-}
-
-func (c TakeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c TakeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", ErrCouldNotFindPlayer
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify which cards to take")
 	}
 	cards := card.Deck{}
-	for _, rawCard := range a {
+	for _, rawCard := range args {
 		c, err := ParseCard(rawCard)
 		if err != nil {
 			return "", err

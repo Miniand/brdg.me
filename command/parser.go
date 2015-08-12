@@ -57,12 +57,12 @@ func (p *Parser) ReadSpace() (string, error) {
 }
 
 func (p *Parser) ReadLineArgs() ([]string, error) {
-	line, err := p.ReadString('\n')
+	line, err := p.ReadWhile(func(r rune) bool {
+		return r != '\n'
+	})
 	if l := len(line); l > 0 {
 		if err == io.EOF {
 			err = nil
-		} else {
-			line = line[:l-1]
 		}
 	}
 	if err != nil {
