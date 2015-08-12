@@ -11,10 +11,9 @@ var ErrNoCommandFound = errors.New(
 // Command is a regexp based command parser, providing an interface for
 // authorisation and instructions.
 type Command interface {
-	// Parses the input string for the command, the return is nil if it could not parse the command, or if it could
-	Parse(input string) []string
-	CanCall(player string, context interface{}) bool
-	Call(player string, context interface{}, args []string) (output string,
+	// Name is the name of the command and is used to decide which to call.
+	Name() string
+	Call(player string, context interface{}, input *Parser) (output string,
 		err error)
 	Usage(player string, context interface{}) string
 }
@@ -80,32 +79,26 @@ func CallOneInCommands(
 	input string,
 	commands []Command,
 ) (remaining, output string, err error) {
-	remaining = strings.TrimSpace(input)
-	initialInput := remaining
-	for _, c := range commands {
-		if c.CanCall(player, context) {
-			args := c.Parse(remaining)
-			if args != nil {
-				// Trim the matched text out of the remaining string
-				remaining = remaining[len(args[0]):]
-				output, err = c.Call(player, context, args)
-				break
-			}
-		}
+	p := NewParser(strings.NewReader(strings.TrimSpace(input)))
+	cmd, err := p.ReadWord()
+	if err != nil {
+		// Unable to read command.
+		err = ErrNoCommandFound
+		return
 	}
-	if err == nil && remaining == initialInput {
+	lowerCmd := strings.ToLower(cmd)
+	foundCommand := false
+	for _, c := range commands {
+		if strings.ToLower(c.Name()) != lowerCmd {
+			continue
+		}
+		foundCommand = true
+		output, err = c.Call(player, context, p)
+		break
+	}
+	if !foundCommand {
 		// No commands ran or there was an error, stop running
 		err = ErrNoCommandFound
-	}
-	return
-}
-
-func AvailableCommands(player string, context interface{},
-	commands []Command) (available []Command) {
-	for _, c := range commands {
-		if c.CanCall(player, context) {
-			available = append(available, c)
-		}
 	}
 	return
 }
