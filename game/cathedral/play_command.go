@@ -14,42 +14,34 @@ import (
 
 type PlayCommand struct{}
 
-func (c PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("play", 2, 3, input)
-}
-
-func (c PlayCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanPlay(pNum)
-}
+func (c PlayCommand) Name() string { return "play" }
 
 func (c PlayCommand) Call(
 	player string,
 	context interface{},
-	args []string,
+	input *command.Parser,
 ) (output string, err error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 2 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 2 {
 		return "", errors.New("the play command requires at least two arguments")
 	}
-	pieceNum, err := strconv.Atoi(a[0])
+	pieceNum, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("the first argument should be the piece number to play")
 	}
 	pieceNum-- // Change to zero index
-	loc, ok := ParseLoc(a[1])
+	loc, ok := ParseLoc(args[1])
 	if !ok {
 		return "", errors.New("the second argument should be a valid location, such as C7")
 	}
 	dir := DirDown
-	if len(a) > 2 {
-		dir, err = helper.MatchStringInStringMap(a[2], OrthoDirNames)
+	if len(args) > 2 {
+		dir, err = helper.MatchStringInStringMap(args[2], OrthoDirNames)
 		if err != nil {
 			return "", err
 		}
