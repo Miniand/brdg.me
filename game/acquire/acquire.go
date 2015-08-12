@@ -147,18 +147,40 @@ func (g *Game) Identifier() string {
 	return "acquire"
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		EndCommand{},
-		PlayCommand{},
-		MergeCommand{},
-		SellCommand{},
-		TradeCommand{},
-		KeepCommand{},
-		BuyCommand{},
-		DoneCommand{},
-		FoundCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, err := g.PlayerNum(player)
+	if err != nil {
+		return commands
 	}
+	if g.CanEnd(pNum) {
+		commands = append(commands, EndCommand{})
+	}
+	if g.CanPlay(pNum) {
+		commands = append(commands, PlayCommand{})
+	}
+	if g.CanMerge(pNum) {
+		commands = append(commands, MergeCommand{})
+	}
+	if g.CanSell(pNum) {
+		commands = append(commands, SellCommand{})
+	}
+	if g.CanTrade(pNum) {
+		commands = append(commands, TradeCommand{})
+	}
+	if g.CanKeep(pNum) {
+		commands = append(commands, KeepCommand{})
+	}
+	if g.CanBuy(pNum) {
+		commands = append(commands, BuyCommand{})
+	}
+	if g.CanDone(pNum) {
+		commands = append(commands, DoneCommand{})
+	}
+	if g.CanFound(pNum) {
+		commands = append(commands, FoundCommand{})
+	}
+	return commands
 }
 
 func (g *Game) GameLog() *log.Log {
