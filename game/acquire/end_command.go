@@ -1,6 +1,7 @@
 package acquire
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
@@ -9,22 +10,21 @@ import (
 
 type EndCommand struct{}
 
-func (c EndCommand) Parse(input string) []string {
-	return command.ParseRegexp(`end`, input)
-}
+func (c EndCommand) Name() string { return "end" }
 
-func (c EndCommand) CanCall(player string, context interface{}) bool {
+func (c EndCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
-	playerNum, err := g.PlayerNum(player)
+	pNum, err := g.PlayerNum(player)
 	if err != nil {
-		return false
+		return "", err
 	}
-	return g.CanEnd(playerNum)
-}
-
-func (c EndCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
+	if !g.CanEnd(pNum) {
+		return "", errors.New("you can't end at the moment")
+	}
 	g.FinalTurn = true
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		`{{b}}%s{{_b}} triggered the end of the game at the end of their turn`,

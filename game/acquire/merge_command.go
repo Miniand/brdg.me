@@ -1,31 +1,35 @@
 package acquire
 
 import (
+	"errors"
 	"fmt"
-	"github.com/Miniand/brdg.me/command"
 	"strings"
+
+	"github.com/Miniand/brdg.me/command"
 )
 
 type MergeCommand struct{}
 
-func (c MergeCommand) Parse(input string) []string {
-	return command.ParseRegexp(`merge (ARG) into (ARG)`, input)
-}
+func (c MergeCommand) Name() string { return "merge" }
 
-func (c MergeCommand) CanCall(player string, context interface{}) bool {
+func (c MergeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
-	playerNum, err := g.PlayerNum(player)
+	pNum, err := g.PlayerNum(player)
 	if err != nil {
-		return false
+		return "", err
 	}
-	return !g.IsFinished() && g.CurrentPlayer == playerNum &&
-		g.TurnPhase == TURN_PHASE_MERGER_CHOOSE
-}
-
-func (c MergeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	from, err := FindCorp(args[1])
+	if !g.CanMerge(pNum) {
+		return "", errors.New("can't merge at the moment")
+	}
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 3 || strings.ToLower(args[1]) != "into" {
+		return "", errors.New("you must specify which hotel to merge, eg. 'merge fe into im'")
+	}
+	from, err := FindCorp(args[0])
 	if err != nil {
 		return "", err
 	}
@@ -52,4 +56,9 @@ func (c MergeCommand) Usage(player string, context interface{}) string {
 	return fmt.Sprintf(
 		"{{b}}merge ## into ##{{_b}} to choose which corporation to merge into another.  Your available options are:\n%s",
 		strings.Join(availableCommands, "\n"))
+}
+
+func (g *Game) CanMerge(player int) bool {
+	return !g.IsFinished() && g.CurrentPlayer == player &&
+		g.TurnPhase == TURN_PHASE_MERGER_CHOOSE
 }

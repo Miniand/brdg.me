@@ -1,32 +1,37 @@
 package acquire
 
 import (
+	"errors"
+
 	"github.com/Miniand/brdg.me/command"
 )
 
 type DoneCommand struct{}
 
-func (c DoneCommand) Parse(input string) []string {
-	return command.ParseRegexp(`done`, input)
-}
+func (c DoneCommand) Name() string { return "done" }
 
-func (c DoneCommand) CanCall(player string, context interface{}) bool {
+func (c DoneCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
-	playerNum, err := g.PlayerNum(player)
+	pNum, err := g.PlayerNum(player)
 	if err != nil {
-		return false
+		return "", err
 	}
-	return !g.IsFinished() && g.CurrentPlayer == playerNum &&
-		g.TurnPhase == TURN_PHASE_BUY_SHARES
-}
-
-func (c DoneCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
+	if !g.CanDone(pNum) {
+		return "", errors.New("can't call done at the moment")
+	}
 	g.NextPlayer()
 	return "", nil
 }
 
 func (c DoneCommand) Usage(player string, context interface{}) string {
 	return `{{b}}done{{_b}} to end your turn without buying more shares`
+}
+
+func (g *Game) CanDone(player int) bool {
+	return !g.IsFinished() && g.CurrentPlayer == player &&
+		g.TurnPhase == TURN_PHASE_BUY_SHARES
 }

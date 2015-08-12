@@ -1,34 +1,30 @@
 package acquire
 
 import (
+	"errors"
 	"fmt"
+
 	"github.com/Miniand/brdg.me/command"
 )
 
 type KeepCommand struct{}
 
-func (c KeepCommand) Parse(input string) []string {
-	return command.ParseRegexp(`keep`, input)
-}
+func (c KeepCommand) Name() string { return "keep" }
 
-func (c KeepCommand) CanCall(player string, context interface{}) bool {
+func (c KeepCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
-	playerNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return !g.IsFinished() && g.MergerCurrentPlayer == playerNum &&
-		g.TurnPhase == TURN_PHASE_MERGER
-}
-
-func (c KeepCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	playerNum, err := g.PlayerNum(player)
+	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
-	return "", g.KeepShares(playerNum)
+	if !g.CanKeep(pNum) {
+		return "", errors.New("can't keep at the moment")
+	}
+	return "", g.KeepShares(pNum)
 }
 
 func (c KeepCommand) Usage(player string, context interface{}) string {
@@ -36,4 +32,9 @@ func (c KeepCommand) Usage(player string, context interface{}) string {
 	return fmt.Sprintf(
 		`{{b}}keep{{_b}} to keep your remaining {{b}}{{c "%s"}}%s{{_c}}{{_b}} shares`,
 		CorpColours[g.MergerFromCorp], CorpNames[g.MergerFromCorp])
+}
+
+func (g *Game) CanKeep(player int) bool {
+	return !g.IsFinished() && g.MergerCurrentPlayer == player &&
+		g.TurnPhase == TURN_PHASE_MERGER
 }
