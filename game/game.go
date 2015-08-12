@@ -30,7 +30,7 @@ import (
 )
 
 type Playable interface {
-	Commands() []command.Command
+	Commands(player string) []command.Command
 	Name() string
 	Identifier() string
 	Encode() ([]byte, error)
