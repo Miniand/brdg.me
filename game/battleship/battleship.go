@@ -142,11 +142,15 @@ type Game struct {
 	LeftToPlace   [2][]int
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		PlaceCommand{},
-		ShootCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	if g.CanPlace(player) {
+		commands = append(commands, PlaceCommand{})
 	}
+	if g.CanShoot(player) {
+		commands = append(commands, ShootCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

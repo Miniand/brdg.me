@@ -2,9 +2,11 @@ package battleship
 
 import (
 	"fmt"
-	"github.com/Miniand/brdg.me/command"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	"github.com/Miniand/brdg.me/game/helper"
+	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -156,59 +158,16 @@ func TestGame(t *testing.T) {
 	if len(g.WhoseTurn()) != 2 {
 		t.Fatal("Both players should be placing")
 	}
-	_, err := command.CallInCommands(names[MICK], g,
-		"place sub b3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[MICK], g,
-		"place car c3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[MICK], g,
-		"place des d3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[MICK], g,
-		"place cru e3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[MICK], g,
-		"place bat f3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[STEVE], g,
-		"place sub b3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[STEVE], g,
-		"place car c3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[STEVE], g,
-		"place des d3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[STEVE], g,
-		"place cru e3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[STEVE], g,
-		"place bat f3 right", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = command.CallInCommands(names[MICK], g,
-		"shoot b3", g.Commands())
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "place sub b3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "place car c3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "place des d3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "place cru e3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick,
+		"place bat f3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Steve, "place sub b3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Steve, "place car c3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Steve, "place des d3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Steve, "place cru e3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Steve, "place bat f3 right"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "shoot b3"))
 }
