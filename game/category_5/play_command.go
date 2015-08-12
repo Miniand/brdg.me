@@ -9,32 +9,24 @@ import (
 
 type PlayCommand struct{}
 
-func (c PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
-}
+func (c PlayCommand) Name() string { return "play" }
 
-func (c PlayCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanPlay(pNum)
-}
-
-func (c PlayCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c PlayCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
 		return "", errors.New("you must specify which card to play")
 	}
-	cardNum, err := strconv.Atoi(a[0])
+	cardNum, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", err
 	}
