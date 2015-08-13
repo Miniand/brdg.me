@@ -3,11 +3,13 @@ package splendor
 import (
 	"math/rand"
 	"time"
+
+	"github.com/Miniand/brdg.me/game/cost"
 )
 
 type Noble struct {
 	Prestige int
-	Cost     Amount
+	Cost     cost.Cost
 }
 
 func ShuffleNobles(nobles []Noble) []Noble {
@@ -24,7 +26,7 @@ func NobleCards() []Noble {
 	return []Noble{
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Emerald:  3,
 				Sapphire: 3,
 				Diamond:  3,
@@ -32,7 +34,7 @@ func NobleCards() []Noble {
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Emerald:  3,
 				Sapphire: 3,
 				Ruby:     3,
@@ -40,7 +42,7 @@ func NobleCards() []Noble {
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Onyx:    3,
 				Ruby:    3,
 				Diamond: 3,
@@ -48,7 +50,7 @@ func NobleCards() []Noble {
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Onyx:     3,
 				Sapphire: 3,
 				Diamond:  3,
@@ -56,7 +58,7 @@ func NobleCards() []Noble {
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Onyx:    3,
 				Ruby:    3,
 				Emerald: 3,
@@ -64,35 +66,35 @@ func NobleCards() []Noble {
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Onyx: 4,
 				Ruby: 4,
 			},
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Onyx:    4,
 				Diamond: 4,
 			},
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Sapphire: 4,
 				Diamond:  4,
 			},
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Sapphire: 4,
 				Emerald:  4,
 			},
 		},
 		{
 			3,
-			Amount{
+			cost.Cost{
 				Ruby:    4,
 				Emerald: 4,
 			},

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
@@ -86,12 +87,12 @@ func (g *Game) Take(player int, tokens []int) error {
 	default:
 		return errors.New("can only take two or three tokens")
 	}
-	amount := Amount{}
+	amount := cost.Cost{}
 	for _, t := range tokens {
 		amount[t] += 1
 	}
 	g.PlayerBoards[player].Tokens = g.PlayerBoards[player].Tokens.Add(amount)
-	g.Tokens = g.Tokens.Subtract(amount)
+	g.Tokens = g.Tokens.Sub(amount)
 	g.NextPhase()
 	return nil
 }
