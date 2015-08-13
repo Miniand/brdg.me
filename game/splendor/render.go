@@ -177,12 +177,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		header,
 		render.Centred(render.Bold(
 			RenderResourceColour(ResourceAbbr[Gold], Gold))),
-		render.Centred(render.Bold(
-			render.Colour("Tok", render.Black))),
+		render.Centred(render.Bold("Tok")),
 		render.Centred(render.Bold(
 			render.Colour("Res", render.Cyan))),
 		render.Centred(render.Bold(
 			RenderResourceColour(ResourceAbbr[Prestige], Prestige))),
+		render.Centred(render.Bold("Dev")),
 	)
 	table = [][]interface{}{header}
 	for p, _ := range g.Players {
@@ -203,6 +203,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			render.Centred(render.Markup(pb.Tokens.Sum(), "", bold)),
 			render.Centred(render.Markup(len(pb.Reserve), "", bold)),
 			render.Centred(render.Markup(pb.Prestige(), "", bold)),
+			render.Centred(render.Markup(len(pb.Cards), "", bold)),
 		)
 		table = append(table, row)
 	}
