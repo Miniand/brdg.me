@@ -27,11 +27,19 @@ type Game struct {
 	Market                          []int
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		TakeCommand{},
-		SellCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	if g.CanSell(pNum) {
+		commands = append(commands, SellCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
