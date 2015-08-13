@@ -1,47 +1,13 @@
 package splendor
 
-type Amount map[int]int
+import "github.com/Miniand/brdg.me/game/cost"
 
-func (a Amount) Clone() Amount {
-	newAmount := Amount{}
-	for r, n := range a {
-		newAmount[r] = n
-	}
-	return newAmount
-}
-
-func (a Amount) Gems() Amount {
-	newAmount := Amount{}
-	for _, g := range Gems {
-		if n, ok := a[g]; ok {
-			newAmount[g] = n
-		}
-	}
-	return newAmount
-}
-
-func (a Amount) Subtract(b Amount) Amount {
-	newAmount := a.Clone()
-	for r, n := range b {
-		newAmount[r] -= n
-	}
-	return newAmount
-}
-
-func (a Amount) Add(b Amount) Amount {
-	newAmount := a.Clone()
-	for r, n := range b {
-		newAmount[r] += n
-	}
-	return newAmount
-}
-
-func (a Amount) CanAfford(cost Amount) bool {
+func CanAfford(a, c cost.Cost) bool {
 	short := 0
-	for g, n := range cost {
+	for g, n := range c {
 		if a[g] < n {
 			short += n - a[g]
 		}
 	}
-	return a[Gold]-cost[Gold] >= short
+	return a[Gold]-c[Gold] >= short
 }

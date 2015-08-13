@@ -7,15 +7,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/render"
 )
 
 var ResourceColours = map[int]string{
-	Diamond:  render.Gray,
+	Diamond:  render.Black,
 	Sapphire: render.Blue,
 	Emerald:  render.Green,
 	Ruby:     render.Red,
-	Onyx:     render.Black,
+	Onyx:     render.Gray,
 	Gold:     render.Yellow,
 	Prestige: render.Magenta,
 }
@@ -101,7 +102,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		}
 		for _, c := range r {
 			upperBuf := bytes.NewBuffer([]byte{})
-			if bonuses.CanAfford(c.Cost) {
+			if CanAfford(bonuses, c.Cost) {
 				upperBuf.WriteString(render.Markup("✔ ", render.Green, true))
 			} else if g.PlayerBoards[pNum].CanAfford(c.Cost) {
 				upperBuf.WriteString(render.Markup("✔ ", render.Yellow, true))
@@ -120,8 +121,10 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	}
 	for _, c := range g.PlayerBoards[pNum].Reserve {
 		upperBuf := bytes.NewBuffer([]byte{})
-		if g.PlayerBoards[pNum].CanAfford(c.Cost) {
+		if CanAfford(bonuses, c.Cost) {
 			upperBuf.WriteString(render.Markup("✔ ", render.Green, true))
+		} else if g.PlayerBoards[pNum].CanAfford(c.Cost) {
+			upperBuf.WriteString(render.Markup("✔ ", render.Yellow, true))
 		}
 		upperBuf.WriteString(RenderCardBonusVP(c))
 		upper = append(upper, render.Centred(upperBuf.String()))
@@ -175,6 +178,8 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		render.Centred(render.Bold(
 			RenderResourceColour(ResourceAbbr[Gold], Gold))),
 		render.Centred(render.Bold(
+			render.Colour("Tok", render.Black))),
+		render.Centred(render.Bold(
 			render.Colour("Res", render.Cyan))),
 		render.Centred(render.Bold(
 			RenderResourceColour(ResourceAbbr[Prestige], Prestige))),
@@ -186,16 +191,16 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		bonuses := pb.Bonuses()
 		row := []interface{}{g.RenderName(p)}
 		for _, gem := range Gems {
-			gemBuf := bytes.NewBufferString(strconv.Itoa(bonuses[gem]))
-			if n := pb.Tokens[gem]; n > 0 {
-				gemBuf.WriteString(fmt.Sprintf("+%d", n))
-			}
-			row = append(row, render.Centred(render.Markup(
-				gemBuf.String(), "", bold)))
+			row = append(row, render.Centred(render.Markup(fmt.Sprintf(
+				"%d+%d",
+				bonuses[gem],
+				pb.Tokens[gem],
+			), "", bold)))
 		}
 		row = append(
 			row,
 			render.Centred(render.Markup(pb.Tokens[Gold], "", bold)),
+			render.Centred(render.Markup(pb.Tokens.Sum(), "", bold)),
 			render.Centred(render.Markup(len(pb.Reserve), "", bold)),
 			render.Centred(render.Markup(pb.Prestige(), "", bold)),
 		)
@@ -220,7 +225,7 @@ func RenderCardBonusVP(c Card) string {
 	return render.Bold(strings.Join(parts, " "))
 }
 
-func RenderAmount(a Amount) string {
+func RenderAmount(a cost.Cost) string {
 	parts := []string{}
 	for _, r := range Resources {
 		if a[r] > 0 {
