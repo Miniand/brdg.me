@@ -35,11 +35,19 @@ type Game struct {
 	Log           *log.Log
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		BidCommand{},
-		CallCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, err := g.PlayerNum(player)
+	if err != nil {
+		return commands
 	}
+	if g.CanBid(pNum) {
+		commands = append(commands, BidCommand{})
+	}
+	if g.CanCall(pNum) {
+		commands = append(commands, CallCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

@@ -1,8 +1,9 @@
 package liars_dice
 
 import (
-	"github.com/Miniand/brdg.me/command"
 	"testing"
+
+	"github.com/Miniand/brdg.me/command"
 )
 
 func TestStart(t *testing.T) {
@@ -54,46 +55,46 @@ func TestExampleRound(t *testing.T) {
 	g.CurrentPlayer = 0
 	// Make sure we can't call on the first turn
 	if _, err := command.CallInCommands("Mick", g, "call",
-		g.Commands()); err == nil {
+		g.Commands("Mick")); err == nil {
 		t.Fatal("Didn't fail when calling on the first turn")
 	}
 	// Start with a few legit commands
 	if _, err := command.CallInCommands("Mick", g, "bid 2 5",
-		g.Commands()); err != nil {
+		g.Commands("Mick")); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := command.CallInCommands("Steve", g, "bid 2 6",
-		g.Commands()); err != nil {
+		g.Commands("Steve")); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := command.CallInCommands("BJ", g, "bid 3 5",
-		g.Commands()); err != nil {
+		g.Commands("BJ")); err != nil {
 		t.Fatal(err)
 	}
 	// Do a few illegal commands and make sure they're picked up
 	if _, err := command.CallInCommands("Mick", g, "bid 3 5",
-		g.Commands()); err == nil {
+		g.Commands("Mick")); err == nil {
 		t.Fatal("Didn't fail when making same bid")
 	}
 	if _, err := command.CallInCommands("Mick", g, "bid 3 3",
-		g.Commands()); err == nil {
+		g.Commands("Mick")); err == nil {
 		t.Fatal("Didn't fail when bidding a lower value dice")
 	}
 	if _, err := command.CallInCommands("Mick", g, "bid 2 6",
-		g.Commands()); err == nil {
+		g.Commands("Mick")); err == nil {
 		t.Fatal("Didn't fail when reducing the quantity")
 	}
 	if _, err := command.CallInCommands("Mick", g, "bid 3 7",
-		g.Commands()); err == nil {
+		g.Commands("Mick")); err == nil {
 		t.Fatal("Didn't fail when making an bid of an invalid dice value")
 	}
 	if _, err := command.CallInCommands("BJ", g, "bid 6 5",
-		g.Commands()); err == nil {
+		g.Commands("BJ")); err == nil {
 		t.Fatal("Didn't fail when BJ barged in")
 	}
 	// Call it and check
 	if _, err := command.CallInCommands("Mick", g, "call",
-		g.Commands()); err != nil {
+		g.Commands("Mick")); err != nil {
 		t.Fatal(err)
 	}
 	if len(g.PlayerDice[2]) != 0 {
