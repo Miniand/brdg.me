@@ -82,7 +82,7 @@ func TestDiscardCard(t *testing.T) {
 	Convey("Given Steve tries to discard when it's Mick's turn", t, func() {
 		game := cloneGame(game)
 		_, err := command.CallInCommands("Steve", game, "discard r5",
-			game.Commands())
+			game.Commands("Steve"))
 		Convey("It should error", func() {
 			So(err, ShouldNotBeNil)
 		})
@@ -90,7 +90,7 @@ func TestDiscardCard(t *testing.T) {
 	Convey("Given Mick discards his red 5", t, func() {
 		game := cloneGame(game)
 		_, err := command.CallInCommands("Mick", game, "discard r5",
-			game.Commands())
+			game.Commands("Mick"))
 		Convey("It should not error", func() {
 			So(err, ShouldBeNil)
 		})
@@ -115,7 +115,7 @@ func TestPlayCard(t *testing.T) {
 	Convey("Given Mick plays his red 5", t, func() {
 		game := cloneGame(game)
 		_, err := command.CallInCommands("Mick", game, "play r5",
-			game.Commands())
+			game.Commands("Mick"))
 		Convey("It should not error", func() {
 			So(err, ShouldBeNil)
 		})
@@ -161,7 +161,7 @@ func TestPlaySecondInvestmentCard(t *testing.T) {
 			Convey("Given Mick tries to play a red investment", func() {
 				game := cloneGame(game)
 				_, err := command.CallInCommands("Mick", game, "play rx",
-					game.Commands())
+					game.Commands("Mick"))
 				Convey("It should not error", func() {
 					So(err, ShouldBeNil)
 				})
@@ -194,7 +194,7 @@ func TestPlayLowerCard(t *testing.T) {
 		Convey("Given Mick tries to play a red investment", func() {
 			game := cloneGame(game)
 			_, err := command.CallInCommands("Mick", game, "play rx",
-				game.Commands())
+				game.Commands("Mick"))
 			Convey("It should error", func() {
 				So(err, ShouldNotBeNil)
 			})
@@ -210,7 +210,7 @@ func TestPlayCardNotInHand(t *testing.T) {
 			game := cloneGame(game)
 			expLen := len(game.Board.PlayerExpeditions[0][SUIT_RED])
 			_, err := command.CallInCommands("Mick", game, "play r10",
-				game.Commands())
+				game.Commands("Mick"))
 			Convey("It should error", func() {
 				So(err, ShouldNotBeNil)
 			})
@@ -225,7 +225,7 @@ func TestPlayCardNotInHand(t *testing.T) {
 func TestDrawCard(t *testing.T) {
 	game := mockGame(t)
 	if _, err := command.CallInCommands("Mick", game, "discard r5",
-		game.Commands()); err != nil {
+		game.Commands("Mick")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -235,7 +235,7 @@ func TestDrawCard(t *testing.T) {
 		initialHandCount := game.Board.PlayerHands[0].Contains(topCard)
 		initialDrawCount := game.Board.DrawPile.Contains(topCard)
 		_, err := command.CallInCommands("Mick", game, "draw",
-			game.Commands())
+			game.Commands("Mick"))
 		Convey("It should not error", func() {
 			So(err, ShouldBeNil)
 		})
@@ -262,7 +262,7 @@ func TestDrawCard(t *testing.T) {
 func TestTakeCard(t *testing.T) {
 	game := mockGame(t)
 	if _, err := command.CallInCommands("Mick", game, "discard y3",
-		game.Commands()); err != nil {
+		game.Commands("Mick")); err != nil {
 		t.Fatal(err)
 	}
 	c := card.SuitRankCard{SUIT_RED, 9}
@@ -270,7 +270,7 @@ func TestTakeCard(t *testing.T) {
 	Convey("When Mick tries to take from the blue discard pile", t, func() {
 		game := cloneGame(game)
 		_, err := command.CallInCommands("Mick", game, "take b",
-			game.Commands())
+			game.Commands("Mick"))
 		Convey("It should error", func() {
 			So(err, ShouldNotBeNil)
 		})
@@ -281,7 +281,7 @@ func TestTakeCard(t *testing.T) {
 		Convey("When Mick tries to take from the red discard pile", func() {
 			game := cloneGame(game)
 			_, err := command.CallInCommands("Mick", game, "take r",
-				game.Commands())
+				game.Commands("Mick"))
 			Convey("It should not error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -307,7 +307,7 @@ func TestTakeCard(t *testing.T) {
 func TestEndOfRound(t *testing.T) {
 	game := mockGame(t)
 	if _, err := command.CallInCommands("Mick", game, "discard y3",
-		game.Commands()); err != nil {
+		game.Commands("Mick")); err != nil {
 		t.Fatal(err)
 	}
 	Convey("Given there is one card left in the draw pile", t, func() {
@@ -317,7 +317,7 @@ func TestEndOfRound(t *testing.T) {
 			Convey("When Mick draws a card", func() {
 				game := cloneGame(game)
 				_, err := command.CallInCommands("Mick", game, "draw",
-					game.Commands())
+					game.Commands("Mick"))
 				Convey("It should not error", func() {
 					So(err, ShouldBeNil)
 				})
@@ -335,7 +335,7 @@ func TestEndOfRound(t *testing.T) {
 			Convey("When Mick draws a card", func() {
 				game := cloneGame(game)
 				_, err := command.CallInCommands("Mick", game, "draw",
-					game.Commands())
+					game.Commands("Mick"))
 				Convey("It should not error", func() {
 					So(err, ShouldBeNil)
 				})
@@ -529,11 +529,11 @@ func TestExpeditionScores(t *testing.T) {
 func TestCannotTakeCardWhenNotTurn(t *testing.T) {
 	game := mockGame(t)
 	if _, err := command.CallInCommands("Mick", game, "discard y3",
-		game.Commands()); err != nil {
+		game.Commands("Mick")); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := command.CallInCommands("Steve", game, "take y",
-		game.Commands()); err == nil {
+		game.Commands("Steve")); err == nil {
 		t.Fatal("It allowed Steve to take a turn when it wasn't his turn")
 	}
 }
