@@ -11,28 +11,23 @@ import (
 
 type VisitCommand struct{}
 
-func (c VisitCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("visit", 1, input)
-}
+func (c VisitCommand) Name() string { return "visit" }
 
-func (c VisitCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, found := g.PlayerNum(player)
-	return found && g.CanVisit(pNum)
-}
-
-func (c VisitCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c VisitCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
 		return "", errors.New("you must specify which noble")
 	}
-	vNum, err := strconv.Atoi(a[0])
+	vNum, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", err
 	}

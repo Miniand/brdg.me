@@ -13,26 +13,25 @@ import (
 
 type TakeCommand struct{}
 
-func (c TakeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("take", 2, 3, input)
-}
+func (c TakeCommand) Name() string { return "take" }
 
-func (c TakeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, found := g.PlayerNum(player)
-	return found && g.CanTake(pNum)
-}
-
-func (c TakeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c TakeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
+		return "", errors.New("please specify two or three tokens")
+	}
 	tokens := []int{}
 	gemStrings := GemStrings()
-	for _, a := range command.ExtractNamedCommandArgs(args) {
+	for _, a := range args {
 		t, err := helper.MatchStringInStringMap(a, gemStrings)
 		if err != nil {
 			return "", err

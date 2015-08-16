@@ -44,14 +44,28 @@ type Game struct {
 
 var LocRegexp = regexp.MustCompile(`^([\dA-Z])([\dA-Z])$`)
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		BuyCommand{},
-		TakeCommand{},
-		ReserveCommand{},
-		VisitCommand{},
-		DiscardCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanBuy(pNum) {
+		commands = append(commands, BuyCommand{})
+	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	if g.CanReserve(pNum) {
+		commands = append(commands, ReserveCommand{})
+	}
+	if g.CanVisit(pNum) {
+		commands = append(commands, VisitCommand{})
+	}
+	if g.CanDiscard(pNum) {
+		commands = append(commands, DiscardCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
