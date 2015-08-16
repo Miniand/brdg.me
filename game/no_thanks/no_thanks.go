@@ -26,11 +26,15 @@ type Game struct {
 	Log             *log.Log
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		TakeCommand{},
-		PassCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	if g.CanTake(player) {
+		commands = append(commands, TakeCommand{})
 	}
+	if g.CanPass(player) {
+		commands = append(commands, PassCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
@@ -200,20 +204,9 @@ func (g *Game) InitPlayerHands() {
 	}
 }
 
-func (g *Game) AssertTurn(player string) error {
-	if g.IsFinished() {
-		return errors.New("The game has already finished")
-	}
-	if g.CurrentlyMoving != player {
-		return errors.New("It's not your turn")
-	}
-	return nil
-}
-
 func (g *Game) Pass(player string) error {
-	err := g.AssertTurn(player)
-	if err != nil {
-		return err
+	if !g.CanPass(player) {
+		return errors.New("can't pass at the moment")
 	}
 	if g.PlayerChips[player] <= 0 {
 		return errors.New("You have no chips left, you must take the card")
@@ -228,9 +221,8 @@ func (g *Game) Pass(player string) error {
 }
 
 func (g *Game) Take(player string) error {
-	err := g.AssertTurn(player)
-	if err != nil {
-		return err
+	if !g.CanTake(player) {
+		return errors.New("can't take at the moment")
 	}
 	pName := render.PlayerNameInPlayers(player, g.Players)
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
@@ -321,15 +313,15 @@ func (g *Game) BotPlay(player string) error {
 	}
 	// If they're out of money, they gotta take it
 	if g.PlayerChips[player] == 0 {
-		_, err := command.CallInCommands(player, g, "take", g.Commands())
+		_, err := command.CallInCommands(player, g, "take", g.Commands(player))
 		return err
 	}
 	// Decide how much we want the card
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	if r.Int()%2 == 0 {
-		_, err := command.CallInCommands(player, g, "take", g.Commands())
+		_, err := command.CallInCommands(player, g, "take", g.Commands(player))
 		return err
 	}
-	_, err := command.CallInCommands(player, g, "pass", g.Commands())
+	_, err := command.CallInCommands(player, g, "pass", g.Commands(player))
 	return err
 }
