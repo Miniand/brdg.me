@@ -37,10 +37,12 @@ func (g *Game) GameLog() *log.Log {
 	return g.Log
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		PlayCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	if g.CanPlay(player) {
+		commands = append(commands, PlayCommand{})
 	}
+	return commands
 }
 
 func (g *Game) NextPlayer() {

@@ -1,8 +1,9 @@
 package tic_tac_toe
 
 import (
-	"github.com/Miniand/brdg.me/command"
 	"testing"
+
+	"github.com/Miniand/brdg.me/command"
 )
 
 func TestNew(t *testing.T) {
@@ -41,7 +42,7 @@ func TestPlayerAction(t *testing.T) {
 		t.Error(err)
 	}
 	// First lets see that a valid action works
-	_, err = command.CallInCommands(game.CurrentlyMoving, game, "play a", game.Commands())
+	_, err = command.CallInCommands(game.CurrentlyMoving, game, "play a", game.Commands(game.CurrentlyMoving))
 	if err != nil {
 		t.Error(err)
 	}
@@ -49,7 +50,7 @@ func TestPlayerAction(t *testing.T) {
 		t.Error("The action didn't actually do anything")
 	}
 	// Now lets make an invalid action
-	_, err = command.CallInCommands(game.CurrentlyMoving, game, "play moog", game.Commands())
+	_, err = command.CallInCommands(game.CurrentlyMoving, game, "play moog", game.Commands(game.CurrentlyMoving))
 	if err == nil {
 		t.Error("It didn't actually error")
 	}
@@ -84,13 +85,13 @@ func TestPlaySameCell(t *testing.T) {
 	game.StartPlayer = "Mick"
 	game.CurrentlyMoving = "Mick"
 	// Play on a cell
-	_, err = command.CallInCommands("Mick", game, "play a", game.Commands())
+	_, err = command.CallInCommands("Mick", game, "play a", game.Commands("Mick"))
 	if err != nil {
 		t.Error(err)
 	}
 	// Try to play again on the cell, it should return any errors from
 	// MarkCellForPlayer
-	_, err = command.CallInCommands("Steve", game, "play a", game.Commands())
+	_, err = command.CallInCommands("Steve", game, "play a", game.Commands("Steve"))
 	if err == nil {
 		t.Error("It allowed us to play on the same cell, it should return error if MarkCellForPlayer errors")
 	}
@@ -200,7 +201,7 @@ func TestAllowUpperCase(t *testing.T) {
 		t.Error(err)
 	}
 	// Test to see if uppercase plays work
-	_, err = command.CallInCommands(game.CurrentlyMoving, game, "play A", game.Commands())
+	_, err = command.CallInCommands(game.CurrentlyMoving, game, "play A", game.Commands(game.CurrentlyMoving))
 	if err != nil {
 		t.Error(err)
 	}
