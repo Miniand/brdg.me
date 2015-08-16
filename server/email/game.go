@@ -56,8 +56,7 @@ func SendGame(
 		}
 		g.GameLog().MarkReadFor(p)
 		// Add usages to header if needed
-		usages := command.CommandUsages(p, g,
-			command.AvailableCommands(p, g, commands))
+		usages := command.CommandUsages(p, g, commands)
 		if len(usages) > 0 {
 			pHeader += "\n\n{{b}}You can:{{_b}}\n" +
 				render.CommandUsages(usages)
