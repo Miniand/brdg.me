@@ -9,31 +9,23 @@ import (
 
 type DealCommand struct{}
 
-func (c DealCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("deal", 1, input)
-}
+func (c DealCommand) Name() string { return "deal" }
 
-func (c DealCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	if !ok {
-		return false
-	}
-	return g.CanDeal(pNum)
-}
-
-func (c DealCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c DealCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify the numbered deal you want to choose")
 	}
-	dealNum, err := strconv.Atoi(a[0])
+	dealNum, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("you must specify the numbered deal you want to choose")
 	}

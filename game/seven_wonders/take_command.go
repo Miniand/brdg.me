@@ -11,31 +11,23 @@ import (
 
 type TakeCommand struct{}
 
-func (c TakeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("take", 1, input)
-}
+func (c TakeCommand) Name() string { return "take" }
 
-func (c TakeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	if !ok {
-		return false
-	}
-	return g.CanTake(pNum)
-}
-
-func (c TakeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c TakeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify which numbered card to take")
 	}
-	cardNum, err := strconv.Atoi(a[0])
+	cardNum, err := strconv.Atoi(args[0])
 	if err != nil || cardNum < 1 || cardNum > len(g.Discard) {
 		return "", errors.New("that is not a valid card number")
 	}

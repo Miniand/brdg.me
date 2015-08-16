@@ -9,31 +9,23 @@ import (
 
 type WonderCommand struct{}
 
-func (c WonderCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("wonder", 1, input)
-}
+func (c WonderCommand) Name() string { return "wonder" }
 
-func (c WonderCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	if !ok {
-		return false
-	}
-	return g.CanWonder(pNum)
-}
-
-func (c WonderCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c WonderCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify which numbered card to use to build the wonder stage")
 	}
-	cardNum, err := strconv.Atoi(a[0])
+	cardNum, err := strconv.Atoi(args[0])
 	if err != nil || cardNum < 1 || cardNum > len(g.Hands[pNum]) {
 		return "", errors.New("that is not a valid card number")
 	}
