@@ -35,11 +35,19 @@ type Game struct {
 	Log *log.Log
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		PlayCommand{},
-		DummyCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanPlay(pNum) {
+		commands = append(commands, PlayCommand{})
+	}
+	if g.CanDummy(pNum) {
+		commands = append(commands, DummyCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
@@ -434,9 +442,8 @@ func (g *Game) WhoseTurn() []string {
 		return []string{}
 	}
 	whose := []string{}
-	commands := g.Commands()
-	for _, pName := range g.Players {
-		if len(command.AvailableCommands(pName, g, commands)) > 0 {
+	for pNum, pName := range g.Players {
+		if g.CanPlay(pNum) || g.CanDummy(pNum) {
 			whose = append(whose, pName)
 		}
 	}
