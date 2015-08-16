@@ -26,12 +26,22 @@ type Game struct {
 	RemainingRolls  int
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		RollCommand{},
-		TakeCommand{},
-		StealCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanRoll(pNum) {
+		commands = append(commands, RollCommand{})
+	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	if g.CanSteal(pNum) {
+		commands = append(commands, StealCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

@@ -11,36 +11,34 @@ import (
 
 type StealCommand struct{}
 
-func (sc StealCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("steal", 2, 3, input)
-}
+func (sc StealCommand) Name() string { return "steal" }
 
-func (sc StealCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, found := g.PlayerNum(player)
-	return found && g.CanSteal(pNum)
-}
-
-func (sc StealCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (sc StealCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	target, err := helper.MatchStringInStrings(a[0], g.Players)
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 2 {
+		return "", errors.New("you must specify at least a player and a color")
+	}
+	target, err := helper.MatchStringInStrings(args[0], g.Players)
 	if err != nil {
 		return "", err
 	}
-	color, err := helper.MatchStringInStrings(a[1], []string{"blue", "red"})
+	color, err := helper.MatchStringInStrings(args[1], []string{"blue", "red"})
 	if err != nil {
 		return "", errors.New(`you must specify "blue" or "red" after the player name`)
 	}
-	if len(a) == 3 {
-		n, err := strconv.Atoi(a[2])
+	if len(args) == 3 {
+		n, err := strconv.Atoi(args[2])
 		if err != nil {
-			return "", fmt.Errorf("%s is not a number", a[2])
+			return "", fmt.Errorf("%s is not a number", args[2])
 		}
 		if color == 0 {
 			return "", g.StealBlueN(pNum, target, n)
