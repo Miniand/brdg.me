@@ -8,21 +8,13 @@ import (
 
 type EndCommand struct{}
 
-func (c EndCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("end", input)
-}
+func (c EndCommand) Name() string { return "end" }
 
-func (c EndCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanEnd(p)
-}
-
-func (c EndCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c EndCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {

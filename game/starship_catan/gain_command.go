@@ -1,6 +1,7 @@
 package starship_catan
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,28 +11,23 @@ import (
 
 type GainCommand struct{}
 
-func (c GainCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("gain", 1, input)
-}
+func (c GainCommand) Name() string { return "gain" }
 
-func (c GainCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanGain(p)
-}
-
-func (c GainCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c GainCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {
 		return "", err
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	r, err := ParseResource(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
+		return "", errors.New("you must specify what resource to gain")
+	}
+	r, err := ParseResource(args[0])
 	if err != nil {
 		return "", err
 	}

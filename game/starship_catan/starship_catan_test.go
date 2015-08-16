@@ -28,7 +28,7 @@ func TestChooseModule(t *testing.T) {
 		t.Fatal("Expected it to be both Mick and Steve's turn.")
 	}
 	if _, err := command.CallInCommands(Steve, g,
-		"choose lo", g.Commands()); err != nil {
+		"choose lo", g.Commands(Steve)); err != nil {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(map[int]int{
@@ -40,7 +40,7 @@ func TestChooseModule(t *testing.T) {
 		t.Fatal("Expected it to be only Mick's turn.")
 	}
 	if _, err := command.CallInCommands(Mick, g,
-		"choose se", g.Commands()); err != nil {
+		"choose se", g.Commands(Mick)); err != nil {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(map[int]int{

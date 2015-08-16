@@ -10,21 +10,13 @@ import (
 
 type TakeCommand struct{}
 
-func (c TakeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("take", 1, input)
-}
+func (c TakeCommand) Name() string { return "take" }
 
-func (c TakeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanTake(p, ResourceAny)
-}
-
-func (c TakeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c TakeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 
 	p, err := g.ParsePlayer(player)
@@ -32,12 +24,12 @@ func (c TakeCommand) Call(player string, context interface{},
 		return "", errors.New("could not parse player")
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) == 0 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
 		return "", errors.New("you must pass a resource argument")
 	}
 
-	r, err := helper.MatchStringInStringMap(a[0], ResourceNameMap(Goods))
+	r, err := helper.MatchStringInStringMap(args[0], ResourceNameMap(Goods))
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +51,11 @@ func TakeTransaction(resource int) Transaction {
 	}
 }
 
-func (g *Game) CanTake(player, resource int) bool {
+func (g *Game) CanTake(player int) bool {
+	return g.CanTakeResource(player, ResourceAny)
+}
+
+func (g *Game) CanTakeResource(player, resource int) bool {
 	if !(g.CurrentPlayer == player && g.Phase == PhaseTradeAndBuild &&
 		g.RemainingPlayerTrades() > 0) {
 		return false
@@ -74,7 +70,7 @@ func (g *Game) CanTake(player, resource int) bool {
 }
 
 func (g *Game) Take(player, resource int) error {
-	if !g.CanTake(player, resource) {
+	if !g.CanTakeResource(player, resource) {
 		return errors.New("can't take that resource at the moment")
 	}
 	if !ContainsInt(resource, Goods) {

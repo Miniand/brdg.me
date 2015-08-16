@@ -75,29 +75,55 @@ func (g *Game) Start(players []string) error {
 	return nil
 }
 
-func (g *Game) Commands() []command.Command {
+func (g *Game) Commands(player string) []command.Command {
 	commands := []command.Command{}
+	pNum, err := g.ParsePlayer(player)
+	if err != nil {
+		return commands
+	}
 	if g.GainResources == nil && len(g.FlightCards) > 0 && !g.CardFinished {
 		c, _ := g.FlightCards.Pop()
 		if c, ok := c.(Commander); ok {
-			commands = append(commands, c.Commands()...)
+			commands = append(commands, c.Commands(g, pNum)...)
 		}
 	}
-	return append(
-		commands,
-		ChooseCommand{},
-		GainCommand{},
-		PutCommand{},
-		SectorCommand{},
-		BuildCommand{},
-		UpgradeCommand{},
-		TradePhaseBuyCommand{},
-		TradePhaseSellCommand{},
-		TakeCommand{},
-		DoneCommand{},
-		NextCommand{},
-		EndCommand{},
-	)
+	if g.CanChoose(pNum) {
+		commands = append(commands, ChooseCommand{})
+	}
+	if g.CanGain(pNum) {
+		commands = append(commands, GainCommand{})
+	}
+	if g.CanPut(pNum) {
+		commands = append(commands, PutCommand{})
+	}
+	if g.CanSector(pNum) {
+		commands = append(commands, SectorCommand{})
+	}
+	if g.CanBuild(pNum) {
+		commands = append(commands, BuildCommand{})
+	}
+	if g.CanUpgrade(pNum) {
+		commands = append(commands, UpgradeCommand{})
+	}
+	if g.CanTradePhaseBuy(pNum) {
+		commands = append(commands, TradePhaseBuyCommand{})
+	}
+	if g.CanTradePhaseSell(pNum) {
+		commands = append(commands, TradePhaseSellCommand{})
+	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	if g.CanDone(pNum) {
+		commands = append(commands, DoneCommand{})
+	}
+	if g.CanNext(pNum) {
+		commands = append(commands, NextCommand{})
+	}
+	if g.CanEnd(pNum) {
+		commands = append(commands, EndCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
@@ -530,8 +556,16 @@ func (g *Game) MarkCardActioned() {
 	g.FlightActions[g.FlightCards.Len()] = true
 }
 
-func (g *Game) HandleTradeCommand(player string, args []string, tradeDir int) error {
+func (g *Game) HandleTradeCommand(
+	player string,
+	input *command.Parser,
+	tradeDir int,
+) error {
 	p, err := g.ParsePlayer(player)
+	if err != nil {
+		return err
+	}
+	args, err := input.ReadLineArgs()
 	if err != nil {
 		return err
 	}

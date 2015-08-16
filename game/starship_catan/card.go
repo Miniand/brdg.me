@@ -6,7 +6,7 @@ import (
 )
 
 type Commander interface {
-	Commands() []command.Command
+	Commands(g *Game, player int) []command.Command
 }
 
 type FullStringer interface {

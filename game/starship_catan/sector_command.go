@@ -11,28 +11,23 @@ import (
 
 type SectorCommand struct{}
 
-func (c SectorCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("sector", 1, input)
-}
+func (c SectorCommand) Name() string { return "sector" }
 
-func (c SectorCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanSector(p)
-}
-
-func (c SectorCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c SectorCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {
 		return "", err
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	s, err := strconv.Atoi(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify a sector")
+	}
+	s, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("sector must be a number between 1 and 4")
 	}
