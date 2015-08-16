@@ -8,18 +8,13 @@ import (
 
 type KeepCommand struct{}
 
-func (c KeepCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("keep", input)
-}
+func (c KeepCommand) Name() string { return "keep" }
 
-func (c KeepCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanKeep(pNum)
-}
-
-func (c KeepCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c KeepCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {

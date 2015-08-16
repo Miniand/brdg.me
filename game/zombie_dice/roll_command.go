@@ -8,18 +8,13 @@ import (
 
 type RollCommand struct{}
 
-func (c RollCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("roll", input)
-}
+func (c RollCommand) Name() string { return "roll" }
 
-func (c RollCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanRoll(pNum)
-}
-
-func (c RollCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c RollCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
