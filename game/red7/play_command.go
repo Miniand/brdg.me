@@ -11,32 +11,24 @@ import (
 
 type PlayCommand struct{}
 
-func (c PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
-}
+func (c PlayCommand) Name() string { return "play" }
 
-func (c PlayCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	if !ok {
-		return false
-	}
-	return g.CanPlay(pNum)
-}
-
-func (c PlayCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c PlayCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("it is not your turn at the moment")
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) != 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
 		return "", errors.New("you must specify one card")
 	}
-	card, ok := ParseCard(a[0])
+	card, ok := ParseCard(args[0])
 	if !ok {
 		return "", errors.New("the card must be a letter followed by a number, eg. r6")
 	}

@@ -28,12 +28,22 @@ type Game struct {
 	Eliminated  []bool
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		PlayCommand{},
-		DiscardCommand{},
-		DoneCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanPlay(pNum) {
+		commands = append(commands, PlayCommand{})
+	}
+	if g.CanDiscard(pNum) {
+		commands = append(commands, DiscardCommand{})
+	}
+	if g.CanDone(pNum) {
+		commands = append(commands, DoneCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

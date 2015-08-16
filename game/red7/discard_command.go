@@ -11,32 +11,24 @@ import (
 
 type DiscardCommand struct{}
 
-func (c DiscardCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("discard", 1, input)
-}
+func (c DiscardCommand) Name() string { return "discard" }
 
-func (c DiscardCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	if !ok {
-		return false
-	}
-	return g.CanDiscard(pNum)
-}
-
-func (c DiscardCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c DiscardCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("it is not your turn at the moment")
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) != 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
 		return "", errors.New("you must specify one card")
 	}
-	card, ok := ParseCard(a[0])
+	card, ok := ParseCard(args[0])
 	if !ok {
 		return "", errors.New("the card must be a letter followed by a number, eg. r6")
 	}
