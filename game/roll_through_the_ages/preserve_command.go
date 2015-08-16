@@ -10,21 +10,13 @@ import (
 
 type PreserveCommand struct{}
 
-func (c PreserveCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("preserve", input)
-}
+func (c PreserveCommand) Name() string { return "preserve" }
 
-func (c PreserveCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanPreserve(pNum)
-}
-
-func (c PreserveCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c PreserveCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {

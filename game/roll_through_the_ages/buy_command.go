@@ -12,45 +12,37 @@ import (
 
 type BuyCommand struct{}
 
-func (c BuyCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("buy", 1, -1, input)
-}
+func (c BuyCommand) Name() string { return "buy" }
 
-func (c BuyCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanBuy(pNum)
-}
-
-func (c BuyCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c BuyCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify which development to buy")
 	}
 
-	development, err := helper.MatchStringInStringMap(a[0], DevelopmentNameMap())
+	development, err := helper.MatchStringInStringMap(args[0], DevelopmentNameMap())
 	if err != nil {
 		return "", err
 	}
 
 	goods := []int{}
-	if len(a) == 2 && strings.ToLower(a[1]) == "all" {
+	if len(args) == 2 && strings.ToLower(args[1]) == "all" {
 		for good, num := range g.Boards[pNum].Goods {
 			if num > 0 {
 				goods = append(goods, good)
 			}
 		}
 	} else {
-		for _, input := range a[1:] {
+		for _, input := range args[1:] {
 			good, err := helper.MatchStringInStringMap(input, GoodStrings)
 			if err != nil {
 				return "", err

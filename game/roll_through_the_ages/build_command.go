@@ -13,33 +13,25 @@ import (
 
 type BuildCommand struct{}
 
-func (c BuildCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("build", 1, -1, input)
-}
+func (c BuildCommand) Name() string { return "build" }
 
-func (c BuildCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanBuild(pNum) || g.CanBuildShip(pNum)
-}
-
-func (c BuildCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c BuildCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 2 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 2 {
 		return "", errors.New(
 			"you must pass an amount to build and the name of a thing to build")
 	}
 
-	amount, err := strconv.Atoi(a[0])
+	amount, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("you must specify an amount")
 	}
@@ -54,7 +46,7 @@ func (c BuildCommand) Call(player string, context interface{},
 		stringMap[m] = MonumentValues[m].Name
 	}
 	thing, err := helper.MatchStringInStringMap(
-		strings.Join(a[1:], " "),
+		strings.Join(args[1:], " "),
 		stringMap,
 	)
 	if err != nil {
@@ -76,6 +68,10 @@ func (c BuildCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanBuild(player int) bool {
+	return g.CanBuildBuilding(player) || g.CanBuildShip(player)
+}
+
+func (g *Game) CanBuildBuilding(player int) bool {
 	return g.CurrentPlayer == player && g.Phase == PhaseBuild &&
 		g.RemainingWorkers > 0
 }
@@ -87,12 +83,8 @@ func (g *Game) CanBuildShip(player int) bool {
 		b.Goods[GoodWood] > 0 && b.Goods[GoodCloth] > 0
 }
 
-func (g *Game) CanBuildAnything(player int) bool {
-	return g.CanBuild(player) || g.CanBuildShip(player) || g.CanTrade(player)
-}
-
 func (g *Game) BuildCity(player, amount int) error {
-	if !g.CanBuild(player) {
+	if !g.CanBuildBuilding(player) {
 		return errors.New("you can't build at the moment")
 	}
 	if amount < 1 {
@@ -120,7 +112,7 @@ func (g *Game) BuildCity(player, amount int) error {
 			newCities,
 		)))
 	}
-	if !g.CanBuildAnything(player) {
+	if !g.CanBuild(player) {
 		g.NextPhase()
 	}
 	return nil
@@ -152,14 +144,14 @@ func (g *Game) BuildShip(player, amount int) error {
 		g.RenderName(player),
 		amount,
 	)))
-	if !g.CanBuildAnything(player) {
+	if !g.CanBuild(player) {
 		g.NextPhase()
 	}
 	return nil
 }
 
 func (g *Game) BuildMonument(player, monument, amount int) error {
-	if !g.CanBuild(player) {
+	if !g.CanBuildBuilding(player) {
 		return errors.New("you can't build at the moment")
 	}
 	if amount < 1 {
@@ -201,7 +193,7 @@ func (g *Game) BuildMonument(player, monument, amount int) error {
 		)))
 		g.CheckGameEndTriggered(player)
 	}
-	if !g.CanBuildAnything(player) {
+	if !g.CanBuild(player) {
 		g.NextPhase()
 	}
 	return nil

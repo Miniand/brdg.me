@@ -20,21 +20,13 @@ var TakeMap = map[int]string{
 
 type TakeCommand struct{}
 
-func (c TakeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("take", 1, -1, input)
-}
+func (c TakeCommand) Name() string { return "take" }
 
-func (c TakeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanTake(pNum)
-}
-
-func (c TakeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c TakeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
@@ -42,7 +34,11 @@ func (c TakeCommand) Call(player string, context interface{},
 	}
 
 	actions := []int{}
-	for _, a := range command.ExtractNamedCommandArgs(args) {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
+		return "", errors.New("you must specify at least one thing to take")
+	}
+	for _, a := range args {
 		action, err := helper.MatchStringInStringMap(a, TakeMap)
 		if err != nil {
 			return "", err

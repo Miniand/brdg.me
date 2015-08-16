@@ -12,38 +12,30 @@ import (
 
 type DiscardCommand struct{}
 
-func (c DiscardCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("discard", 2, input)
-}
+func (c DiscardCommand) Name() string { return "discard" }
 
-func (c DiscardCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanDiscard(pNum)
-}
-
-func (c DiscardCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c DiscardCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 2 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 2 {
 		return "", errors.New(
 			"you must pass an amount to discard and the name of a thing to discard")
 	}
 
-	amount, err := strconv.Atoi(a[0])
+	amount, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("you must specify an amount")
 	}
 
-	good, err := helper.MatchStringInStringMap(a[1], GoodStrings)
+	good, err := helper.MatchStringInStringMap(args[1], GoodStrings)
 	if err != nil {
 		return "", err
 	}
