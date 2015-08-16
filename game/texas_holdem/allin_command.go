@@ -1,27 +1,16 @@
 package texas_holdem
 
-import (
-	"github.com/Miniand/brdg.me/command"
-)
+import "github.com/Miniand/brdg.me/command"
 
 type AllinCommand struct{}
 
-func (ac AllinCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("allin", 0, input)
-}
+func (ac AllinCommand) Name() string { return "allin" }
 
-func (ac AllinCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	playerNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CurrentPlayer == playerNum && g.PlayerMoney[playerNum] > 0 &&
-		!g.IsFinished()
-}
-
-func (ac AllinCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (ac AllinCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerNum(player)
 	if err != nil {
@@ -32,4 +21,9 @@ func (ac AllinCommand) Call(player string, context interface{},
 
 func (ac AllinCommand) Usage(player string, context interface{}) string {
 	return "{{b}}allin{{_b}} to bet all your money and go all in"
+}
+
+func (g *Game) CanAllin(player int) bool {
+	return g.CurrentPlayer == player && g.PlayerMoney[player] > 0 &&
+		!g.IsFinished()
 }

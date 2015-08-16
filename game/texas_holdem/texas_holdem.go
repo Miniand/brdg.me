@@ -225,14 +225,28 @@ func (g *Game) Bet(playerNum int, amount int) error {
 	return nil
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		CheckCommand{},
-		CallCommand{},
-		RaiseCommand{},
-		FoldCommand{},
-		AllinCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, err := g.PlayerNum(player)
+	if err != nil {
+		return commands
 	}
+	if g.CanCheck(pNum) {
+		commands = append(commands, CheckCommand{})
+	}
+	if g.CanCall(pNum) {
+		commands = append(commands, CallCommand{})
+	}
+	if g.CanRaise(pNum) {
+		commands = append(commands, RaiseCommand{})
+	}
+	if g.CanFold(pNum) {
+		commands = append(commands, FoldCommand{})
+	}
+	if g.CanAllin(pNum) {
+		commands = append(commands, AllinCommand{})
+	}
+	return commands
 }
 
 func (g *Game) PlayerNum(player string) (int, error) {
