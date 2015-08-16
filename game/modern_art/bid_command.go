@@ -2,33 +2,30 @@ package modern_art
 
 import (
 	"errors"
-	"github.com/Miniand/brdg.me/command"
 	"strconv"
+
+	"github.com/Miniand/brdg.me/command"
 )
 
 type BidCommand struct{}
 
-func (bc BidCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("bid", 1, input)
-}
+func (bc BidCommand) Name() string { return "bid" }
 
-func (bc BidCommand) CanCall(player string, context interface{}) bool {
+func (bc BidCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
-	return g.CanBid(player)
-}
-
-func (bc BidCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
-		return "", errors.New("You must specify the amount to bid")
-	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
 		return "", err
 	}
-	bid, err := strconv.Atoi(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("You must specify the amount to bid")
+	}
+	bid, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", err
 	}

@@ -137,26 +137,26 @@ func TestOpenAuction(t *testing.T) {
 			Convey("Given BJ plays the Lite Metal Open Auction card", func() {
 				g := cloneGame(g)
 				_, err := command.CallInCommands(playerNames[BJ], g,
-					"play lmop", g.Commands())
+					"play lmop", g.Commands(playerNames[BJ]))
 				So(err, ShouldBeNil)
 				So(g.State, ShouldEqual, STATE_AUCTION)
 				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
 				Convey("Given Steve bids", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[STEVE], g,
-						"bid 10", g.Commands())
+						"bid 10", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					So(g.State, ShouldEqual, STATE_AUCTION)
 					Convey("Given the other players all pass", func() {
 						g := cloneGame(g)
 						_, err := command.CallInCommands(playerNames[MICK], g,
-							"pass", g.Commands())
+							"pass", g.Commands(playerNames[MICK]))
 						So(err, ShouldBeNil)
 						_, err = command.CallInCommands(playerNames[BJ], g,
-							"pass", g.Commands())
+							"pass", g.Commands(playerNames[BJ]))
 						So(err, ShouldBeNil)
 						_, err = command.CallInCommands(playerNames[ELVA], g,
-							"pass", g.Commands())
+							"pass", g.Commands(playerNames[ELVA]))
 						So(err, ShouldBeNil)
 						Convey("It should give the card to Steve and go to the next player", func() {
 							So(g.State, ShouldEqual, STATE_PLAY_CARD)
@@ -170,13 +170,13 @@ func TestOpenAuction(t *testing.T) {
 				Convey("Given nobody bids", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[MICK], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[STEVE], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[ELVA], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[ELVA]))
 					So(err, ShouldBeNil)
 					Convey("It should give BJ the card for nothing", func() {
 						So(g.State, ShouldEqual, STATE_PLAY_CARD)
@@ -201,21 +201,21 @@ func TestFixedPriceAuction(t *testing.T) {
 			Convey("Given Elva plays the Christine P Fixed Price Auction card and sets the price at 15", func() {
 				g := cloneGame(g)
 				_, err := command.CallInCommands(playerNames[ELVA], g,
-					"play cpfp", g.Commands())
+					"play cpfp", g.Commands(playerNames[ELVA]))
 				So(err, ShouldBeNil)
 				So(g.State, ShouldEqual, STATE_AUCTION)
 				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
 				_, err = command.CallInCommands(playerNames[ELVA], g,
-					"price 15", g.Commands())
+					"price 15", g.Commands(playerNames[ELVA]))
 				So(err, ShouldBeNil)
 				Convey("Given Mick passes and Steve buys", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[MICK], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					So(g.State, ShouldEqual, STATE_AUCTION)
 					_, err = command.CallInCommands(playerNames[STEVE], g,
-						"buy", g.Commands())
+						"buy", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					Convey("Steve should receive the card for the given price", func() {
 						So(g.State, ShouldEqual, STATE_PLAY_CARD)
@@ -228,13 +228,13 @@ func TestFixedPriceAuction(t *testing.T) {
 				Convey("Given nobody bids", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[MICK], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[STEVE], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[BJ], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[BJ]))
 					So(err, ShouldBeNil)
 					Convey("It should give the card to Elva for the given price", func() {
 						So(g.State, ShouldEqual, STATE_PLAY_CARD)
@@ -259,23 +259,23 @@ func TestSealedAuction(t *testing.T) {
 			Convey("Given Elva plays the Krypto Sealed Auction card", func() {
 				g := cloneGame(g)
 				_, err := command.CallInCommands(playerNames[ELVA], g,
-					"play krsl", g.Commands())
+					"play krsl", g.Commands(playerNames[ELVA]))
 				So(err, ShouldBeNil)
 				So(g.State, ShouldEqual, STATE_AUCTION)
 				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
 				Convey("Given everyone bids different amounts", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[MICK], g,
-						"bid 4", g.Commands())
+						"bid 4", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[STEVE], g,
-						"bid 5", g.Commands())
+						"bid 5", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[BJ], g,
-						"bid 3", g.Commands())
+						"bid 3", g.Commands(playerNames[BJ]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[ELVA], g,
-						"bid 1", g.Commands())
+						"bid 1", g.Commands(playerNames[ELVA]))
 					So(err, ShouldBeNil)
 					Convey("Steve should receive the card for the given price", func() {
 						So(g.State, ShouldEqual, STATE_PLAY_CARD)
@@ -288,16 +288,16 @@ func TestSealedAuction(t *testing.T) {
 				Convey("Given nobody bids", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[MICK], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[STEVE], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[ELVA], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[ELVA]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[BJ], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[BJ]))
 					So(err, ShouldBeNil)
 					Convey("It should give the card to Elva for free", func() {
 						So(g.State, ShouldEqual, STATE_PLAY_CARD)
@@ -325,20 +325,20 @@ func TestDoubleAuction(t *testing.T) {
 			Convey("Given Elva plays the Karl Glitter Double Auction card", func() {
 				g := cloneGame(g)
 				_, err := command.CallInCommands(playerNames[ELVA], g,
-					"play kgdb", g.Commands())
+					"play kgdb", g.Commands(playerNames[ELVA]))
 				So(err, ShouldBeNil)
 				So(g.State, ShouldEqual, STATE_AUCTION)
 				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
 				Convey("Given Elva passes, Mick passes and Steve plays his KG Sealed", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[ELVA], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[ELVA]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[MICK], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[STEVE], g,
-						"add kgsl", g.Commands())
+						"add kgsl", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					Convey("It should start a new sealed auction with Steve as the auctioneer", func() {
 						g := cloneGame(g)
@@ -349,16 +349,16 @@ func TestDoubleAuction(t *testing.T) {
 						Convey("Given everyone bids different amounts", func() {
 							g := cloneGame(g)
 							_, err := command.CallInCommands(playerNames[MICK], g,
-								"bid 8", g.Commands())
+								"bid 8", g.Commands(playerNames[MICK]))
 							So(err, ShouldBeNil)
 							_, err = command.CallInCommands(playerNames[STEVE], g,
-								"bid 5", g.Commands())
+								"bid 5", g.Commands(playerNames[STEVE]))
 							So(err, ShouldBeNil)
 							_, err = command.CallInCommands(playerNames[BJ], g,
-								"bid 3", g.Commands())
+								"bid 3", g.Commands(playerNames[BJ]))
 							So(err, ShouldBeNil)
 							_, err = command.CallInCommands(playerNames[ELVA], g,
-								"bid 1", g.Commands())
+								"bid 1", g.Commands(playerNames[ELVA]))
 							So(err, ShouldBeNil)
 							Convey("Mick should receive both the cards for the given price", func() {
 								So(g.State, ShouldEqual, STATE_PLAY_CARD)
@@ -421,23 +421,23 @@ func TestOnceAroundAuction(t *testing.T) {
 			Convey("Given Mick plays the Yoko Once Around Auction card", func() {
 				g := cloneGame(g)
 				_, err := command.CallInCommands(playerNames[MICK], g,
-					"play yooa", g.Commands())
+					"play yooa", g.Commands(playerNames[MICK]))
 				So(err, ShouldBeNil)
 				So(g.State, ShouldEqual, STATE_AUCTION)
 				So(len(g.CurrentlyAuctioning), ShouldEqual, 1)
 				Convey("Given some bids", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[STEVE], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[BJ], g,
-						"bid 5", g.Commands())
+						"bid 5", g.Commands(playerNames[BJ]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[ELVA], g,
-						"bid 7", g.Commands())
+						"bid 7", g.Commands(playerNames[ELVA]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[MICK], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					Convey("It should give the card to Elva", func() {
 						g := cloneGame(g)
@@ -451,13 +451,13 @@ func TestOnceAroundAuction(t *testing.T) {
 				Convey("Given everyone passes", func() {
 					g := cloneGame(g)
 					_, err := command.CallInCommands(playerNames[STEVE], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[STEVE]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[BJ], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[BJ]))
 					So(err, ShouldBeNil)
 					_, err = command.CallInCommands(playerNames[ELVA], g,
-						"pass", g.Commands())
+						"pass", g.Commands(playerNames[ELVA]))
 					So(err, ShouldBeNil)
 					Convey("It should give the card to Mick for free", func() {
 						g := cloneGame(g)
@@ -489,7 +489,7 @@ func TestEndOfRound(t *testing.T) {
 				g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(
 					card.SuitRankCard{SUIT_LITE_METAL, RANK_DOUBLE})
 				_, err := command.CallInCommands(playerNames[MICK], g,
-					"play lmdb", g.Commands())
+					"play lmdb", g.Commands(playerNames[MICK]))
 				So(err, ShouldBeNil)
 				Convey("It should be the same round", func() {
 					g := cloneGame(g)
@@ -500,7 +500,7 @@ func TestEndOfRound(t *testing.T) {
 					g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(
 						card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN})
 					_, err := command.CallInCommands(playerNames[MICK], g,
-						"add lmop", g.Commands())
+						"add lmop", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					Convey("It should be the next round and values should be added to artists", func() {
 						g := cloneGame(g)
@@ -531,7 +531,7 @@ func TestEndOfRound(t *testing.T) {
 				g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(
 					card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN})
 				_, err := command.CallInCommands(playerNames[MICK], g,
-					"play lmop", g.Commands())
+					"play lmop", g.Commands(playerNames[MICK]))
 				So(err, ShouldBeNil)
 				Convey("It should be the next round and values should be added to artists", func() {
 					g := cloneGame(g)
@@ -551,7 +551,7 @@ func TestEndOfRound(t *testing.T) {
 					g.PlayerHands[MICK] = g.PlayerHands[MICK].Push(
 						card.SuitRankCard{SUIT_LITE_METAL, RANK_OPEN})
 					_, err := command.CallInCommands(playerNames[MICK], g,
-						"play lmop", g.Commands())
+						"play lmop", g.Commands(playerNames[MICK]))
 					So(err, ShouldBeNil)
 					Convey("It should be the end of the game and values should be added to artists", func() {
 						g := cloneGame(g)

@@ -2,32 +2,29 @@ package modern_art
 
 import (
 	"errors"
+
 	"github.com/Miniand/brdg.me/command"
 )
 
 type AddCommand struct{}
 
-func (ac AddCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("add", 1, input)
-}
+func (ac AddCommand) Name() string { return "add" }
 
-func (ac AddCommand) CanCall(player string, context interface{}) bool {
+func (ac AddCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g := context.(*Game)
-	return g.CanAdd(player)
-}
-
-func (ac AddCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
-		return "", errors.New("You must the number of a card to play, such as lmop")
-	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
 		return "", err
 	}
-	c, err := ParseCard(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("You must the number of a card to play, such as lmop")
+	}
+	c, err := ParseCard(args[0])
 	if err != nil {
 		return "", err
 	}
