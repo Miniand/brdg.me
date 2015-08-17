@@ -56,10 +56,14 @@ func (p *Parser) ReadSpace() (string, error) {
 	})
 }
 
-func (p *Parser) ReadLineArgs() ([]string, error) {
-	line, err := p.ReadWhile(func(r rune) bool {
-		return r != '\n'
+func (p *Parser) ReadToEndOfLine() (string, error) {
+	return p.ReadWhile(func(r rune) bool {
+		return r != '\r' && r != '\n'
 	})
+}
+
+func (p *Parser) ReadLineArgs() ([]string, error) {
+	line, err := p.ReadToEndOfLine()
 	if l := len(line); l > 0 {
 		if err == io.EOF {
 			err = nil

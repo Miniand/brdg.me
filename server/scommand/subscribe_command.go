@@ -2,26 +2,20 @@ package scommand
 
 import (
 	"errors"
-	comm "github.com/Miniand/brdg.me/command"
+
+	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/server/model"
 )
 
 type SubscribeCommand struct{}
 
-func (sc SubscribeCommand) Parse(input string) []string {
-	return comm.ParseNamedCommandNArgs("subscribe", 0, input)
-}
+func (sc SubscribeCommand) Name() string { return "subscribe" }
 
-func (sc SubscribeCommand) CanCall(player string, context interface{}) bool {
-	u, ok, err := model.FirstUserByEmail(player)
-	if err != nil || !ok {
-		return false
-	}
-	return u.Unsubscribed
-}
-
-func (sc SubscribeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (sc SubscribeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	u, ok, err := model.FirstUserByEmail(player)
 	if err != nil || !ok {
 		return "", errors.New("Could not find you in the database")
@@ -41,4 +35,12 @@ func (sc SubscribeCommand) Call(player string, context interface{},
 
 func (sc SubscribeCommand) Usage(player string, context interface{}) string {
 	return "{{b}}subscribe{{_b}} to get access to brdg.me, you are currently unsubscribed from brdg.me"
+}
+
+func CanSubscribe(player string, gm *model.GameModel) bool {
+	u, ok, err := model.FirstUserByEmail(player)
+	if err != nil || !ok {
+		return false
+	}
+	return u.Unsubscribed
 }

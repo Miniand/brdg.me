@@ -2,9 +2,8 @@ package scommand
 
 import (
 	"errors"
-	"regexp"
-	"strings"
 
+	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/server/communicate"
 	"github.com/Miniand/brdg.me/server/model"
@@ -16,28 +15,19 @@ const (
 
 type NewCommand struct{}
 
-func (nc NewCommand) Parse(input string) []string {
-	return regexp.MustCompile(
-		`(?im)^\s*new\s+(\S+)((\s+\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b)+)\s*$`).
-		FindStringSubmatch(input)
-}
+func (nc NewCommand) Name() string { return "name" }
 
-func (nc NewCommand) CanCall(player string, context interface{}) bool {
-	u, ok, err := model.FirstUserByEmail(player)
-	if err != nil || ok && u.Unsubscribed {
-		return false
+func (nc NewCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 2 {
+		errors.New("Could not find game name and players")
 	}
-	return context == nil || context.(game.Playable).IsFinished()
-}
-
-func (nc NewCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	if len(args) < 2 {
-		errors.New("Could not find game name and email addresses")
-	}
-	g := game.RawCollection()[args[1]]
-	players := append([]string{player}, regexp.MustCompile(`\s+`).Split(
-		strings.ToLower(strings.TrimSpace(args[2])), -1)...)
+	g := game.RawCollection()[args[0]]
+	players := append([]string{player}, args[1:]...)
 	gm, err := model.StartNewGame(g, players)
 	if err != nil {
 		return "", err
@@ -46,7 +36,7 @@ func (nc NewCommand) Call(player string, context interface{},
 		g,
 		gm,
 		gm.PlayerList,
-		CommandsForGame(gm, g),
+		CommandsForGame(player, gm, g),
 		"You have been invited by "+player+" to play "+g.Name()+"!",
 		MsgTypeInvite,
 		true,
@@ -54,5 +44,13 @@ func (nc NewCommand) Call(player string, context interface{},
 }
 
 func (nc NewCommand) Usage(player string, context interface{}) string {
-	return "{{b}}new (game ID) (email addresses){{_b}} start a new game with friends"
+	return "{{b}}new (game ID) (players...){{_b}} start a new game with friends"
+}
+
+func CanNew(player string, gm *model.GameModel) bool {
+	u, ok, err := model.FirstUserByEmail(player)
+	if err != nil || ok && u.Unsubscribed {
+		return false
+	}
+	return gm == nil || gm.IsFinished
 }

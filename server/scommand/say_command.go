@@ -20,25 +20,27 @@ type SayCommand struct {
 	gameModel *model.GameModel
 }
 
-func (sc SayCommand) Parse(input string) []string {
-	return command.ParseRegexp(`say ([^\r\n]+)$`, input)
-}
+func (sc SayCommand) Name() string { return "say" }
 
-func (sc SayCommand) CanCall(player string, context interface{}) bool {
-	_, ok := context.(game.Playable)
-	return ok
-}
-
-func (sc SayCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (sc SayCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
 	g, ok := context.(game.Playable)
 	if !ok {
 		return "", errors.New("No game was passed in")
 	}
+
+	line, err := input.ReadToEndOfLine()
+	if err != nil || line == "" {
+		return "", errors.New("please specify something to say")
+	}
+
 	message := fmt.Sprintf(
 		`{{b}}%s says: %s{{_b}}`,
 		render.PlayerNameInPlayers(player, sc.gameModel.PlayerList),
-		render.RenderPlain(args[1]),
+		render.RenderPlain(line),
 	)
 	g.GameLog().Add(log.NewPublicMessage(message))
 	if sc.gameModel.IsFinished {
@@ -53,7 +55,7 @@ func (sc SayCommand) Call(player string, context interface{},
 			g,
 			sc.gameModel,
 			otherPlayers,
-			CommandsForGame(sc.gameModel, g),
+			CommandsForGame(player, sc.gameModel, g),
 			message,
 			MsgTypeSay,
 			false,
@@ -64,4 +66,8 @@ func (sc SayCommand) Call(player string, context interface{},
 
 func (sc SayCommand) Usage(player string, context interface{}) string {
 	return "{{b}}say ##{{_b}} to send a message to the other players, eg. {{b}}say hello!{{_b}}"
+}
+
+func CanSay(player string, gm *model.GameModel) bool {
+	return true
 }

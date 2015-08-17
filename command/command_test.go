@@ -1,17 +1,15 @@
 package command
 
 import (
-	"regexp"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type CommandTest struct{}
 
 func (c CommandTest) Name() string {
 	return "test"
-}
-func (c CommandTest) Parse(input string) []string {
-	return regexp.MustCompile(`(?im)^\s*test\b\s$*`).FindStringSubmatch(input)
 }
 func (c CommandTest) Call(
 	player string,
@@ -27,10 +25,6 @@ func (c CommandTest) Usage(player string, context interface{}) string {
 func TestCallInCommands(t *testing.T) {
 	output, err := CallInCommands("bob", nil, `test
 		  test`, []Command{CommandTest{}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if output != "tessssst" {
-		t.Fatal("Expected output to be tessssst, got:", output)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, "tessssst\ntessssst", output)
 }

@@ -16,9 +16,7 @@ type ConcedeCommand struct {
 	gameModel *model.GameModel
 }
 
-func (c ConcedeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("concede", 0, -1, input)
-}
+func (c ConcedeCommand) Name() string { return "concede" }
 
 func CanInitiateConcedeVote(player string, gm *model.GameModel) bool {
 	if gm.IsFinished || gm.ConcedeVote != nil {
@@ -60,13 +58,12 @@ func FailConcedeVote(gm *model.GameModel, g game.Playable) {
 	g.GameLog().Add(log.NewPublicMessage("{{b}}The vote failed{{_b}}"))
 }
 
-func (c ConcedeCommand) CanCall(player string, context interface{}) bool {
-	return CanInitiateConcedeVote(player, c.gameModel)
-}
-
-func (c ConcedeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	if !c.CanCall(player, context) {
+func (c ConcedeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Parser,
+) (string, error) {
+	if !CanInitiateConcedeVote(player, c.gameModel) {
 		return "", errors.New("you can't concede at the moment")
 	}
 	g, ok := context.(game.Playable)
@@ -80,14 +77,14 @@ func (c ConcedeCommand) Call(player string, context interface{},
 		return "", fmt.Errorf("could not find a player named %s", player)
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
+	args, _ := input.ReadLineArgs()
 	concedePlayers := []string{}
-	if len(a) == 0 && len(playerList) == 2 {
+	if len(args) == 0 && len(playerList) == 2 {
 		// Two player, default to conceding to other player
 		concedePlayers = []string{playerList[(pNum+1)%2]}
 	} else {
 		matchedPlayers := map[string]bool{}
-		for _, p := range a {
+		for _, p := range args {
 			i, err := helper.MatchStringInStrings(p, playerList)
 			if err != nil {
 				return "", err

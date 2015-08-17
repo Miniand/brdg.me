@@ -49,7 +49,7 @@ func TestTexasHoldemRaiseBelowMin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	commands := g.Commands()
+	commands := g.Commands(g.WhoseTurn()[0])
 	_, err = command.CallInCommands(g.WhoseTurn()[0], g, "raise 1", commands)
 	if err == nil || err.Error() == "" {
 		t.Fatal("Did not get an error!")

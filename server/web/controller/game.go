@@ -132,9 +132,7 @@ func GameOutput(
 	}
 	commandRender, err := renderer(
 		render.CommandUsages(command.CommandUsages(
-			player, g,
-			command.AvailableCommands(player, g,
-				scommand.CommandsForGame(gm, g)))))
+			player, g, scommand.CommandsForGame(player, gm, g))))
 	if err != nil {
 		return nil, err
 	}
