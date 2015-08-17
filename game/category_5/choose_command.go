@@ -16,7 +16,7 @@ func (c ChooseCommand) Name() string { return "choose" }
 func (c ChooseCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)

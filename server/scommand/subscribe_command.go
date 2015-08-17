@@ -14,7 +14,7 @@ func (sc SubscribeCommand) Name() string { return "subscribe" }
 func (sc SubscribeCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	u, ok, err := model.FirstUserByEmail(player)
 	if err != nil || !ok {

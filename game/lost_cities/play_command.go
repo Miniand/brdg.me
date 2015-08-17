@@ -13,7 +13,7 @@ func (d PlayCommand) Name() string { return "play" }
 func (d PlayCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerFromString(player)

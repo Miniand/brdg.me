@@ -14,7 +14,7 @@ func (c KeepCommand) Name() string { return "keep" }
 func (c KeepCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)

@@ -18,7 +18,7 @@ func (c SellCommand) Name() string { return "sell" }
 func (c SellCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)

@@ -15,7 +15,7 @@ func (c ReserveCommand) Name() string { return "reserve" }
 func (c ReserveCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)

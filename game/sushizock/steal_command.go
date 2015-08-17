@@ -16,7 +16,7 @@ func (sc StealCommand) Name() string { return "steal" }
 func (sc StealCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)

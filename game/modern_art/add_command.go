@@ -13,7 +13,7 @@ func (ac AddCommand) Name() string { return "add" }
 func (ac AddCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerFromString(player)

@@ -13,7 +13,7 @@ var ErrNoCommandFound = errors.New(
 type Command interface {
 	// Name is the name of the command and is used to decide which to call.
 	Name() string
-	Call(player string, context interface{}, input *Parser) (output string,
+	Call(player string, context interface{}, input *Reader) (output string,
 		err error)
 	Usage(player string, context interface{}) string
 }
@@ -45,7 +45,7 @@ func CallInCommandsPostHook(
 	var commandOutput string
 	numRun := 0
 	outputs := []string{}
-	p := NewParserString(input)
+	p := NewReaderString(input)
 	for {
 		commandOutput, err = CallOneInCommands(
 			player,
@@ -78,7 +78,7 @@ func CallInCommandsPostHook(
 func CallOneInCommands(
 	player string,
 	context interface{},
-	p *Parser,
+	p *Reader,
 	commands []Command,
 ) (output string, err error) {
 	p.ReadSpace() // Clear leading space

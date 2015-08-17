@@ -16,7 +16,7 @@ func (c AttackCommand) Name() string { return "attack" }
 func (c AttackCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 

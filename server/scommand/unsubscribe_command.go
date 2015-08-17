@@ -14,7 +14,7 @@ func (uc UnsubscribeCommand) Name() string { return "unsubscribe" }
 func (uc UnsubscribeCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	u, ok, err := model.FirstUserByEmail(player)
 	if err != nil {

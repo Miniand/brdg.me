@@ -14,7 +14,7 @@ func (pc PriceCommand) Name() string { return "price" }
 func (pc PriceCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerFromString(player)

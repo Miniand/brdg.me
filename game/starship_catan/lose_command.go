@@ -15,7 +15,7 @@ func (c LoseCommand) Name() string { return "lose" }
 func (c LoseCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)

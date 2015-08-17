@@ -9,7 +9,7 @@ func (cc CheckCommand) Name() string { return "check" }
 func (cc CheckCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerNum(player)

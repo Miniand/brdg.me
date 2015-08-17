@@ -24,7 +24,7 @@ func (c DumpCommand) Name() string { return "dump" }
 func (c DumpCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	if !CanDump(player, c.gameModel) {
 		return "", errors.New("you aren't allowed to do that")

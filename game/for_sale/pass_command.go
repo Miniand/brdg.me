@@ -9,7 +9,7 @@ func (pc PassCommand) Name() string { return "pass" }
 func (pc PassCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)

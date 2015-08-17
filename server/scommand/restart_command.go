@@ -19,7 +19,7 @@ func (rc RestartCommand) Name() string { return "restart" }
 func (rc RestartCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	if rc.gameModel == nil {
 		return "", errors.New("no game was passed in")
@@ -38,7 +38,7 @@ func (rc RestartCommand) Call(
 		}
 	}
 	nc := NewCommand{}
-	if _, err := nc.Call(player, nil, command.NewParserString(fmt.Sprintf(
+	if _, err := nc.Call(player, nil, command.NewReaderString(fmt.Sprintf(
 		"%s %s",
 		g.Identifier(),
 		strings.Join(others, " "),

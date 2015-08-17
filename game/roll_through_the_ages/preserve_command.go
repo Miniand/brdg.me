@@ -15,7 +15,7 @@ func (c PreserveCommand) Name() string { return "preserve" }
 func (c PreserveCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)

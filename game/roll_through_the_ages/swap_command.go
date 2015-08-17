@@ -17,7 +17,7 @@ func (c SwapCommand) Name() string { return "swap" }
 func (c SwapCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)

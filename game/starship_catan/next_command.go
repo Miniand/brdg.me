@@ -13,7 +13,7 @@ func (c NextCommand) Name() string { return "next" }
 func (c NextCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)

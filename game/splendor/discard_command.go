@@ -18,7 +18,7 @@ func (c DiscardCommand) Name() string { return "discard" }
 func (c DiscardCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)

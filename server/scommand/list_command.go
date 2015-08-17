@@ -15,7 +15,7 @@ func (c ListCommand) Name() string { return "list" }
 func (c ListCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	output := bytes.NewBufferString("Available games:")
 	for gName, g := range game.RawCollection() {

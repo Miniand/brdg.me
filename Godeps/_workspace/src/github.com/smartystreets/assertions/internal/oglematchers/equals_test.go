@@ -3212,7 +3212,7 @@ func (t *EqualsTest) ArrayOfComparableType() {
 	ExpectEq("[17 19 23]", matcher.Description())
 
 	// To defeat constant de-duping by the compiler.
-	makeArray := func(i, j, k uint) [3]uint { return [3]uint{ i, j, k} }
+	makeArray := func(i, j, k uint) [3]uint { return [3]uint{i, j, k} }
 
 	type arrayAlias [3]uint
 	type uintAlias uint

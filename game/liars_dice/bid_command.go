@@ -17,7 +17,7 @@ func (c BidCommand) Name() string { return "bid" }
 func (c BidCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (
 	output string, err error) {
 	g := context.(*Game)

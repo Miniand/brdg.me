@@ -14,7 +14,7 @@ func (c CommandTest) Name() string {
 func (c CommandTest) Call(
 	player string,
 	context interface{},
-	input *Parser,
+	input *Reader,
 ) (string, error) {
 	return "tessssst", nil
 }

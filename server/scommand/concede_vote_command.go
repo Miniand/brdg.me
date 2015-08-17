@@ -21,7 +21,7 @@ func (c ConcedeVoteCommand) Name() string { return "vote" }
 func (c ConcedeVoteCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	if !CanConcedeVote(player, c.gameModel) {
 		return "", errors.New("you can't vote at the moment")

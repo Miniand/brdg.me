@@ -16,7 +16,7 @@ func (c SectorCommand) Name() string { return "sector" }
 func (c SectorCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)

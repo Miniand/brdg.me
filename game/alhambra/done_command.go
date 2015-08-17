@@ -13,7 +13,7 @@ func (c DoneCommand) Name() string { return "done" }
 func (c DoneCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 

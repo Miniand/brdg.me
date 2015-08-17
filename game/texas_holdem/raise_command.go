@@ -15,7 +15,7 @@ func (rc RaiseCommand) Name() string { return "raise" }
 func (rc RaiseCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	args, err := input.ReadLineArgs()

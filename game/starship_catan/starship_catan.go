@@ -558,7 +558,7 @@ func (g *Game) MarkCardActioned() {
 
 func (g *Game) HandleTradeCommand(
 	player string,
-	input *command.Parser,
+	input *command.Reader,
 	tradeDir int,
 ) error {
 	p, err := g.ParsePlayer(player)

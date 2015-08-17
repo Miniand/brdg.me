@@ -16,7 +16,7 @@ func (c VisitCommand) Name() string { return "visit" }
 func (c VisitCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)

@@ -9,7 +9,7 @@ func (pc PlaceCommand) Name() string { return "place" }
 func (pc PlaceCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	//a := command.ExtractNamedCommandArgs(args)
 	//typeString := a[0]

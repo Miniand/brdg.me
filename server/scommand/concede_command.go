@@ -61,7 +61,7 @@ func FailConcedeVote(gm *model.GameModel, g game.Playable) {
 func (c ConcedeCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	if !CanInitiateConcedeVote(player, c.gameModel) {
 		return "", errors.New("you can't concede at the moment")

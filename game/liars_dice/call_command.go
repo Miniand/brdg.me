@@ -18,7 +18,7 @@ func (c CallCommand) Name() string { return "call" }
 func (c CallCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (output string, err error) {
 	var (
 		resultText   string

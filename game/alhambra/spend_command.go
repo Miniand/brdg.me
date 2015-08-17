@@ -16,7 +16,7 @@ func (c SpendCommand) Name() string { return "spend" }
 func (c SpendCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)

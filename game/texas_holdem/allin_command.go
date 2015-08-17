@@ -9,7 +9,7 @@ func (ac AllinCommand) Name() string { return "allin" }
 func (ac AllinCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerNum(player)

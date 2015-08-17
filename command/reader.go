@@ -8,19 +8,19 @@ import (
 	"unicode"
 )
 
-type Parser struct {
+type Reader struct {
 	*bufio.Reader
 }
 
-func NewParser(r io.Reader) *Parser {
-	return &Parser{bufio.NewReader(r)}
+func NewReader(r io.Reader) *Reader {
+	return &Reader{bufio.NewReader(r)}
 }
 
-func NewParserString(s string) *Parser {
-	return NewParser(strings.NewReader(s))
+func NewReaderString(s string) *Reader {
+	return NewReader(strings.NewReader(s))
 }
 
-func (p *Parser) ReadWhile(fn func(rune) bool) (string, error) {
+func (p *Reader) ReadWhile(fn func(rune) bool) (string, error) {
 	var (
 		r   rune
 		err error
@@ -44,25 +44,25 @@ func (p *Parser) ReadWhile(fn func(rune) bool) (string, error) {
 	return out.String(), err
 }
 
-func (p *Parser) ReadWord() (string, error) {
+func (p *Reader) ReadWord() (string, error) {
 	return p.ReadWhile(func(r rune) bool {
 		return !unicode.IsSpace(r)
 	})
 }
 
-func (p *Parser) ReadSpace() (string, error) {
+func (p *Reader) ReadSpace() (string, error) {
 	return p.ReadWhile(func(r rune) bool {
 		return unicode.IsSpace(r)
 	})
 }
 
-func (p *Parser) ReadToEndOfLine() (string, error) {
+func (p *Reader) ReadToEndOfLine() (string, error) {
 	return p.ReadWhile(func(r rune) bool {
 		return r != '\r' && r != '\n'
 	})
 }
 
-func (p *Parser) ReadLineArgs() ([]string, error) {
+func (p *Reader) ReadLineArgs() ([]string, error) {
 	line, err := p.ReadToEndOfLine()
 	if l := len(line); l > 0 {
 		if err == io.EOF {

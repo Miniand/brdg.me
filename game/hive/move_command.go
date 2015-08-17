@@ -9,7 +9,7 @@ func (mc MoveCommand) Name() string { return "move" }
 func (mc MoveCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	//a := command.ExtractNamedCommandArgs(args)
 	//typeString := a[0]

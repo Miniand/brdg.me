@@ -16,7 +16,7 @@ func (c GainCommand) Name() string { return "gain" }
 func (c GainCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)

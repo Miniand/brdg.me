@@ -16,7 +16,7 @@ func (c BuildCommand) Name() string { return "build" }
 func (c BuildCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)

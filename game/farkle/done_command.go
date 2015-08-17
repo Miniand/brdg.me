@@ -16,7 +16,7 @@ func (dc DoneCommand) Name() string { return "done" }
 func (dc DoneCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)

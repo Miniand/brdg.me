@@ -25,7 +25,7 @@ func (sc SayCommand) Name() string { return "say" }
 func (sc SayCommand) Call(
 	player string,
 	context interface{},
-	input *command.Parser,
+	input *command.Reader,
 ) (string, error) {
 	g, ok := context.(game.Playable)
 	if !ok {
