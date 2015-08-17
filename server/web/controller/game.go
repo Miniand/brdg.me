@@ -227,10 +227,12 @@ func ApiGameShow(w http.ResponseWriter, r *http.Request) {
 	gameOutput, err := GameOutput(authUser.Email, gm, g, renderer)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
+		return
 	}
 	gd, err := GameData(gm, g, renderer)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
+		return
 	}
 	Json(http.StatusOK, mergeMaps(gd, gameOutput), w, r)
 }
@@ -306,10 +308,12 @@ func ApiGameCommand(w http.ResponseWriter, r *http.Request) {
 	gameOutput, err := GameOutput(authUser.Email, gm, g, renderer)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
+		return
 	}
 	gd, err := GameData(gm, g, renderer)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
+		return
 	}
 	Json(http.StatusOK, mergeMaps(gd, gameOutput), w, r)
 }
@@ -335,6 +339,7 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 	currentRes, err := model.CurrentTurnGamesForPlayer(authUser.Email)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
+		return
 	}
 	defer currentRes.Close()
 	for currentRes.Next(&gm) {
@@ -345,6 +350,7 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 		gd, err := GameData(gm, g, renderer)
 		if err != nil {
 			ApiInternalServerError(err.Error(), w, r)
+			return
 		}
 		resp["currentTurn"] = append(resp["currentTurn"], gd)
 	}
@@ -352,6 +358,7 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 	finishedRes, err := model.RecentlyFinishedGamesForPlayer(authUser.Email)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
+		return
 	}
 	defer finishedRes.Close()
 	for finishedRes.Next(&gm) {
@@ -369,6 +376,7 @@ func ApiGameSummary(w http.ResponseWriter, r *http.Request) {
 	otherRes, err := model.NotCurrentTurnGamesForPlayer(authUser.Email)
 	if err != nil {
 		ApiInternalServerError(err.Error(), w, r)
+		return
 	}
 	defer otherRes.Close()
 	for otherRes.Next(&gm) {

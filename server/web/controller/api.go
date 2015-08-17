@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"log"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/Miniand/brdg.me/server/model"
 )
@@ -41,7 +43,9 @@ func ApiBadRequest(text string, w http.ResponseWriter, r *http.Request) error {
 }
 
 func ApiInternalServerError(text string, w http.ResponseWriter, r *http.Request) error {
-	return ApiError(http.StatusInternalServerError, text, w, r)
+	log.Printf("API internal server error: %v", text)
+	debug.PrintStack()
+	return ApiError(http.StatusInternalServerError, "Internal server error", w, r)
 }
 
 func ApiUnprocessableEntity(text string, w http.ResponseWriter, r *http.Request) error {
