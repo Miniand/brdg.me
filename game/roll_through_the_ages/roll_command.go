@@ -113,7 +113,8 @@ func (g *Game) KeepSkulls() {
 			continue
 		}
 	}
-	if len(g.RolledDice) == 0 {
+	if len(g.RolledDice) == 0 && !(g.Phase == PhaseExtraRoll &&
+		g.Boards[g.CurrentPlayer].Developments[DevelopmentLeadership]) {
 		g.NextPhase()
 	}
 }
