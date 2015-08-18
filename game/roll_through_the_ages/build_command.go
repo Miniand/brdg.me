@@ -68,7 +68,7 @@ func (c BuildCommand) Usage(player string, context interface{}) string {
 }
 
 func (g *Game) CanBuild(player int) bool {
-	return g.CanBuildBuilding(player) || g.CanBuildShip(player)
+	return g.CanBuildBuilding(player) || g.CanBuildShip(player) || g.CanTrade(player)
 }
 
 func (g *Game) CanBuildBuilding(player int) bool {
