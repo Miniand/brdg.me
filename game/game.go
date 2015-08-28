@@ -26,6 +26,7 @@ import (
 	"github.com/Miniand/brdg.me/game/sushizock"
 	"github.com/Miniand/brdg.me/game/texas_holdem"
 	"github.com/Miniand/brdg.me/game/tic_tac_toe"
+	"github.com/Miniand/brdg.me/game/transamerica"
 	"github.com/Miniand/brdg.me/game/zombie_dice"
 )
 
@@ -79,6 +80,7 @@ func gameList() []Playable {
 		&sushizock.Game{},
 		&texas_holdem.Game{},
 		&tic_tac_toe.Game{},
+		&transamerica.Game{},
 		&zombie_dice.Game{},
 	}
 }
