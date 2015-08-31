@@ -11,18 +11,13 @@ import (
 
 type SwapCommand struct{}
 
-func (c SwapCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("swap", 2, input)
-}
+func (c SwapCommand) Name() string { return "swap" }
 
-func (c SwapCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanSwap(pNum)
-}
-
-func (c SwapCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c SwapCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 
 	pNum, ok := g.PlayerNum(player)
@@ -30,18 +25,18 @@ func (c SwapCommand) Call(player string, context interface{},
 		return "", ErrCouldNotFindPlayer
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) != 2 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 2 {
 		return "", errors.New("you must specify the number tile from your reserve and a coordinate")
 	}
 
-	n, err := strconv.Atoi(a[0])
+	n, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("the first argument must be a number")
 	}
 	n-- // zero index
 
-	v, err := g.Boards[pNum].Grid.ParseCoord(a[1])
+	v, err := g.Boards[pNum].Grid.ParseCoord(args[1])
 	if err != nil {
 		return "", err
 	}

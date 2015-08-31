@@ -8,21 +8,13 @@ import (
 
 type NextCommand struct{}
 
-func (c NextCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("next", input)
-}
+func (c NextCommand) Name() string { return "next" }
 
-func (c NextCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanNext(pNum)
-}
-
-func (c NextCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c NextCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {

@@ -9,28 +9,23 @@ import (
 
 type PlayCommand struct{}
 
-func (pc PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
-}
+func (pc PlayCommand) Name() string { return "play" }
 
-func (pc PlayCommand) CanCall(player string, context interface{}) bool {
+func (pc PlayCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		return false
-	}
-	return g.CanPlay(p)
-}
-
-func (pc PlayCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	a := command.ExtractNamedCommandArgs(args)
 	p, err := g.ParsePlayer(player)
 	if err != nil {
 		return "", err
 	}
-	building, err := strconv.Atoi(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify a building")
+	}
+	building, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("building to play must be a number")
 	}

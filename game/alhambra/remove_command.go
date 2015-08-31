@@ -10,18 +10,13 @@ import (
 
 type RemoveCommand struct{}
 
-func (c RemoveCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("remove", 1, input)
-}
+func (c RemoveCommand) Name() string { return "remove" }
 
-func (c RemoveCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanRemove(pNum)
-}
-
-func (c RemoveCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c RemoveCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 
 	pNum, ok := g.PlayerNum(player)
@@ -29,12 +24,12 @@ func (c RemoveCommand) Call(player string, context interface{},
 		return "", ErrCouldNotFindPlayer
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) != 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
 		return "", errors.New("you must specify a coordinate")
 	}
 
-	v, err := g.Boards[pNum].Grid.ParseCoord(a[0])
+	v, err := g.Boards[pNum].Grid.ParseCoord(args[0])
 	if err != nil {
 		return "", err
 	}

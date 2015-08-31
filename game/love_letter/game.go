@@ -23,10 +23,16 @@ type Game struct {
 	Protected       []bool
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		PlayCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanPlay(pNum) {
+		commands = append(commands, PlayCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

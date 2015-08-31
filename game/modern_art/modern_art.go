@@ -166,15 +166,27 @@ type Game struct {
 	Bids                map[int]int
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		PlayCommand{},
-		PriceCommand{},
-		AddCommand{},
-		BidCommand{},
-		BuyCommand{},
-		PassCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	if g.CanPlay(player) {
+		commands = append(commands, PlayCommand{})
 	}
+	if g.CanSetPrice(player) {
+		commands = append(commands, PriceCommand{})
+	}
+	if g.CanAdd(player) {
+		commands = append(commands, AddCommand{})
+	}
+	if g.CanBid(player) {
+		commands = append(commands, BidCommand{})
+	}
+	if g.CanBuy(player) {
+		commands = append(commands, BuyCommand{})
+	}
+	if g.CanPass(player) {
+		commands = append(commands, PassCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

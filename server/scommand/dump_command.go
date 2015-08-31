@@ -10,7 +10,7 @@ import (
 	"net/textproto"
 	"strings"
 
-	comm "github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/server/email"
 	"github.com/Miniand/brdg.me/server/model"
 )
@@ -19,21 +19,14 @@ type DumpCommand struct {
 	gameModel *model.GameModel
 }
 
-func (c DumpCommand) Parse(input string) []string {
-	return comm.ParseNamedCommandNArgs("dump", 0, input)
-}
+func (c DumpCommand) Name() string { return "dump" }
 
-func (c DumpCommand) CanCall(player string, context interface{}) bool {
-	u, ok, err := model.FirstUserByEmail(player)
-	if err != nil || !ok {
-		return false
-	}
-	return u.Admin
-}
-
-func (c DumpCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	if !c.CanCall(player, context) {
+func (c DumpCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
+	if !CanDump(player, c.gameModel) {
 		return "", errors.New("you aren't allowed to do that")
 	}
 
@@ -75,4 +68,12 @@ func (c DumpCommand) Call(player string, context interface{},
 
 func (c DumpCommand) Usage(player string, context interface{}) string {
 	return "{{b}}dump{{_b}} to dump the game data which can be used for troubleshooting"
+}
+
+func CanDump(player string, gm *model.GameModel) bool {
+	u, ok, err := model.FirstUserByEmail(player)
+	if err != nil || !ok {
+		return false
+	}
+	return u.Admin
 }

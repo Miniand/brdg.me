@@ -23,38 +23,30 @@ var PutStrings = map[int]string{
 
 type PutCommand struct{}
 
-func (c PutCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("put", 2, input)
-}
+func (c PutCommand) Name() string { return "put" }
 
-func (c PutCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanPut(p)
-}
-
-func (c PutCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c PutCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {
 		return "", err
 	}
 
-	if len(args) < 2 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 2 {
 		return "", errors.New("you must specify which card and where to put it")
 	}
-	a := command.ExtractNamedCommandArgs(args)
 
-	num, err := strconv.Atoi(a[0])
+	num, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("the first argument must be a positive number")
 	}
 
-	on, err := helper.MatchStringInStringMap(a[1], PutStrings)
+	on, err := helper.MatchStringInStringMap(args[1], PutStrings)
 	if err != nil {
 		return "", err
 	}

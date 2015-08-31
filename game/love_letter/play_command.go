@@ -10,18 +10,13 @@ import (
 
 type PlayCommand struct{}
 
-func (c PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("play", 1, -1, input)
-}
+func (c PlayCommand) Name() string { return "play" }
 
-func (c PlayCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanPlay(pNum)
-}
-
-func (c PlayCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c PlayCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 
 	pNum, ok := g.PlayerNum(player)
@@ -29,22 +24,22 @@ func (c PlayCommand) Call(player string, context interface{},
 		return "", errors.New("could not find player")
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) == 0 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
 		return "", errors.New("you must specify which card to play")
 	}
 
-	card, err := strconv.Atoi(a[0])
+	card, err := strconv.Atoi(args[0])
 	if err != nil {
 		names := map[int]string{}
 		for _, c := range g.Hands[pNum] {
 			names[c] = Cards[c].Name()
 		}
-		if card, err = helper.MatchStringInStringMap(a[0], names); err != nil {
+		if card, err = helper.MatchStringInStringMap(args[0], names); err != nil {
 			return "", err
 		}
 	}
-	return "", g.Play(pNum, card, a[1:]...)
+	return "", g.Play(pNum, card, args[1:]...)
 }
 
 func (c PlayCommand) Usage(player string, context interface{}) string {

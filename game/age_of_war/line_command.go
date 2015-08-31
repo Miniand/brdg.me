@@ -12,18 +12,13 @@ import (
 
 type LineCommand struct{}
 
-func (c LineCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("line", 1, input)
-}
+func (c LineCommand) Name() string { return "line" }
 
-func (c LineCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanLine(pNum)
-}
-
-func (c LineCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c LineCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 
 	pNum, ok := g.PlayerNum(player)
@@ -31,12 +26,12 @@ func (c LineCommand) Call(player string, context interface{},
 		return "", errors.New("could not find player")
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) != 1 {
-		return "", errors.New("you must specify a line to complete")
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify a line to complete")
 	}
 
-	line, err := strconv.Atoi(a[0])
+	line, err := strconv.Atoi(args[0])
 	if err != nil || line <= 0 {
 		return "", errors.New("the line must be a number greater than 0")
 	}

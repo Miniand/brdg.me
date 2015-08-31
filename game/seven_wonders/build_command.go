@@ -11,31 +11,23 @@ import (
 
 type BuildCommand struct{}
 
-func (c BuildCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("build", 1, input)
-}
+func (c BuildCommand) Name() string { return "build" }
 
-func (c BuildCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	if !ok {
-		return false
-	}
-	return g.CanBuild(pNum)
-}
-
-func (c BuildCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c BuildCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify which numbered card to build")
 	}
-	cardNum, err := strconv.Atoi(a[0])
+	cardNum, err := strconv.Atoi(args[0])
 	if err != nil || cardNum < 1 || cardNum > len(g.Hands[pNum]) {
 		return "", errors.New("that is not a valid card number")
 	}

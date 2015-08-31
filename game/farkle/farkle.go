@@ -13,6 +13,7 @@ import (
 
 	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game/die"
+	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 )
@@ -37,12 +38,22 @@ var DiceColours = map[int]string{
 	6: render.Magenta,
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		TakeCommand{},
-		RollCommand{},
-		DoneCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	if g.CanRoll(pNum) {
+		commands = append(commands, RollCommand{})
+	}
+	if g.CanDone(pNum) {
+		commands = append(commands, DoneCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
@@ -206,4 +217,8 @@ func (g *Game) GetPlayerNum(player string) (int, error) {
 		}
 	}
 	return 0, errors.New("Could not find player " + player)
+}
+
+func (g *Game) PlayerNum(player string) (int, bool) {
+	return helper.StringInStrings(player, g.Players)
 }

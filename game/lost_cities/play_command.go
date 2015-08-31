@@ -8,28 +8,26 @@ import (
 
 type PlayCommand struct{}
 
-func (d PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
-}
+func (d PlayCommand) Name() string { return "play" }
 
-func (d PlayCommand) CanCall(player string, context interface{}) bool {
+func (d PlayCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
-	return g.Players[g.CurrentlyMoving] == player &&
-		g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
-}
-
-func (d PlayCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
-		return "", errors.New("You must specify a card to play, such as r5")
-	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
 		return "", err
 	}
-	c, err := g.ParseCardString(a[0])
+	if !g.CanPlay(playerNum) {
+		return "", errors.New("can't play at the moment")
+	}
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify a card to play, such as r5")
+	}
+	c, err := g.ParseCardString(args[0])
 	if err != nil {
 		return "", err
 	}
@@ -38,4 +36,9 @@ func (d PlayCommand) Call(player string, context interface{},
 
 func (d PlayCommand) Usage(player string, context interface{}) string {
 	return "{{b}}play ##{{_b}} to play a card, eg. {{b}}play r5{{_b}}"
+}
+
+func (g *Game) CanPlay(player int) bool {
+	return g.CurrentlyMoving == player &&
+		g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
 }

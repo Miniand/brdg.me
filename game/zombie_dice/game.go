@@ -29,11 +29,19 @@ type Game struct {
 	RoundShotguns  int
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		RollCommand{},
-		KeepCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanRoll(pNum) {
+		commands = append(commands, RollCommand{})
+	}
+	if g.CanKeep(pNum) {
+		commands = append(commands, KeepCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

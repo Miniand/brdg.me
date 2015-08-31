@@ -4,6 +4,15 @@ import "sort"
 
 type Cost map[int]int
 
+// Create a cost from a slice of ints.
+func FromInts(ints []int) Cost {
+	c := Cost{}
+	for _, i := range ints {
+		c[i]++
+	}
+	return c
+}
+
 // Clone returns a clone of the cost.
 func (c Cost) Clone() Cost {
 	nc := Cost{}

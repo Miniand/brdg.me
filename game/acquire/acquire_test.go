@@ -2,12 +2,14 @@ package acquire
 
 import (
 	"fmt"
-	"github.com/Miniand/brdg.me/command"
-	"github.com/Miniand/brdg.me/game/card"
 	"regexp"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/Miniand/brdg.me/game/card"
+	"github.com/Miniand/brdg.me/game/helper"
+	"github.com/stretchr/testify/assert"
 )
 
 func (g *Game) parseGameBoard(b string, t *testing.T) {
@@ -414,9 +416,7 @@ func TestPlayCommandResultInMergerChoose(t *testing.T) {
 	// Prepare environment
 	g.CurrentPlayer = 0
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
-	if _, err := command.CallInCommands("Mick", g, "play 6g", g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 6g"))
 	if len(g.PlayerTiles[0]) != INIT_TILES {
 		t.Fatal("It appears Mick didn't lose the tile when playing it")
 	}
@@ -448,9 +448,7 @@ func TestPlayCommandResultInMerger(t *testing.T) {
 	g.CurrentPlayer = 0
 	g.PlayerShares[0][5] = 3
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_D, BOARD_COL_9})
-	if _, err := command.CallInCommands("Mick", g, "play 9d", g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 9d"))
 	if len(g.PlayerTiles[0]) != INIT_TILES {
 		t.Fatal("It appears Mick didn't lose the tile when playing it")
 	}
@@ -490,9 +488,7 @@ func TestPlayCommandResultInPlaceCorp(t *testing.T) {
 	// Prepare environment
 	g.CurrentPlayer = 0
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_D, BOARD_COL_5})
-	if _, err := command.CallInCommands("Mick", g, "play 5d", g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 5d"))
 	if len(g.PlayerTiles[0]) != INIT_TILES {
 		t.Fatal("It appears Mick didn't lose the tile when playing it")
 	}
@@ -523,9 +519,7 @@ func TestPlayCommandResultInBuyShares(t *testing.T) {
 	// Prepare environment
 	g.CurrentPlayer = 0
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_D, BOARD_COL_5})
-	if _, err := command.CallInCommands("Mick", g, "play 5d", g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 5d"))
 	if len(g.PlayerTiles[0]) != INIT_TILES {
 		t.Fatal("It appears Mick didn't lose the tile when playing it")
 	}
@@ -551,15 +545,12 @@ func TestMergeCommand(t *testing.T) {
 	g.CurrentPlayer = 0
 	tile := Tile{BOARD_ROW_G, BOARD_COL_6}
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(tile)
-	if _, err := command.CallInCommands("Mick", g, "play 6g",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf(
-		"merge %s into %s", CorpShortNames[4], CorpShortNames[2]),
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 6g"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, fmt.Sprintf(
+		"merge %s into %s",
+		CorpShortNames[4],
+		CorpShortNames[2],
+	)))
 	if g.TileAt(tile) != 2 {
 		t.Fatal("Expected tile to now be 2, got", g.TileAt(tile))
 	}
@@ -586,26 +577,17 @@ func TestSellCommand(t *testing.T) {
 	g.PlayerShares[0][4] = 3
 	g.PlayerShares[1][4] = 1
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
-	if _, err := command.CallInCommands("Mick", g, "play 6g",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf(
-		"merge %s into %s", CorpShortNames[4], CorpShortNames[2]),
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", g, "sell 4",
-		g.Commands()); err == nil {
-		t.Fatal("Expected this to error")
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 6g"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, fmt.Sprintf(
+		"merge %s into %s",
+		CorpShortNames[4],
+		CorpShortNames[2],
+	)))
+	assert.Error(t, helper.Cmd(g, helper.Mick, "sell 4"))
 	if g.BankShares[4] != INIT_SHARES {
 		t.Fatal("Corp shares changed when it shouldn't have")
 	}
-	if _, err := command.CallInCommands("Mick", g, "sell 2",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "sell 2"))
 	if g.BankShares[4] != INIT_SHARES+2 {
 		t.Fatal("Corp shares didn't increase by 2")
 	}
@@ -615,10 +597,7 @@ func TestSellCommand(t *testing.T) {
 	if g.CurrentPlayer != 0 {
 		t.Fatal("Turn changed before player ran out of shares")
 	}
-	if _, err := command.CallInCommands("Mick", g, "sell 1",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "sell 1"))
 	if g.MergerCurrentPlayer == 0 {
 		t.Fatal("Turn didn't change after player was out of shares")
 	}
@@ -644,29 +623,20 @@ func TestTradeCommand(t *testing.T) {
 	g.CurrentPlayer = 0
 	g.PlayerShares[0][4] = 5
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_G, BOARD_COL_6})
-	if _, err := command.CallInCommands("Mick", g, "play 6g",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf(
-		"merge %s into %s", CorpShortNames[4], CorpShortNames[2]),
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", g, "trade 5",
-		g.Commands()); err == nil {
-		t.Fatal("Expected this to error")
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 6g"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, fmt.Sprintf(
+		"merge %s into %s",
+		CorpShortNames[4],
+		CorpShortNames[2],
+	)))
+	assert.Error(t, helper.Cmd(g, helper.Mick, "trade 5"))
 	if g.BankShares[4] != INIT_SHARES {
 		t.Fatal("Corp shares changed when it shouldn't have")
 	}
 	if g.BankShares[2] != INIT_SHARES {
 		t.Fatal("Corp shares changed when it shouldn't have")
 	}
-	if _, err := command.CallInCommands("Mick", g, "trade 4",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "trade 4"))
 	if g.BankShares[4] != INIT_SHARES+4 {
 		t.Fatal("Corp shares didn't increase by 4")
 	}
@@ -704,30 +674,27 @@ func TestBuyCommand(t *testing.T) {
 	g.CurrentPlayer = 0
 	g.PlayerShares[0][4] = 5
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_A, BOARD_COL_1})
-	if _, err := command.CallInCommands("Mick", g, "play 1a",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 4 %s",
-		CorpShortNames[2]), g.Commands()); err == nil {
-		t.Fatal("Expected error because 4 is too high")
-	}
-	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 2 %s",
-		CorpShortNames[6]), g.Commands()); err == nil {
-		t.Fatal("Expected error because 6 is inactive")
-	}
-	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 2 %s",
-		CorpShortNames[2]), g.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 2 %s",
-		CorpShortNames[2]), g.Commands()); err == nil {
-		t.Fatal("Expected error because 2 is too high")
-	}
-	if _, err := command.CallInCommands("Mick", g, fmt.Sprintf("buy 1 %s",
-		CorpShortNames[2]), g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 1a"))
+	assert.Error(t, helper.Cmd(g, helper.Mick, fmt.Sprintf(
+		"buy 4 %s",
+		CorpShortNames[2],
+	)))
+	assert.Error(t, helper.Cmd(g, helper.Mick, fmt.Sprintf(
+		"buy 2 %s",
+		CorpShortNames[6],
+	)))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, fmt.Sprintf(
+		"buy 2 %s",
+		CorpShortNames[2],
+	)))
+	assert.Error(t, helper.Cmd(g, helper.Mick, fmt.Sprintf(
+		"buy 2 %s",
+		CorpShortNames[2],
+	)))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, fmt.Sprintf(
+		"buy 1 %s",
+		CorpShortNames[2],
+	)))
 	if g.CurrentPlayer == 0 {
 		t.Fatal("Current player didn't change")
 	}
@@ -753,14 +720,8 @@ func TestDoneCommand(t *testing.T) {
 	g.CurrentPlayer = 0
 	g.PlayerShares[0][4] = 5
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_A, BOARD_COL_1})
-	if _, err := command.CallInCommands("Mick", g, "play 1a",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := command.CallInCommands("Mick", g, "done",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 1a"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "done"))
 	if g.CurrentPlayer == 0 {
 		t.Fatal("Current player didn't change")
 	}
@@ -833,21 +794,12 @@ func TestFoundCorp(t *testing.T) {
 	g.CurrentPlayer = 0
 	g.PlayerShares[0][4] = 5
 	g.PlayerTiles[0] = g.PlayerTiles[0].Push(Tile{BOARD_ROW_C, BOARD_COL_2})
-	if _, err := command.CallInCommands("Mick", g, "play 2c",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "play 2c"))
 	if g.TurnPhase != TURN_PHASE_FOUND_CORP {
 		t.Fatal("Turn phase didn't change to found")
 	}
-	if _, err := command.CallInCommands("Mick", g, "found co",
-		g.Commands()); err == nil {
-		t.Fatal("It shouldn't let us found a corp")
-	}
-	if _, err := command.CallInCommands("Mick", g, "found to",
-		g.Commands()); err != nil {
-		t.Fatal(err)
-	}
+	assert.Error(t, helper.Cmd(g, helper.Mick, "found co"))
+	assert.NoError(t, helper.Cmd(g, helper.Mick, "found to"))
 	if g.CorpSize(TILE_CORP_TOWER) != 3 {
 		t.Fatal("Size was not 3")
 	}

@@ -47,10 +47,16 @@ func (c PirateCard) RequiresAction() bool {
 	return true
 }
 
-func (c PirateCard) Commands() []command.Command {
-	return []command.Command{
-		FightCommand{},
-		PayCommand{},
-		LoseCommand{},
+func (c PirateCard) Commands(g *Game, player int) []command.Command {
+	commands := []command.Command{}
+	if g.CanFight(player) {
+		commands = append(commands, FightCommand{})
 	}
+	if g.CanPayRansom(player) {
+		commands = append(commands, PayCommand{})
+	}
+	if g.CanLoseModule(player) {
+		commands = append(commands, LoseCommand{})
+	}
+	return commands
 }

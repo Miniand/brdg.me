@@ -88,10 +88,16 @@ func (c TradeCard) CanFoundTradingPost() bool {
 	return c.TradingPost
 }
 
-func (c TradeCard) Commands() []command.Command {
-	return []command.Command{
-		FoundTradeCommand{},
-		BuyCommand{},
-		SellCommand{},
+func (c TradeCard) Commands(g *Game, player int) []command.Command {
+	commands := []command.Command{}
+	if g.CanFoundTradingPost(player) {
+		commands = append(commands, FoundTradeCommand{})
 	}
+	if g.CanBuy(player) {
+		commands = append(commands, BuyCommand{})
+	}
+	if g.CanSell(player) {
+		commands = append(commands, SellCommand{})
+	}
+	return commands
 }

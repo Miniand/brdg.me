@@ -10,27 +10,23 @@ import (
 
 type PlayCommand struct{}
 
-func (c PlayCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("play", 1, input)
-}
-
-func (c PlayCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	return !g.IsFinished() && player == g.CurrentlyMoving
-}
+func (c PlayCommand) Name() string { return "play" }
 
 // Make an action for the specified player
-func (c PlayCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c PlayCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	if g.CurrentlyMoving != player {
 		return "", errors.New("not your turn")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) == 0 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
 		return "", errors.New("you must specify a letter between a - i")
 	}
-	action := strings.ToLower(a[0])
+	action := strings.ToLower(args[0])
 	if !regexp.MustCompile("^[abcdefghi]$").MatchString(action) {
 		return "", errors.New("you must specify a letter between a - i")
 	}
@@ -64,7 +60,7 @@ func (c PlayCommand) Call(player string, context interface{},
 		x = 2
 		y = 2
 	}
-	err := g.MarkCellForPlayer(player, x, y)
+	err = g.MarkCellForPlayer(player, x, y)
 	if err != nil {
 		return "", err
 	}
@@ -74,4 +70,8 @@ func (c PlayCommand) Call(player string, context interface{},
 
 func (c PlayCommand) Usage(player string, context interface{}) string {
 	return "{{b}}play #{{_b}} to play in a square, eg. {{b}}play h{{_b}} to play in the bottom space"
+}
+
+func (g *Game) CanPlay(player string) bool {
+	return !g.IsFinished() && player == g.CurrentlyMoving
 }

@@ -11,29 +11,24 @@ import (
 
 type SpendCommand struct{}
 
-func (c SpendCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("spend", 1, -1, input)
-}
+func (c SpendCommand) Name() string { return "spend" }
 
-func (c SpendCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanSpend(pNum)
-}
-
-func (c SpendCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c SpendCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", ErrCouldNotFindPlayer
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify which cards to use")
 	}
 	cards := card.Deck{}
-	for _, rawCard := range a {
+	for _, rawCard := range args {
 		c, err := ParseCard(rawCard)
 		if err != nil {
 			return "", err

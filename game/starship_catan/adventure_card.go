@@ -38,10 +38,12 @@ func (c AdventurePlanetCard) String() string {
 	return AdventurePlanetString(c.Name)
 }
 
-func (c AdventurePlanetCard) Commands() []command.Command {
-	return []command.Command{
-		CompleteCommand{},
+func (c AdventurePlanetCard) Commands(g *Game, player int) []command.Command {
+	commands := []command.Command{}
+	if g.CanComplete(player) {
+		commands = append(commands, CompleteCommand{})
 	}
+	return commands
 }
 
 type Adventurer interface {

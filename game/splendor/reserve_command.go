@@ -10,28 +10,23 @@ import (
 
 type ReserveCommand struct{}
 
-func (c ReserveCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("reserve", 1, input)
-}
+func (c ReserveCommand) Name() string { return "reserve" }
 
-func (c ReserveCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, found := g.PlayerNum(player)
-	return found && g.CanReserve(pNum)
-}
-
-func (c ReserveCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c ReserveCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify a card")
 	}
-	row, col, err := ParseLoc(a[0])
+	row, col, err := ParseLoc(args[0])
 	if err != nil {
 		return "", err
 	}

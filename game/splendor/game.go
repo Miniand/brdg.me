@@ -7,18 +7,21 @@ import (
 	"strings"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
 )
 
 const (
-	MaxGold = 5
+	MaxGold   = 5
+	MaxTokens = 10
 )
 
 const (
 	PhaseMain = iota
 	PhaseVisit
+	PhaseDiscard
 )
 
 type Game struct {
@@ -28,7 +31,7 @@ type Game struct {
 	Decks  [3][]Card
 	Board  [3][]Card
 	Nobles []Noble
-	Tokens Amount
+	Tokens cost.Cost
 
 	PlayerBoards []PlayerBoard
 
@@ -41,13 +44,28 @@ type Game struct {
 
 var LocRegexp = regexp.MustCompile(`^([\dA-Z])([\dA-Z])$`)
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		BuyCommand{},
-		TakeCommand{},
-		ReserveCommand{},
-		VisitCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanBuy(pNum) {
+		commands = append(commands, BuyCommand{})
+	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	if g.CanReserve(pNum) {
+		commands = append(commands, ReserveCommand{})
+	}
+	if g.CanVisit(pNum) {
+		commands = append(commands, VisitCommand{})
+	}
+	if g.CanDiscard(pNum) {
+		commands = append(commands, DiscardCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
@@ -87,7 +105,7 @@ func (g *Game) Start(players []string) error {
 
 	g.Nobles = ShuffleNobles(NobleCards())[:len(players)+1]
 
-	g.Tokens = Amount{
+	g.Tokens = cost.Cost{
 		Gold: MaxGold,
 	}
 	maxGems := g.MaxGems()
@@ -176,6 +194,8 @@ func (g *Game) NextPhase() {
 	case PhaseMain:
 		g.VisitPhase()
 	case PhaseVisit:
+		g.DiscardPhase()
+	case PhaseDiscard:
 		g.NextPlayer()
 	}
 }
@@ -185,7 +205,7 @@ func (g *Game) VisitPhase() {
 	pb := g.PlayerBoards[g.CurrentPlayer]
 	canVisit := []int{}
 	for i, n := range g.Nobles {
-		if pb.Bonuses().CanAfford(n.Cost) {
+		if CanAfford(pb.Bonuses(), n.Cost) {
 			canVisit = append(canVisit, i)
 		}
 	}
@@ -194,6 +214,13 @@ func (g *Game) VisitPhase() {
 		g.NextPhase()
 	case 1:
 		g.Visit(g.CurrentPlayer, canVisit[0])
+	}
+}
+
+func (g *Game) DiscardPhase() {
+	g.Phase = PhaseDiscard
+	if g.PlayerBoards[g.CurrentPlayer].Tokens.Sum() <= MaxTokens {
+		g.NextPhase()
 	}
 }
 
@@ -211,11 +238,11 @@ func (g *Game) MainPhase() {
 	g.Phase = PhaseMain
 }
 
-func (g *Game) Pay(player int, amount Amount) error {
+func (g *Game) Pay(player int, amount cost.Cost) error {
 	if !g.PlayerBoards[player].CanAfford(amount) {
 		return errors.New("can't afford that")
 	}
-	offset := g.PlayerBoards[player].Bonuses().Subtract(amount)
+	offset := g.PlayerBoards[player].Bonuses().Sub(amount)
 	for _, gem := range Gems {
 		if offset[gem] < 0 {
 			// Player didn't have enough just with bonuses

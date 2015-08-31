@@ -13,27 +13,26 @@ import (
 
 type TakeCommand struct{}
 
-func (tc TakeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("take", 1, input)
-}
+func (tc TakeCommand) Name() string { return "take" }
 
-func (tc TakeCommand) CanCall(player string, context interface{}) bool {
+func (tc TakeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
-	return player == g.Players[g.Player] && !g.IsFinished() &&
-		len(AvailableScores(g.RemainingDice)) > 0
-}
-
-func (tc TakeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	a := command.ExtractNamedCommandArgs(args)
-	takeString := a[0]
-	g := context.(*Game)
-	if player != g.Players[g.Player] {
-		return "", errors.New("It's not your turn")
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("can't find player")
 	}
-	if g.IsFinished() {
-		return "", errors.New("The game is already finished")
+	if !g.CanTake(pNum) {
+		return "", errors.New("can't take at the moment")
 	}
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify what to take")
+	}
+	takeString := args[0]
 	take, err := die.ValueStringToDice(takeString)
 	if err != nil {
 		return "", err
@@ -48,7 +47,9 @@ func (tc TakeCommand) Call(player string, context interface{},
 	}
 	if score == 0 {
 		return "", errors.New(fmt.Sprintf(
-			"%s is not valid, please check the usage examples", takeString))
+			"%s is not valid, please check the usage examples",
+			takeString,
+		))
 	}
 	// Check that we've actually got the dice
 	isIn, remaining := die.DiceInDice(take, g.RemainingDice)
@@ -62,7 +63,9 @@ func (tc TakeCommand) Call(player string, context interface{},
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s took %s for {{b}}%d{{_b}} points",
 		render.PlayerName(g.Player, g.Players[g.Player]),
-		RenderDice(take), score)))
+		RenderDice(take),
+		score,
+	)))
 	return "", nil
 }
 
@@ -76,4 +79,9 @@ func (tc TakeCommand) Usage(player string, context interface{}) string {
 	return fmt.Sprintf(
 		"{{b}}take #{{_b}} to take some dice for points.  You can:\n%s",
 		strings.Join(scoreStrings, "\n"))
+}
+
+func (g *Game) CanTake(player int) bool {
+	return player == g.Player && !g.IsFinished() &&
+		len(AvailableScores(g.RemainingDice)) > 0
 }

@@ -10,21 +10,13 @@ import (
 
 type PayCommand struct{}
 
-func (c PayCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("pay", input)
-}
+func (c PayCommand) Name() string { return "pay" }
 
-func (c PayCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanPayRansom(p)
-}
-
-func (c PayCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c PayCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {

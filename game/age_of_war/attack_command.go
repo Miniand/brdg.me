@@ -11,18 +11,13 @@ import (
 
 type AttackCommand struct{}
 
-func (c AttackCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("attack", 1, input)
-}
+func (c AttackCommand) Name() string { return "attack" }
 
-func (c AttackCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanAttack(pNum)
-}
-
-func (c AttackCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c AttackCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 
 	pNum, ok := g.PlayerNum(player)
@@ -30,16 +25,16 @@ func (c AttackCommand) Call(player string, context interface{},
 		return "", errors.New("could not find player")
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) != 1 {
-		return "", errors.New("you must specify a castle to attack")
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify a castle to attack")
 	}
 
 	castleNames := []string{}
 	for _, c := range Castles {
 		castleNames = append(castleNames, c.Name)
 	}
-	castle, err := helper.MatchStringInStrings(a[0], castleNames)
+	castle, err := helper.MatchStringInStrings(args[0], castleNames)
 	if err != nil {
 		return "", err
 	}

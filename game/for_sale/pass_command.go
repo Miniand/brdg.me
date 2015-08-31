@@ -4,21 +4,13 @@ import "github.com/Miniand/brdg.me/command"
 
 type PassCommand struct{}
 
-func (pc PassCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("pass", 0, input)
-}
+func (pc PassCommand) Name() string { return "pass" }
 
-func (pc PassCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		return false
-	}
-	return g.CanBid(p)
-}
-
-func (pc PassCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (pc PassCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {

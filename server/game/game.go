@@ -30,7 +30,7 @@ var gameMut = map[string]*sync.Mutex{}
 func HandleCommandText(player, gameId, commandText string) error {
 	u, ok, err := model.FirstUserByEmail(player)
 	if err != nil || ok && u.Unsubscribed || gameId == "" {
-		commands := scommand.Commands(nil)
+		commands := scommand.Commands(player, nil)
 		output, err := command.CallInCommands(player, nil, commandText, commands)
 		if err != nil || output != "" {
 			// Print help
@@ -45,8 +45,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			}
 			body.WriteString("Welcome to brdg.me!\n\n")
 			body.WriteString(render.CommandUsages(
-				command.CommandUsages(player, nil,
-					command.AvailableCommands(player, nil, commands))))
+				command.CommandUsages(player, nil, commands)))
 			err = email.SendRichMail([]string{player}, "Welcome to brdg.me!",
 				body.String(), []string{})
 			if err != nil {
@@ -84,7 +83,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 			gameMut[gameId].Unlock()
 		}()
 		alreadyFinished := gm.IsFinished
-		commands := scommand.CommandsForGame(gm, g)
+		commands := scommand.CommandsForGame(player, gm, g)
 		initialWhoseTurn := gm.WhoseTurn
 		initialEliminated = gm.EliminatedPlayerList
 		msgType := MsgTypeSuccess
@@ -140,7 +139,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				g,
 				gm,
 				whoseTurnNow,
-				scommand.CommandsForGame(gm, g),
+				scommand.CommandsForGame(player, gm, g),
 				"",
 				MsgTypeYourTurn,
 				false,
@@ -160,7 +159,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				g,
 				gm,
 				whoseTurnNewLogs,
-				scommand.CommandsForGame(gm, g),
+				scommand.CommandsForGame(player, gm, g),
 				"",
 				MsgTypeNewLogs,
 				false,
@@ -176,7 +175,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 				g,
 				gm,
 				newlyEliminated,
-				scommand.CommandsForGame(gm, g),
+				scommand.CommandsForGame(player, gm, g),
 				"You have been eliminated from the game.",
 				MsgTypeElimitate,
 				false,
@@ -194,7 +193,7 @@ func HandleCommandText(player, gameId, commandText string) error {
 						g,
 						gm,
 						uncommunicated,
-						scommand.CommandsForGame(gm, g),
+						scommand.CommandsForGame(player, gm, g),
 						"",
 						MsgTypeFinish,
 						false,

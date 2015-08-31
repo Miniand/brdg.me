@@ -13,31 +13,23 @@ import (
 
 type SellCommand struct{}
 
-func (c SellCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("sell", 1, -1, input)
-}
-
-func (c SellCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, found := g.PlayerNum(player)
-	return found && g.CanSell(pNum)
-}
+func (c SellCommand) Name() string { return "sell" }
 
 func (c SellCommand) Call(
 	player string,
 	context interface{},
-	args []string,
+	input *command.Reader,
 ) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) == 0 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
 		return "", errors.New("please specify what to sell, eg. 5 go or dia dia")
 	}
-	goods, err := ParseGoodStr(strings.Join(a, " "))
+	goods, err := ParseGoodStr(strings.Join(args, " "))
 	if err != nil {
 		return "", err
 	}

@@ -1,22 +1,16 @@
 package modern_art
 
-import (
-	"github.com/Miniand/brdg.me/command"
-)
+import "github.com/Miniand/brdg.me/command"
 
 type PassCommand struct{}
 
-func (pc PassCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("pass", input)
-}
+func (pc PassCommand) Name() string { return "pass" }
 
-func (pc PassCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	return g.CanPass(player)
-}
-
-func (pc PassCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (pc PassCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {

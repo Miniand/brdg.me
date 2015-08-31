@@ -8,28 +8,26 @@ import (
 
 type DiscardCommand struct{}
 
-func (d DiscardCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("discard", 1, input)
-}
+func (d DiscardCommand) Name() string { return "discard" }
 
-func (d DiscardCommand) CanCall(player string, context interface{}) bool {
+func (d DiscardCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
-	return g.Players[g.CurrentlyMoving] == player &&
-		g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
-}
-
-func (d DiscardCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
-		return "", errors.New("You must specify a card to discard, such as r5")
-	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
 		return "", err
 	}
-	c, err := g.ParseCardString(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify a card to discard, such as r5")
+	}
+	if !g.CanDiscard(playerNum) {
+		return "", errors.New("can't discard at the moment")
+	}
+	c, err := g.ParseCardString(args[0])
 	if err != nil {
 		return "", err
 	}
@@ -38,4 +36,9 @@ func (d DiscardCommand) Call(player string, context interface{},
 
 func (d DiscardCommand) Usage(player string, context interface{}) string {
 	return "{{b}}discard ##{{_b}} to discard a card, eg. {{b}}discard r5{{_b}}"
+}
+
+func (g *Game) CanDiscard(player int) bool {
+	return g.CurrentlyMoving == player &&
+		g.TurnPhase == TURN_PHASE_PLAY_OR_DISCARD && !g.IsFinished()
 }

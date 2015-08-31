@@ -42,12 +42,22 @@ func (g *Game) Identifier() string {
 	return "for_sale"
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		BidCommand{},
-		PassCommand{},
-		PlayCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, err := g.ParsePlayer(player)
+	if err != nil {
+		return commands
 	}
+	if g.CanBid(pNum) {
+		commands = append(commands, BidCommand{})
+	}
+	if g.CanPass(pNum) {
+		commands = append(commands, PassCommand{})
+	}
+	if g.CanPlay(pNum) {
+		commands = append(commands, PlayCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Start(players []string) error {
@@ -128,7 +138,6 @@ func (g *Game) StartSellingRound() {
 		strings.Join(RenderCards(g.OpenCards, RenderCheque), " "))))
 	if g.Hands[0].Len() == 1 {
 		// Autoplay the final card
-		fmt.Println("autoplaying")
 		for p, _ := range g.Players {
 			g.Play(p, g.Hands[p][0].(card.SuitRankCard).Rank)
 		}
@@ -326,8 +335,12 @@ func (g *Game) Bid(player, amount int) error {
 	return nil
 }
 
+func (g *Game) CanPass(player int) bool {
+	return g.CanBid(player)
+}
+
 func (g *Game) Pass(player int) error {
-	if !g.CanBid(player) {
+	if !g.CanPass(player) {
 		return errors.New("you are not able to pass at the moment")
 	}
 	c := g.TakeFirstOpenCard(player)

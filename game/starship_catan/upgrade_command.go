@@ -10,28 +10,23 @@ import (
 
 type UpgradeCommand struct{}
 
-func (c UpgradeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("upgrade", 1, -1, input)
-}
+func (c UpgradeCommand) Name() string { return "upgrade" }
 
-func (c UpgradeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanUpgrade(p)
-}
-
-func (c UpgradeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c UpgradeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {
 		return "", err
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	m, err := ParseModule(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("you must specify which module to upgrade")
+	}
+	m, err := ParseModule(args[0])
 	if err != nil {
 		return "", err
 	}

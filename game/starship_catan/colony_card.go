@@ -23,10 +23,12 @@ func (c ColonyCard) String() string {
 	)
 }
 
-func (c ColonyCard) Commands() []command.Command {
-	return []command.Command{
-		FoundColonyCommand{},
+func (c ColonyCard) Commands(g *Game, player int) []command.Command {
+	commands := []command.Command{}
+	if g.CanFoundColony(player) {
+		commands = append(commands, FoundColonyCommand{})
 	}
+	return commands
 }
 
 func (c ColonyCard) VictoryPoints() int {

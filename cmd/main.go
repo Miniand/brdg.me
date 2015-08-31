@@ -129,7 +129,7 @@ func PlayAction(args []string) error {
 		return err
 	}
 	commandOutput, err := command.CallInCommands(args[0],
-		g, strings.Join(args[1:], " "), g.Commands())
+		g, strings.Join(args[1:], " "), g.Commands(args[0]))
 	if err != nil {
 		return err
 	}
@@ -145,8 +145,7 @@ func PlayAction(args []string) error {
 	}
 	fmt.Println("--- OUTPUT FOR " + args[0] + " ---")
 	fmt.Println(output)
-	usages := command.CommandUsages(args[0], g, command.AvailableCommands(
-		args[0], g, g.Commands()))
+	usages := command.CommandUsages(args[0], g, g.Commands(args[0]))
 	if len(usages) > 0 {
 		commandsOutput, err := render.RenderTerminal(render.CommandUsages(
 			usages))
@@ -171,9 +170,7 @@ func OutputGameForPlayingPlayers(g game.Playable) error {
 		}
 		fmt.Println("--- OUTPUT FOR " + p + " ---")
 		fmt.Println(output)
-		usages := command.CommandUsages(p, g,
-			command.AvailableCommands(p, g, command.AvailableCommands(
-				p, g, g.Commands())))
+		usages := command.CommandUsages(p, g, g.Commands(p))
 		if len(usages) > 0 {
 			commandsOutput, err := render.RenderTerminal(render.CommandUsages(
 				usages))
@@ -231,8 +228,7 @@ func ViewAction(args []string) error {
 	if err == nil {
 		fmt.Println(output)
 	}
-	usages := command.CommandUsages(args[0], g, command.AvailableCommands(
-		args[0], g, g.Commands()))
+	usages := command.CommandUsages(args[0], g, g.Commands(args[0]))
 	if len(usages) > 0 {
 		commandsOutput, err := render.RenderTerminal(render.CommandUsages(
 			usages))

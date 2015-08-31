@@ -1,22 +1,16 @@
 package modern_art
 
-import (
-	"github.com/Miniand/brdg.me/command"
-)
+import "github.com/Miniand/brdg.me/command"
 
 type BuyCommand struct{}
 
-func (bc BuyCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("buy", input)
-}
+func (bc BuyCommand) Name() string { return "buy" }
 
-func (bc BuyCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	return g.CanBuy(player)
-}
-
-func (bc BuyCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (bc BuyCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {

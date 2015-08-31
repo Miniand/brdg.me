@@ -9,25 +9,23 @@ import (
 
 type TakeCommand struct{}
 
-func (tc TakeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("take", 1, input)
-}
+func (tc TakeCommand) Name() string { return "take" }
 
-func (tc TakeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, found := g.PlayerNum(player)
-	return found && g.CanTake(pNum)
-}
-
-func (tc TakeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (tc TakeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	color, err := helper.MatchStringInStrings(a[0], []string{"blue", "red"})
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify a color to take")
+	}
+	color, err := helper.MatchStringInStrings(args[0], []string{"blue", "red"})
 	if err != nil {
 		return "", errors.New(`you must specify "blue" or "red" after "take"`)
 	}

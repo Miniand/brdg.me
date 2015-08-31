@@ -14,7 +14,7 @@ const (
 var Players = []string{"Mick", "Steve", "BJ", "Greg", "Wallace", "Pete"}
 
 type Commander interface {
-	Commands() []command.Command
+	Commands(player string) []command.Command
 }
 
 func Cmd(g Commander, p int, input string) error {
@@ -22,7 +22,7 @@ func Cmd(g Commander, p int, input string) error {
 		Players[p],
 		g,
 		input,
-		command.AvailableCommands(Players[p], g, g.Commands()),
+		g.Commands(Players[p]),
 	)
 	return err
 }

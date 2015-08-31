@@ -11,21 +11,13 @@ import (
 
 type FoundTradeCommand struct{}
 
-func (c FoundTradeCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("found", input)
-}
+func (c FoundTradeCommand) Name() string { return "found" }
 
-func (c FoundTradeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanFoundTradingPost(p)
-}
-
-func (c FoundTradeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c FoundTradeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {

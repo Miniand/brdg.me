@@ -18,8 +18,10 @@ func (c MedianCard) String() string {
 	return `{{c "red"}}{{b}}Median{{_b}}{{_c}} (2 diplomat points)`
 }
 
-func (c MedianCard) Commands() []command.Command {
-	return []command.Command{
-		FoundTradeCommand{},
+func (c MedianCard) Commands(g *Game, player int) []command.Command {
+	commands := []command.Command{}
+	if g.CanFoundTradingPost(player) {
+		commands = append(commands, FoundTradeCommand{})
 	}
+	return commands
 }

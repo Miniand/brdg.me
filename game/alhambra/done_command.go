@@ -8,18 +8,13 @@ import (
 
 type DoneCommand struct{}
 
-func (c DoneCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("done", input)
-}
+func (c DoneCommand) Name() string { return "done" }
 
-func (c DoneCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	return ok && g.CanDone(pNum)
-}
-
-func (c DoneCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c DoneCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 
 	pNum, ok := g.PlayerNum(player)

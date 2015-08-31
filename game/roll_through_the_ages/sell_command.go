@@ -11,32 +11,24 @@ import (
 
 type SellCommand struct{}
 
-func (c SellCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("sell", 1, input)
-}
+func (c SellCommand) Name() string { return "sell" }
 
-func (c SellCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanSell(pNum)
-}
-
-func (c SellCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c SellCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
 		return "", errors.New("you must specify how much food to sell")
 	}
-	amount, err := strconv.Atoi(a[0])
+	amount, err := strconv.Atoi(args[0])
 	if err != nil || amount < 1 {
 		return "", errors.New("the amount must be a positive number")
 	}

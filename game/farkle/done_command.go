@@ -11,37 +11,36 @@ import (
 
 type DoneCommand struct{}
 
-func (dc DoneCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("done", 0, input)
-}
+func (dc DoneCommand) Name() string { return "done" }
 
-func (dc DoneCommand) CanCall(player string, context interface{}) bool {
+func (dc DoneCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
-	return player == g.Players[g.Player] && g.TakenThisRoll &&
-		!g.IsFinished()
-}
-
-func (dc DoneCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	if player != g.Players[g.Player] {
-		return "", errors.New("It's not your turn")
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("cannot find player")
 	}
-	if g.TurnScore == 0 {
-		return "", errors.New("You haven't scored anything yet")
-	}
-	if g.IsFinished() {
-		return "", errors.New("The game is already finished")
+	if !g.CanDone(pNum) {
+		return "", errors.New("can't call done at the moment")
 	}
 	g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
 		"%s took {{b}}%d{{_b}} points, now on {{b}}%d{{_b}}",
 		render.PlayerName(g.Player, g.Players[g.Player]),
-		g.TurnScore, g.Scores[g.Player]+g.TurnScore)))
-	g.Scores[g.Player] = g.Scores[g.Player] + g.TurnScore
+		g.TurnScore,
+		g.Scores[pNum]+g.TurnScore,
+	)))
+	g.Scores[pNum] = g.Scores[pNum] + g.TurnScore
 	g.NextPlayer()
 	return "", nil
 }
 
 func (dc DoneCommand) Usage(player string, context interface{}) string {
 	return "{{b}}done{{_b}} to take the points and finish your turn"
+}
+
+func (g *Game) CanDone(player int) bool {
+	return player == g.Player && g.TakenThisRoll && !g.IsFinished()
 }

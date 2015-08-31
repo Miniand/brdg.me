@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 	"github.com/Miniand/brdg.me/render"
@@ -12,26 +13,25 @@ import (
 
 type TakeCommand struct{}
 
-func (c TakeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("take", 2, 3, input)
-}
+func (c TakeCommand) Name() string { return "take" }
 
-func (c TakeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, found := g.PlayerNum(player)
-	return found && g.CanTake(pNum)
-}
-
-func (c TakeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c TakeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
+		return "", errors.New("please specify two or three tokens")
+	}
 	tokens := []int{}
 	gemStrings := GemStrings()
-	for _, a := range command.ExtractNamedCommandArgs(args) {
+	for _, a := range args {
 		t, err := helper.MatchStringInStringMap(a, gemStrings)
 		if err != nil {
 			return "", err
@@ -86,12 +86,12 @@ func (g *Game) Take(player int, tokens []int) error {
 	default:
 		return errors.New("can only take two or three tokens")
 	}
-	amount := Amount{}
+	amount := cost.Cost{}
 	for _, t := range tokens {
 		amount[t] += 1
 	}
 	g.PlayerBoards[player].Tokens = g.PlayerBoards[player].Tokens.Add(amount)
-	g.Tokens = g.Tokens.Subtract(amount)
+	g.Tokens = g.Tokens.Sub(amount)
 	g.NextPhase()
 	return nil
 }

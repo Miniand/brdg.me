@@ -13,21 +13,13 @@ import (
 
 type FightCommand struct{}
 
-func (c FightCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("fight", input)
-}
+func (c FightCommand) Name() string { return "fight" }
 
-func (c FightCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanFight(p)
-}
-
-func (c FightCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c FightCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {

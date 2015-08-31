@@ -2,32 +2,29 @@ package battleship
 
 import (
 	"errors"
+
 	"github.com/Miniand/brdg.me/command"
 )
 
 type ShootCommand struct{}
 
-func (sc ShootCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("shoot", 1, input)
-}
+func (sc ShootCommand) Name() string { return "shoot" }
 
-func (sc ShootCommand) CanCall(player string, context interface{}) bool {
+func (sc ShootCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
-	return g.CanShoot(player)
-}
-
-func (sc ShootCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
-		return "", errors.New("You must specify the location to shoot")
-	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
 		return "", err
 	}
-	y, x, err := ParseLocation(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("You must specify the location to shoot")
+	}
+	y, x, err := ParseLocation(args[0])
 	if err != nil {
 		return "", err
 	}

@@ -43,20 +43,46 @@ type Game struct {
 	Log              *log.Log
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		PreserveCommand{},
-		RollCommand{},
-		TakeCommand{},
-		InvadeCommand{},
-		TradeCommand{},
-		BuildCommand{},
-		SellCommand{},
-		SwapCommand{},
-		BuyCommand{},
-		DiscardCommand{},
-		NextCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, err := g.PlayerNum(player)
+	if err != nil {
+		return commands
 	}
+	if g.CanPreserve(pNum) {
+		commands = append(commands, PreserveCommand{})
+	}
+	if g.CanRoll(pNum) {
+		commands = append(commands, RollCommand{})
+	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	if g.CanInvade(pNum) {
+		commands = append(commands, InvadeCommand{})
+	}
+	if g.CanTrade(pNum) {
+		commands = append(commands, TradeCommand{})
+	}
+	if g.CanBuild(pNum) {
+		commands = append(commands, BuildCommand{})
+	}
+	if g.CanSell(pNum) {
+		commands = append(commands, SellCommand{})
+	}
+	if g.CanSwap(pNum) {
+		commands = append(commands, SwapCommand{})
+	}
+	if g.CanBuy(pNum) {
+		commands = append(commands, BuyCommand{})
+	}
+	if g.CanDiscard(pNum) {
+		commands = append(commands, DiscardCommand{})
+	}
+	if g.CanNext(pNum) {
+		commands = append(commands, NextCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
@@ -379,7 +405,7 @@ func (g *Game) InvadePhase() {
 
 func (g *Game) BuildPhase() {
 	g.Phase = PhaseBuild
-	if !g.CanBuildAnything(g.CurrentPlayer) {
+	if !g.CanBuild(g.CurrentPlayer) {
 		g.NextPhase()
 	}
 }

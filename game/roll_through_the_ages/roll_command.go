@@ -13,29 +13,24 @@ import (
 
 type RollCommand struct{}
 
-func (c RollCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("roll", 1, -1, input)
-}
+func (c RollCommand) Name() string { return "roll" }
 
-func (c RollCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanRoll(pNum)
-}
-
-func (c RollCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c RollCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	dice := make([]int, len(a))
-	for i, s := range a {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
+		return "", errors.New("you must specify at least one dice to roll")
+	}
+	dice := make([]int, len(args))
+	for i, s := range args {
 		d, err := strconv.Atoi(s)
 		if err != nil {
 			return "", fmt.Errorf("%s is not a number", s)
@@ -118,7 +113,8 @@ func (g *Game) KeepSkulls() {
 			continue
 		}
 	}
-	if len(g.RolledDice) == 0 {
+	if len(g.RolledDice) == 0 && !(g.Phase == PhaseExtraRoll &&
+		g.Boards[g.CurrentPlayer].Developments[DevelopmentLeadership]) {
 		g.NextPhase()
 	}
 }

@@ -35,17 +35,31 @@ type Game struct {
 	Cities        []City
 }
 
-func (g *Game) Commands() []command.Command {
+func (g *Game) Commands(player string) []command.Command {
 	if len(g.ToResolve) > 0 {
 		return g.ToResolve[0].Commands()
 	}
-	return []command.Command{
-		BuildCommand{},
-		FreeCommand{},
-		DealCommand{},
-		WonderCommand{},
-		DiscardCommand{},
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+	if g.CanBuild(pNum) {
+		commands = append(commands, BuildCommand{})
+	}
+	if g.CanFreeBuild(pNum) {
+		commands = append(commands, FreeCommand{})
+	}
+	if g.CanDeal(pNum) {
+		commands = append(commands, DealCommand{})
+	}
+	if g.CanWonder(pNum) {
+		commands = append(commands, WonderCommand{})
+	}
+	if g.CanDiscard(pNum) {
+		commands = append(commands, DiscardCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

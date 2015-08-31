@@ -11,32 +11,24 @@ import (
 
 type TradeCommand struct{}
 
-func (c TradeCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("trade", 1, input)
-}
+func (c TradeCommand) Name() string { return "trade" }
 
-func (c TradeCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, err := g.PlayerNum(player)
-	if err != nil {
-		return false
-	}
-	return g.CanTrade(pNum)
-}
-
-func (c TradeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c TradeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, err := g.PlayerNum(player)
 	if err != nil {
 		return "", err
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
 		return "", errors.New("you must specify how much stone to trade")
 	}
-	amount, err := strconv.Atoi(a[0])
+	amount, err := strconv.Atoi(args[0])
 	if err != nil || amount < 1 {
 		return "", errors.New("the amount must be a positive number")
 	}

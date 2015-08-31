@@ -174,13 +174,25 @@ func (g *Game) ParseCardString(cardString string) (c card.SuitRankCard, err erro
 
 // Defines which commands are available for Lost Cities, see the _command.go
 // files in this directory.
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		PlayCommand{},
-		DiscardCommand{},
-		DrawCommand{},
-		TakeCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, err := g.PlayerFromString(player)
+	if err != nil {
+		return commands
 	}
+	if g.CanPlay(pNum) {
+		commands = append(commands, PlayCommand{})
+	}
+	if g.CanDiscard(pNum) {
+		commands = append(commands, DiscardCommand{})
+	}
+	if g.CanDraw(pNum) {
+		commands = append(commands, DrawCommand{})
+	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

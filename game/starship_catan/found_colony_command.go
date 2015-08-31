@@ -11,21 +11,13 @@ import (
 
 type FoundColonyCommand struct{}
 
-func (c FoundColonyCommand) Parse(input string) []string {
-	return command.ParseNamedCommand("found", input)
-}
+func (c FoundColonyCommand) Name() string { return "found" }
 
-func (c FoundColonyCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanFoundColony(p)
-}
-
-func (c FoundColonyCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c FoundColonyCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {

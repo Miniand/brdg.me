@@ -1,9 +1,10 @@
 package no_thanks
 
 import (
-	"github.com/Miniand/brdg.me/command"
 	"sort"
 	"testing"
+
+	"github.com/Miniand/brdg.me/command"
 )
 
 func TestStart(t *testing.T) {
@@ -101,16 +102,16 @@ func TestAssertTurn(t *testing.T) {
 		return
 	}
 	g.CurrentlyMoving = "Steve"
-	if g.AssertTurn("Mick") == nil {
+	if g.CanTake("Mick") {
 		t.Error("Checking if it's Mick's turn should error")
 		return
 	}
-	if g.AssertTurn("Steve") != nil {
+	if !g.CanTake("Steve") {
 		t.Error("Checking if it's Steve's turn should not error")
 		return
 	}
 	g.RemainingCards = []int{}
-	if g.AssertTurn("Steve") == nil {
+	if g.CanTake("Steve") {
 		t.Error("Checking if it's Steve's turn should error when finished")
 		return
 	}
@@ -347,7 +348,7 @@ func TestPlayerActions(t *testing.T) {
 	}
 	g.CurrentlyMoving = "Steve"
 	topCard := g.PeekTopCard()
-	_, err = command.CallInCommands("Steve", g, "Pass", g.Commands())
+	_, err = command.CallInCommands("Steve", g, "Pass", g.Commands("Steve"))
 	if err != nil {
 		t.Error(err)
 		return
@@ -356,7 +357,7 @@ func TestPlayerActions(t *testing.T) {
 		t.Error("Expected Steve's chips to be 10, got", g.PlayerChips["Steve"])
 		return
 	}
-	_, err = command.CallInCommands("Barabbas", g, "taKE", g.Commands())
+	_, err = command.CallInCommands("Barabbas", g, "taKE", g.Commands("Barabbas"))
 	if err != nil {
 		t.Error(err)
 		return

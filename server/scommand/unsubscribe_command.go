@@ -2,26 +2,20 @@ package scommand
 
 import (
 	"errors"
-	comm "github.com/Miniand/brdg.me/command"
+
+	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/server/model"
 )
 
 type UnsubscribeCommand struct{}
 
-func (uc UnsubscribeCommand) Parse(input string) []string {
-	return comm.ParseNamedCommandNArgs("unsubscribe", 0, input)
-}
+func (uc UnsubscribeCommand) Name() string { return "unsubscribe" }
 
-func (uc UnsubscribeCommand) CanCall(player string, context interface{}) bool {
-	u, ok, err := model.FirstUserByEmail(player)
-	if err != nil {
-		return false
-	}
-	return !ok || !u.Unsubscribed
-}
-
-func (uc UnsubscribeCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (uc UnsubscribeCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	u, ok, err := model.FirstUserByEmail(player)
 	if err != nil {
 		return "", errors.New("Could not find you in the database")
@@ -41,4 +35,12 @@ func (uc UnsubscribeCommand) Call(player string, context interface{},
 func (uc UnsubscribeCommand) Usage(player string, context interface{}) string {
 	// We don't want it to show in the usage section
 	return ""
+}
+
+func CanUnsubscribe(player string, gm *model.GameModel) bool {
+	u, ok, err := model.FirstUserByEmail(player)
+	if err != nil {
+		return false
+	}
+	return !ok || !u.Unsubscribed
 }

@@ -53,15 +53,32 @@ type Game struct {
 	Tiles, TileBag               []Tile
 }
 
-func (g *Game) Commands() []command.Command {
-	return []command.Command{
-		SpendCommand{},
-		TakeCommand{},
-		PlaceCommand{},
-		SwapCommand{},
-		RemoveCommand{},
-		DoneCommand{},
+func (g *Game) Commands(player string) []command.Command {
+	commands := []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return commands
 	}
+
+	if g.CanSpend(pNum) {
+		commands = append(commands, SpendCommand{})
+	}
+	if g.CanTake(pNum) {
+		commands = append(commands, TakeCommand{})
+	}
+	if g.CanPlace(pNum) {
+		commands = append(commands, PlaceCommand{})
+	}
+	if g.CanSwap(pNum) {
+		commands = append(commands, SwapCommand{})
+	}
+	if g.CanRemove(pNum) {
+		commands = append(commands, RemoveCommand{})
+	}
+	if g.CanDone(pNum) {
+		commands = append(commands, DoneCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {

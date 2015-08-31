@@ -9,31 +9,26 @@ import (
 
 type DummyCommand struct{}
 
-func (c DummyCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("dummy", 1, input)
-}
+func (c DummyCommand) Name() string { return "dummy" }
 
-func (c DummyCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	if !ok {
-		return false
-	}
-	return g.CanDummy(pNum)
-}
-
-func (c DummyCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c DummyCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("it is not your turn at the moment")
 	}
 
-	a := command.ExtractNamedCommandArgs(args)
-	cards := make([]int, len(a))
-	for i := range a {
-		card, err := strconv.Atoi(a[i])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
+		return "", errors.New("please specify a card to play for the dummy")
+	}
+	cards := make([]int, len(args))
+	for i := range args {
+		card, err := strconv.Atoi(args[i])
 		if err != nil {
 			return "", errors.New("each card must be a number")
 		}

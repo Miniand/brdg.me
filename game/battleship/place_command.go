@@ -2,40 +2,37 @@ package battleship
 
 import (
 	"errors"
+
 	"github.com/Miniand/brdg.me/command"
 )
 
 type PlaceCommand struct{}
 
-func (pc PlaceCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("place", 3, input)
-}
+func (pc PlaceCommand) Name() string { return "place" }
 
-func (pc PlaceCommand) CanCall(player string, context interface{}) bool {
+func (pc PlaceCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
-	return g.CanPlace(player)
-}
-
-func (pc PlaceCommand) Call(player string, context interface{},
-	args []string) (string, error) {
-	g := context.(*Game)
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 3 {
-		return "", errors.New("You must specify the ship, location, and direction of the ship, eg. place cru b4 down")
-	}
 	playerNum, err := g.PlayerFromString(player)
 	if err != nil {
 		return "", err
 	}
-	s, err := ParseShip(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 3 {
+		return "", errors.New("You must specify the ship, location, and direction of the ship, eg. place cru b4 down")
+	}
+	s, err := ParseShip(args[0])
 	if err != nil {
 		return "", err
 	}
-	y, x, err := ParseLocation(a[1])
+	y, x, err := ParseLocation(args[1])
 	if err != nil {
 		return "", err
 	}
-	d, err := ParseDirection(a[2])
+	d, err := ParseDirection(args[2])
 	if err != nil {
 		return "", err
 	}

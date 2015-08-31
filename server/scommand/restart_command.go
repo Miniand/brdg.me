@@ -2,9 +2,10 @@ package scommand
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
-	comm "github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/command"
 	"github.com/Miniand/brdg.me/game"
 	"github.com/Miniand/brdg.me/server/model"
 )
@@ -13,16 +14,13 @@ type RestartCommand struct {
 	gameModel *model.GameModel
 }
 
-func (rc RestartCommand) Parse(input string) []string {
-	return comm.ParseNamedCommand("restart", input)
-}
+func (rc RestartCommand) Name() string { return "restart" }
 
-func (rc RestartCommand) CanCall(player string, context interface{}) bool {
-	return rc.gameModel.IsFinished && !rc.gameModel.Restarted
-}
-
-func (rc RestartCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (rc RestartCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	if rc.gameModel == nil {
 		return "", errors.New("no game was passed in")
 	}
@@ -40,11 +38,11 @@ func (rc RestartCommand) Call(player string, context interface{},
 		}
 	}
 	nc := NewCommand{}
-	if _, err := nc.Call(player, nil, []string{
-		"new",
+	if _, err := nc.Call(player, nil, command.NewReaderString(fmt.Sprintf(
+		"%s %s",
 		g.Identifier(),
 		strings.Join(others, " "),
-	}); err != nil {
+	))); err != nil {
 		return "", err
 	}
 	rc.gameModel.Restarted = true
@@ -53,4 +51,8 @@ func (rc RestartCommand) Call(player string, context interface{},
 
 func (rc RestartCommand) Usage(player string, context interface{}) string {
 	return "{{b}}restart{{_b}} to restart this game"
+}
+
+func CanRestart(player string, gm *model.GameModel) bool {
+	return gm.IsFinished && !gm.Restarted
 }

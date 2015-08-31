@@ -3,6 +3,8 @@ package splendor
 import (
 	"math/rand"
 	"time"
+
+	"github.com/Miniand/brdg.me/game/cost"
 )
 
 const (
@@ -18,7 +20,7 @@ const (
 type Card struct {
 	Resource int
 	Prestige int
-	Cost     Amount
+	Cost     cost.Cost
 }
 
 var Resources = []int{
@@ -54,7 +56,7 @@ func Level1Cards() []Card {
 		{
 			Diamond,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 1,
 				Emerald:  1,
 				Ruby:     1,
@@ -64,7 +66,7 @@ func Level1Cards() []Card {
 		{
 			Diamond,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 1,
 				Emerald:  2,
 				Ruby:     1,
@@ -74,7 +76,7 @@ func Level1Cards() []Card {
 		{
 			Diamond,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  3,
 				Sapphire: 1,
 				Onyx:     1,
@@ -83,7 +85,7 @@ func Level1Cards() []Card {
 		{
 			Diamond,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 2,
 				Emerald:  2,
 				Onyx:     1,
@@ -92,7 +94,7 @@ func Level1Cards() []Card {
 		{
 			Diamond,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 2,
 				Onyx:     2,
 			},
@@ -100,7 +102,7 @@ func Level1Cards() []Card {
 		{
 			Diamond,
 			0,
-			Amount{
+			cost.Cost{
 				Ruby: 2,
 				Onyx: 1,
 			},
@@ -108,21 +110,21 @@ func Level1Cards() []Card {
 		{
 			Diamond,
 			1,
-			Amount{
+			cost.Cost{
 				Emerald: 4,
 			},
 		},
 		{
 			Diamond,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 3,
 			},
 		},
 		{
 			Sapphire,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 1,
 				Emerald: 1,
 				Ruby:    1,
@@ -132,7 +134,7 @@ func Level1Cards() []Card {
 		{
 			Sapphire,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 1,
 				Emerald: 1,
 				Ruby:    2,
@@ -142,7 +144,7 @@ func Level1Cards() []Card {
 		{
 			Sapphire,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 1,
 				Emerald:  3,
 				Ruby:     1,
@@ -151,7 +153,7 @@ func Level1Cards() []Card {
 		{
 			Sapphire,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 1,
 				Emerald: 2,
 				Ruby:    2,
@@ -160,7 +162,7 @@ func Level1Cards() []Card {
 		{
 			Sapphire,
 			0,
-			Amount{
+			cost.Cost{
 				Emerald: 2,
 				Onyx:    2,
 			},
@@ -168,7 +170,7 @@ func Level1Cards() []Card {
 		{
 			Sapphire,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 1,
 				Onyx:    2,
 			},
@@ -176,21 +178,21 @@ func Level1Cards() []Card {
 		{
 			Sapphire,
 			1,
-			Amount{
+			cost.Cost{
 				Ruby: 4,
 			},
 		},
 		{
 			Sapphire,
 			0,
-			Amount{
+			cost.Cost{
 				Onyx: 3,
 			},
 		},
 		{
 			Onyx,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  1,
 				Sapphire: 2,
 				Emerald:  1,
@@ -200,7 +202,7 @@ func Level1Cards() []Card {
 		{
 			Onyx,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  1,
 				Sapphire: 1,
 				Emerald:  1,
@@ -210,7 +212,7 @@ func Level1Cards() []Card {
 		{
 			Onyx,
 			0,
-			Amount{
+			cost.Cost{
 				Emerald: 1,
 				Ruby:    3,
 				Onyx:    1,
@@ -219,7 +221,7 @@ func Level1Cards() []Card {
 		{
 			Onyx,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  2,
 				Sapphire: 2,
 				Ruby:     1,
@@ -228,7 +230,7 @@ func Level1Cards() []Card {
 		{
 			Onyx,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 2,
 				Emerald: 2,
 			},
@@ -236,7 +238,7 @@ func Level1Cards() []Card {
 		{
 			Onyx,
 			0,
-			Amount{
+			cost.Cost{
 				Emerald: 2,
 				Ruby:    1,
 			},
@@ -244,21 +246,21 @@ func Level1Cards() []Card {
 		{
 			Onyx,
 			0,
-			Amount{
+			cost.Cost{
 				Emerald: 3,
 			},
 		},
 		{
 			Onyx,
 			1,
-			Amount{
+			cost.Cost{
 				Sapphire: 4,
 			},
 		},
 		{
 			Ruby,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  2,
 				Sapphire: 1,
 				Emerald:  1,
@@ -268,7 +270,7 @@ func Level1Cards() []Card {
 		{
 			Ruby,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  1,
 				Sapphire: 1,
 				Emerald:  1,
@@ -278,7 +280,7 @@ func Level1Cards() []Card {
 		{
 			Ruby,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 1,
 				Ruby:    1,
 				Onyx:    3,
@@ -287,7 +289,7 @@ func Level1Cards() []Card {
 		{
 			Ruby,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 2,
 				Ruby:    2,
 			},
@@ -295,7 +297,7 @@ func Level1Cards() []Card {
 		{
 			Ruby,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 2,
 				Emerald:  1,
 			},
@@ -303,21 +305,21 @@ func Level1Cards() []Card {
 		{
 			Ruby,
 			1,
-			Amount{
+			cost.Cost{
 				Diamond: 4,
 			},
 		},
 		{
 			Ruby,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 3,
 			},
 		},
 		{
 			Ruby,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond: 2,
 				Emerald: 1,
 				Onyx:    2,
@@ -326,7 +328,7 @@ func Level1Cards() []Card {
 		{
 			Emerald,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  1,
 				Sapphire: 1,
 				Ruby:     1,
@@ -336,7 +338,7 @@ func Level1Cards() []Card {
 		{
 			Emerald,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  1,
 				Sapphire: 1,
 				Ruby:     1,
@@ -346,7 +348,7 @@ func Level1Cards() []Card {
 		{
 			Emerald,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  1,
 				Sapphire: 3,
 				Emerald:  1,
@@ -355,7 +357,7 @@ func Level1Cards() []Card {
 		{
 			Emerald,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 1,
 				Ruby:     2,
 				Onyx:     2,
@@ -364,7 +366,7 @@ func Level1Cards() []Card {
 		{
 			Emerald,
 			0,
-			Amount{
+			cost.Cost{
 				Sapphire: 2,
 				Ruby:     2,
 			},
@@ -372,7 +374,7 @@ func Level1Cards() []Card {
 		{
 			Emerald,
 			0,
-			Amount{
+			cost.Cost{
 				Diamond:  2,
 				Sapphire: 1,
 			},
@@ -380,14 +382,14 @@ func Level1Cards() []Card {
 		{
 			Emerald,
 			0,
-			Amount{
+			cost.Cost{
 				Ruby: 3,
 			},
 		},
 		{
 			Emerald,
 			1,
-			Amount{
+			cost.Cost{
 				Onyx: 4,
 			},
 		},
@@ -399,7 +401,7 @@ func Level2Cards() []Card {
 		{
 			Diamond,
 			1,
-			Amount{
+			cost.Cost{
 				Emerald: 3,
 				Ruby:    2,
 				Onyx:    2,
@@ -408,7 +410,7 @@ func Level2Cards() []Card {
 		{
 			Diamond,
 			1,
-			Amount{
+			cost.Cost{
 				Diamond:  2,
 				Sapphire: 3,
 				Ruby:     3,
@@ -417,7 +419,7 @@ func Level2Cards() []Card {
 		{
 			Diamond,
 			2,
-			Amount{
+			cost.Cost{
 				Emerald: 1,
 				Ruby:    4,
 				Onyx:    2,
@@ -426,7 +428,7 @@ func Level2Cards() []Card {
 		{
 			Diamond,
 			2,
-			Amount{
+			cost.Cost{
 				Ruby: 5,
 				Onyx: 3,
 			},
@@ -434,21 +436,21 @@ func Level2Cards() []Card {
 		{
 			Diamond,
 			2,
-			Amount{
+			cost.Cost{
 				Ruby: 5,
 			},
 		},
 		{
 			Diamond,
 			3,
-			Amount{
+			cost.Cost{
 				Diamond: 6,
 			},
 		},
 		{
 			Sapphire,
 			1,
-			Amount{
+			cost.Cost{
 				Sapphire: 2,
 				Emerald:  2,
 				Ruby:     3,
@@ -457,7 +459,7 @@ func Level2Cards() []Card {
 		{
 			Sapphire,
 			1,
-			Amount{
+			cost.Cost{
 				Sapphire: 2,
 				Emerald:  3,
 				Onyx:     3,
@@ -466,7 +468,7 @@ func Level2Cards() []Card {
 		{
 			Sapphire,
 			2,
-			Amount{
+			cost.Cost{
 				Diamond:  5,
 				Sapphire: 3,
 			},
@@ -474,7 +476,7 @@ func Level2Cards() []Card {
 		{
 			Sapphire,
 			2,
-			Amount{
+			cost.Cost{
 				Diamond: 2,
 				Ruby:    1,
 				Onyx:    4,
@@ -483,21 +485,21 @@ func Level2Cards() []Card {
 		{
 			Sapphire,
 			3,
-			Amount{
+			cost.Cost{
 				Sapphire: 6,
 			},
 		},
 		{
 			Sapphire,
 			2,
-			Amount{
+			cost.Cost{
 				Sapphire: 5,
 			},
 		},
 		{
 			Onyx,
 			1,
-			Amount{
+			cost.Cost{
 				Diamond: 3,
 				Emerald: 3,
 				Onyx:    2,
@@ -506,7 +508,7 @@ func Level2Cards() []Card {
 		{
 			Onyx,
 			2,
-			Amount{
+			cost.Cost{
 				Sapphire: 1,
 				Emerald:  4,
 				Ruby:     2,
@@ -515,7 +517,7 @@ func Level2Cards() []Card {
 		{
 			Onyx,
 			1,
-			Amount{
+			cost.Cost{
 				Diamond:  3,
 				Sapphire: 2,
 				Emerald:  2,
@@ -524,7 +526,7 @@ func Level2Cards() []Card {
 		{
 			Onyx,
 			2,
-			Amount{
+			cost.Cost{
 				Emerald: 5,
 				Ruby:    3,
 			},
@@ -532,21 +534,21 @@ func Level2Cards() []Card {
 		{
 			Onyx,
 			2,
-			Amount{
+			cost.Cost{
 				Diamond: 5,
 			},
 		},
 		{
 			Onyx,
 			3,
-			Amount{
+			cost.Cost{
 				Onyx: 6,
 			},
 		},
 		{
 			Ruby,
 			1,
-			Amount{
+			cost.Cost{
 				Diamond: 2,
 				Ruby:    2,
 				Onyx:    3,
@@ -555,7 +557,7 @@ func Level2Cards() []Card {
 		{
 			Ruby,
 			1,
-			Amount{
+			cost.Cost{
 				Sapphire: 3,
 				Ruby:     2,
 				Onyx:     3,
@@ -564,7 +566,7 @@ func Level2Cards() []Card {
 		{
 			Ruby,
 			2,
-			Amount{
+			cost.Cost{
 				Diamond:  1,
 				Sapphire: 4,
 				Emerald:  2,
@@ -573,7 +575,7 @@ func Level2Cards() []Card {
 		{
 			Ruby,
 			2,
-			Amount{
+			cost.Cost{
 				Diamond: 3,
 				Onyx:    5,
 			},
@@ -581,28 +583,28 @@ func Level2Cards() []Card {
 		{
 			Ruby,
 			2,
-			Amount{
+			cost.Cost{
 				Onyx: 5,
 			},
 		},
 		{
 			Ruby,
 			3,
-			Amount{
+			cost.Cost{
 				Ruby: 6,
 			},
 		},
 		{
 			Emerald,
 			2,
-			Amount{
+			cost.Cost{
 				Emerald: 5,
 			},
 		},
 		{
 			Emerald,
 			2,
-			Amount{
+			cost.Cost{
 				Sapphire: 5,
 				Emerald:  3,
 			},
@@ -610,14 +612,14 @@ func Level2Cards() []Card {
 		{
 			Emerald,
 			3,
-			Amount{
+			cost.Cost{
 				Emerald: 6,
 			},
 		},
 		{
 			Emerald,
 			1,
-			Amount{
+			cost.Cost{
 				Diamond:  2,
 				Sapphire: 3,
 				Onyx:     2,
@@ -626,7 +628,7 @@ func Level2Cards() []Card {
 		{
 			Emerald,
 			1,
-			Amount{
+			cost.Cost{
 				Diamond: 3,
 				Emerald: 2,
 				Ruby:    3,
@@ -635,7 +637,7 @@ func Level2Cards() []Card {
 		{
 			Emerald,
 			2,
-			Amount{
+			cost.Cost{
 				Diamond:  4,
 				Sapphire: 2,
 				Onyx:     1,
@@ -649,7 +651,7 @@ func Level3Cards() []Card {
 		{
 			Diamond,
 			4,
-			Amount{
+			cost.Cost{
 				Diamond: 3,
 				Ruby:    3,
 				Onyx:    6,
@@ -658,14 +660,14 @@ func Level3Cards() []Card {
 		{
 			Diamond,
 			4,
-			Amount{
+			cost.Cost{
 				Onyx: 7,
 			},
 		},
 		{
 			Diamond,
 			5,
-			Amount{
+			cost.Cost{
 				Diamond: 3,
 				Onyx:    7,
 			},
@@ -673,7 +675,7 @@ func Level3Cards() []Card {
 		{
 			Diamond,
 			3,
-			Amount{
+			cost.Cost{
 				Sapphire: 3,
 				Emerald:  3,
 				Ruby:     5,
@@ -683,7 +685,7 @@ func Level3Cards() []Card {
 		{
 			Sapphire,
 			5,
-			Amount{
+			cost.Cost{
 				Diamond:  7,
 				Sapphire: 3,
 			},
@@ -691,7 +693,7 @@ func Level3Cards() []Card {
 		{
 			Sapphire,
 			4,
-			Amount{
+			cost.Cost{
 				Diamond:  6,
 				Sapphire: 3,
 				Onyx:     3,
@@ -700,7 +702,7 @@ func Level3Cards() []Card {
 		{
 			Sapphire,
 			3,
-			Amount{
+			cost.Cost{
 				Diamond: 3,
 				Emerald: 3,
 				Ruby:    3,
@@ -710,21 +712,21 @@ func Level3Cards() []Card {
 		{
 			Sapphire,
 			4,
-			Amount{
+			cost.Cost{
 				Diamond: 7,
 			},
 		},
 		{
 			Onyx,
 			4,
-			Amount{
+			cost.Cost{
 				Ruby: 7,
 			},
 		},
 		{
 			Onyx,
 			4,
-			Amount{
+			cost.Cost{
 				Emerald: 3,
 				Ruby:    6,
 				Onyx:    3,
@@ -733,7 +735,7 @@ func Level3Cards() []Card {
 		{
 			Onyx,
 			5,
-			Amount{
+			cost.Cost{
 				Ruby: 7,
 				Onyx: 3,
 			},
@@ -741,7 +743,7 @@ func Level3Cards() []Card {
 		{
 			Onyx,
 			3,
-			Amount{
+			cost.Cost{
 				Diamond:  3,
 				Sapphire: 3,
 				Emerald:  5,
@@ -751,14 +753,14 @@ func Level3Cards() []Card {
 		{
 			Ruby,
 			4,
-			Amount{
+			cost.Cost{
 				Emerald: 7,
 			},
 		},
 		{
 			Ruby,
 			3,
-			Amount{
+			cost.Cost{
 				Diamond:  3,
 				Sapphire: 5,
 				Emerald:  3,
@@ -768,7 +770,7 @@ func Level3Cards() []Card {
 		{
 			Ruby,
 			5,
-			Amount{
+			cost.Cost{
 				Emerald: 7,
 				Ruby:    3,
 			},
@@ -776,7 +778,7 @@ func Level3Cards() []Card {
 		{
 			Ruby,
 			4,
-			Amount{
+			cost.Cost{
 				Sapphire: 3,
 				Emerald:  6,
 				Ruby:     3,
@@ -785,7 +787,7 @@ func Level3Cards() []Card {
 		{
 			Emerald,
 			4,
-			Amount{
+			cost.Cost{
 				Diamond:  3,
 				Sapphire: 6,
 				Emerald:  3,
@@ -794,14 +796,14 @@ func Level3Cards() []Card {
 		{
 			Emerald,
 			4,
-			Amount{
+			cost.Cost{
 				Sapphire: 7,
 			},
 		},
 		{
 			Emerald,
 			5,
-			Amount{
+			cost.Cost{
 				Sapphire: 7,
 				Emerald:  3,
 			},
@@ -809,7 +811,7 @@ func Level3Cards() []Card {
 		{
 			Emerald,
 			3,
-			Amount{
+			cost.Cost{
 				Diamond:  5,
 				Sapphire: 3,
 				Ruby:     3,

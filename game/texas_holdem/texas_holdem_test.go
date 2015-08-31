@@ -1,8 +1,9 @@
 package texas_holdem
 
 import (
-	"github.com/Miniand/brdg.me/command"
 	"testing"
+
+	"github.com/Miniand/brdg.me/command"
 )
 
 func mockGame(t *testing.T) *Game {
@@ -29,7 +30,7 @@ func TestNextPhaseOnInitialFold(t *testing.T) {
 	}
 	// First player folds
 	_, err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "fold",
-		g.Commands())
+		g.Commands(g.Players[g.CurrentPlayer]))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,14 +38,14 @@ func TestNextPhaseOnInitialFold(t *testing.T) {
 		t.Fatal("Cards were already drawn:", g.CommunityCards)
 	}
 	// Next two players call and check, should flop
-	_, err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "call", g.Commands())
+	_, err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "call", g.Commands(g.Players[g.CurrentPlayer]))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Cards were already drawn:", g.CommunityCards)
 	}
-	_, err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "check", g.Commands())
+	_, err = command.CallInCommands(g.Players[g.CurrentPlayer], g, "check", g.Commands(g.Players[g.CurrentPlayer]))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,56 +68,56 @@ func TestDealerRaiseWhenLastPlayer(t *testing.T) {
 		1: 10,
 		2: 0,
 	}
-	_, err = command.CallInCommands("Mick", g, "call", g.Commands())
+	_, err = command.CallInCommands("Mick", g, "call", g.Commands("Mick"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Flopped too early")
 	}
-	_, err = command.CallInCommands("BJ", g, "call", g.Commands())
+	_, err = command.CallInCommands("BJ", g, "call", g.Commands("BJ"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 0 {
 		t.Fatal("Flopped too early")
 	}
-	_, err = command.CallInCommands("Pete", g, "check", g.Commands())
+	_, err = command.CallInCommands("Pete", g, "check", g.Commands("Pete"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Flop didn't happen")
 	}
-	_, err = command.CallInCommands("BJ", g, "check", g.Commands())
+	_, err = command.CallInCommands("BJ", g, "check", g.Commands("BJ"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	_, err = command.CallInCommands("Pete", g, "check", g.Commands())
+	_, err = command.CallInCommands("Pete", g, "check", g.Commands("Pete"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	_, err = command.CallInCommands("Mick", g, "raise 10", g.Commands())
+	_, err = command.CallInCommands("Mick", g, "raise 10", g.Commands("Mick"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	_, err = command.CallInCommands("BJ", g, "call", g.Commands())
+	_, err = command.CallInCommands("BJ", g, "call", g.Commands("BJ"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(g.CommunityCards) != 3 {
 		t.Fatal("Turn happened too early")
 	}
-	_, err = command.CallInCommands("Pete", g, "call", g.Commands())
+	_, err = command.CallInCommands("Pete", g, "call", g.Commands("Pete"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +146,7 @@ func TestAllInAboveOtherPlayer(t *testing.T) {
 		1: 20,
 	}
 	// Go all in with BJ
-	_, err = command.CallInCommands("BJ", g, "allin", g.Commands())
+	_, err = command.CallInCommands("BJ", g, "allin", g.Commands("BJ"))
 	if err != nil {
 		t.Fatal(err)
 	}

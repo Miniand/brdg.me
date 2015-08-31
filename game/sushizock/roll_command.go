@@ -10,26 +10,24 @@ import (
 
 type RollCommand struct{}
 
-func (rc RollCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("roll", 1, -1, input)
-}
+func (rc RollCommand) Name() string { return "roll" }
 
-func (rc RollCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, found := g.PlayerNum(player)
-	return found && g.CanRoll(pNum)
-}
-
-func (rc RollCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (rc RollCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, found := g.PlayerNum(player)
 	if !found {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	dice := make([]int, len(a))
-	for i, s := range a {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
+		return "", errors.New("please specify something to roll")
+	}
+	dice := make([]int, len(args))
+	for i, s := range args {
 		d, err := strconv.Atoi(s)
 		if err != nil {
 			return "", fmt.Errorf("%s is not a number", s)

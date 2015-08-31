@@ -9,28 +9,23 @@ import (
 
 type BuildCommand struct{}
 
-func (c BuildCommand) Parse(input string) []string {
-	return command.ParseNamedCommandRangeArgs("build", 1, -1, input)
-}
+func (c BuildCommand) Name() string { return "build" }
 
-func (c BuildCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanBuild(p)
-}
-
-func (c BuildCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c BuildCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {
 		return "", err
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	b, err := ParseBuildable(a[0])
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) != 1 {
+		return "", errors.New("please specify something to build")
+	}
+	b, err := ParseBuildable(args[0])
 	if err != nil {
 		return "", err
 	}

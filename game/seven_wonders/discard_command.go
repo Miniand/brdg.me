@@ -10,31 +10,23 @@ import (
 
 type DiscardCommand struct{}
 
-func (c DiscardCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("discard", 1, input)
-}
+func (c DiscardCommand) Name() string { return "discard" }
 
-func (c DiscardCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	pNum, ok := g.PlayerNum(player)
-	if !ok {
-		return false
-	}
-	return g.CanDiscard(pNum)
-}
-
-func (c DiscardCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c DiscardCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
 		return "", errors.New("could not find player")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	if len(a) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) < 1 {
 		return "", errors.New("you must specify which numbered card to discard")
 	}
-	cardNum, err := strconv.Atoi(a[0])
+	cardNum, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", errors.New("that is not a valid card number")
 	}

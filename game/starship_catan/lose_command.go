@@ -10,32 +10,24 @@ import (
 
 type LoseCommand struct{}
 
-func (c LoseCommand) Parse(input string) []string {
-	return command.ParseNamedCommandNArgs("lose", 1, input)
-}
+func (c LoseCommand) Name() string { return "lose" }
 
-func (c LoseCommand) CanCall(player string, context interface{}) bool {
-	g := context.(*Game)
-	p, err := g.ParsePlayer(player)
-	if err != nil {
-		panic(err)
-	}
-	return g.CanLoseModule(p)
-}
-
-func (c LoseCommand) Call(player string, context interface{},
-	args []string) (string, error) {
+func (c LoseCommand) Call(
+	player string,
+	context interface{},
+	input *command.Reader,
+) (string, error) {
 	g := context.(*Game)
 	p, err := g.ParsePlayer(player)
 	if err != nil {
 		return "", err
 	}
 
-	if len(args) < 1 {
+	args, err := input.ReadLineArgs()
+	if err != nil || len(args) == 0 {
 		return "", errors.New("you must specify which module to lose")
 	}
-	a := command.ExtractNamedCommandArgs(args)
-	m, err := ParseModule(a[0])
+	m, err := ParseModule(args[0])
 	if err != nil {
 		return "", err
 	}
