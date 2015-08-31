@@ -53,8 +53,5 @@ func (b *Board) RenderForPlayer(player int) string {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	b := &Board{
-		Nodes: America,
-	}
-	return b.RenderForPlayer(0), nil
+	return America.RenderForPlayer(0), nil
 }

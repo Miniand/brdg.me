@@ -2,7 +2,10 @@ package transamerica
 
 import "github.com/Miniand/brdg.me/render"
 
-var America = map[Loc]*Node{}
+var America = &Board{
+	Nodes:   map[Loc]*Node{},
+	Terrain: map[Edge]int{},
+}
 
 func NodeRow(y, fromX, untilX byte) []Loc {
 	locs := []Loc{}
@@ -32,48 +35,57 @@ func init() {
 		NodeRow('M', 'G', 'O'),
 	} {
 		for _, l := range row {
-			America[l] = &Node{}
+			America.Nodes[l] = &Node{}
 		}
 	}
 
-	America[MustParseLoc("AB")].City = render.Green
-	America[MustParseLoc("BA")].City = render.Green
-	America[MustParseLoc("BA")].City = render.Green
-	America[MustParseLoc("DA")].City = render.Green
-	America[MustParseLoc("FA")].City = render.Green
-	America[MustParseLoc("GA")].City = render.Green
-	America[MustParseLoc("JB")].City = render.Green
-	America[MustParseLoc("KC")].City = render.Green
+	for loc, city := range map[string]string{
+		"AB": render.Green,
+		"BA": render.Green,
+		"DA": render.Green,
+		"FA": render.Green,
+		"GA": render.Green,
+		"JB": render.Green,
+		"KC": render.Green,
 
-	America[MustParseLoc("BD")].City = render.Blue
-	America[MustParseLoc("BH")].City = render.Blue
-	America[MustParseLoc("BK")].City = render.Blue
-	America[MustParseLoc("CK")].City = render.Blue
-	America[MustParseLoc("DM")].City = render.Blue
-	America[MustParseLoc("CP")].City = render.Blue
-	America[MustParseLoc("FN")].City = render.Blue
+		"BD": render.Blue,
+		"BH": render.Blue,
+		"BK": render.Blue,
+		"CK": render.Blue,
+		"DM": render.Blue,
+		"CP": render.Blue,
+		"FN": render.Blue,
 
-	America[MustParseLoc("ED")].City = render.Yellow
-	America[MustParseLoc("FF")].City = render.Yellow
-	America[MustParseLoc("EI")].City = render.Yellow
-	America[MustParseLoc("GJ")].City = render.Yellow
-	America[MustParseLoc("GL")].City = render.Yellow
-	America[MustParseLoc("II")].City = render.Yellow
-	America[MustParseLoc("IF")].City = render.Yellow
+		"ED": render.Yellow,
+		"FF": render.Yellow,
+		"EI": render.Yellow,
+		"GJ": render.Yellow,
+		"GL": render.Yellow,
+		"II": render.Yellow,
+		"IF": render.Yellow,
 
-	America[MustParseLoc("JD")].City = render.Red
-	America[MustParseLoc("LF")].City = render.Red
-	America[MustParseLoc("KJ")].City = render.Red
-	America[MustParseLoc("MJ")].City = render.Red
-	America[MustParseLoc("JL")].City = render.Red
-	America[MustParseLoc("ML")].City = render.Red
-	America[MustParseLoc("KN")].City = render.Red
+		"JD": render.Red,
+		"LF": render.Red,
+		"KJ": render.Red,
+		"MJ": render.Red,
+		"JL": render.Red,
+		"ML": render.Red,
+		"KN": render.Red,
 
-	America[MustParseLoc("CR")].City = render.Magenta
-	America[MustParseLoc("EQ")].City = render.Magenta
-	America[MustParseLoc("FP")].City = render.Magenta
-	America[MustParseLoc("HP")].City = render.Magenta
-	America[MustParseLoc("IO")].City = render.Magenta
-	America[MustParseLoc("KP")].City = render.Magenta
-	America[MustParseLoc("MO")].City = render.Magenta
+		"CR": render.Magenta,
+		"EQ": render.Magenta,
+		"FP": render.Magenta,
+		"HP": render.Magenta,
+		"IO": render.Magenta,
+		"KP": render.Magenta,
+		"MO": render.Magenta,
+	} {
+		America.Nodes[MustParseLoc(loc)].City = city
+	}
+
+	for e, t := range map[string]int{
+		"AB AC": TerrainMountain,
+	} {
+		America.Terrain[MustParseEdge(e)] = t
+	}
 }
