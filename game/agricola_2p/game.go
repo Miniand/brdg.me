@@ -28,7 +28,7 @@ type Game struct {
 	Log         *log.Log
 }
 
-func (g *Game) Commands() []command.Command {
+func (g *Game) Commands(player string) []command.Command {
 	return []command.Command{}
 }
 
