@@ -2,6 +2,7 @@ package seven_wonders_duel
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/game/helper"
@@ -157,6 +158,26 @@ func (c Card) VP(g *Game, player int) int {
 		vp += c.VPFunc(g, player)
 	}
 	return vp
+}
+
+func (c Card) RenderSummary() string {
+	if c.Summary != "" {
+		return c.Summary
+	}
+	parts := []string{}
+	if c.Provides != nil {
+		parts = append(parts, RenderProvides(c.Provides))
+	}
+	if c.Military > 0 {
+		parts = append(parts, RenderMilitary(c.Military))
+	}
+	if c.Science > 0 {
+		parts = append(parts, RenderScience(c.Science))
+	}
+	if c.VPRaw > 0 {
+		parts = append(parts, RenderVP(c.VPRaw))
+	}
+	return strings.Join(parts, "  ")
 }
 
 var Cards map[int]Card

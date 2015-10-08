@@ -20,6 +20,7 @@ import (
 	"github.com/Miniand/brdg.me/game/red7"
 	"github.com/Miniand/brdg.me/game/roll_through_the_ages"
 	"github.com/Miniand/brdg.me/game/seven_wonders"
+	"github.com/Miniand/brdg.me/game/seven_wonders_duel"
 	"github.com/Miniand/brdg.me/game/splendor"
 	"github.com/Miniand/brdg.me/game/starship_catan"
 	"github.com/Miniand/brdg.me/game/sushi_go"
@@ -73,6 +74,7 @@ func gameList() []Playable {
 		&red7.Game{},
 		&roll_through_the_ages.Game{},
 		&seven_wonders.Game{},
+		&seven_wonders_duel.Game{},
 		&splendor.Game{},
 		&starship_catan.Game{},
 		&sushi_go.Game{},
