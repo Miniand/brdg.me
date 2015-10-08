@@ -899,5 +899,114 @@ func init() {
 			},
 			ExtraTurn: true,
 		},
+		WonderTheColossus: {
+			Id:   WonderTheColossus,
+			Name: "The Colossus",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodGlass: 1,
+				GoodClay:  3,
+			},
+			VPRaw:    3,
+			Military: 2,
+		},
+		WonderThePyramids: {
+			Id:   WonderThePyramids,
+			Name: "The Pyramids",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodPapyrus: 1,
+				GoodStone:   3,
+			},
+			VPRaw: 9,
+		},
+		WonderTheGreatLibrary: {
+			Id:   WonderTheGreatLibrary,
+			Name: "The Great Library",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodPapyrus: 1,
+				GoodGlass:   1,
+				GoodWood:    3,
+			},
+			VPRaw: 4,
+			AfterBuild: func(g *Game, player int) {
+				panic("implement randomly picking 3 discarded progress tokens and choosing one")
+			},
+		},
+		WonderTheSphinx: {
+			Id:   WonderTheSphinx,
+			Name: "The Sphinx",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodGlass: 2,
+				GoodClay:  1,
+				GoodStone: 1,
+			},
+			VPRaw:     6,
+			ExtraTurn: true,
+		},
+		WonderTheGreatLighthouse: {
+			Id:   WonderTheGreatLighthouse,
+			Name: "The Great Lighthouse",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodPapyrus: 2,
+				GoodStone:   1,
+				GoodWood:    1,
+			},
+			VPRaw: 4,
+			Provides: []cost.Cost{
+				{GoodWood: 1},
+				{GoodStone: 1},
+				{GoodClay: 1},
+			},
+		},
+		WonderTheStatueOfZeus: {
+			Id:   WonderTheStatueOfZeus,
+			Name: "The Statue of Zeus",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodPapyrus: 2,
+				GoodClay:    1,
+				GoodWood:    1,
+				GoodStone:   1,
+			},
+			VPRaw:    3,
+			Military: 1,
+			AfterBuild: func(g *Game, player int) {
+				panic("implement discarding of opponent's brown raw good card")
+			},
+		},
+		WonderTheHangingGardens: {
+			Id:   WonderTheHangingGardens,
+			Name: "The Hanging Gardens",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodPapyrus: 1,
+				GoodGlass:   1,
+				GoodWood:    2,
+			},
+			VPRaw: 3,
+			AfterBuild: func(g *Game, player int) {
+				g.ModifyCoins(player, 6)
+			},
+			ExtraTurn: true,
+		},
+		WonderTheTempleOfArtemis: {
+			Id:   WonderTheTempleOfArtemis,
+			Name: "The Temple of Artemis",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodPapyrus: 1,
+				GoodGlass:   1,
+				GoodStone:   1,
+				GoodWood:    1,
+			},
+			AfterBuild: func(g *Game, player int) {
+				g.ModifyCoins(player, 12)
+			},
+			ExtraTurn: true,
+		},
 	}
 }
