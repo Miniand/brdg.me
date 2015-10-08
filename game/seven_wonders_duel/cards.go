@@ -1,6 +1,8 @@
 package seven_wonders_duel
 
 import (
+	"fmt"
+
 	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/game/helper"
 )
@@ -146,6 +148,7 @@ type Card struct {
 	Science    int
 	Cheapens   []int
 	ExtraTurn  bool
+	Summary    string
 }
 
 func (c Card) VP(g *Game, player int) int {
@@ -334,9 +337,10 @@ func init() {
 			MakesFree: CardAqueduct,
 		},
 		CardTavern: {
-			Id:   CardTavern,
-			Name: "Tavern",
-			Type: CardTypeCommercial,
+			Id:      CardTavern,
+			Name:    "Tavern",
+			Type:    CardTypeCommercial,
+			Summary: RenderCoins(4),
 			AfterBuild: func(g *Game, player int) {
 				g.ModifyCoins(player, 4)
 			},
@@ -523,9 +527,10 @@ func init() {
 			MakesFree: CardSenate,
 		},
 		CardBrewery: {
-			Id:   CardBrewery,
-			Name: "Brewery",
-			Type: CardTypeCommercial,
+			Id:      CardBrewery,
+			Name:    "Brewery",
+			Type:    CardTypeCommercial,
+			Summary: RenderCoins(6),
 			AfterBuild: func(g *Game, player int) {
 				g.ModifyCoins(player, 6)
 			},
@@ -562,9 +567,15 @@ func init() {
 			VPRaw:   3,
 		},
 		CardChamberOfCommerce: {
-			Id:    CardChamberOfCommerce,
-			Name:  "Chamber of Commerce",
-			Type:  CardTypeCommercial,
+			Id:   CardChamberOfCommerce,
+			Name: "Chamber of Commerce",
+			Type: CardTypeCommercial,
+			Summary: fmt.Sprintf(
+				"%s x %s and %s",
+				RenderCoins(3),
+				RenderCardType(CardTypeManufactured),
+				RenderVP(3),
+			),
 			Cost:  cost.Cost{GoodPapyrus: 2},
 			VPRaw: 3,
 			AfterBuild: func(g *Game, player int) {
@@ -575,9 +586,15 @@ func init() {
 			},
 		},
 		CardPort: {
-			Id:    CardPort,
-			Name:  "Port",
-			Type:  CardTypeCommercial,
+			Id:   CardPort,
+			Name: "Port",
+			Type: CardTypeCommercial,
+			Summary: fmt.Sprintf(
+				"%s x %s and %s",
+				RenderCoins(2),
+				RenderCardType(CardTypeRaw),
+				RenderVP(3),
+			),
 			Cost:  cost.Cost{GoodWood: 1, GoodGlass: 1, GoodPapyrus: 1},
 			VPRaw: 3,
 			AfterBuild: func(g *Game, player int) {
@@ -588,9 +605,15 @@ func init() {
 			},
 		},
 		CardArmory: {
-			Id:    CardArmory,
-			Name:  "Armory",
-			Type:  CardTypeCommercial,
+			Id:   CardArmory,
+			Name: "Armory",
+			Type: CardTypeCommercial,
+			Summary: fmt.Sprintf(
+				"%s x %s and %s",
+				RenderCoins(1),
+				RenderCardType(CardTypeMilitary),
+				RenderVP(3),
+			),
 			Cost:  cost.Cost{GoodStone: 2, GoodGlass: 1},
 			VPRaw: 3,
 			AfterBuild: func(g *Game, player int) {
@@ -685,9 +708,15 @@ func init() {
 			VPRaw: 5,
 		},
 		CardLighthouse: {
-			Id:    CardLighthouse,
-			Name:  "Lighthouse",
-			Type:  CardTypeCommercial,
+			Id:   CardLighthouse,
+			Name: "Lighthouse",
+			Type: CardTypeCommercial,
+			Summary: fmt.Sprintf(
+				"%s x %s and %s",
+				RenderCoins(1),
+				RenderCardType(CardTypeCommercial),
+				RenderVP(3),
+			),
 			Cost:  cost.Cost{GoodClay: 2, GoodGlass: 1},
 			VPRaw: 3,
 			AfterBuild: func(g *Game, player int) {
@@ -698,9 +727,15 @@ func init() {
 			},
 		},
 		CardArena: {
-			Id:    CardArena,
-			Name:  "Arena",
-			Type:  CardTypeCommercial,
+			Id:   CardArena,
+			Name: "Arena",
+			Type: CardTypeCommercial,
+			Summary: fmt.Sprintf(
+				"%s x %s and %s",
+				RenderCoins(2),
+				RenderCardType(CardTypeWonder),
+				RenderVP(3),
+			),
 			Cost:  cost.Cost{GoodClay: 1, GoodStone: 1, GoodWood: 1},
 			VPRaw: 3,
 			AfterBuild: func(g *Game, player int) {
@@ -714,6 +749,12 @@ func init() {
 			Id:   CardMerchantsGuild,
 			Name: "Merchants Guild",
 			Type: CardTypeGuild,
+			Summary: fmt.Sprintf(
+				"%s %s ^ %s",
+				RenderVP(1),
+				RenderCoins(1),
+				RenderCardType(CardTypeCommercial),
+			),
 			Cost: cost.Cost{
 				GoodClay:    1,
 				GoodWood:    1,
@@ -734,6 +775,13 @@ func init() {
 			Id:   CardShipownersGuild,
 			Name: "Shipowners Guild",
 			Type: CardTypeGuild,
+			Summary: fmt.Sprintf(
+				"%s %s ^ %s %s",
+				RenderVP(1),
+				RenderCoins(1),
+				RenderCardType(CardTypeRaw),
+				RenderCardType(CardTypeManufactured),
+			),
 			Cost: cost.Cost{
 				GoodClay:    1,
 				GoodStone:   1,
@@ -757,6 +805,11 @@ func init() {
 			Id:   CardBuildersGuild,
 			Name: "Builders Guild",
 			Type: CardTypeGuild,
+			Summary: fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(2),
+				WonderText,
+			),
 			Cost: cost.Cost{
 				GoodStone: 2,
 				GoodClay:  1,
@@ -771,6 +824,12 @@ func init() {
 			Id:   CardMagistratesGuild,
 			Name: "Magistrates Guild",
 			Type: CardTypeGuild,
+			Summary: fmt.Sprintf(
+				"%s %s ^ %s",
+				RenderVP(1),
+				RenderCoins(1),
+				RenderCardType(CardTypeCivilian),
+			),
 			Cost: cost.Cost{
 				GoodWood:    2,
 				GoodClay:    1,
@@ -790,6 +849,12 @@ func init() {
 			Id:   CardScientistsGuild,
 			Name: "Scientists Guild",
 			Type: CardTypeGuild,
+			Summary: fmt.Sprintf(
+				"%s %s ^ %s",
+				RenderVP(1),
+				RenderCoins(1),
+				RenderCardType(CardTypeScientific),
+			),
 			Cost: cost.Cost{
 				GoodClay: 2,
 				GoodWood: 2,
@@ -808,6 +873,11 @@ func init() {
 			Id:   CardMoneylendersGuild,
 			Name: "Moneylenders Guild",
 			Type: CardTypeGuild,
+			Summary: fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(1),
+				RenderCoins(1),
+			),
 			Cost: cost.Cost{
 				GoodStone: 2,
 				GoodWood:  2,
@@ -823,6 +893,12 @@ func init() {
 			Id:   CardTacticiansGuild,
 			Name: "Tacticians Guild",
 			Type: CardTypeGuild,
+			Summary: fmt.Sprintf(
+				"%s %s ^ %s",
+				RenderVP(1),
+				RenderCoins(1),
+				RenderCardType(CardTypeMilitary),
+			),
 			Cost: cost.Cost{
 				GoodStone:   2,
 				GoodClay:    1,
@@ -842,6 +918,12 @@ func init() {
 			Id:   WonderTheAppianWay,
 			Name: "The Appian Way",
 			Type: CardTypeWonder,
+			Summary: fmt.Sprintf(
+				"%s %s opp. %s",
+				RenderCoins(3),
+				ExtraTurnText,
+				RenderCoins(-3),
+			),
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodClay:    2,
@@ -855,9 +937,10 @@ func init() {
 			ExtraTurn: true,
 		},
 		WonderTheMausoleum: {
-			Id:   WonderTheMausoleum,
-			Name: "The Mausoleum",
-			Type: CardTypeWonder,
+			Id:      WonderTheMausoleum,
+			Name:    "The Mausoleum",
+			Type:    CardTypeWonder,
+			Summary: "build disc. card",
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodGlass:   2,
@@ -869,9 +952,10 @@ func init() {
 			},
 		},
 		WonderCircusMaximus: {
-			Id:   WonderCircusMaximus,
-			Name: "Circus Maximus",
-			Type: CardTypeWonder,
+			Id:      WonderCircusMaximus,
+			Name:    "Circus Maximus",
+			Type:    CardTypeWonder,
+			Summary: fmt.Sprintf("discard opp. %s", RenderCardType(CardTypeManufactured)),
 			Cost: cost.Cost{
 				GoodGlass: 1,
 				GoodWood:  1,
@@ -880,7 +964,7 @@ func init() {
 			VPRaw:    3,
 			Military: 1,
 			AfterBuild: func(g *Game, player int) {
-				panic("implement discarding of opponent grey manufacturing card")
+				panic("implement discarding of opponent manufacturing card")
 			},
 		},
 		WonderPiraeus: {
@@ -921,9 +1005,10 @@ func init() {
 			VPRaw: 9,
 		},
 		WonderTheGreatLibrary: {
-			Id:   WonderTheGreatLibrary,
-			Name: "The Great Library",
-			Type: CardTypeWonder,
+			Id:      WonderTheGreatLibrary,
+			Name:    "The Great Library",
+			Type:    CardTypeWonder,
+			Summary: fmt.Sprintf("get disc. %s", ProgressTokenText),
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodGlass:   1,
@@ -963,9 +1048,10 @@ func init() {
 			},
 		},
 		WonderTheStatueOfZeus: {
-			Id:   WonderTheStatueOfZeus,
-			Name: "The Statue of Zeus",
-			Type: CardTypeWonder,
+			Id:      WonderTheStatueOfZeus,
+			Name:    "The Statue of Zeus",
+			Type:    CardTypeWonder,
+			Summary: fmt.Sprintf("discard opp. %s", RenderCardType(CardTypeRaw)),
 			Cost: cost.Cost{
 				GoodPapyrus: 2,
 				GoodClay:    1,
@@ -975,13 +1061,14 @@ func init() {
 			VPRaw:    3,
 			Military: 1,
 			AfterBuild: func(g *Game, player int) {
-				panic("implement discarding of opponent's brown raw good card")
+				panic("implement discarding of opponent's raw good card")
 			},
 		},
 		WonderTheHangingGardens: {
-			Id:   WonderTheHangingGardens,
-			Name: "The Hanging Gardens",
-			Type: CardTypeWonder,
+			Id:      WonderTheHangingGardens,
+			Name:    "The Hanging Gardens",
+			Type:    CardTypeWonder,
+			Summary: fmt.Sprintf("%s %s", RenderCoins(6), ExtraTurnText),
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodGlass:   1,
@@ -994,9 +1081,10 @@ func init() {
 			ExtraTurn: true,
 		},
 		WonderTheTempleOfArtemis: {
-			Id:   WonderTheTempleOfArtemis,
-			Name: "The Temple of Artemis",
-			Type: CardTypeWonder,
+			Id:      WonderTheTempleOfArtemis,
+			Name:    "The Temple of Artemis",
+			Type:    CardTypeWonder,
+			Summary: fmt.Sprintf("%s %s", RenderCoins(12), ExtraTurnText),
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodGlass:   1,
