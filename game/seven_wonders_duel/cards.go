@@ -1,6 +1,9 @@
 package seven_wonders_duel
 
-import "github.com/Miniand/brdg.me/game/cost"
+import (
+	"github.com/Miniand/brdg.me/game/cost"
+	"github.com/Miniand/brdg.me/game/helper"
+)
 
 const (
 	CardTypeRaw = iota + 1
@@ -686,6 +689,137 @@ func init() {
 			VPRaw: 3,
 			AfterBuild: func(g *Game, player int) {
 				g.ModifyCoins(player, len(g.PlayerWonders[player])*2)
+			},
+		},
+		CardMerchantsGuild: {
+			Id:   CardMerchantsGuild,
+			Name: "Merchants Guild",
+			Type: CardTypeGuild,
+			Cost: cost.Cost{
+				GoodClay:    1,
+				GoodWood:    1,
+				GoodGlass:   1,
+				GoodPapyrus: 1,
+			},
+			VPFunc: func(g *Game, player int) int {
+				return g.GreatestCardCount(CardTypeCommercial)
+			},
+			AfterBuild: func(g *Game, player int) {
+				g.ModifyCoins(
+					player,
+					Cards[CardMerchantsGuild].VPFunc(g, player),
+				)
+			},
+		},
+		CardShipownersGuild: {
+			Id:   CardShipownersGuild,
+			Name: "Shipowners Guild",
+			Type: CardTypeGuild,
+			Cost: cost.Cost{
+				GoodClay:    1,
+				GoodStone:   1,
+				GoodGlass:   1,
+				GoodPapyrus: 1,
+			},
+			VPFunc: func(g *Game, player int) int {
+				return g.GreatestCardCount(
+					CardTypeRaw,
+					CardTypeManufactured,
+				)
+			},
+			AfterBuild: func(g *Game, player int) {
+				g.ModifyCoins(
+					player,
+					Cards[CardShipownersGuild].VPFunc(g, player),
+				)
+			},
+		},
+		CardBuildersGuild: {
+			Id:   CardBuildersGuild,
+			Name: "Builders Guild",
+			Type: CardTypeGuild,
+			Cost: cost.Cost{
+				GoodStone: 2,
+				GoodClay:  1,
+				GoodWood:  1,
+				GoodGlass: 1,
+			},
+			VPFunc: func(g *Game, player int) int {
+				return helper.IntMax(
+					len(g.PlayerWonders[0]),
+					len(g.PlayerWonders[1]),
+				) * 2
+			},
+		},
+		CardMagistratesGuild: {
+			Id:   CardMagistratesGuild,
+			Name: "Magistrates Guild",
+			Type: CardTypeGuild,
+			Cost: cost.Cost{
+				GoodWood:    2,
+				GoodClay:    1,
+				GoodPapyrus: 1,
+			},
+			VPFunc: func(g *Game, player int) int {
+				return g.GreatestCardCount(CardTypeCivilian)
+			},
+			AfterBuild: func(g *Game, player int) {
+				g.ModifyCoins(
+					player,
+					Cards[CardMagistratesGuild].VPFunc(g, player),
+				)
+			},
+		},
+		CardScientistsGuild: {
+			Id:   CardScientistsGuild,
+			Name: "Scientists Guild",
+			Type: CardTypeGuild,
+			Cost: cost.Cost{
+				GoodClay: 2,
+				GoodWood: 2,
+			},
+			VPFunc: func(g *Game, player int) int {
+				return g.GreatestCardCount(CardTypeScientific)
+			},
+			AfterBuild: func(g *Game, player int) {
+				g.ModifyCoins(
+					player,
+					Cards[CardScientistsGuild].VPFunc(g, player),
+				)
+			},
+		},
+		CardMoneylendersGuild: {
+			Id:   CardMoneylendersGuild,
+			Name: "Moneylenders Guild",
+			Type: CardTypeGuild,
+			Cost: cost.Cost{
+				GoodStone: 2,
+				GoodWood:  2,
+			},
+			VPFunc: func(g *Game, player int) int {
+				return helper.IntMax(
+					g.PlayerCoins[0],
+					g.PlayerCoins[1],
+				) / 3
+			},
+		},
+		CardTacticiansGuild: {
+			Id:   CardTacticiansGuild,
+			Name: "Tacticians Guild",
+			Type: CardTypeGuild,
+			Cost: cost.Cost{
+				GoodStone:   2,
+				GoodClay:    1,
+				GoodPapyrus: 1,
+			},
+			VPFunc: func(g *Game, player int) int {
+				return g.GreatestCardCount(CardTypeMilitary)
+			},
+			AfterBuild: func(g *Game, player int) {
+				g.ModifyCoins(
+					player,
+					Cards[CardTacticiansGuild].VPFunc(g, player),
+				)
 			},
 		},
 	}

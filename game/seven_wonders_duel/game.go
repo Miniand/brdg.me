@@ -102,3 +102,17 @@ func (g *Game) PlayerCardTypeCount(player, cardType int) int {
 	}
 	return num
 }
+
+func (g *Game) GreatestCardCount(cardTypes ...int) int {
+	num := 0
+	for p := range g.Players {
+		pNum := 0
+		for _, ct := range cardTypes {
+			pNum += g.PlayerCardTypeCount(p, ct)
+		}
+		if pNum > num {
+			num = pNum
+		}
+	}
+	return num
+}
