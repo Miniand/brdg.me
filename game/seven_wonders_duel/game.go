@@ -13,7 +13,9 @@ type Game struct {
 	Players []string
 	Log     *log.Log
 
-	Coins [2]int
+	PlayerCoins   [2]int
+	PlayerCards   [2][]int
+	PlayerWonders [2][]int
 }
 
 func (g *Game) Commands(player string) []command.Command {
@@ -42,7 +44,9 @@ func (g *Game) Start(players []string) error {
 	}
 	g.Players = players
 	g.Log = log.New()
-	g.Coins = [2]int{}
+	g.PlayerCoins = [2]int{}
+	g.PlayerCards = [2][]int{{}, {}}
+	g.PlayerWonders = [2][]int{{}, {}}
 	return nil
 }
 
@@ -73,8 +77,8 @@ func (g *Game) ModifyCoins(player, amount int) {
 	verb := "gained"
 	logAmount := amount
 	if amount < 0 {
-		if g.Coins[player]-amount < 0 {
-			amount = g.Coins[player]
+		if g.PlayerCoins[player]-amount < 0 {
+			amount = g.PlayerCoins[player]
 		}
 		verb = "lost"
 		logAmount = -amount
@@ -86,5 +90,15 @@ func (g *Game) ModifyCoins(player, amount int) {
 		logAmount,
 		helper.Plural(logAmount, "coin"),
 	)))
-	g.Coins[player] += amount
+	g.PlayerCoins[player] += amount
+}
+
+func (g *Game) PlayerCardTypeCount(player, cardType int) int {
+	num := 0
+	for _, c := range g.PlayerCards[player] {
+		if Cards[c].Type == cardType {
+			num++
+		}
+	}
+	return num
 }
