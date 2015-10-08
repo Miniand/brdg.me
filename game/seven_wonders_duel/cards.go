@@ -74,6 +74,7 @@ const (
 	CardParadeGround
 	CardLibrary
 	CardDispensary
+	CardSchool
 	CardLaboratory
 	CardStatue
 	CardTemple
@@ -318,5 +319,194 @@ var Cards = map[int]Card{
 			g.ModifyCoins(player, 4)
 		},
 		MakesFree: CardLighthouse,
+	},
+	CardSawmill: {
+		Id:   CardSawmill,
+		Name: "Sawmill",
+		Type: CardTypeRaw,
+		Cost: cost.Cost{GoodCoin: 2},
+		Provides: []cost.Cost{
+			{GoodWood: 2},
+		},
+	},
+	CardBrickyard: {
+		Id:   CardBrickyard,
+		Name: "Brickyard",
+		Type: CardTypeRaw,
+		Cost: cost.Cost{GoodCoin: 2},
+		Provides: []cost.Cost{
+			{GoodClay: 2},
+		},
+	},
+	CardShelfQuarry: {
+		Id:   CardShelfQuarry,
+		Name: "Shelf Quarry",
+		Type: CardTypeRaw,
+		Cost: cost.Cost{GoodCoin: 2},
+		Provides: []cost.Cost{
+			{GoodStone: 2},
+		},
+	},
+	CardGlassblower: {
+		Id:   CardGlassblower,
+		Name: "Glassblower",
+		Type: CardTypeManufactured,
+		Provides: []cost.Cost{
+			{GoodGlass: 1},
+		},
+	},
+	CardDryingRoom: {
+		Id:   CardDryingRoom,
+		Name: "Drying Room",
+		Type: CardTypeManufactured,
+		Provides: []cost.Cost{
+			{GoodPapyrus: 1},
+		},
+	},
+	CardWalls: {
+		Id:       CardWalls,
+		Name:     "Walls",
+		Type:     CardTypeMilitary,
+		Cost:     cost.Cost{GoodStone: 2},
+		Military: 2,
+	},
+	CardForum: {
+		Id:   CardForum,
+		Name: "Forum",
+		Type: CardTypeCommercial,
+		Cost: cost.Cost{GoodCoin: 3, GoodClay: 1},
+		Provides: []cost.Cost{
+			{GoodGlass: 1},
+			{GoodPapyrus: 1},
+		},
+	},
+	CardCaravansery: {
+		Id:   CardCaravansery,
+		Name: "Caravansery",
+		Type: CardTypeCommercial,
+		Cost: cost.Cost{GoodCoin: 2, GoodGlass: 1, GoodPapyrus: 1},
+		Provides: []cost.Cost{
+			{GoodWood: 1},
+			{GoodClay: 1},
+			{GoodStone: 1},
+		},
+	},
+	CardCustomsHouse: {
+		Id:       CardCustomsHouse,
+		Name:     "Customs House",
+		Type:     CardTypeCommercial,
+		Cost:     cost.Cost{GoodCoin: 4},
+		Cheapens: []int{GoodPapyrus, GoodGlass},
+	},
+	CardTribunal: {
+		Id:    CardTribunal,
+		Name:  "Tribunal",
+		Type:  CardTypeCivilian,
+		Cost:  cost.Cost{GoodWood: 2, GoodGlass: 1},
+		VPRaw: 5,
+	},
+	CardHorseBreeders: {
+		Id:       CardHorseBreeders,
+		Name:     "Horse Breeders",
+		Type:     CardTypeMilitary,
+		Cost:     cost.Cost{GoodClay: 1, GoodWood: 1},
+		Military: 1,
+	},
+	CardBarracks: {
+		Id:       CardBarracks,
+		Name:     "Barracks",
+		Type:     CardTypeMilitary,
+		Cost:     cost.Cost{GoodCoin: 3},
+		Military: 1,
+	},
+	CardArcheryRange: {
+		Id:        CardArcheryRange,
+		Name:      "Archery Range",
+		Type:      CardTypeMilitary,
+		Cost:      cost.Cost{GoodStone: 1, GoodWood: 1, GoodPapyrus: 1},
+		Military:  2,
+		MakesFree: CardSiegeWorkshop,
+	},
+	CardParadeGround: {
+		Id:        CardParadeGround,
+		Name:      "Parade Ground",
+		Type:      CardTypeMilitary,
+		Cost:      cost.Cost{GoodClay: 2, GoodGlass: 1},
+		Military:  2,
+		MakesFree: CardCircus,
+	},
+	CardLibrary: {
+		Id:      CardLibrary,
+		Name:    "Library",
+		Type:    CardTypeScientific,
+		Cost:    cost.Cost{GoodStone: 1, GoodWood: 1, GoodGlass: 1},
+		Science: ScienceLiterature,
+		VPRaw:   2,
+	},
+	CardDispensary: {
+		Id:      CardDispensary,
+		Name:    "Dispensary",
+		Type:    CardTypeScientific,
+		Cost:    cost.Cost{GoodClay: 2, GoodStone: 1},
+		Science: ScienceMedicine,
+		VPRaw:   2,
+	},
+	CardSchool: {
+		Id:        CardSchool,
+		Name:      "School",
+		Type:      CardTypeScientific,
+		Cost:      cost.Cost{GoodWood: 1, GoodPapyrus: 2},
+		Science:   ScienceEngineering,
+		VPRaw:     1,
+		MakesFree: CardUniversity,
+	},
+	CardLaboratory: {
+		Id:        CardLaboratory,
+		Name:      "Labratory",
+		Type:      CardTypeScientific,
+		Cost:      cost.Cost{GoodWood: 1, GoodGlass: 2},
+		Science:   ScienceEngineering,
+		VPRaw:     1,
+		MakesFree: CardObservatory,
+	},
+	CardStatue: {
+		Id:        CardStatue,
+		Name:      "Statue",
+		Type:      CardTypeCivilian,
+		Cost:      cost.Cost{GoodClay: 2},
+		VPRaw:     4,
+		MakesFree: CardGardens,
+	},
+	CardTemple: {
+		Id:        CardTemple,
+		Name:      "Temple",
+		Type:      CardTypeCivilian,
+		Cost:      cost.Cost{GoodWood: 1, GoodPapyrus: 1},
+		VPRaw:     4,
+		MakesFree: CardPantheon,
+	},
+	CardAqueduct: {
+		Id:    CardAqueduct,
+		Name:  "Aqueduct",
+		Type:  CardTypeCivilian,
+		Cost:  cost.Cost{GoodStone: 3},
+		VPRaw: 5,
+	},
+	CardRostrum: {
+		Id:        CardRostrum,
+		Name:      "Rostrum",
+		Type:      CardTypeCivilian,
+		Cost:      cost.Cost{GoodStone: 1, GoodWood: 1},
+		VPRaw:     4,
+		MakesFree: CardSenate,
+	},
+	CardBrewery: {
+		Id:   CardBrewery,
+		Name: "Brewery",
+		Type: CardTypeCommercial,
+		AfterBuild: func(g *Game, player int) {
+			g.ModifyCoins(player, 6)
+		},
+		MakesFree: CardArena,
 	},
 }
