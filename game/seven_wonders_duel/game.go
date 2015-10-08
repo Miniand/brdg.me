@@ -13,9 +13,8 @@ type Game struct {
 	Players []string
 	Log     *log.Log
 
-	PlayerCoins   [2]int
-	PlayerCards   [2][]int
-	PlayerWonders [2][]int
+	PlayerCoins [2]int
+	PlayerCards [2][]int
 }
 
 func (g *Game) Commands(player string) []command.Command {
@@ -46,7 +45,6 @@ func (g *Game) Start(players []string) error {
 	g.Log = log.New()
 	g.PlayerCoins = [2]int{}
 	g.PlayerCards = [2][]int{{}, {}}
-	g.PlayerWonders = [2][]int{{}, {}}
 	return nil
 }
 
@@ -115,4 +113,8 @@ func (g *Game) GreatestCardCount(cardTypes ...int) int {
 		}
 	}
 	return num
+}
+
+func Opponent(player int) int {
+	return (player + 1) % 2
 }

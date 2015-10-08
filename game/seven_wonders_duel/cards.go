@@ -13,6 +13,7 @@ const (
 	CardTypeCommercial
 	CardTypeMilitary
 	CardTypeGuild
+	CardTypeWonder
 )
 
 const (
@@ -115,6 +116,20 @@ const (
 	CardScientistsGuild
 	CardMoneylendersGuild
 	CardTacticiansGuild
+
+	// Wonders
+	WonderTheAppianWay
+	WonderTheMausoleum
+	WonderCircusMaximus
+	WonderPiraeus
+	WonderTheColossus
+	WonderThePyramids
+	WonderTheGreatLibrary
+	WonderTheSphinx
+	WonderTheGreatLighthouse
+	WonderTheStatueOfZeus
+	WonderTheHangingGardens
+	WonderTheTempleOfArtemis
 )
 
 type Card struct {
@@ -130,6 +145,7 @@ type Card struct {
 	Military   int
 	Science    int
 	Cheapens   []int
+	ExtraTurn  bool
 }
 
 func (c Card) VP(g *Game, player int) int {
@@ -688,7 +704,10 @@ func init() {
 			Cost:  cost.Cost{GoodClay: 1, GoodStone: 1, GoodWood: 1},
 			VPRaw: 3,
 			AfterBuild: func(g *Game, player int) {
-				g.ModifyCoins(player, len(g.PlayerWonders[player])*2)
+				g.ModifyCoins(
+					player,
+					g.PlayerCardTypeCount(player, CardTypeWonder)*2,
+				)
 			},
 		},
 		CardMerchantsGuild: {
@@ -745,10 +764,7 @@ func init() {
 				GoodGlass: 1,
 			},
 			VPFunc: func(g *Game, player int) int {
-				return helper.IntMax(
-					len(g.PlayerWonders[0]),
-					len(g.PlayerWonders[1]),
-				) * 2
+				return g.GreatestCardCount(CardTypeWonder) * 2
 			},
 		},
 		CardMagistratesGuild: {
@@ -821,6 +837,67 @@ func init() {
 					Cards[CardTacticiansGuild].VPFunc(g, player),
 				)
 			},
+		},
+		WonderTheAppianWay: {
+			Id:   WonderTheAppianWay,
+			Name: "The Appian Way",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodPapyrus: 1,
+				GoodClay:    2,
+				GoodStone:   2,
+			},
+			VPRaw: 3,
+			AfterBuild: func(g *Game, player int) {
+				g.ModifyCoins(player, 3)
+				g.ModifyCoins(Opponent(player), -3)
+			},
+			ExtraTurn: true,
+		},
+		WonderTheMausoleum: {
+			Id:   WonderTheMausoleum,
+			Name: "The Mausoleum",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodPapyrus: 1,
+				GoodGlass:   2,
+				GoodClay:    2,
+			},
+			VPRaw: 2,
+			AfterBuild: func(g *Game, player int) {
+				panic("implement free build of discarded card")
+			},
+		},
+		WonderCircusMaximus: {
+			Id:   WonderCircusMaximus,
+			Name: "Circus Maximus",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodGlass: 1,
+				GoodWood:  1,
+				GoodStone: 2,
+			},
+			VPRaw:    3,
+			Military: 1,
+			AfterBuild: func(g *Game, player int) {
+				panic("implement discarding of opponent grey manufacturing card")
+			},
+		},
+		WonderPiraeus: {
+			Id:   WonderPiraeus,
+			Name: "Piraeus",
+			Type: CardTypeWonder,
+			Cost: cost.Cost{
+				GoodClay:  1,
+				GoodStone: 1,
+				GoodWood:  2,
+			},
+			VPRaw: 2,
+			Provides: []cost.Cost{
+				{GoodPapyrus: 1},
+				{GoodGlass: 1},
+			},
+			ExtraTurn: true,
 		},
 	}
 }
