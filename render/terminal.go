@@ -79,6 +79,7 @@ var AnsiColourNums = map[string]int{
 	Magenta: 5,
 	Cyan:    6,
 	Gray:    7,
+	White:   9,
 }
 
 func AnsiFgCode(colour string) int {
@@ -86,5 +87,8 @@ func AnsiFgCode(colour string) int {
 }
 
 func AnsiBgCode(colour string) int {
+	if colour == White {
+		return AnsiBgCode(Gray)
+	}
 	return 40 + AnsiColourNums[colour]
 }

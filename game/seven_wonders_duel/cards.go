@@ -174,6 +174,13 @@ func (c Card) RenderSummary() string {
 	if c.Science > 0 {
 		parts = append(parts, RenderScience(c.Science))
 	}
+	if len(c.Cheapens) > 0 {
+		parts = append(parts, fmt.Sprintf(
+			"%s costs %s",
+			strings.Join(RenderGoods(c.Cheapens), " "),
+			RenderCoins(1),
+		))
+	}
 	if c.VPRaw > 0 {
 		parts = append(parts, RenderVP(c.VPRaw))
 	}
@@ -277,21 +284,21 @@ func init() {
 		},
 		CardStoneReserve: {
 			Id:       CardStoneReserve,
-			Name:     "Stone Reserve",
+			Name:     "Stone Res.",
 			Type:     CardTypeCommercial,
 			Cost:     cost.Cost{GoodCoin: 3},
 			Cheapens: []int{GoodStone},
 		},
 		CardClayReserve: {
 			Id:       CardClayReserve,
-			Name:     "Clay Reserve",
+			Name:     "Clay Res.",
 			Type:     CardTypeCommercial,
 			Cost:     cost.Cost{GoodCoin: 3},
 			Cheapens: []int{GoodClay},
 		},
 		CardWoodReserve: {
 			Id:       CardWoodReserve,
-			Name:     "Wood Reserve",
+			Name:     "Wood Res.",
 			Type:     CardTypeCommercial,
 			Cost:     cost.Cost{GoodCoin: 3},
 			Cheapens: []int{GoodWood},
@@ -440,7 +447,7 @@ func init() {
 		},
 		CardCustomsHouse: {
 			Id:       CardCustomsHouse,
-			Name:     "Customs House",
+			Name:     "Customs",
 			Type:     CardTypeCommercial,
 			Cost:     cost.Cost{GoodCoin: 4},
 			Cheapens: []int{GoodPapyrus, GoodGlass},
@@ -454,7 +461,7 @@ func init() {
 		},
 		CardHorseBreeders: {
 			Id:       CardHorseBreeders,
-			Name:     "Horse Breeders",
+			Name:     "Horse Breed",
 			Type:     CardTypeMilitary,
 			Cost:     cost.Cost{GoodClay: 1, GoodWood: 1},
 			Military: 1,
@@ -468,7 +475,7 @@ func init() {
 		},
 		CardArcheryRange: {
 			Id:        CardArcheryRange,
-			Name:      "Archery Range",
+			Name:      "Archery Rng.",
 			Type:      CardTypeMilitary,
 			Cost:      cost.Cost{GoodStone: 1, GoodWood: 1, GoodPapyrus: 1},
 			Military:  2,
@@ -476,7 +483,7 @@ func init() {
 		},
 		CardParadeGround: {
 			Id:        CardParadeGround,
-			Name:      "Parade Ground",
+			Name:      "Parade Grnd.",
 			Type:      CardTypeMilitary,
 			Cost:      cost.Cost{GoodClay: 2, GoodGlass: 1},
 			Military:  2,
@@ -589,10 +596,10 @@ func init() {
 		},
 		CardChamberOfCommerce: {
 			Id:   CardChamberOfCommerce,
-			Name: "Chamber of Commerce",
+			Name: "Chamber",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s and %s",
+				"%s x %s  %s",
 				RenderCoins(3),
 				RenderCardType(CardTypeManufactured),
 				RenderVP(3),
@@ -611,7 +618,7 @@ func init() {
 			Name: "Port",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s and %s",
+				"%s x %s  %s",
 				RenderCoins(2),
 				RenderCardType(CardTypeRaw),
 				RenderVP(3),
@@ -630,7 +637,7 @@ func init() {
 			Name: "Armory",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s and %s",
+				"%s x %s  %s",
 				RenderCoins(1),
 				RenderCardType(CardTypeMilitary),
 				RenderVP(3),
@@ -672,14 +679,14 @@ func init() {
 		},
 		CardFortifications: {
 			Id:       CardFortifications,
-			Name:     "Fortifications",
+			Name:     "Fort",
 			Type:     CardTypeMilitary,
 			Cost:     cost.Cost{GoodStone: 2, GoodClay: 1, GoodPapyrus: 1},
 			Military: 2,
 		},
 		CardSiegeWorkshop: {
 			Id:       CardSiegeWorkshop,
-			Name:     "Siege Workshop",
+			Name:     "Siege WkShop",
 			Type:     CardTypeMilitary,
 			Cost:     cost.Cost{GoodWood: 3, GoodGlass: 1},
 			Military: 2,
@@ -733,7 +740,7 @@ func init() {
 			Name: "Lighthouse",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s and %s",
+				"%s x %s  %s",
 				RenderCoins(1),
 				RenderCardType(CardTypeCommercial),
 				RenderVP(3),
@@ -752,7 +759,7 @@ func init() {
 			Name: "Arena",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s and %s",
+				"%s x %s  %s",
 				RenderCoins(2),
 				RenderCardType(CardTypeWonder),
 				RenderVP(3),
@@ -768,7 +775,7 @@ func init() {
 		},
 		CardMerchantsGuild: {
 			Id:   CardMerchantsGuild,
-			Name: "Merchants Guild",
+			Name: "Merchants",
 			Type: CardTypeGuild,
 			Summary: fmt.Sprintf(
 				"%s %s ^ %s",
@@ -794,7 +801,7 @@ func init() {
 		},
 		CardShipownersGuild: {
 			Id:   CardShipownersGuild,
-			Name: "Shipowners Guild",
+			Name: "Shipowners",
 			Type: CardTypeGuild,
 			Summary: fmt.Sprintf(
 				"%s %s ^ %s %s",
@@ -824,7 +831,7 @@ func init() {
 		},
 		CardBuildersGuild: {
 			Id:   CardBuildersGuild,
-			Name: "Builders Guild",
+			Name: "Builders",
 			Type: CardTypeGuild,
 			Summary: fmt.Sprintf(
 				"%s ^ %s",
@@ -843,7 +850,7 @@ func init() {
 		},
 		CardMagistratesGuild: {
 			Id:   CardMagistratesGuild,
-			Name: "Magistrates Guild",
+			Name: "Magistrates",
 			Type: CardTypeGuild,
 			Summary: fmt.Sprintf(
 				"%s %s ^ %s",
@@ -868,7 +875,7 @@ func init() {
 		},
 		CardScientistsGuild: {
 			Id:   CardScientistsGuild,
-			Name: "Scientists Guild",
+			Name: "Scientists",
 			Type: CardTypeGuild,
 			Summary: fmt.Sprintf(
 				"%s %s ^ %s",
@@ -892,7 +899,7 @@ func init() {
 		},
 		CardMoneylendersGuild: {
 			Id:   CardMoneylendersGuild,
-			Name: "Moneylenders Guild",
+			Name: "Moneylenders",
 			Type: CardTypeGuild,
 			Summary: fmt.Sprintf(
 				"%s ^ %s",
@@ -912,7 +919,7 @@ func init() {
 		},
 		CardTacticiansGuild: {
 			Id:   CardTacticiansGuild,
-			Name: "Tacticians Guild",
+			Name: "Tacticians",
 			Type: CardTypeGuild,
 			Summary: fmt.Sprintf(
 				"%s %s ^ %s",

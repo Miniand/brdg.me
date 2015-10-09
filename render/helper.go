@@ -208,6 +208,14 @@ func StrWidth(s string) int {
 	return w
 }
 
+func CentreLines(s interface{}, width int) string {
+	output := []string{}
+	for _, line := range strings.Split(String(s), "\n") {
+		output = append(output, Centre(line, width))
+	}
+	return strings.Join(output, "\n")
+}
+
 func Centre(s interface{}, width int) string {
 	buf := bytes.NewBuffer([]byte{})
 	str := String(s)
@@ -275,4 +283,13 @@ func StringsToInterfaces(strs []string) []interface{} {
 		ints[i] = s
 	}
 	return ints
+}
+
+func ColourForBackground(bg string) string {
+	switch bg {
+	case Gray, Yellow:
+		return Black
+	default:
+		return White
+	}
 }

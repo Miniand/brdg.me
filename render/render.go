@@ -9,6 +9,7 @@ const (
 	Magenta = "magenta"
 	Cyan    = "cyan"
 	Gray    = "gray"
+	White   = "white"
 )
 
 type Renderer func(string) (string, error)
@@ -35,6 +36,7 @@ func ValidColours() []string {
 		Magenta,
 		Cyan,
 		Gray,
+		White,
 	}
 }
 

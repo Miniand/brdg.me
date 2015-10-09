@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Miniand/brdg.me/render"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCards(t *testing.T) {
 	for cId, c := range Cards {
 		assert.NotEmpty(t, c.Name, fmt.Sprintf("card %d is missing a name", cId))
+		assert.True(t, c.Type == CardTypeWonder || len(c.Name) <= 12, fmt.Sprintf("card %s name is greater than 12 chars", c.Name))
 		assert.NotEmpty(t, c.Id, fmt.Sprintf("card %s is missing an Id", c.Name))
 		assert.Equal(t, cId, c.Id, fmt.Sprintf("card %s doesn't have an Id matching the card key (%d != %d)", c.Name, cId, c.Id))
 		assert.NotEmpty(t, c.Type, fmt.Sprintf("card %s is missing a Type", c.Name))
+		assert.True(t, c.Type == CardTypeWonder || len(render.RenderPlain(RenderCost(c.Cost))) <= 14, fmt.Sprintf("card %s summary is greater than 14 chars", c.Name))
+		assert.True(t, c.Type == CardTypeWonder || len(render.RenderPlain(c.RenderSummary())) <= 14, fmt.Sprintf("card %s summary is greater than 14 chars", c.Name))
 		if c.VPFunc != nil || c.AfterBuild != nil {
 			assert.NotEmpty(t, c.Summary, fmt.Sprintf("card %s has VPFunc or AfterBuild, so it must also specify Summary", c.Name))
 		}

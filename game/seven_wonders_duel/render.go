@@ -1,7 +1,6 @@
 package seven_wonders_duel
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -67,12 +66,27 @@ var ScienceStrings = map[int]string{
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	output := &bytes.Buffer{}
+	layout := []interface{}{}
+	row := []interface{}{}
+	curRowLimit := 1
 	for _, c := range Cards {
-		output.WriteString(c.RenderMultiline())
-		output.WriteString("\n\n")
+		if c.Type == CardTypeWonder {
+			continue
+		}
+		if len(row) == curRowLimit {
+			layout = append(
+				layout,
+				render.Table([][]interface{}{row}, 0, 2),
+			)
+			row = []interface{}{}
+			curRowLimit += 1
+			if curRowLimit > 6 {
+				break
+			}
+		}
+		row = append(row, render.CentreLines(c.RenderMultiline(), 14))
 	}
-	return output.String(), nil
+	return render.CentreLayout(layout, 1), nil
 }
 
 func (g *Game) PlayerName(player int) string {
@@ -93,16 +107,22 @@ func RenderCardType(cardType int) string {
 
 func (c Card) RenderMultiline() string {
 	rows := []interface{}{
-		render.Bold(fmt.Sprintf("%s %s", RenderCardType(c.Type), c.Name)),
+		fmt.Sprintf(
+			`{{bg "%s"}}{{c "%s"}}{{b}} %s {{_b}}{{_c}}{{_bg}}`,
+			CardColours[c.Type],
+			render.ColourForBackground(CardColours[c.Type]),
+			c.Name,
+		),
+		RenderCost(c.Cost),
+		c.RenderSummary(),
 	}
-	if !c.Cost.IsZero() {
-		rows = append(rows, RenderCost(c.Cost))
-	}
-	rows = append(rows, c.RenderSummary())
 	return render.CentreLayout(rows, 0)
 }
 
 func RenderCost(c cost.Cost) string {
+	if c.IsZero() {
+		return render.Markup("Free", render.Gray, true)
+	}
 	parts := []string{}
 	for _, k := range c.Keys() {
 		v := c[k]
@@ -122,6 +142,14 @@ func RenderCost(c cost.Cost) string {
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+func RenderGoods(goods []int) []string {
+	output := make([]string, len(goods))
+	for k, g := range goods {
+		output[k] = render.Markup(GoodAbbr[g], GoodColours[g], true)
+	}
+	return output
 }
 
 func RenderProvides(costs []cost.Cost) string {

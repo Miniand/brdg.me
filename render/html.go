@@ -27,14 +27,15 @@ func Lighten(val int, by float64) int {
 }
 
 var HtmlRgbColours = map[string]RgbColour{
-	Black:   RgbColour{255, 255, 255},
+	Black:   RgbColour{117, 117, 117},
 	Red:     RgbColour{244, 67, 54},
 	Green:   RgbColour{76, 175, 80},
 	Yellow:  RgbColour{249, 168, 37},
 	Blue:    RgbColour{25, 118, 210},
 	Magenta: RgbColour{156, 39, 176},
 	Cyan:    RgbColour{0, 188, 212},
-	Gray:    RgbColour{117, 117, 117},
+	Gray:    RgbColour{180, 180, 180},
+	White:   RgbColour{255, 255, 255},
 }
 
 type HtmlMarkupper struct {
