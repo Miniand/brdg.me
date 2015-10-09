@@ -27,7 +27,7 @@ func Lighten(val int, by float64) int {
 }
 
 var HtmlRgbColours = map[string]RgbColour{
-	Black:   RgbColour{117, 117, 117},
+	Black:   RgbColour{90, 90, 90},
 	Red:     RgbColour{244, 67, 54},
 	Green:   RgbColour{76, 175, 80},
 	Yellow:  RgbColour{249, 168, 37},

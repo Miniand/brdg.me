@@ -152,6 +152,189 @@ type Card struct {
 	Summary    string
 }
 
+func Age1Cards() []int {
+	return []int{
+		CardLumberYard,
+		CardLoggingCamp,
+		CardClayPool,
+		CardClayPit,
+		CardQuarry,
+		CardStonePit,
+		CardGlassworks,
+		CardPress,
+		CardGuardTower,
+		CardWorkshop,
+		CardApothecary,
+		CardStoneReserve,
+		CardClayReserve,
+		CardWoodReserve,
+		CardStable,
+		CardGarrison,
+		CardPalisade,
+		CardScriptorium,
+		CardPharmacist,
+		CardTheater,
+		CardAltar,
+		CardBaths,
+		CardTavern,
+	}
+}
+
+func Age2Cards() []int {
+	return []int{
+		CardSawmill,
+		CardBrickyard,
+		CardShelfQuarry,
+		CardGlassblower,
+		CardDryingRoom,
+		CardWalls,
+		CardForum,
+		CardCaravansery,
+		CardCustomsHouse,
+		CardTribunal,
+		CardHorseBreeders,
+		CardBarracks,
+		CardArcheryRange,
+		CardParadeGround,
+		CardLibrary,
+		CardDispensary,
+		CardSchool,
+		CardLaboratory,
+		CardStatue,
+		CardTemple,
+		CardAqueduct,
+		CardRostrum,
+		CardBrewery,
+	}
+}
+
+func Age3Cards() []int {
+	return []int{
+		CardArsenal,
+		CardCourthouse,
+		CardAcademy,
+		CardStudy,
+		CardChamberOfCommerce,
+		CardPort,
+		CardArmory,
+		CardPalace,
+		CardTownHall,
+		CardObelisk,
+		CardFortifications,
+		CardSiegeWorkshop,
+		CardCircus,
+		CardUniversity,
+		CardObservatory,
+		CardGardens,
+		CardPantheon,
+		CardSenate,
+		CardLighthouse,
+		CardArena,
+	}
+}
+
+type Layout [][]int
+
+type Loc struct {
+	X, Y int
+}
+
+func (l Layout) IsVisible(loc Loc) bool {
+	if loc.Y%2 == 0 {
+		return true
+	}
+	return l.CanBuild(loc)
+}
+
+func (l Layout) CanBuild(loc Loc) bool {
+	for _, bl := range l.LocsBelow(loc) {
+		if l.At(bl) != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (l Layout) LocsBelow(loc Loc) []Loc {
+	offset := 0
+	if loc.Y%2 == 0 {
+		offset = -1
+	}
+	return []Loc{
+		{loc.X + offset, loc.Y + 1},
+		{loc.X + 1 + offset, loc.Y + 1},
+	}
+}
+
+func (l Layout) At(loc Loc) int {
+	if loc.X < 0 || loc.Y < 0 || loc.Y >= len(l) || loc.X >= len(l[loc.Y]) {
+		return 0
+	}
+	return l[loc.Y][loc.X]
+}
+
+func Age1Layout() Layout {
+	cards := helper.IntShuffle(Age1Cards())
+	layout := Layout{}
+	for i := 0; i < 5; i++ {
+		row := make([]int, (4-i)/2)
+		n := 2 + i
+		row = append(row, cards[:n]...)
+		cards = cards[n:]
+		layout = append(layout, row)
+	}
+	return layout
+}
+
+func Age2Layout() Layout {
+	cards := helper.IntShuffle(Age2Cards())
+	layout := Layout{}
+	for i := 0; i < 5; i++ {
+		row := make([]int, (i / 2))
+		n := 6 - i
+		row = append(row, cards[:n]...)
+		cards = cards[n:]
+		layout = append(layout, row)
+	}
+	return layout
+}
+
+func Age3Layout() Layout {
+	cards := helper.IntShuffle(Age3Cards())[:17]
+	cards = append(cards, helper.IntShuffle(GuildCards())[:3]...)
+	cards = helper.IntShuffle(cards)
+	layout := Layout{}
+	for i := 0; i < 3; i++ {
+		row := make([]int, (2-i)/2)
+		n := 2 + i
+		row = append(row, cards[:n]...)
+		cards = cards[n:]
+		layout = append(layout, row)
+	}
+	layout = append(layout, []int{cards[0], 0, cards[1]})
+	cards = cards[2:]
+	for i := 0; i < 3; i++ {
+		row := make([]int, (i / 2))
+		n := 4 - i
+		row = append(row, cards[:n]...)
+		cards = cards[n:]
+		layout = append(layout, row)
+	}
+	return layout
+}
+
+func GuildCards() []int {
+	return []int{
+		CardMerchantsGuild,
+		CardShipownersGuild,
+		CardBuildersGuild,
+		CardMagistratesGuild,
+		CardScientistsGuild,
+		CardMoneylendersGuild,
+		CardTacticiansGuild,
+	}
+}
+
 func (c Card) VP(g *Game, player int) int {
 	vp := c.VPRaw
 	if c.VPFunc != nil {

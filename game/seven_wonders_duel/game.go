@@ -13,6 +13,8 @@ type Game struct {
 	Players []string
 	Log     *log.Log
 
+	Layout Layout
+
 	PlayerCoins [2]int
 	PlayerCards [2][]int
 }
@@ -45,6 +47,7 @@ func (g *Game) Start(players []string) error {
 	g.Log = log.New()
 	g.PlayerCoins = [2]int{}
 	g.PlayerCards = [2][]int{{}, {}}
+	g.Layout = Age1Layout()
 	return nil
 }
 

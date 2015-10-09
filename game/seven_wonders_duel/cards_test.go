@@ -56,3 +56,19 @@ func TestCards(t *testing.T) {
 		}
 	}
 }
+
+func TestAge1Cards(t *testing.T) {
+	assert.Len(t, Age1Cards(), 23)
+}
+
+func TestAge2Cards(t *testing.T) {
+	assert.Len(t, Age2Cards(), 23)
+}
+
+func TestAge3Cards(t *testing.T) {
+	assert.Len(t, Age3Cards(), 20)
+}
+
+func TestGuildCards(t *testing.T) {
+	assert.Len(t, GuildCards(), 7)
+}

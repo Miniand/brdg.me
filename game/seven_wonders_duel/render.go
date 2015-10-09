@@ -14,7 +14,22 @@ const (
 	ProgressTokenText = `{{b}}{{c "green"}}@{{_c}}{{_b}}`
 	ExtraTurnText     = `{{b}}{{c "blue"}}&{{_c}}{{_b}}`
 	WonderText        = `{{b}}{{c "yellow"}}WOND{{_c}}{{_b}}`
+	CardWidth         = 14
+	CardSpacing       = 2
 )
+
+var FaceDownCardLine = fmt.Sprintf(
+	`{{bg "gray"}}%s{{_bg}}`,
+	strings.Repeat(" ", CardWidth-4),
+)
+var FaceDownCard = render.CentreLines(strings.Join(
+	[]string{
+		FaceDownCardLine,
+		FaceDownCardLine,
+		FaceDownCardLine,
+	},
+	"\n",
+), CardWidth)
 
 var CardColours = map[int]string{
 	CardTypeRaw:          render.Black,
@@ -66,27 +81,35 @@ var ScienceStrings = map[int]string{
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	layout := []interface{}{}
-	row := []interface{}{}
-	curRowLimit := 1
-	for _, c := range Cards {
-		if c.Type == CardTypeWonder {
-			continue
+	return g.RenderLayout(0, g.Layout), nil
+}
+
+func (g *Game) RenderLayout(player int, layout Layout) string {
+	outputRows := []string{}
+	for y, row := range layout {
+		rowCells := []interface{}{}
+		if y%2 == 1 {
+			rowCells = append(rowCells, strings.Repeat(" ", CardWidth/2))
 		}
-		if len(row) == curRowLimit {
-			layout = append(
-				layout,
-				render.Table([][]interface{}{row}, 0, 2),
-			)
-			row = []interface{}{}
-			curRowLimit += 1
-			if curRowLimit > 6 {
-				break
+		for x, card := range row {
+			if card == 0 {
+				rowCells = append(rowCells, strings.Repeat(" ", CardWidth))
+			} else if !layout.IsVisible(Loc{x, y}) {
+				rowCells = append(rowCells, FaceDownCard)
+			} else {
+				rowCells = append(rowCells, render.CentreLines(
+					Cards[card].RenderMultiline(),
+					CardWidth,
+				))
 			}
 		}
-		row = append(row, render.CentreLines(c.RenderMultiline(), 14))
+		outputRows = append(outputRows, render.Table(
+			[][]interface{}{rowCells},
+			0,
+			CardSpacing,
+		))
 	}
-	return render.CentreLayout(layout, 1), nil
+	return strings.Join(outputRows, "\n\n")
 }
 
 func (g *Game) PlayerName(player int) string {
