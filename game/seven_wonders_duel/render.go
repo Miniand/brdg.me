@@ -18,19 +18,6 @@ const (
 	CardSpacing       = 2
 )
 
-var FaceDownCardLine = fmt.Sprintf(
-	`{{bg "gray"}}%s{{_bg}}`,
-	strings.Repeat(" ", CardWidth-4),
-)
-var FaceDownCard = render.CentreLines(strings.Join(
-	[]string{
-		FaceDownCardLine,
-		FaceDownCardLine,
-		FaceDownCardLine,
-	},
-	"\n",
-), CardWidth)
-
 var CardColours = map[int]string{
 	CardTypeRaw:          render.Black,
 	CardTypeManufactured: render.Gray,
@@ -80,6 +67,33 @@ var ScienceStrings = map[int]string{
 	ScienceEngineering: "Engi",
 }
 
+var AgeColours = map[int]string{
+	1: render.Red,
+	2: render.Blue,
+	3: render.Magenta,
+}
+
+func SolidLine(colour string, width int) string {
+	return fmt.Sprintf(
+		`{{bg "%s"}}%s{{_bg}}`,
+		colour,
+		strings.Repeat(" ", width),
+	)
+}
+
+func CardBack(colour string) string {
+	width := CardWidth - 4
+	return strings.Join([]string{
+		SolidLine(render.Gray, width),
+		strings.Join([]string{
+			SolidLine(render.Gray, 2),
+			SolidLine(colour, width-4),
+			SolidLine(render.Gray, 2),
+		}, ""),
+		SolidLine(render.Gray, width),
+	}, "\n")
+}
+
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	return g.RenderLayout(0, g.Layout), nil
 }
@@ -95,7 +109,10 @@ func (g *Game) RenderLayout(player int, layout Layout) string {
 			if card == 0 {
 				rowCells = append(rowCells, strings.Repeat(" ", CardWidth))
 			} else if !layout.IsVisible(Loc{x, y}) {
-				rowCells = append(rowCells, FaceDownCard)
+				rowCells = append(rowCells, render.CentreLines(
+					CardBack(AgeColours[g.Age]),
+					CardWidth,
+				))
 			} else {
 				rowCells = append(rowCells, render.CentreLines(
 					Cards[card].RenderMultiline(),

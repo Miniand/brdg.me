@@ -273,6 +273,12 @@ func (l Layout) At(loc Loc) int {
 	return l[loc.Y][loc.X]
 }
 
+var AgeLayouts = map[int]func() Layout{
+	1: Age1Layout,
+	2: Age2Layout,
+	3: Age3Layout,
+}
+
 func Age1Layout() Layout {
 	cards := helper.IntShuffle(Age1Cards())
 	layout := Layout{}
