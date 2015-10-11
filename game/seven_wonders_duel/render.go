@@ -95,7 +95,21 @@ func CardBack(colour string) string {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
-	return g.RenderLayout(0, g.Layout), nil
+	rows := []interface{}{}
+	if g.Phase == PhaseChooseWonder {
+		wonderOutputs := []interface{}{}
+		for _, w := range g.AvailableWonders() {
+			wonderOutputs = append(wonderOutputs, Cards[w].RenderMultiline())
+		}
+		rows = append(rows, render.Table(
+			[][]interface{}{wonderOutputs},
+			0,
+			3,
+		))
+	} else {
+		rows = append(rows, g.RenderLayout(0, g.Layout))
+	}
+	return render.CentreLayout(rows, 0), nil
 }
 
 func (g *Game) RenderLayout(player int, layout Layout) string {

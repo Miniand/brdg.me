@@ -9,19 +9,37 @@ import (
 	"github.com/Miniand/brdg.me/game/log"
 )
 
+const (
+	PhaseChooseWonder = iota
+	PhasePlay
+)
+
 type Game struct {
 	Players []string
 	Log     *log.Log
 
-	Age    int
-	Layout Layout
+	Phase         int
+	Age           int
+	Layout        Layout
+	CurrentPlayer int
+
+	RemainingWonders []int
+	PlayerWonders    [2][]int
 
 	PlayerCoins [2]int
 	PlayerCards [2][]int
 }
 
 func (g *Game) Commands(player string) []command.Command {
-	return []command.Command{}
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return []command.Command{}
+	}
+	commands := []command.Command{}
+	if g.CanChoose(pNum) {
+		commands = append(commands, ChooseCommand{})
+	}
+	return commands
 }
 
 func (g *Game) Name() string {
@@ -46,14 +64,18 @@ func (g *Game) Start(players []string) error {
 	}
 	g.Players = players
 	g.Log = log.New()
-	g.PlayerCoins = [2]int{}
+	g.PlayerCoins = [2]int{7, 7}
 	g.PlayerCards = [2][]int{{}, {}}
+	g.PlayerWonders = [2][]int{{}, {}}
+	g.Phase = PhaseChooseWonder
+	g.RemainingWonders = helper.IntShuffle(Wonders())[:8]
 	g.Age = 1
-	g.StartAge()
+	g.Layout = Layout{}
 	return nil
 }
 
 func (g *Game) StartAge() {
+	g.Phase = PhasePlay
 	g.Layout = AgeLayouts[g.Age]()
 }
 
@@ -70,7 +92,16 @@ func (g *Game) Winners() []string {
 }
 
 func (g *Game) WhoseTurn() []string {
-	return []string{}
+	if g.IsFinished() {
+		return []string{}
+	}
+	whoseTurn := []string{}
+	for _, p := range g.Players {
+		if len(g.Commands(p)) > 0 {
+			whoseTurn = append(whoseTurn, p)
+		}
+	}
+	return whoseTurn
 }
 
 func (g *Game) GameLog() *log.Log {
@@ -122,6 +153,10 @@ func (g *Game) GreatestCardCount(cardTypes ...int) int {
 		}
 	}
 	return num
+}
+
+func (g *Game) PlayerNum(player string) (int, bool) {
+	return helper.StringInStrings(player, g.Players)
 }
 
 func Opponent(player int) int {

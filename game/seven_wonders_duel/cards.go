@@ -233,6 +233,23 @@ func Age3Cards() []int {
 	}
 }
 
+func Wonders() []int {
+	return []int{
+		WonderTheAppianWay,
+		WonderCircusMaximus,
+		WonderTheColossus,
+		WonderTheGreatLibrary,
+		WonderTheGreatLighthouse,
+		WonderTheHangingGardens,
+		WonderTheMausoleum,
+		WonderPiraeus,
+		WonderThePyramids,
+		WonderTheSphinx,
+		WonderTheStatueOfZeus,
+		WonderTheTempleOfArtemis,
+	}
+}
+
 type Layout [][]int
 
 type Loc struct {
@@ -1133,10 +1150,10 @@ func init() {
 		},
 		WonderTheAppianWay: {
 			Id:   WonderTheAppianWay,
-			Name: "The Appian Way",
+			Name: "Appian Way",
 			Type: CardTypeWonder,
 			Summary: fmt.Sprintf(
-				"%s %s opp. %s",
+				"%s  %s  opp. %s",
 				RenderCoins(3),
 				ExtraTurnText,
 				RenderCoins(-3),
@@ -1155,7 +1172,7 @@ func init() {
 		},
 		WonderTheMausoleum: {
 			Id:      WonderTheMausoleum,
-			Name:    "The Mausoleum",
+			Name:    "Mausoleum",
 			Type:    CardTypeWonder,
 			Summary: "build disc. card",
 			Cost: cost.Cost{
@@ -1172,7 +1189,7 @@ func init() {
 			Id:      WonderCircusMaximus,
 			Name:    "Circus Maximus",
 			Type:    CardTypeWonder,
-			Summary: fmt.Sprintf("discard opp. %s", RenderCardType(CardTypeManufactured)),
+			Summary: fmt.Sprintf("remove opp. %s", RenderCardType(CardTypeManufactured)),
 			Cost: cost.Cost{
 				GoodGlass: 1,
 				GoodWood:  1,
@@ -1202,7 +1219,7 @@ func init() {
 		},
 		WonderTheColossus: {
 			Id:   WonderTheColossus,
-			Name: "The Colossus",
+			Name: "Colossus",
 			Type: CardTypeWonder,
 			Cost: cost.Cost{
 				GoodGlass: 1,
@@ -1213,7 +1230,7 @@ func init() {
 		},
 		WonderThePyramids: {
 			Id:   WonderThePyramids,
-			Name: "The Pyramids",
+			Name: "Pyramids",
 			Type: CardTypeWonder,
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
@@ -1223,7 +1240,7 @@ func init() {
 		},
 		WonderTheGreatLibrary: {
 			Id:      WonderTheGreatLibrary,
-			Name:    "The Great Library",
+			Name:    "Great Library",
 			Type:    CardTypeWonder,
 			Summary: fmt.Sprintf("get disc. %s", ProgressTokenText),
 			Cost: cost.Cost{
@@ -1238,7 +1255,7 @@ func init() {
 		},
 		WonderTheSphinx: {
 			Id:   WonderTheSphinx,
-			Name: "The Sphinx",
+			Name: "Sphinx",
 			Type: CardTypeWonder,
 			Cost: cost.Cost{
 				GoodGlass: 2,
@@ -1250,7 +1267,7 @@ func init() {
 		},
 		WonderTheGreatLighthouse: {
 			Id:   WonderTheGreatLighthouse,
-			Name: "The Great Lighthouse",
+			Name: "Great Lighthouse",
 			Type: CardTypeWonder,
 			Cost: cost.Cost{
 				GoodPapyrus: 2,
@@ -1266,9 +1283,9 @@ func init() {
 		},
 		WonderTheStatueOfZeus: {
 			Id:      WonderTheStatueOfZeus,
-			Name:    "The Statue of Zeus",
+			Name:    "Statue of Zeus",
 			Type:    CardTypeWonder,
-			Summary: fmt.Sprintf("discard opp. %s", RenderCardType(CardTypeRaw)),
+			Summary: fmt.Sprintf("remove opp. %s", RenderCardType(CardTypeRaw)),
 			Cost: cost.Cost{
 				GoodPapyrus: 2,
 				GoodClay:    1,
@@ -1283,9 +1300,9 @@ func init() {
 		},
 		WonderTheHangingGardens: {
 			Id:      WonderTheHangingGardens,
-			Name:    "The Hanging Gardens",
+			Name:    "Hanging Gardens",
 			Type:    CardTypeWonder,
-			Summary: fmt.Sprintf("%s %s", RenderCoins(6), ExtraTurnText),
+			Summary: fmt.Sprintf("%s  %s", RenderCoins(6), ExtraTurnText),
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodGlass:   1,
@@ -1299,9 +1316,9 @@ func init() {
 		},
 		WonderTheTempleOfArtemis: {
 			Id:      WonderTheTempleOfArtemis,
-			Name:    "The Temple of Artemis",
+			Name:    "Temple of Artemis",
 			Type:    CardTypeWonder,
-			Summary: fmt.Sprintf("%s %s", RenderCoins(12), ExtraTurnText),
+			Summary: fmt.Sprintf("%s  %s", RenderCoins(12), ExtraTurnText),
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodGlass:   1,
