@@ -15,6 +15,7 @@ const (
 	ProgressTokenText = `{{b}}{{c "green"}}@{{_c}}{{_b}}`
 	ExtraTurnText     = `{{b}}{{c "blue"}}&{{_c}}{{_b}}`
 	WonderText        = `{{b}}{{c "yellow"}}WOND{{_c}}{{_b}}`
+	LinkBuildText     = `{{b}}{{c "cyan"}}->{{_c}}{{_b}}`
 	CardWidth         = 14
 	CardSpacing       = 2
 )
@@ -28,6 +29,7 @@ var CardColours = map[int]string{
 	CardTypeMilitary:     render.Red,
 	CardTypeGuild:        render.Magenta,
 	CardTypeWonder:       render.Cyan,
+	CardTypeProgress:     render.Green,
 }
 
 var GoodColours = map[int]string{
@@ -113,7 +115,12 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			3,
 		))
 	} else {
-		rows = append(rows, g.RenderLayout(0, g.Layout))
+		rows = append(
+			rows,
+			render.Bold(fmt.Sprintf("Age %d", g.Age)),
+			"",
+			g.RenderLayout(0, g.Layout),
+		)
 	}
 	// Unbuilt wonders
 	unbuiltWonders := len(g.PlayerWonders[0]) + len(g.PlayerWonders[1])
@@ -124,6 +131,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			"",
 			"",
 			render.Bold("Unbuilt wonders"),
+			"",
 			render.Table([][]interface{}{
 				{
 					render.Centred(g.PlayerName(pNum)),
@@ -136,6 +144,20 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			}, 0, 8),
 		)
 	}
+
+	// Progress tokens
+	cells := []interface{}{}
+	for _, p := range g.ProgressTokens {
+		cells = append(cells, Cards[p].RenderMultiline())
+	}
+	rows = append(
+		rows,
+		"",
+		"",
+		render.Bold("Progress tokens"),
+		"",
+		render.Table([][]interface{}{cells}, 0, 3),
+	)
 
 	return render.CentreLayout(rows, 0), nil
 }
@@ -214,9 +236,11 @@ func (c Card) RenderMultiline() string {
 			render.ColourForBackground(CardColours[c.Type]),
 			c.Name,
 		),
-		RenderCost(c.Cost),
-		c.RenderSummary(),
 	}
+	if c.Type != CardTypeProgress {
+		rows = append(rows, RenderCost(c.Cost))
+	}
+	rows = append(rows, c.RenderSummary())
 	return render.CentreLayout(rows, 0)
 }
 

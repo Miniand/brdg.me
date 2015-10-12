@@ -23,6 +23,9 @@ type Game struct {
 	Layout        Layout
 	CurrentPlayer int
 
+	ProgressTokens          []int
+	DiscardedProgressTokens []int
+
 	RemainingWonders []int
 	PlayerWonders    [2][]int
 
@@ -67,6 +70,9 @@ func (g *Game) Start(players []string) error {
 	g.PlayerCoins = [2]int{7, 7}
 	g.PlayerCards = [2][]int{{}, {}}
 	g.PlayerWonders = [2][]int{{}, {}}
+	progressTokens := helper.IntShuffle(ProgressTokens())
+	g.ProgressTokens = progressTokens[:5]
+	g.DiscardedProgressTokens = progressTokens[5:]
 	g.Phase = PhaseChooseWonder
 	g.RemainingWonders = helper.IntShuffle(Wonders())[:8]
 	g.Age = 1

@@ -17,6 +17,7 @@ const (
 	CardTypeMilitary
 	CardTypeGuild
 	CardTypeWonder
+	CardTypeProgress
 )
 
 const (
@@ -133,23 +134,37 @@ const (
 	WonderTheStatueOfZeus
 	WonderTheHangingGardens
 	WonderTheTempleOfArtemis
+
+	// Progress tokens
+	ProgressAgriculture
+	ProgressArchitecture
+	ProgressEconomy
+	ProgressLaw
+	ProgressMasonry
+	ProgressMathematics
+	ProgressPhilosophy
+	ProgressStrategy
+	ProgressTheology
+	ProgressUrbanism
 )
 
 type Card struct {
-	Id         int
-	Name       string
-	Type       int
-	Cost       cost.Cost
-	VPRaw      int
-	VPFunc     func(g *Game, player int) int
-	AfterBuild func(g *Game, player int)
-	Provides   []cost.Cost
-	MakesFree  int
-	Military   int
-	Science    int
-	Cheapens   []int
-	ExtraTurn  bool
-	Summary    string
+	Id            int
+	Name          string
+	Type          int
+	Cost          cost.Cost
+	VPRaw         int
+	VPFunc        func(g *Game, player int) int
+	Coin          int
+	AfterBuild    func(g *Game, player int)
+	Provides      []cost.Cost
+	MakesFree     int
+	Military      int
+	Science       int
+	Cheapens      []int
+	DiscountGoods func(player, card int) int
+	ExtraTurn     bool
+	Summary       string
 }
 
 func Age1Cards() []int {
@@ -247,6 +262,21 @@ func Wonders() []int {
 		WonderTheSphinx,
 		WonderTheStatueOfZeus,
 		WonderTheTempleOfArtemis,
+	}
+}
+
+func ProgressTokens() []int {
+	return []int{
+		ProgressAgriculture,
+		ProgressArchitecture,
+		ProgressEconomy,
+		ProgressLaw,
+		ProgressMasonry,
+		ProgressMathematics,
+		ProgressPhilosophy,
+		ProgressStrategy,
+		ProgressTheology,
+		ProgressUrbanism,
 	}
 }
 
@@ -387,10 +417,19 @@ func (c Card) RenderSummary() string {
 			RenderCoins(1),
 		))
 	}
+	if c.Coin > 0 {
+		parts = append(parts, RenderCoins(c.Coin))
+	}
 	if c.VPRaw > 0 {
 		parts = append(parts, RenderVP(c.VPRaw))
 	}
-	return strings.Join(parts, "  ")
+	if c.ExtraTurn {
+		parts = append(parts, ExtraTurnText)
+	}
+	if c.MakesFree > 0 {
+		parts = append(parts, LinkBuildText)
+	}
+	return strings.Join(parts, ", ")
 }
 
 var Cards map[int]Card
@@ -571,13 +610,10 @@ func init() {
 			MakesFree: CardAqueduct,
 		},
 		CardTavern: {
-			Id:      CardTavern,
-			Name:    "Tavern",
-			Type:    CardTypeCommercial,
-			Summary: RenderCoins(4),
-			AfterBuild: func(g *Game, player int) {
-				g.ModifyCoins(player, 4)
-			},
+			Id:        CardTavern,
+			Name:      "Tavern",
+			Type:      CardTypeCommercial,
+			Coin:      4,
 			MakesFree: CardLighthouse,
 		},
 		CardSawmill: {
@@ -761,13 +797,10 @@ func init() {
 			MakesFree: CardSenate,
 		},
 		CardBrewery: {
-			Id:      CardBrewery,
-			Name:    "Brewery",
-			Type:    CardTypeCommercial,
-			Summary: RenderCoins(6),
-			AfterBuild: func(g *Game, player int) {
-				g.ModifyCoins(player, 6)
-			},
+			Id:        CardBrewery,
+			Name:      "Brewery",
+			Type:      CardTypeCommercial,
+			Coin:      6,
 			MakesFree: CardArena,
 		},
 		CardArsenal: {
@@ -805,7 +838,7 @@ func init() {
 			Name: "Chamber",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s  %s",
+				"%s x %s, %s",
 				RenderCoins(3),
 				RenderCardType(CardTypeManufactured),
 				RenderVP(3),
@@ -824,7 +857,7 @@ func init() {
 			Name: "Port",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s  %s",
+				"%s x %s, %s",
 				RenderCoins(2),
 				RenderCardType(CardTypeRaw),
 				RenderVP(3),
@@ -843,7 +876,7 @@ func init() {
 			Name: "Armory",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s  %s",
+				"%s x %s, %s",
 				RenderCoins(1),
 				RenderCardType(CardTypeMilitary),
 				RenderVP(3),
@@ -946,7 +979,7 @@ func init() {
 			Name: "Lighthouse",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s  %s",
+				"%s x %s, %s",
 				RenderCoins(1),
 				RenderCardType(CardTypeCommercial),
 				RenderVP(3),
@@ -965,7 +998,7 @@ func init() {
 			Name: "Arena",
 			Type: CardTypeCommercial,
 			Summary: fmt.Sprintf(
-				"%s x %s  %s",
+				"%s x %s, %s",
 				RenderCoins(2),
 				RenderCardType(CardTypeWonder),
 				RenderVP(3),
@@ -1153,7 +1186,7 @@ func init() {
 			Name: "Appian Way",
 			Type: CardTypeWonder,
 			Summary: fmt.Sprintf(
-				"%s  %s  opp. %s",
+				"%s, %s, opp. %s",
 				RenderCoins(3),
 				ExtraTurnText,
 				RenderCoins(-3),
@@ -1165,7 +1198,6 @@ func init() {
 			},
 			VPRaw: 3,
 			AfterBuild: func(g *Game, player int) {
-				g.ModifyCoins(player, 3)
 				g.ModifyCoins(Opponent(player), -3)
 			},
 			ExtraTurn: true,
@@ -1299,36 +1331,103 @@ func init() {
 			},
 		},
 		WonderTheHangingGardens: {
-			Id:      WonderTheHangingGardens,
-			Name:    "Hanging Gardens",
-			Type:    CardTypeWonder,
-			Summary: fmt.Sprintf("%s  %s", RenderCoins(6), ExtraTurnText),
+			Id:   WonderTheHangingGardens,
+			Name: "Hanging Gardens",
+			Type: CardTypeWonder,
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodGlass:   1,
 				GoodWood:    2,
 			},
-			VPRaw: 3,
-			AfterBuild: func(g *Game, player int) {
-				g.ModifyCoins(player, 6)
-			},
+			VPRaw:     3,
+			Coin:      6,
 			ExtraTurn: true,
 		},
 		WonderTheTempleOfArtemis: {
-			Id:      WonderTheTempleOfArtemis,
-			Name:    "Temple of Artemis",
-			Type:    CardTypeWonder,
-			Summary: fmt.Sprintf("%s  %s", RenderCoins(12), ExtraTurnText),
+			Id:   WonderTheTempleOfArtemis,
+			Name: "Temple of Artemis",
+			Type: CardTypeWonder,
 			Cost: cost.Cost{
 				GoodPapyrus: 1,
 				GoodGlass:   1,
 				GoodStone:   1,
 				GoodWood:    1,
 			},
-			AfterBuild: func(g *Game, player int) {
-				g.ModifyCoins(player, 12)
-			},
+			Coin:      12,
 			ExtraTurn: true,
+		},
+		ProgressAgriculture: {
+			Id:    ProgressAgriculture,
+			Name:  "Agriculture",
+			Type:  CardTypeProgress,
+			Coin:  6,
+			VPRaw: 4,
+		},
+		ProgressArchitecture: {
+			Id:      ProgressArchitecture,
+			Name:    "Architecture",
+			Type:    CardTypeProgress,
+			Summary: fmt.Sprintf("%s 2 fewer res.", WonderText),
+			DiscountGoods: func(player, card int) int {
+				if Cards[card].Type == CardTypeWonder {
+					return 2
+				}
+				return 0
+			},
+		},
+		ProgressEconomy: {
+			Id:      ProgressEconomy,
+			Name:    "Economy",
+			Type:    CardTypeProgress,
+			Summary: "Take trade money",
+		},
+		ProgressLaw: {
+			Id:      ProgressLaw,
+			Name:    "Law",
+			Type:    CardTypeProgress,
+			Science: ScienceLaw,
+		},
+		ProgressMasonry: {
+			Id:      ProgressMasonry,
+			Name:    "Masonry",
+			Type:    CardTypeProgress,
+			Summary: fmt.Sprintf("%s 2 fewer res.", RenderCardType(CardTypeCivilian)),
+			DiscountGoods: func(player, card int) int {
+				if Cards[card].Type == CardTypeCivilian {
+					return 2
+				}
+				return 0
+			},
+		},
+		ProgressMathematics: {
+			Id:      ProgressMathematics,
+			Name:    "Mathematics",
+			Type:    CardTypeProgress,
+			Summary: fmt.Sprintf("%s x 3%s", RenderVP(3), RenderCardType(CardTypeProgress)),
+		},
+		ProgressPhilosophy: {
+			Id:    ProgressPhilosophy,
+			Name:  "Philosophy",
+			Type:  CardTypeProgress,
+			VPRaw: 7,
+		},
+		ProgressStrategy: {
+			Id:      ProgressStrategy,
+			Name:    "Strategy",
+			Type:    CardTypeProgress,
+			Summary: fmt.Sprintf("Each %s +%s", RenderCardType(CardTypeMilitary), RenderMilitary(1)),
+		},
+		ProgressTheology: {
+			Id:      ProgressTheology,
+			Name:    "Theology",
+			Type:    CardTypeProgress,
+			Summary: fmt.Sprintf("All %s give %s", WonderText, ExtraTurnText),
+		},
+		ProgressUrbanism: {
+			Id:      ProgressUrbanism,
+			Name:    "Urbanism",
+			Type:    CardTypeProgress,
+			Summary: fmt.Sprintf("%s, %s x %s build", RenderCoins(6), RenderCoins(4), LinkBuildText),
 		},
 	}
 }

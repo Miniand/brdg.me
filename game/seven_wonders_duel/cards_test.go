@@ -15,10 +15,10 @@ func TestCards(t *testing.T) {
 		assert.NotEmpty(t, c.Id, fmt.Sprintf("card %s is missing an Id", c.Name))
 		assert.Equal(t, cId, c.Id, fmt.Sprintf("card %s doesn't have an Id matching the card key (%d != %d)", c.Name, cId, c.Id))
 		assert.NotEmpty(t, c.Type, fmt.Sprintf("card %s is missing a Type", c.Name))
-		assert.True(t, c.Type == CardTypeWonder || len(render.RenderPlain(RenderCost(c.Cost))) <= 14, fmt.Sprintf("card %s summary is greater than 14 chars", c.Name))
-		assert.True(t, c.Type == CardTypeWonder || len(render.RenderPlain(c.RenderSummary())) <= 14, fmt.Sprintf("card %s summary is greater than 14 chars", c.Name))
-		if c.VPFunc != nil || c.AfterBuild != nil {
-			assert.NotEmpty(t, c.Summary, fmt.Sprintf("card %s has VPFunc or AfterBuild, so it must also specify Summary", c.Name))
+		assert.True(t, c.Type == CardTypeWonder || c.Type == CardTypeProgress || len(render.RenderPlain(RenderCost(c.Cost))) <= 14, fmt.Sprintf("card %s summary is greater than 14 chars", c.Name))
+		assert.True(t, c.Type == CardTypeWonder || c.Type == CardTypeProgress || len(render.RenderPlain(c.RenderSummary())) <= 14, fmt.Sprintf("card %s summary is greater than 14 chars", c.Name))
+		if c.VPFunc != nil || c.AfterBuild != nil || c.DiscountGoods != nil {
+			assert.NotEmpty(t, c.Summary, fmt.Sprintf("card %s has VPFunc, AfterBuild or DiscountGoods, so it must also specify Summary", c.Name))
 		}
 		switch c.Type {
 		case CardTypeRaw:
@@ -51,6 +51,7 @@ func TestCards(t *testing.T) {
 			assert.NotEmpty(t, c.Military, fmt.Sprintf("card %s is of Type military and should have Military specified", c.Name))
 		case CardTypeGuild:
 		case CardTypeWonder:
+		case CardTypeProgress:
 		default:
 			t.Errorf("the Type of card %s is unknown", c.Name)
 		}
