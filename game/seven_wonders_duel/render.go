@@ -1,6 +1,7 @@
 package seven_wonders_duel
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -95,13 +96,18 @@ func CardBack(colour string) string {
 }
 
 func (g *Game) RenderForPlayer(player string) (string, error) {
+	pNum, ok := g.PlayerNum(player)
+	if !ok {
+		return "", errors.New("could not find player")
+	}
+	oNum := Opponent(pNum)
 	rows := []interface{}{}
 	if g.Phase == PhaseChooseWonder {
 		wonderOutputs := []interface{}{}
 		for _, w := range g.AvailableWonders() {
 			wonderOutputs = append(wonderOutputs, Cards[w].RenderMultiline())
 		}
-		rows = append(rows, render.Table(
+		rows = append(rows, render.Bold("Available wonders"), "", render.Table(
 			[][]interface{}{wonderOutputs},
 			0,
 			3,
@@ -109,7 +115,48 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	} else {
 		rows = append(rows, g.RenderLayout(0, g.Layout))
 	}
+	// Unbuilt wonders
+	unbuiltWonders := len(g.PlayerWonders[0]) + len(g.PlayerWonders[1])
+	if unbuiltWonders > 1 ||
+		unbuiltWonders == 1 && g.Phase == PhaseChooseWonder {
+		rows = append(
+			rows,
+			"",
+			"",
+			render.Bold("Unbuilt wonders"),
+			render.Table([][]interface{}{
+				{
+					render.Centred(g.PlayerName(pNum)),
+					render.Centred(g.PlayerName(oNum)),
+				},
+				{
+					render.Centred(g.RenderUnbuiltWondersTable(g.PlayerWonders[pNum])),
+					render.Centred(g.RenderUnbuiltWondersTable(g.PlayerWonders[oNum])),
+				},
+			}, 0, 8),
+		)
+	}
+
 	return render.CentreLayout(rows, 0), nil
+}
+
+func (g *Game) RenderUnbuiltWondersTable(wonders []int) string {
+	if len(wonders) == 0 {
+		return render.Colour("None", render.Gray)
+	}
+	cells := [][]interface{}{}
+	row := []interface{}{}
+	for _, w := range wonders {
+		row = append(row, render.Centred(Cards[w].RenderMultiline()))
+		if len(row) == 2 {
+			cells = append(cells, row)
+			row = []interface{}{}
+		}
+	}
+	if len(row) > 0 {
+		cells = append(cells, row)
+	}
+	return render.Table(cells, 1, 3)
 }
 
 func (g *Game) RenderLayout(player int, layout Layout) string {
