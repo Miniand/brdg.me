@@ -165,6 +165,30 @@ func (g *Game) PlayerNum(player string) (int, bool) {
 	return helper.StringInStrings(player, g.Players)
 }
 
+func (g *Game) PlayerVP(player int) int {
+	sum := g.PlayerCoins[player] / 3
+	for _, c := range g.PlayerCards[player] {
+		sum += Cards[c].VP(g, player)
+	}
+	return sum
+}
+
+func (g *Game) PlayerGoodCount(player, good int) (base, extra int) {
+	for _, c := range g.PlayerCards[player] {
+		card := Cards[c]
+		if card.Type == CardTypeRaw || card.Type == CardTypeManufactured {
+			for _, p := range card.Provides {
+				base += p[good]
+			}
+		} else {
+			for _, p := range card.Provides {
+				extra += p[good]
+			}
+		}
+	}
+	return
+}
+
 func Opponent(player int) int {
 	return (player + 1) % 2
 }

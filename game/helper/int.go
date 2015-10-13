@@ -173,3 +173,10 @@ func IntSliceSub(ints, sub []int) ([]int, bool) {
 	}
 	return ret, len(subMap) == 0
 }
+
+func IntAbs(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
+}

@@ -12,9 +12,9 @@ import (
 
 const (
 	CardTypeText      = "##"
-	ProgressTokenText = `{{b}}{{c "green"}}@{{_c}}{{_b}}`
-	ExtraTurnText     = `{{b}}{{c "blue"}}&{{_c}}{{_b}}`
-	WonderText        = `{{b}}{{c "yellow"}}WOND{{_c}}{{_b}}`
+	ProgressTokenText = `{{b}}{{c "green"}}PR{{_c}}{{_b}}`
+	ExtraTurnText     = `{{b}}{{c "blue"}}+1{{_c}}{{_b}}`
+	WonderText        = `{{b}}{{c "yellow"}}WO{{_c}}{{_b}}`
 	LinkBuildText     = `{{b}}{{c "cyan"}}->{{_c}}{{_b}}`
 	CardWidth         = 14
 	CardSpacing       = 2
@@ -28,7 +28,7 @@ var CardColours = map[int]string{
 	CardTypeCommercial:   render.Yellow,
 	CardTypeMilitary:     render.Red,
 	CardTypeGuild:        render.Magenta,
-	CardTypeWonder:       render.Cyan,
+	CardTypeWonder:       render.Yellow,
 	CardTypeProgress:     render.Green,
 }
 
@@ -48,6 +48,15 @@ var GoodAbbr = map[int]string{
 	GoodStone:   "St",
 	GoodGlass:   "Gl",
 	GoodPapyrus: "Pa",
+}
+
+var GoodNames = map[int]string{
+	GoodCoin:    "Coin",
+	GoodWood:    "Wood",
+	GoodClay:    "Clay",
+	GoodStone:   "Ston",
+	GoodGlass:   "Glas",
+	GoodPapyrus: "Papy",
 }
 
 var ScienceColours = map[int]string{
@@ -122,63 +131,157 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			g.RenderLayout(0, g.Layout),
 		)
 	}
-	// Unbuilt wonders
-	unbuiltWonders := len(g.PlayerWonders[0]) + len(g.PlayerWonders[1])
-	if unbuiltWonders > 1 ||
-		unbuiltWonders == 1 && g.Phase == PhaseChooseWonder {
-		rows = append(
-			rows,
-			"",
-			"",
-			render.Bold("Unbuilt wonders"),
-			"",
-			render.Table([][]interface{}{
-				{
-					render.Centred(g.PlayerName(pNum)),
-					render.Centred(g.PlayerName(oNum)),
-				},
-				{
-					render.Centred(g.RenderUnbuiltWondersTable(g.PlayerWonders[pNum])),
-					render.Centred(g.RenderUnbuiltWondersTable(g.PlayerWonders[oNum])),
-				},
-			}, 0, 8),
-		)
-	}
 
 	// Progress tokens
-	cells := []interface{}{}
+	progCells := []interface{}{}
 	for _, p := range g.ProgressTokens {
-		cells = append(cells, Cards[p].RenderMultiline())
+		progCells = append(progCells, Cards[p].RenderMultiline())
 	}
 	rows = append(
 		rows,
 		"",
 		"",
-		render.Bold("Progress tokens"),
+		render.Bold(fmt.Sprintf("Available progress tokens (%s)", ProgressTokenText)),
 		"",
-		render.Table([][]interface{}{cells}, 0, 3),
+		render.Table([][]interface{}{progCells}, 0, 3),
+	)
+
+	// Player table
+	cells := [][]interface{}{
+		{
+			render.Centred("\n" + g.RenderPlayerNotables(pNum)),
+			render.Centred(g.RenderPlayerTable(pNum)),
+			render.Centred("\n" + g.RenderPlayerNotables(oNum)),
+		},
+	}
+	rows = append(
+		rows,
+		"",
+		"",
+		render.Bold("Player tableaus"),
+		render.Table(cells, 0, 5),
+	)
+
+	// Glossary
+	rows = append(
+		rows,
+		"",
+		render.Bold("Glossary"),
+		render.Table([][]interface{}{
+			{render.RightAligned(LinkBuildText), "Makes another card free (link build)"},
+			{render.RightAligned(ExtraTurnText), "Extra turn after this one"},
+			{render.RightAligned(fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(1),
+				RenderCardType(CardTypeMilitary),
+			)), fmt.Sprintf(
+				"%s for each %s in the city with the most %s",
+				RenderVP(1),
+				RenderCardType(CardTypeMilitary),
+				RenderCardType(CardTypeMilitary),
+			)},
+		}, 0, 3),
 	)
 
 	return render.CentreLayout(rows, 0), nil
 }
 
+func RenderCheapens(goods []int) string {
+	return fmt.Sprintf(
+		"%s costs %s",
+		strings.Join(RenderGoods(goods), " "),
+		RenderCoins(1),
+	)
+}
+
+func (g *Game) RenderPlayerTable(player int) string {
+	opp := Opponent(player)
+	cells := [][]interface{}{
+		{
+			render.Centred(g.PlayerName(player)),
+			"",
+			render.Centred(g.PlayerName(opp)),
+		},
+		{
+			render.Centred(render.Bold(strconv.Itoa(g.PlayerCoins[player]))),
+			render.Centred(render.Markup("Coin", render.Yellow, true)),
+			render.Centred(strconv.Itoa(g.PlayerCoins[player])),
+		},
+		{
+			render.Centred(render.Bold(strconv.Itoa(g.PlayerVP(player)))),
+			render.Centred(render.Markup("VP", render.Green, true)),
+			render.Centred(strconv.Itoa(g.PlayerVP(player))),
+		},
+		{
+			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeWonder)))),
+			render.Centred(WonderText),
+			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeWonder))),
+		},
+		{
+			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeProgress)))),
+			render.Centred(ProgressTokenText),
+			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeProgress))),
+		},
+		{},
+	}
+	for _, good := range []int{
+		GoodWood,
+		GoodStone,
+		GoodClay,
+		GoodPapyrus,
+		GoodGlass,
+	} {
+		cells = append(cells, []interface{}{
+			render.Centred(render.Bold(g.RenderPlayerGoodCount(player, good))),
+			render.Centred(RenderGoodName(good)),
+			render.Centred(g.RenderPlayerGoodCount(opp, good)),
+		})
+	}
+	cells = append(cells, []interface{}{})
+	for _, ct := range []int{
+		CardTypeRaw,
+		CardTypeManufactured,
+		CardTypeCivilian,
+		CardTypeScientific,
+		CardTypeCommercial,
+		CardTypeMilitary,
+		CardTypeGuild,
+	} {
+		cells = append(cells, []interface{}{
+			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, ct)))),
+			render.Centred(RenderCardType(ct)),
+			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(player, ct))),
+		})
+	}
+	return render.Table(cells, 0, 2)
+}
+
+func (g *Game) RenderPlayerNotables(player int) string {
+	rows := []interface{}{}
+	if len(g.PlayerWonders[player]) > 0 {
+		rows = append(rows, g.RenderUnbuiltWondersTable(g.PlayerWonders[player]))
+	}
+	return render.CentreLayout(rows, 1)
+}
+
+func (g *Game) RenderPlayerGoodCount(player, good int) string {
+	base, extra := g.PlayerGoodCount(player, good)
+	extraStr := ""
+	if extra > 0 {
+		extraStr += fmt.Sprintf("+%d", extra)
+	}
+	return fmt.Sprintf("%d%s", base, extraStr)
+}
+
 func (g *Game) RenderUnbuiltWondersTable(wonders []int) string {
-	if len(wonders) == 0 {
-		return render.Colour("None", render.Gray)
-	}
-	cells := [][]interface{}{}
-	row := []interface{}{}
+	cells := [][]interface{}{{render.Centred(render.Colour("Unbuilt WO", render.Gray))}}
 	for _, w := range wonders {
-		row = append(row, render.Centred(Cards[w].RenderMultiline()))
-		if len(row) == 2 {
-			cells = append(cells, row)
-			row = []interface{}{}
-		}
+		cells = append(
+			cells,
+			[]interface{}{render.Centred(Cards[w].RenderMultiline())},
+		)
 	}
-	if len(row) > 0 {
-		cells = append(cells, row)
-	}
-	return render.Table(cells, 1, 3)
+	return render.Table(cells, 1, 0)
 }
 
 func (g *Game) RenderLayout(player int, layout Layout) string {
@@ -224,19 +327,34 @@ func RenderVP(amount int) string {
 	return render.Markup(fmt.Sprintf("%dVP", amount), render.Green, true)
 }
 
+func CardText(cardType int) string {
+	switch cardType {
+	case CardTypeWonder:
+		return WonderText
+	case CardTypeProgress:
+		return ProgressTokenText
+	default:
+		return CardTypeText
+	}
+}
+
 func RenderCardType(cardType int) string {
-	return render.Markup(CardTypeText, CardColours[cardType], true)
+	return render.Markup(CardText(cardType), CardColours[cardType], true)
 }
 
 func (c Card) RenderMultiline() string {
-	rows := []interface{}{
-		fmt.Sprintf(
-			`{{bg "%s"}}{{c "%s"}}{{b}} %s {{_b}}{{_c}}{{_bg}}`,
-			CardColours[c.Type],
-			render.ColourForBackground(CardColours[c.Type]),
-			c.Name,
-		),
+	fg := CardColours[c.Type]
+	bg := render.Black
+	if c.Type != CardTypeWonder && c.Type != CardTypeProgress {
+		fg = render.ColourForBackground(CardColours[c.Type])
+		bg = CardColours[c.Type]
 	}
+	rows := []interface{}{fmt.Sprintf(
+		`{{bg "%s"}}{{c "%s"}}{{b}} %s {{_b}}{{_c}}{{_bg}}`,
+		bg,
+		fg,
+		c.Name,
+	)}
 	if c.Type != CardTypeProgress {
 		rows = append(rows, RenderCost(c.Cost))
 	}
@@ -275,6 +393,10 @@ func RenderGoods(goods []int) []string {
 		output[k] = render.Markup(GoodAbbr[g], GoodColours[g], true)
 	}
 	return output
+}
+
+func RenderGoodName(good int) string {
+	return render.Markup(GoodNames[good], GoodColours[good], true)
 }
 
 func RenderProvides(costs []cost.Cost) string {

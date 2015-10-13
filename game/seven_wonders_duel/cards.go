@@ -165,6 +165,7 @@ type Card struct {
 	DiscountGoods func(player, card int) int
 	ExtraTurn     bool
 	Summary       string
+	OngoingEffect string
 }
 
 func Age1Cards() []int {
@@ -411,11 +412,7 @@ func (c Card) RenderSummary() string {
 		parts = append(parts, RenderScience(c.Science))
 	}
 	if len(c.Cheapens) > 0 {
-		parts = append(parts, fmt.Sprintf(
-			"%s costs %s",
-			strings.Join(RenderGoods(c.Cheapens), " "),
-			RenderCoins(1),
-		))
+		parts = append(parts, RenderCheapens(c.Cheapens))
 	}
 	if c.Coin > 0 {
 		parts = append(parts, RenderCoins(c.Coin))
@@ -528,25 +525,28 @@ func init() {
 			Science: ScienceEngineering,
 		},
 		CardStoneReserve: {
-			Id:       CardStoneReserve,
-			Name:     "Stone Res.",
-			Type:     CardTypeCommercial,
-			Cost:     cost.Cost{GoodCoin: 3},
-			Cheapens: []int{GoodStone},
+			Id:            CardStoneReserve,
+			Name:          "Stone Res.",
+			Type:          CardTypeCommercial,
+			Cost:          cost.Cost{GoodCoin: 3},
+			Cheapens:      []int{GoodStone},
+			OngoingEffect: RenderCheapens([]int{GoodStone}),
 		},
 		CardClayReserve: {
-			Id:       CardClayReserve,
-			Name:     "Clay Res.",
-			Type:     CardTypeCommercial,
-			Cost:     cost.Cost{GoodCoin: 3},
-			Cheapens: []int{GoodClay},
+			Id:            CardClayReserve,
+			Name:          "Clay Res.",
+			Type:          CardTypeCommercial,
+			Cost:          cost.Cost{GoodCoin: 3},
+			Cheapens:      []int{GoodClay},
+			OngoingEffect: RenderCheapens([]int{GoodClay}),
 		},
 		CardWoodReserve: {
-			Id:       CardWoodReserve,
-			Name:     "Wood Res.",
-			Type:     CardTypeCommercial,
-			Cost:     cost.Cost{GoodCoin: 3},
-			Cheapens: []int{GoodWood},
+			Id:            CardWoodReserve,
+			Name:          "Wood Res.",
+			Type:          CardTypeCommercial,
+			Cost:          cost.Cost{GoodCoin: 3},
+			Cheapens:      []int{GoodWood},
+			OngoingEffect: RenderCheapens([]int{GoodWood}),
 		},
 		CardStable: {
 			Id:        CardStable,
@@ -688,11 +688,12 @@ func init() {
 			},
 		},
 		CardCustomsHouse: {
-			Id:       CardCustomsHouse,
-			Name:     "Customs",
-			Type:     CardTypeCommercial,
-			Cost:     cost.Cost{GoodCoin: 4},
-			Cheapens: []int{GoodPapyrus, GoodGlass},
+			Id:            CardCustomsHouse,
+			Name:          "Customs",
+			Type:          CardTypeCommercial,
+			Cost:          cost.Cost{GoodCoin: 4},
+			Cheapens:      []int{GoodPapyrus, GoodGlass},
+			OngoingEffect: RenderCheapens([]int{GoodPapyrus, GoodGlass}),
 		},
 		CardTribunal: {
 			Id:    CardTribunal,
@@ -1022,6 +1023,11 @@ func init() {
 				RenderCoins(1),
 				RenderCardType(CardTypeCommercial),
 			),
+			OngoingEffect: fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(1),
+				RenderCardType(CardTypeCommercial),
+			),
 			Cost: cost.Cost{
 				GoodClay:    1,
 				GoodWood:    1,
@@ -1046,6 +1052,12 @@ func init() {
 				"%s %s ^ %s %s",
 				RenderVP(1),
 				RenderCoins(1),
+				RenderCardType(CardTypeRaw),
+				RenderCardType(CardTypeManufactured),
+			),
+			OngoingEffect: fmt.Sprintf(
+				"%s ^ %s %s",
+				RenderVP(1),
 				RenderCardType(CardTypeRaw),
 				RenderCardType(CardTypeManufactured),
 			),
@@ -1077,6 +1089,11 @@ func init() {
 				RenderVP(2),
 				WonderText,
 			),
+			OngoingEffect: fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(2),
+				WonderText,
+			),
 			Cost: cost.Cost{
 				GoodStone: 2,
 				GoodClay:  1,
@@ -1095,6 +1112,11 @@ func init() {
 				"%s %s ^ %s",
 				RenderVP(1),
 				RenderCoins(1),
+				RenderCardType(CardTypeCivilian),
+			),
+			OngoingEffect: fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(1),
 				RenderCardType(CardTypeCivilian),
 			),
 			Cost: cost.Cost{
@@ -1122,6 +1144,11 @@ func init() {
 				RenderCoins(1),
 				RenderCardType(CardTypeScientific),
 			),
+			OngoingEffect: fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(1),
+				RenderCardType(CardTypeScientific),
+			),
 			Cost: cost.Cost{
 				GoodClay: 2,
 				GoodWood: 2,
@@ -1145,6 +1172,11 @@ func init() {
 				RenderVP(1),
 				RenderCoins(1),
 			),
+			OngoingEffect: fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(1),
+				RenderCoins(1),
+			),
 			Cost: cost.Cost{
 				GoodStone: 2,
 				GoodWood:  2,
@@ -1164,6 +1196,11 @@ func init() {
 				"%s %s ^ %s",
 				RenderVP(1),
 				RenderCoins(1),
+				RenderCardType(CardTypeMilitary),
+			),
+			OngoingEffect: fmt.Sprintf(
+				"%s ^ %s",
+				RenderVP(1),
 				RenderCardType(CardTypeMilitary),
 			),
 			Cost: cost.Cost{
@@ -1364,10 +1401,11 @@ func init() {
 			VPRaw: 4,
 		},
 		ProgressArchitecture: {
-			Id:      ProgressArchitecture,
-			Name:    "Architecture",
-			Type:    CardTypeProgress,
-			Summary: fmt.Sprintf("%s 2 fewer res.", WonderText),
+			Id:            ProgressArchitecture,
+			Name:          "Architecture",
+			Type:          CardTypeProgress,
+			Summary:       fmt.Sprintf("%s cost 2 fewer res.", WonderText),
+			OngoingEffect: fmt.Sprintf("%s cost 2 fewer res.", WonderText),
 			DiscountGoods: func(player, card int) int {
 				if Cards[card].Type == CardTypeWonder {
 					return 2
@@ -1376,10 +1414,11 @@ func init() {
 			},
 		},
 		ProgressEconomy: {
-			Id:      ProgressEconomy,
-			Name:    "Economy",
-			Type:    CardTypeProgress,
-			Summary: "Take trade money",
+			Id:            ProgressEconomy,
+			Name:          "Economy",
+			Type:          CardTypeProgress,
+			Summary:       "Take trade money",
+			OngoingEffect: "Take trade money",
 		},
 		ProgressLaw: {
 			Id:      ProgressLaw,
@@ -1388,10 +1427,11 @@ func init() {
 			Science: ScienceLaw,
 		},
 		ProgressMasonry: {
-			Id:      ProgressMasonry,
-			Name:    "Masonry",
-			Type:    CardTypeProgress,
-			Summary: fmt.Sprintf("%s 2 fewer res.", RenderCardType(CardTypeCivilian)),
+			Id:            ProgressMasonry,
+			Name:          "Masonry",
+			Type:          CardTypeProgress,
+			Summary:       fmt.Sprintf("%s cost 2 fewer res.", RenderCardType(CardTypeCivilian)),
+			OngoingEffect: fmt.Sprintf("%s cost 2 fewer res.", RenderCardType(CardTypeCivilian)),
 			DiscountGoods: func(player, card int) int {
 				if Cards[card].Type == CardTypeCivilian {
 					return 2
@@ -1400,10 +1440,11 @@ func init() {
 			},
 		},
 		ProgressMathematics: {
-			Id:      ProgressMathematics,
-			Name:    "Mathematics",
-			Type:    CardTypeProgress,
-			Summary: fmt.Sprintf("%s x 3%s", RenderVP(3), RenderCardType(CardTypeProgress)),
+			Id:            ProgressMathematics,
+			Name:          "Mathematics",
+			Type:          CardTypeProgress,
+			Summary:       fmt.Sprintf("%s x 3%s", RenderVP(3), RenderCardType(CardTypeProgress)),
+			OngoingEffect: fmt.Sprintf("%s x 3%s", RenderVP(3), RenderCardType(CardTypeProgress)),
 		},
 		ProgressPhilosophy: {
 			Id:    ProgressPhilosophy,
@@ -1412,22 +1453,25 @@ func init() {
 			VPRaw: 7,
 		},
 		ProgressStrategy: {
-			Id:      ProgressStrategy,
-			Name:    "Strategy",
-			Type:    CardTypeProgress,
-			Summary: fmt.Sprintf("Each %s +%s", RenderCardType(CardTypeMilitary), RenderMilitary(1)),
+			Id:            ProgressStrategy,
+			Name:          "Strategy",
+			Type:          CardTypeProgress,
+			Summary:       fmt.Sprintf("Each %s +%s", RenderCardType(CardTypeMilitary), RenderMilitary(1)),
+			OngoingEffect: fmt.Sprintf("Each %s +%s", RenderCardType(CardTypeMilitary), RenderMilitary(1)),
 		},
 		ProgressTheology: {
-			Id:      ProgressTheology,
-			Name:    "Theology",
-			Type:    CardTypeProgress,
-			Summary: fmt.Sprintf("All %s give %s", WonderText, ExtraTurnText),
+			Id:            ProgressTheology,
+			Name:          "Theology",
+			Type:          CardTypeProgress,
+			Summary:       fmt.Sprintf("All %s give %s", WonderText, ExtraTurnText),
+			OngoingEffect: fmt.Sprintf("All %s give %s", WonderText, ExtraTurnText),
 		},
 		ProgressUrbanism: {
-			Id:      ProgressUrbanism,
-			Name:    "Urbanism",
-			Type:    CardTypeProgress,
-			Summary: fmt.Sprintf("%s, %s x %s build", RenderCoins(6), RenderCoins(4), LinkBuildText),
+			Id:            ProgressUrbanism,
+			Name:          "Urbanism",
+			Type:          CardTypeProgress,
+			Summary:       fmt.Sprintf("%s, %s x %s build", RenderCoins(6), RenderCoins(4), LinkBuildText),
+			OngoingEffect: fmt.Sprintf("%s x %s build", RenderCoins(4), LinkBuildText),
 		},
 	}
 }
