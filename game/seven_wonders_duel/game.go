@@ -19,6 +19,7 @@ type Game struct {
 	Log     *log.Log
 
 	Phase         int
+	Finished      bool
 	Age           int
 	Layout        Layout
 	CurrentPlayer int
@@ -41,6 +42,9 @@ func (g *Game) Commands(player string) []command.Command {
 	commands := []command.Command{}
 	if g.CanChoose(pNum) {
 		commands = append(commands, ChooseCommand{})
+	}
+	if g.CanPlay(pNum) {
+		commands = append(commands, PlayCommand{})
 	}
 	return commands
 }
@@ -90,11 +94,23 @@ func (g *Game) PlayerList() []string {
 }
 
 func (g *Game) IsFinished() bool {
-	return false
+	return g.Finished
 }
 
 func (g *Game) Winners() []string {
-	return []string{}
+	if !g.IsFinished() {
+		return []string{}
+	}
+	p1VP := g.PlayerVP(0)
+	p2VP := g.PlayerVP(1)
+	winners := []string{}
+	if p1VP >= p2VP {
+		winners = append(winners, g.Players[0])
+	}
+	if p2VP >= p1VP {
+		winners = append(winners, g.Players[1])
+	}
+	return winners
 }
 
 func (g *Game) WhoseTurn() []string {
@@ -187,6 +203,15 @@ func (g *Game) PlayerGoodCount(player, good int) (base, extra int) {
 		}
 	}
 	return
+}
+
+func (g *Game) NextAge() {
+	if g.Age == 3 {
+		g.Finished = true
+		return
+	}
+	g.Age += 1
+	g.StartAge()
 }
 
 func Opponent(player int) int {

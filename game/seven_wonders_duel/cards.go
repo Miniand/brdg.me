@@ -303,6 +303,22 @@ func (l Layout) CanBuild(loc Loc) bool {
 	return true
 }
 
+func (l Layout) Buildable() []Loc {
+	locs := []Loc{}
+	for y, row := range l {
+		for x, at := range row {
+			if at == 0 {
+				continue
+			}
+			loc := Loc{x, y}
+			if l.CanBuild(loc) {
+				locs = append(locs, loc)
+			}
+		}
+	}
+	return locs
+}
+
 func (l Layout) LocsBelow(loc Loc) []Loc {
 	offset := 0
 	if loc.Y%2 == 0 {
@@ -319,6 +335,31 @@ func (l Layout) At(loc Loc) int {
 		return 0
 	}
 	return l[loc.Y][loc.X]
+}
+
+func (l Layout) Remove(loc Loc) Layout {
+	if loc.Y < 0 || loc.Y >= len(l) {
+		return l
+	}
+	if loc.X < 0 || loc.X >= len(l[loc.Y]) {
+		return l
+	}
+	l[loc.Y][loc.X] = 0
+	return l.RemoveBottomEmpty()
+}
+
+func (l Layout) RemoveBottomEmpty() Layout {
+	last := len(l) - 1
+	if last < 0 {
+		return l
+	}
+	for _, at := range l[last] {
+		if at != 0 {
+			return l
+		}
+	}
+	newL := l[:last]
+	return newL.RemoveBottomEmpty()
 }
 
 var AgeLayouts = map[int]func() Layout{

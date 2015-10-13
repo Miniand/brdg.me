@@ -205,22 +205,22 @@ func (g *Game) RenderPlayerTable(player int) string {
 		{
 			render.Centred(render.Bold(strconv.Itoa(g.PlayerCoins[player]))),
 			render.Centred(render.Markup("Coin", render.Yellow, true)),
-			render.Centred(strconv.Itoa(g.PlayerCoins[player])),
+			render.Centred(strconv.Itoa(g.PlayerCoins[opp])),
 		},
 		{
 			render.Centred(render.Bold(strconv.Itoa(g.PlayerVP(player)))),
 			render.Centred(render.Markup("VP", render.Green, true)),
-			render.Centred(strconv.Itoa(g.PlayerVP(player))),
+			render.Centred(strconv.Itoa(g.PlayerVP(opp))),
 		},
 		{
 			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeWonder)))),
 			render.Centred(WonderText),
-			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeWonder))),
+			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(opp, CardTypeWonder))),
 		},
 		{
 			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeProgress)))),
 			render.Centred(ProgressTokenText),
-			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeProgress))),
+			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(opp, CardTypeProgress))),
 		},
 		{},
 	}
@@ -250,7 +250,7 @@ func (g *Game) RenderPlayerTable(player int) string {
 		cells = append(cells, []interface{}{
 			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, ct)))),
 			render.Centred(RenderCardType(ct)),
-			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(player, ct))),
+			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(opp, ct))),
 		})
 	}
 	return render.Table(cells, 0, 2)
@@ -260,6 +260,16 @@ func (g *Game) RenderPlayerNotables(player int) string {
 	rows := []interface{}{}
 	if len(g.PlayerWonders[player]) > 0 {
 		rows = append(rows, g.RenderUnbuiltWondersTable(g.PlayerWonders[player]))
+	}
+	ongoingEffects := []string{}
+	for _, c := range g.PlayerCards[player] {
+		if Cards[c].OngoingEffect != "" {
+			ongoingEffects = append(ongoingEffects, Cards[c].OngoingEffect)
+		}
+	}
+	if len(ongoingEffects) > 0 {
+		rows = append(rows, render.Colour("Bonuses", render.Gray))
+		rows = append(rows, strings.Join(ongoingEffects, "\n"))
 	}
 	return render.CentreLayout(rows, 1)
 }
