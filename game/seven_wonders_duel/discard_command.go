@@ -8,11 +8,11 @@ import (
 	"github.com/Miniand/brdg.me/game/helper"
 )
 
-type PlayCommand struct{}
+type DiscardCommand struct{}
 
-func (c PlayCommand) Name() string { return "play" }
+func (c DiscardCommand) Name() string { return "discard" }
 
-func (c PlayCommand) Call(
+func (c DiscardCommand) Call(
 	player string,
 	context interface{},
 	input *command.Reader,
@@ -40,28 +40,26 @@ func (c PlayCommand) Call(
 	if err != nil {
 		return "", err
 	}
-	return "", g.Play(pNum, buildableLocs[card])
+	return "", g.Discard(pNum, buildableLocs[card])
 }
 
-func (c PlayCommand) Usage(player string, context interface{}) string {
-	return "{{b}}play [card]{{_b}} to build a card, eg. {{b}}play quarry{{_b}}"
+func (c DiscardCommand) Usage(player string, context interface{}) string {
+	return "{{b}}discard [card]{{_b}} to discard a card for 2 coins + the number of yellow cards you have, eg. {{b}}discard quarry{{_b}}"
 }
 
-func (g *Game) CanPlay(player int) bool {
-	if g.Phase != PhasePlay {
-		return false
-	}
-	return g.CurrentPlayer == player
+func (g *Game) CanDiscard(player int) bool {
+	return g.CanPlay(player)
 }
 
-func (g *Game) Play(player int, loc Loc) error {
-	if !g.CanPlay(player) {
-		return errors.New("can't play at the moment")
+func (g *Game) Discard(player int, loc Loc) error {
+	if !g.CanDiscard(player) {
+		return errors.New("can't discard at the moment")
 	}
 	if !g.Layout.CanBuild(loc) {
-		return errors.New("that card isn't playable")
+		return errors.New("that card isn't available")
 	}
-	g.PlayerCards[player] = append(g.PlayerCards[player], g.Layout.At(loc))
+	g.DiscardedCards = append(g.DiscardedCards, g.Layout.At(loc))
+	g.ModifyCoins(player, 2+g.PlayerCardTypeCount(player, CardTypeCommercial))
 	g.CurrentPlayer = Opponent(g.CurrentPlayer)
 	g.Layout = g.Layout.Remove(loc)
 	if len(g.Layout) == 0 {

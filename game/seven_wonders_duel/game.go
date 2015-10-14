@@ -30,8 +30,9 @@ type Game struct {
 	RemainingWonders []int
 	PlayerWonders    [2][]int
 
-	PlayerCoins [2]int
-	PlayerCards [2][]int
+	PlayerCoins    [2]int
+	PlayerCards    [2][]int
+	DiscardedCards []int
 }
 
 func (g *Game) Commands(player string) []command.Command {
@@ -45,6 +46,12 @@ func (g *Game) Commands(player string) []command.Command {
 	}
 	if g.CanPlay(pNum) {
 		commands = append(commands, PlayCommand{})
+	}
+	if g.CanDiscard(pNum) {
+		commands = append(commands, DiscardCommand{})
+	}
+	if g.CanWonder(pNum) {
+		commands = append(commands, WonderCommand{})
 	}
 	return commands
 }
@@ -73,6 +80,7 @@ func (g *Game) Start(players []string) error {
 	g.Log = log.New()
 	g.PlayerCoins = [2]int{7, 7}
 	g.PlayerCards = [2][]int{{}, {}}
+	g.DiscardedCards = []int{}
 	g.PlayerWonders = [2][]int{{}, {}}
 	progressTokens := helper.IntShuffle(ProgressTokens())
 	g.ProgressTokens = progressTokens[:5]

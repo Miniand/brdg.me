@@ -149,9 +149,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	// Player table
 	cells := [][]interface{}{
 		{
-			render.Centred("\n" + g.RenderPlayerNotables(pNum)),
+			render.Centred("              \n" + g.RenderPlayerNotables(pNum)),
 			render.Centred(g.RenderPlayerTable(pNum)),
-			render.Centred("\n" + g.RenderPlayerNotables(oNum)),
+			render.Centred("              \n" + g.RenderPlayerNotables(oNum)),
 		},
 	}
 	rows = append(
