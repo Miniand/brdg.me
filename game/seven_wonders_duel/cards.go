@@ -29,6 +29,14 @@ const (
 	GoodPapyrus
 )
 
+var Goods = []int{
+	GoodWood,
+	GoodClay,
+	GoodStone,
+	GoodGlass,
+	GoodPapyrus,
+}
+
 const (
 	ScienceCartography = iota + 1
 	ScienceLaw
@@ -38,6 +46,16 @@ const (
 	ScienceLiterature
 	ScienceEngineering
 )
+
+var Sciences = []int{
+	ScienceCartography,
+	ScienceLaw,
+	ScienceAstronomy,
+	ScienceMathematics,
+	ScienceMedicine,
+	ScienceLiterature,
+	ScienceEngineering,
+}
 
 const (
 	// Age 1
@@ -147,14 +165,6 @@ const (
 	ProgressTheology
 	ProgressUrbanism
 )
-
-var Goods = []int{
-	GoodWood,
-	GoodClay,
-	GoodStone,
-	GoodGlass,
-	GoodPapyrus,
-}
 
 type Card struct {
 	Id            int

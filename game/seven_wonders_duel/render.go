@@ -106,6 +106,20 @@ func CardBack(colour string) string {
 	}, "\n")
 }
 
+var MilitaryStages = []struct {
+	Threshold, VP, OppVP int
+	Win                  bool
+}{
+	{1, 2, 0, false},
+	{3, 5, -2, false},
+	{6, 10, -5, false},
+	{9, 0, 0, true},
+}
+
+func (g *Game) RenderMilitary(player int) string {
+	return ""
+}
+
 func (g *Game) RenderForPlayer(player string) (string, error) {
 	pNum, ok := g.PlayerNum(player)
 	if !ok {
@@ -144,6 +158,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 		render.Bold(fmt.Sprintf("Available progress tokens (%s)", ProgressTokenText)),
 		"",
 		render.Table([][]interface{}{progCells}, 0, 3),
+	)
+
+	// Minitary
+	rows = append(
+		rows,
+		"",
+		"",
+		render.Bold("Military"),
 	)
 
 	// Player table
@@ -203,24 +225,24 @@ func (g *Game) RenderPlayerTable(player int) string {
 			render.Centred(g.PlayerName(opp)),
 		},
 		{
-			render.Centred(render.Bold(strconv.Itoa(g.PlayerCoins[player]))),
+			render.Centred(PlayerTableNumber(g.PlayerCoins[player])),
 			render.Centred(render.Markup("Coin", render.Yellow, true)),
-			render.Centred(strconv.Itoa(g.PlayerCoins[opp])),
+			render.Centred(PlayerTableNumber(g.PlayerCoins[opp])),
 		},
 		{
-			render.Centred(render.Bold(strconv.Itoa(g.PlayerVP(player)))),
+			render.Centred(PlayerTableNumber(g.PlayerVP(player))),
 			render.Centred(render.Markup("VP", render.Green, true)),
-			render.Centred(strconv.Itoa(g.PlayerVP(opp))),
+			render.Centred(PlayerTableNumber(g.PlayerVP(opp))),
 		},
 		{
-			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeWonder)))),
+			render.Centred(PlayerTableNumber(g.PlayerCardTypeCount(player, CardTypeWonder))),
 			render.Centred(WonderText),
-			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(opp, CardTypeWonder))),
+			render.Centred(PlayerTableNumber(g.PlayerCardTypeCount(opp, CardTypeWonder))),
 		},
 		{
-			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, CardTypeProgress)))),
+			render.Centred(PlayerTableNumber(g.PlayerCardTypeCount(player, CardTypeProgress))),
 			render.Centred(ProgressTokenText),
-			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(opp, CardTypeProgress))),
+			render.Centred(PlayerTableNumber(g.PlayerCardTypeCount(opp, CardTypeProgress))),
 		},
 		{},
 	}
@@ -232,7 +254,7 @@ func (g *Game) RenderPlayerTable(player int) string {
 		GoodGlass,
 	} {
 		cells = append(cells, []interface{}{
-			render.Centred(render.Bold(g.RenderPlayerGoodCount(player, good))),
+			render.Centred(g.RenderPlayerGoodCount(player, good)),
 			render.Centred(RenderGoodName(good)),
 			render.Centred(g.RenderPlayerGoodCount(opp, good)),
 		})
@@ -248,12 +270,29 @@ func (g *Game) RenderPlayerTable(player int) string {
 		CardTypeGuild,
 	} {
 		cells = append(cells, []interface{}{
-			render.Centred(render.Bold(strconv.Itoa(g.PlayerCardTypeCount(player, ct)))),
+			render.Centred(PlayerTableNumber(g.PlayerCardTypeCount(player, ct))),
 			render.Centred(RenderCardType(ct)),
-			render.Centred(strconv.Itoa(g.PlayerCardTypeCount(opp, ct))),
+			render.Centred(PlayerTableNumber(g.PlayerCardTypeCount(opp, ct))),
+		})
+	}
+	cells = append(cells, []interface{}{})
+	playerSciences := g.PlayerSciences(player)
+	oppSciences := g.PlayerSciences(opp)
+	for _, s := range Sciences {
+		cells = append(cells, []interface{}{
+			render.Centred(PlayerTableNumber(playerSciences[s])),
+			render.Centred(RenderScience(s)),
+			render.Centred(PlayerTableNumber(oppSciences[s])),
 		})
 	}
 	return render.Table(cells, 0, 2)
+}
+
+func PlayerTableNumber(n int) string {
+	if n == 0 {
+		return render.Colour("0", render.Gray)
+	}
+	return render.Bold(strconv.Itoa(n))
 }
 
 func (g *Game) RenderPlayerNotables(player int) string {
@@ -277,10 +316,13 @@ func (g *Game) RenderPlayerNotables(player int) string {
 func (g *Game) RenderPlayerGoodCount(player, good int) string {
 	base, extra := g.PlayerGoodCount(player, good)
 	extraStr := ""
+	if base == 0 && extra == 0 {
+		return render.Colour("0", render.Gray)
+	}
 	if extra > 0 {
 		extraStr += fmt.Sprintf("+%d", extra)
 	}
-	return fmt.Sprintf("%d%s", base, extraStr)
+	return render.Bold(fmt.Sprintf("%d%s", base, extraStr))
 }
 
 func (g *Game) RenderUnbuiltWondersTable(wonders []int, player int) string {

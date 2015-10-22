@@ -24,6 +24,7 @@ type Game struct {
 	Age           int
 	Layout        Layout
 	CurrentPlayer int
+	Military      int
 
 	ProgressTokens          []int
 	DiscardedProgressTokens []int
@@ -386,6 +387,17 @@ func (g *Game) RemoveFromLayout(loc Loc) {
 	if len(g.Layout) == 0 {
 		g.NextAge()
 	}
+}
+
+func (g *Game) PlayerSciences(player int) map[int]int {
+	sciences := map[int]int{}
+	for _, c := range g.PlayerCards[player] {
+		crd := Cards[c]
+		if crd.Science != 0 {
+			sciences[crd.Science]++
+		}
+	}
+	return sciences
 }
 
 func Opponent(player int) int {
