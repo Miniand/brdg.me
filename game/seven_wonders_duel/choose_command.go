@@ -75,7 +75,7 @@ func (g *Game) ChooseWonder(player, wonder int) error {
 		`%s chose
 %s`,
 		g.PlayerName(player),
-		Cards[g.RemainingWonders[wonder]].RenderMultiline(),
+		Cards[g.RemainingWonders[wonder]].RenderMultiline(0),
 	)))
 	g.PlayerWonders[player] = append(
 		g.PlayerWonders[player],

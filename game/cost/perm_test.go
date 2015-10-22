@@ -343,3 +343,44 @@ func TestCanAffordPerm(t *testing.T) {
 		)
 	}
 }
+
+func TestPerm(t *testing.T) {
+	assert.Equal(t, []Cost{}, Perm([][]Cost{}))
+	assert.Equal(t, []Cost{
+		{1: 3, 2: 4},
+	}, Perm([][]Cost{
+		{
+			{1: 3, 2: 1},
+		},
+		{
+			{2: 3},
+		},
+	}))
+	assert.Equal(t, []Cost{
+		{1: 3, 2: 4},
+		{1: 2, 2: 3, 3: 5},
+	}, Perm([][]Cost{
+		{
+			{1: 3, 2: 1},
+			{1: 2, 3: 5},
+		},
+		{
+			{2: 3},
+		},
+	}))
+	assert.Equal(t, []Cost{
+		{1: 3, 2: 4},
+		{1: 2, 2: 3, 3: 5},
+		{1: 3, 2: 1, 3: 4},
+		{1: 2, 3: 9},
+	}, Perm([][]Cost{
+		{
+			{1: 3, 2: 1},
+			{1: 2, 3: 5},
+		},
+		{
+			{2: 3},
+			{3: 4},
+		},
+	}))
+}

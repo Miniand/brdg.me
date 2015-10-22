@@ -148,6 +148,14 @@ const (
 	ProgressUrbanism
 )
 
+var Goods = []int{
+	GoodWood,
+	GoodClay,
+	GoodStone,
+	GoodGlass,
+	GoodPapyrus,
+}
+
 type Card struct {
 	Id            int
 	Name          string
@@ -163,6 +171,7 @@ type Card struct {
 	Science       int
 	Cheapens      []int
 	DiscountGoods func(player, card int) int
+	RemoveGoods   map[int]int
 	ExtraTurn     bool
 	Summary       string
 	OngoingEffect string

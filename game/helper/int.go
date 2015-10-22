@@ -180,3 +180,26 @@ func IntAbs(i int) int {
 	}
 	return i
 }
+
+func IntIntersect(s1, s2 []int) []int {
+	index := map[int]bool{}
+	intersection := []int{}
+	for _, i := range s1 {
+		index[i] = true
+	}
+	for _, i := range s2 {
+		if index[i] {
+			intersection = append(intersection, i)
+			index[i] = false
+		}
+	}
+	return intersection
+}
+
+func IntRepeat(i, n int) []int {
+	ints := make([]int, n)
+	for k := 0; k < n; k++ {
+		ints[k] = i
+	}
+	return ints
+}

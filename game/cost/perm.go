@@ -9,6 +9,31 @@ func prependToCostArrays(c Cost, arr [][]Cost) [][]Cost {
 	return ret
 }
 
+// Perm permutes the combinations of different costs, usually from 7 Wonders
+// style split providers.
+func Perm(costs [][]Cost) []Cost {
+	if len(costs) == 0 {
+		return []Cost{}
+	}
+
+	head := costs[0]
+	tailPerm := Perm(costs[1:])
+	if len(head) == 0 {
+		return tailPerm
+	}
+	if len(tailPerm) == 0 {
+		return head
+	}
+
+	perm := []Cost{}
+	for _, tc := range tailPerm {
+		for _, hc := range head {
+			perm = append(perm, hc.Add(tc))
+		}
+	}
+	return perm
+}
+
 func CanAffordPerm(c Cost, with [][]Cost) (can bool, canWith [][]Cost) {
 	canWith = [][]Cost{}
 	if c.IsZero() {

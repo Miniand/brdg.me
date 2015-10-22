@@ -143,3 +143,12 @@ func (c Cost) Sum() int {
 	}
 	return sum
 }
+
+// Mul multiplies the cost by a number.
+func (c Cost) Mul(by int) Cost {
+	nc := c.Clone()
+	for k := range c {
+		nc[k] *= by
+	}
+	return nc
+}

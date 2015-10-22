@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Miniand/brdg.me/command"
+	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/Miniand/brdg.me/game/log"
 )
@@ -211,6 +212,137 @@ func (g *Game) PlayerGoodCount(player, good int) (base, extra int) {
 		}
 	}
 	return
+}
+
+func (g *Game) CheapenedGoods(player int) []int {
+	cheapened := cost.Cost{}
+	for _, c := range g.PlayerCards[player] {
+		crd := Cards[c]
+		if crd.Cheapens != nil {
+			cheapened = cheapened.Add(cost.FromInts(crd.Cheapens))
+		}
+	}
+	return cheapened.Keys()
+}
+
+func BaseTradePrices() cost.Cost {
+	return cost.FromInts(Goods).Mul(2)
+}
+
+func (g *Game) TradePrices(player int) cost.Cost {
+	costs := BaseTradePrices()
+	for g, num := range g.TradeGoodCount(Opponent(player)) {
+		costs[g] += num
+	}
+	for _, g := range g.CheapenedGoods(player) {
+		costs[g] = 1
+	}
+	return costs
+}
+
+func (g *Game) TradeGoodCount(player int) cost.Cost {
+	counts := cost.Cost{}
+	for _, c := range g.PlayerCards[player] {
+		crd := Cards[c]
+		switch crd.Type {
+		case CardTypeRaw, CardTypeManufactured:
+			for _, p := range crd.Provides {
+				counts = counts.Add(p)
+			}
+		}
+	}
+	return counts
+}
+
+func (g *Game) PlayerProvides(player int) [][]cost.Cost {
+	provides := [][]cost.Cost{}
+	for _, c := range g.PlayerCards[player] {
+		crd := Cards[c]
+		if crd.Provides != nil {
+			provides = append(provides, crd.Provides)
+		}
+	}
+	return provides
+}
+
+func (g *Game) TradeCost(player int, crd Card) int {
+	tradePrices := g.TradePrices(player)
+	remainingCost := crd.Cost.Take(Goods...).Clone()
+	remainingProvides := g.PlayerProvides(player)
+
+	removeGoods := 0
+	if crd.Type == CardTypeWonder && g.HasCard(player, ProgressArchitecture) ||
+		crd.Type == CardTypeCivilian && g.HasCard(player, ProgressMasonry) {
+		removeGoods = 2
+	}
+
+	// First pass, no decisions required
+	changed := true
+	for changed && len(remainingProvides) > 0 && !remainingCost.IsZero() {
+		changed = false
+		deferred := [][]cost.Cost{}
+		for _, p := range remainingProvides {
+			if len(p) == 1 {
+				// There's no branches so just reduce the cost
+				remainingCost, _ = remainingCost.Sub(p[0]).PosNeg()
+				changed = true
+			} else {
+				for _, c := range p {
+					subProv := []cost.Cost{}
+					matchingKeys := helper.IntIntersect(c.Keys(), remainingCost.Keys())
+					if len(matchingKeys) > 0 {
+						subProv = append(subProv, c.Take(matchingKeys...))
+					} else {
+						// We've eliminated a provider branch
+						changed = true
+					}
+				}
+			}
+		}
+		remainingProvides = deferred
+	}
+	if remainingCost.Sum() <= removeGoods {
+		// Can afford
+		return 0
+	}
+
+	excesses := [][]int{}
+	if len(remainingProvides) > 0 {
+		// Get permutations
+		for _, c := range cost.Perm(remainingProvides) {
+			left, _ := remainingCost.Sub(c).PosNeg()
+			if left.Sum() <= removeGoods {
+				// Can afford
+				return 0
+			}
+			excesses = append(excesses, CostToTradePrices(left, tradePrices))
+		}
+	} else {
+		excesses = append(excesses, CostToTradePrices(remainingCost, tradePrices))
+	}
+
+	// Find the cheapest excess
+	cheapest := 0
+	for i, e := range excesses {
+		sum := helper.IntSum(helper.IntReverse(helper.IntSort(e))[removeGoods:])
+		if i == 0 || sum < cheapest {
+			cheapest = sum
+		}
+	}
+	return cheapest
+}
+
+func CostToTradePrices(c cost.Cost, tradePrices cost.Cost) []int {
+	trades := []int{}
+	for good, num := range c {
+		trades = append(trades, helper.IntRepeat(tradePrices[good], num)...)
+	}
+	return trades
+}
+
+func (g *Game) HasCard(player, card int) bool {
+	_, ok := helper.IntFind(card, g.PlayerCards[player])
+	return ok
 }
 
 func (g *Game) NextAge() {

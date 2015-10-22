@@ -116,7 +116,9 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if g.Phase == PhaseChooseWonder {
 		wonderOutputs := []interface{}{}
 		for _, w := range g.AvailableWonders() {
-			wonderOutputs = append(wonderOutputs, Cards[w].RenderMultiline())
+			wonderOutputs = append(wonderOutputs, Cards[w].RenderMultiline(
+				g.TradeCost(pNum, Cards[w]),
+			))
 		}
 		rows = append(rows, render.Bold("Available wonders"), "", render.Table(
 			[][]interface{}{wonderOutputs},
@@ -128,14 +130,14 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			rows,
 			render.Bold(fmt.Sprintf("Age %d", g.Age)),
 			"",
-			g.RenderLayout(0, g.Layout),
+			g.RenderLayout(pNum, g.Layout),
 		)
 	}
 
 	// Progress tokens
 	progCells := []interface{}{}
 	for _, p := range g.ProgressTokens {
-		progCells = append(progCells, Cards[p].RenderMultiline())
+		progCells = append(progCells, Cards[p].RenderMultiline(0))
 	}
 	rows = append(
 		rows,
@@ -288,7 +290,7 @@ func (g *Game) RenderUnbuiltWondersTable(wonders []int) string {
 	for _, w := range wonders {
 		cells = append(
 			cells,
-			[]interface{}{render.Centred(Cards[w].RenderMultiline())},
+			[]interface{}{render.Centred(Cards[w].RenderMultiline(0))},
 		)
 	}
 	return render.Table(cells, 1, 0)
@@ -311,7 +313,7 @@ func (g *Game) RenderLayout(player int, layout Layout) string {
 				))
 			} else {
 				rowCells = append(rowCells, render.CentreLines(
-					Cards[card].RenderMultiline(),
+					Cards[card].RenderMultiline(g.TradeCost(player, Cards[card])),
 					CardWidth,
 				))
 			}
@@ -352,7 +354,7 @@ func RenderCardType(cardType int) string {
 	return render.Markup(CardText(cardType), CardColours[cardType], true)
 }
 
-func (c Card) RenderMultiline() string {
+func (c Card) RenderMultiline(extraCost int) string {
 	fg := CardColours[c.Type]
 	bg := render.Black
 	if c.Type != CardTypeWonder && c.Type != CardTypeProgress {
@@ -366,7 +368,11 @@ func (c Card) RenderMultiline() string {
 		c.Name,
 	)}
 	if c.Type != CardTypeProgress {
-		rows = append(rows, RenderCost(c.Cost))
+		costRow := RenderCost(c.Cost)
+		if extraCost > 0 {
+			costRow = fmt.Sprintf("%s (+%s)", costRow, RenderCoins(extraCost))
+		}
+		rows = append(rows, costRow)
 	}
 	rows = append(rows, c.RenderSummary())
 	return render.CentreLayout(rows, 0)
