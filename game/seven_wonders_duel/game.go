@@ -354,6 +354,40 @@ func (g *Game) NextAge() {
 	g.StartAge()
 }
 
+func (g *Game) Build(player, card int) error {
+	c := Cards[card]
+	opp := Opponent(player)
+	if c.Type != CardTypeProgress {
+		tradeCost := g.TradeCost(player, c)
+		totalCost := c.Cost[GoodCoin] + tradeCost
+		if totalCost > g.PlayerCoins[player] {
+			return errors.New("you don't have enough coins")
+		}
+		g.ModifyCoins(player, -totalCost)
+		g.Log.Add(log.NewPublicMessage(fmt.Sprintf(
+			`%s built
+%s`,
+			g.PlayerName(player),
+			c.RenderMultiline(tradeCost),
+		)))
+		if g.HasCard(opp, ProgressEconomy) {
+			g.ModifyCoins(opp, tradeCost)
+		}
+	}
+	g.PlayerCards[player] = append(g.PlayerCards[player], card)
+	if !c.ExtraTurn {
+		g.CurrentPlayer = opp
+	}
+	return nil
+}
+
+func (g *Game) RemoveFromLayout(loc Loc) {
+	g.Layout = g.Layout.Remove(loc)
+	if len(g.Layout) == 0 {
+		g.NextAge()
+	}
+}
+
 func Opponent(player int) int {
 	return (player + 1) % 2
 }

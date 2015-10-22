@@ -61,11 +61,9 @@ func (g *Game) Play(player int, loc Loc) error {
 	if !g.Layout.CanBuild(loc) {
 		return errors.New("that card isn't playable")
 	}
-	g.PlayerCards[player] = append(g.PlayerCards[player], g.Layout.At(loc))
-	g.CurrentPlayer = Opponent(g.CurrentPlayer)
-	g.Layout = g.Layout.Remove(loc)
-	if len(g.Layout) == 0 {
-		g.NextAge()
+	if err := g.Build(player, g.Layout.At(loc)); err != nil {
+		return err
 	}
+	g.RemoveFromLayout(loc)
 	return nil
 }

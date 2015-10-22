@@ -80,18 +80,13 @@ func (g *Game) Wonder(player, wonder int, loc Loc) error {
 	if wonder < 0 || wonder >= len(g.PlayerWonders[player]) {
 		return errors.New("invalid wonder number")
 	}
-	g.PlayerCards[player] = append(
-		g.PlayerCards[player],
-		g.PlayerWonders[player][wonder],
-	)
+	if err := g.Build(player, g.PlayerWonders[player][wonder]); err != nil {
+		return err
+	}
 	g.PlayerWonders[player] = append(
 		g.PlayerWonders[player][:wonder],
 		g.PlayerWonders[player][wonder+1:]...,
 	)
-	g.CurrentPlayer = Opponent(g.CurrentPlayer)
-	g.Layout = g.Layout.Remove(loc)
-	if len(g.Layout) == 0 {
-		g.NextAge()
-	}
+	g.RemoveFromLayout(loc)
 	return nil
 }

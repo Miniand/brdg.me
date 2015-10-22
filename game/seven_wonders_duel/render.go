@@ -116,9 +116,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 	if g.Phase == PhaseChooseWonder {
 		wonderOutputs := []interface{}{}
 		for _, w := range g.AvailableWonders() {
-			wonderOutputs = append(wonderOutputs, Cards[w].RenderMultiline(
-				g.TradeCost(pNum, Cards[w]),
-			))
+			wonderOutputs = append(wonderOutputs, Cards[w].RenderMultiline(0))
 		}
 		rows = append(rows, render.Bold("Available wonders"), "", render.Table(
 			[][]interface{}{wonderOutputs},
@@ -261,7 +259,7 @@ func (g *Game) RenderPlayerTable(player int) string {
 func (g *Game) RenderPlayerNotables(player int) string {
 	rows := []interface{}{}
 	if len(g.PlayerWonders[player]) > 0 {
-		rows = append(rows, g.RenderUnbuiltWondersTable(g.PlayerWonders[player]))
+		rows = append(rows, g.RenderUnbuiltWondersTable(g.PlayerWonders[player], player))
 	}
 	ongoingEffects := []string{}
 	for _, c := range g.PlayerCards[player] {
@@ -285,12 +283,14 @@ func (g *Game) RenderPlayerGoodCount(player, good int) string {
 	return fmt.Sprintf("%d%s", base, extraStr)
 }
 
-func (g *Game) RenderUnbuiltWondersTable(wonders []int) string {
+func (g *Game) RenderUnbuiltWondersTable(wonders []int, player int) string {
 	cells := [][]interface{}{{render.Centred(render.Colour("Unbuilt WO", render.Gray))}}
 	for _, w := range wonders {
 		cells = append(
 			cells,
-			[]interface{}{render.Centred(Cards[w].RenderMultiline(0))},
+			[]interface{}{render.Centred(Cards[w].RenderMultiline(
+				g.TradeCost(player, Cards[w]),
+			))},
 		)
 	}
 	return render.Table(cells, 1, 0)

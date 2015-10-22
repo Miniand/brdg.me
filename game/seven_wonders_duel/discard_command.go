@@ -61,9 +61,6 @@ func (g *Game) Discard(player int, loc Loc) error {
 	g.DiscardedCards = append(g.DiscardedCards, g.Layout.At(loc))
 	g.ModifyCoins(player, 2+g.PlayerCardTypeCount(player, CardTypeCommercial))
 	g.CurrentPlayer = Opponent(g.CurrentPlayer)
-	g.Layout = g.Layout.Remove(loc)
-	if len(g.Layout) == 0 {
-		g.NextAge()
-	}
+	g.RemoveFromLayout(loc)
 	return nil
 }
