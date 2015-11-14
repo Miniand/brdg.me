@@ -1,12 +1,32 @@
 package seven_wonders_duel
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Miniand/brdg.me/game/cost"
 	"github.com/Miniand/brdg.me/game/helper"
 	"github.com/stretchr/testify/assert"
 )
+
+func atFirstRound(t *testing.T) *Game {
+	g := &Game{}
+	assert.NoError(t, g.Start(helper.Players[:2]))
+	for g.Phase == PhaseChooseWonder {
+		var p int
+		for pNum, pName := range g.Players {
+			if len(g.Commands(pName)) > 0 {
+				p = pNum
+				break
+			}
+		}
+		assert.NoError(t, helper.Cmd(g, p, fmt.Sprintf(
+			"choose %s",
+			Cards[g.AvailableWonders()[0]].Name,
+		)))
+	}
+	return g
+}
 
 func TestGame_Start(t *testing.T) {
 	g := &Game{}
