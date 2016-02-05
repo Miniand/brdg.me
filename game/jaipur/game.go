@@ -190,7 +190,7 @@ func (g *Game) EndRound() {
 	camelWinner := -1
 	if g.Camels[0] > g.Camels[1] {
 		camelWinner = 0
-	} else if g.Camels[0] > g.Camels[1] {
+	} else if g.Camels[1] > g.Camels[0] {
 		camelWinner = 1
 	}
 	if camelWinner != -1 {
