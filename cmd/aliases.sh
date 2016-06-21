@@ -1,6 +1,6 @@
 #!/bin/sh
 
-alias run="godep go run main.go"
+alias run="go run main.go"
 alias play="run play"
 alias view="run view"
 alias mick="play mick"
