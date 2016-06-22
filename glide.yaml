@@ -13,6 +13,6 @@ import:
   - package: github.com/gorilla/mux
     version: 26a6070f849969ba72b72256e9f14cf519751690
   - package: github.com/dancannon/gorethink
-    version: 1.3.2
+    version: 2.0.4
   - package: github.com/smartystreets/goconvey/convey
     version: 1.6.0

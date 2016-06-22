@@ -1,14 +1,10 @@
-hash: 1c2ce2025436b2de08a2c3c44c11ea96b2b6579590ea525b27bdcffed1418734
-updated: 2016-02-05T21:50:07.635288922+11:00
+hash: eb9a79c78d2b252b5e7df5bd054b866a535dd45c07ab452a0b4219e98109502c
+updated: 2016-06-22T12:54:31.880229968+10:00
 imports:
 - name: github.com/cenkalti/backoff
   version: 4dc77674aceaabba2c7e3da25d4c823edfb73f99
 - name: github.com/dancannon/gorethink
-  version: 7d1af5be49cb5ecc7b177bf387d232050299d6ef
-  subpackages:
-  - encoding
-  - ql2
-  - types
+  version: de072a9c0eff5bd52ef81fe45b6abeccde74bd13
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
@@ -25,40 +21,30 @@ imports:
   version: 234959944d9cf05229b02e8b386e5cffe1e4e04a
 - name: github.com/hailocab/go-hostpool
   version: e80d13ce29ede4452c43dea11e79b9bc8a15b478
-- name: github.com/jtolds/gls
-  version: 8ddce2a84170772b95dd5d576c48d517b22cac63
-- name: github.com/pmezard/go-difflib
-  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
-  subpackages:
-  - difflib
 - name: github.com/Sirupsen/logrus
   version: be52937128b38f1d99787bb476c789e2af1147f1
-- name: github.com/smartystreets/assertions
-  version: 287b4346dc4e71a038c346375a9d572453bc469b
-  subpackages:
-  - internal/go-render/render
-  - internal/oglematchers
 - name: github.com/smartystreets/goconvey
   version: 899ed5a77548ac0bc086467509ff3dc49c63a814
   subpackages:
   - convey
-  - web/server/api
-  - web/server/contract
-  - web/server/executor
-  - web/server/messaging
-  - web/server/parser
-  - web/server/system
-  - web/server/watch
-  - convey/reporting
-  - convey/gotest
-- name: github.com/stretchr/objx
-  version: cbeaeb16a013161a98496fad62933b1d21786672
 - name: github.com/stretchr/testify
   version: f390dcf405f7b83c997eac1b06768bb9f44dec18
   subpackages:
   - assert
-  - http
-  - mock
+- name: golang.org/x/crypto
+  version: f3241ce8505855877cc8a9717bd61a0f7c4ea83c
+  subpackages:
+  - pbkdf2
+- name: golang.org/x/sys
+  version: 62bee037599929a6e9146f29d10dd5208c43507d
+  subpackages:
+  - unix
+- name: gopkg.in/dancannon/gorethink.v2
+  version: de072a9c0eff5bd52ef81fe45b6abeccde74bd13
+  subpackages:
+  - encoding
+  - ql2
+  - types
 - name: gopkg.in/fatih/pool.v2
   version: cba550ebf9bce999a02e963296d4bc7a486cb715
 devImports: []
