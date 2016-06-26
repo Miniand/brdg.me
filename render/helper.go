@@ -258,6 +258,17 @@ func Colour(s interface{}, colour string) string {
 	return strings.Join(lines, "\n")
 }
 
+func Bg(s interface{}, colour string) string {
+	if !IsValidColour(colour) {
+		log.Fatalf("%s is not a valid colour", colour)
+	}
+	lines := strings.Split(String(s), "\n")
+	for i := range lines {
+		lines[i] = fmt.Sprintf(`{{bg "%s"}}%s{{_bg}}`, colour, lines[i])
+	}
+	return strings.Join(lines, "\n")
+}
+
 func Markup(s interface{}, colour string, bold bool) string {
 	str := String(s)
 	if colour != "" {
