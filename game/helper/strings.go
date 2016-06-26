@@ -34,23 +34,24 @@ func MatchStringInStrings(input string, strs []string) (int, error) {
 	}
 	// Check for unique partial matches
 	skipped := map[int]bool{}
+	found := 0
+	foundStr := 0
 	for i, b := range []byte(in) {
-		found := 0
-		foundStr := 0
+		found = 0
 		for s, str := range lowerStrs {
 			if skipped[s] || i >= len(str) || b != str[i] {
 				skipped[s] = true
 				continue
 			}
-			found += 1
+			found++
 			foundStr = s
 		}
-		switch found {
-		case 0:
+		if found == 0 {
 			break
-		case 1:
-			return foundStr, nil
 		}
+	}
+	if found == 1 {
+		return foundStr, nil
 	}
 	return 0, fmt.Errorf("could not match '%s' uniquely to anything in (%s)",
 		input, strings.Join(strs, ", "))

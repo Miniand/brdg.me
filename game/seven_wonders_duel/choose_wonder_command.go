@@ -10,11 +10,11 @@ import (
 	"github.com/Miniand/brdg.me/game/log"
 )
 
-type ChooseCommand struct{}
+type ChooseWonderCommand struct{}
 
-func (c ChooseCommand) Name() string { return "choose" }
+func (c ChooseWonderCommand) Name() string { return "choose" }
 
-func (c ChooseCommand) Call(
+func (c ChooseWonderCommand) Call(
 	player string,
 	context interface{},
 	input *command.Reader,
@@ -43,7 +43,7 @@ func (c ChooseCommand) Call(
 	return "", g.ChooseWonder(pNum, wonder)
 }
 
-func (c ChooseCommand) Usage(player string, context interface{}) string {
+func (c ChooseWonderCommand) Usage(player string, context interface{}) string {
 	return "{{b}}choose [wonder]{{_b}} to choose a wonder, eg. {{b}}choose colossus{{_b}}"
 }
 
@@ -55,7 +55,8 @@ func (g *Game) AvailableWonders() []int {
 	return g.RemainingWonders[:n]
 }
 
-func (g *Game) CanChoose(player int) bool {
+// CanChooseWonder returns whether a player can choose a wonder.
+func (g *Game) CanChooseWonder(player int) bool {
 	if g.Phase != PhaseChooseWonder {
 		return false
 	}
@@ -65,7 +66,7 @@ func (g *Game) CanChoose(player int) bool {
 }
 
 func (g *Game) ChooseWonder(player, wonder int) error {
-	if !g.CanChoose(player) {
+	if !g.CanChooseWonder(player) {
 		return errors.New("can't choose at the moment")
 	}
 	if wonder < 0 || wonder > len(g.RemainingWonders) {
@@ -88,7 +89,7 @@ func (g *Game) ChooseWonder(player, wonder int) error {
 	if len(g.RemainingWonders) == 0 {
 		g.StartAge()
 	} else if len(g.AvailableWonders()) == 1 {
-		g.ChooseWonder(Opponent(player), 0)
+		return g.ChooseWonder(Opponent(player), 0)
 	}
 	return nil
 }

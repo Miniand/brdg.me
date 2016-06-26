@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGame_CanChoose(t *testing.T) {
+func TestGame_CanChooseWonder(t *testing.T) {
 	g := Game{}
-	g.Start(helper.Players[:2])
+	assert.NoError(t, g.Start(helper.Players[:2]))
 	for _, tc := range []struct {
 		numRemaining, player int
 	}{
@@ -24,7 +24,7 @@ func TestGame_CanChoose(t *testing.T) {
 		{1, 1},
 	} {
 		g.RemainingWonders = make([]int, tc.numRemaining)
-		assert.True(t, g.CanChoose(tc.player), fmt.Sprintf("%#v", tc))
-		assert.False(t, g.CanChoose(Opponent(tc.player)), fmt.Sprintf("%#v", tc))
+		assert.True(t, g.CanChooseWonder(tc.player), fmt.Sprintf("%#v", tc))
+		assert.False(t, g.CanChooseWonder(Opponent(tc.player)), fmt.Sprintf("%#v", tc))
 	}
 }

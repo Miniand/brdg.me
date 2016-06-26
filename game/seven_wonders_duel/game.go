@@ -19,12 +19,13 @@ type Game struct {
 	Players []string
 	Log     *log.Log
 
-	Phase         int
-	Finished      bool
-	Age           int
-	Layout        Layout
-	CurrentPlayer int
-	Military      int
+	Phase            int
+	Finished         bool
+	WinnerPlayerNums []int
+	Age              int
+	Layout           Layout
+	CurrentPlayer    int
+	Military         int
 
 	ProgressTokens          []int
 	DiscardedProgressTokens []int
@@ -43,8 +44,8 @@ func (g *Game) Commands(player string) []command.Command {
 		return []command.Command{}
 	}
 	commands := []command.Command{}
-	if g.CanChoose(pNum) {
-		commands = append(commands, ChooseCommand{})
+	if g.CanChooseWonder(pNum) {
+		commands = append(commands, ChooseWonderCommand{})
 	}
 	if g.CanPlay(pNum) {
 		commands = append(commands, PlayCommand{})
@@ -111,14 +112,9 @@ func (g *Game) Winners() []string {
 	if !g.IsFinished() {
 		return []string{}
 	}
-	p1VP := g.PlayerVP(0)
-	p2VP := g.PlayerVP(1)
 	winners := []string{}
-	if p1VP >= p2VP {
-		winners = append(winners, g.Players[0])
-	}
-	if p2VP >= p1VP {
-		winners = append(winners, g.Players[1])
+	for _, w := range g.WinnerPlayerNums {
+		winners = append(winners, g.Players[w])
 	}
 	return winners
 }
@@ -346,9 +342,23 @@ func (g *Game) HasCard(player, card int) bool {
 	return ok
 }
 
+func (g *Game) WinnersByVP() []int {
+	p1VP := g.PlayerVP(0)
+	p2VP := g.PlayerVP(1)
+	winners := []int{}
+	if p1VP >= p2VP {
+		winners = append(winners, 0)
+	}
+	if p2VP >= p1VP {
+		winners = append(winners, 1)
+	}
+	return winners
+}
+
 func (g *Game) NextAge() {
 	if g.Age == 3 {
 		g.Finished = true
+		g.WinnerPlayerNums = g.WinnersByVP()
 		return
 	}
 	g.Age += 1
@@ -358,7 +368,14 @@ func (g *Game) NextAge() {
 func (g *Game) Build(player, card int) error {
 	c := Cards[card]
 	opp := Opponent(player)
-	if c.Type != CardTypeProgress {
+	canFreeBuild := false
+	for _, pc := range g.PlayerCards[player] {
+		if Cards[pc].MakesFree == card {
+			canFreeBuild = true
+			break
+		}
+	}
+	if !canFreeBuild && c.Type != CardTypeProgress {
 		tradeCost := g.TradeCost(player, c)
 		totalCost := c.Cost[GoodCoin] + tradeCost
 		if totalCost > g.PlayerCoins[player] {
@@ -376,6 +393,23 @@ func (g *Game) Build(player, card int) error {
 		}
 	}
 	g.PlayerCards[player] = append(g.PlayerCards[player], card)
+	// Check scientific victory, 6 different science types
+	if c.Type == CardTypeScientific || card == ProgressLaw {
+		sciences := map[int]bool{}
+		for _, pc := range g.PlayerCards[player] {
+			pcc := Cards[pc]
+			if pcc.Science != 0 {
+				sciences[pcc.Science] = true
+				if len(sciences) == 6 {
+					// Scientific victory
+					g.Finished = true
+					g.WinnerPlayerNums = []int{player}
+					return nil
+				}
+			}
+		}
+	}
+	// Check military victory
 	if !c.ExtraTurn {
 		g.CurrentPlayer = opp
 	}

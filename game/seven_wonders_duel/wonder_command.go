@@ -63,7 +63,7 @@ func (c WonderCommand) Call(
 }
 
 func (c WonderCommand) Usage(player string, context interface{}) string {
-	return "{{b}}wonder [card]{{_b}} to wonder a card for 2 coins + the number of yellow cards you have, eg. {{b}}wonder quarry{{_b}}"
+	return "{{b}}wonder [wonder] with [card]{{_b}} build a wonder, eg. {{b}}wonder sphinx with tavern{{_b}}"
 }
 
 func (g *Game) CanWonder(player int) bool {
