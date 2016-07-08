@@ -9,6 +9,13 @@ type BoardSpace struct {
 	Strip         bool
 }
 
+type BoardSpaceState struct {
+	Owned  bool
+	Owner  int
+	Dice   int
+	Casino int
+}
+
 var BoardSpaces = []BoardSpace{
 	{"A1", CasinoPioneer, 7, 3, 9, false},
 	{"A2", CasinoAlbion, 8, 2, 6, false},

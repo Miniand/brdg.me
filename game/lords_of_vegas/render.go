@@ -32,7 +32,7 @@ func (g *Game) RenderForPlayer(player string) (string, error) {
 			if layoutCell == "ST" {
 				cell = renderStrip
 			} else if bs, ok := BoardSpaceByLocation[layoutCell]; ok {
-				cell = RenderSpace(bs, rnd.Int()%CasinoTheStrip, rnd.Int()%5-1, rnd.Int()%7)
+				cell = RenderSpace(bs, g.Board[layoutCell])
 			} else {
 				cell = "\n\n\n"
 			}
@@ -56,28 +56,32 @@ func RenderCasinoBg(input string, casino int) string {
 	return input
 }
 
-func RenderSpace(bs BoardSpace, casino, owner, dice int) string {
-	edge := RenderCasinoBg(strings.Repeat(renderSpaceBorderStr, renderSpaceBorderWidth), casino)
+func RenderSpace(bs BoardSpace, bsState BoardSpaceState) string {
+	edge := RenderCasinoBg(strings.Repeat(renderSpaceBorderStr, renderSpaceBorderWidth), bsState.Casino)
 	header := []interface{}{
 		edge,
-		RenderCasinoBg(strings.Repeat(renderSpaceBorderStr, renderSpaceContentWidth), casino),
+		RenderCasinoBg(strings.Repeat(renderSpaceBorderStr, renderSpaceContentWidth), bsState.Casino),
 		edge,
 	}
-	locText := render.Bold(bs.Location)
-	if owner != -1 {
-		locText = render.Colour(locText, render.PlayerColour(owner))
+	locText := bs.Location
+	if bsState.Owned {
+		locText = render.Markup(locText, render.PlayerColour(bsState.Owner), true)
 	}
 	cells := [][]interface{}{
 		header,
 		{edge, render.Centred(locText), edge},
 	}
 	contextualRow := ""
-	if casino == CasinoNone {
-		contextualRow = RenderPrice(bs.BuildPrice)
-	} else if owner != -1 && dice > 0 {
+	if bsState.Casino == CasinoNone {
+		contextualRow = fmt.Sprintf(
+			"%s %d",
+			RenderPrice(bs.BuildPrice),
+			bs.Dice,
+		)
+	} else if bsState.Owned && bsState.Dice > 0 {
 		contextualRow = render.Markup(
-			fmt.Sprintf("%d", dice),
-			render.PlayerColour(owner),
+			fmt.Sprintf("%d", bsState.Dice),
+			render.PlayerColour(bsState.Owner),
 			true,
 		)
 	}
