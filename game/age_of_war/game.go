@@ -244,7 +244,7 @@ func (g *Game) Winners() []string {
 	winners := []string{}
 	for p, s := range g.Scores() {
 		score := s*10 + playerConqueredClans[p]
-		if p == 0 || score > maxScore {
+		if len(winners) == 0 || score > maxScore {
 			maxScore = score
 			winners = []string{}
 		}
